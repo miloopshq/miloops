@@ -1,8 +1,8 @@
 // Renders the MILO robot concept sheet and the merch mock sheet (exploration only, not the component).
 // Usage: OUT_DIR=captures CHROME=/path/to/chrome node tools/robot-concepts.mjs
-import { chromium } from 'playwright-core';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { chromium } from 'playwright-core';
 
 const OUT = resolve(process.env.OUT_DIR || 'out');
 const CHROME = process.env.CHROME || '/usr/local/bin/google-chrome';
@@ -17,7 +17,9 @@ const MONO = (c) => ({ B: c, O: c, R: c });
 // Patches are [row, col, str]: a key sets that pixel, '.' keeps it, '-' clears it.
 const CONCEPTS = [
   {
-    id: 'dispatch', name: 'Dispatch', pitch: 'Operator head with headphones. The orange ear cups are the status light.',
+    id: 'dispatch',
+    name: 'Dispatch',
+    pitch: 'Operator head with headphones. The orange ear cups are the status light.',
     grid: [
       '....BBBBBB....',
       '...B......B...',
@@ -34,13 +36,21 @@ const CONCEPTS = [
       '...BOO........',
     ],
     states: {
-      speaking: [[10, 5, 'EEEE'], [11, 6, 'EE']],
-      thinking: [[5, 4, 'EE..EE'], [7, 4, 'BB..BB']],
+      speaking: [
+        [10, 5, 'EEEE'],
+        [11, 6, 'EE'],
+      ],
+      thinking: [
+        [5, 4, 'EE..EE'],
+        [7, 4, 'BB..BB'],
+      ],
       alert: [[5, 4, 'EE..EE']],
     },
   },
   {
-    id: 'bubble', name: 'Bubble', pitch: 'The head is a speech bubble. When thinking it becomes the typing dots.',
+    id: 'bubble',
+    name: 'Bubble',
+    pitch: 'The head is a speech bubble. When thinking it becomes the typing dots.',
     grid: [
       '......OO......',
       '......BB......',
@@ -58,13 +68,22 @@ const CONCEPTS = [
       '..B...........',
     ],
     states: {
-      speaking: [[8, 5, 'EEEE'], [9, 6, 'EE']],
-      thinking: [[5, 2, 'BEEBEEBEEB'], [6, 2, 'BEEBEEBEEB'], [8, 6, 'BB']],
+      speaking: [
+        [8, 5, 'EEEE'],
+        [9, 6, 'EE'],
+      ],
+      thinking: [
+        [5, 2, 'BEEBEEBEEB'],
+        [6, 2, 'BEEBEEBEEB'],
+        [8, 6, 'BB'],
+      ],
       alert: [[4, 4, 'EE..EE']],
     },
   },
   {
-    id: 'beacon', name: 'Beacon', pitch: 'A rounded body under a signal lamp. The lamp is the state indicator.',
+    id: 'beacon',
+    name: 'Beacon',
+    pitch: 'A rounded body under a signal lamp. The lamp is the state indicator.',
     grid: [
       '.....OOOO.....',
       '.....OOOO.....',
@@ -81,13 +100,18 @@ const CONCEPTS = [
       '....BBBBBB....',
     ],
     states: {
-      speaking: [[9, 5, 'EEEE'], [10, 6, 'EE']],
+      speaking: [
+        [9, 5, 'EEEE'],
+        [10, 6, 'EE'],
+      ],
       thinking: [[6, 3, 'BEE..BEE']],
       alert: [[5, 3, 'EEE..EEE']],
     },
   },
   {
-    id: 'nut', name: 'Hex', pitch: 'A hex-nut head with a dark visor. The orange eyes glow inside it.',
+    id: 'nut',
+    name: 'Hex',
+    pitch: 'A hex-nut head with a dark visor. The orange eyes glow inside it.',
     grid: [
       '......OO......',
       '......BB......',
@@ -106,12 +130,17 @@ const CONCEPTS = [
     ],
     states: {
       speaking: [[11, 6, 'EE']],
-      thinking: [[7, 3, 'EOOEEEEOO'], [8, 3, 'EOOEEEEOO']],
+      thinking: [
+        [7, 3, 'EOOEEEEOO'],
+        [8, 3, 'EOOEEEEOO'],
+      ],
       alert: [[6, 3, 'OO....OO']],
     },
   },
   {
-    id: 'flag', name: 'Inbox', pitch: 'A mailbox bot with a side flag. The flag turns red when a decision is waiting.',
+    id: 'flag',
+    name: 'Inbox',
+    pitch: 'A mailbox bot with a side flag. The flag turns red when a decision is waiting.',
     grid: [
       '...BBBBB...BOO',
       '..BBBBBBB..BOO',
@@ -126,8 +155,14 @@ const CONCEPTS = [
       '..BB...BB.....',
     ],
     states: {
-      speaking: [[7, 3, 'BEEEB'], [8, 4, 'EEE']],
-      thinking: [[3, 2, 'EE...EE'], [5, 2, 'BB...BB']],
+      speaking: [
+        [7, 3, 'BEEEB'],
+        [8, 4, 'EEE'],
+      ],
+      thinking: [
+        [3, 2, 'EE...EE'],
+        [5, 2, 'BB...BB'],
+      ],
       alert: [[3, 2, 'EE...EE']],
     },
   },
@@ -144,15 +179,26 @@ function compose(c, state = 'idle') {
       g[r][col + i] = ch === '-' ? '.' : ch;
     });
   }
-  if (state === 'alert') for (const row of g) row.forEach((ch, i) => { if (ch === 'O') row[i] = 'R'; });
+  if (state === 'alert')
+    for (const row of g)
+      row.forEach((ch, i) => {
+        if (ch === 'O') row[i] = 'R';
+      });
   const h = g.length;
-  const top = Math.floor((14 - h) / 2) + 1, left = 1;
+  const top = Math.floor((14 - h) / 2) + 1,
+    left = 1;
   const out = Array.from({ length: 16 }, () => Array(16).fill('.'));
-  g.forEach((row, y) => row.forEach((ch, x) => { out[y + top][x + left] = ch; }));
+  g.forEach((row, y) =>
+    row.forEach((ch, x) => {
+      out[y + top][x + left] = ch;
+    }),
+  );
   const filled = (y, x) => y >= 0 && y < 16 && x >= 0 && x < 16 && out[y][x] !== '.' && out[y][x] !== 'K';
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    if (out[y][x] === '.' && (filled(y - 1, x) || filled(y + 1, x) || filled(y, x - 1) || filled(y, x + 1))) out[y][x] = 'K';
-  }
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      if (out[y][x] === '.' && (filled(y - 1, x) || filled(y + 1, x) || filled(y, x - 1) || filled(y, x + 1)))
+        out[y][x] = 'K';
+    }
   return out.map((r) => r.join(''));
 }
 
@@ -248,11 +294,13 @@ function pin(c) {
   const rows = compose(c);
   const gold = '#c8b07a';
   let rects = '';
-  rows.forEach((row, y) => [...row].forEach((k, x) => {
-    if (k === '.') return;
-    const fill = k === 'K' ? gold : PAL[k];
-    rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${fill}"/>`;
-  }));
+  rows.forEach((row, y) =>
+    [...row].forEach((k, x) => {
+      if (k === '.') return;
+      const fill = k === 'K' ? gold : PAL[k];
+      rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${fill}"/>`;
+    }),
+  );
   return `<div class="m"><div class="pinbg"><div class="card2"><svg width="208" height="208" viewBox="0 0 16 16" shape-rendering="crispEdges" class="pin">
       <defs><linearGradient id="gl${c.id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".38"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/></linearGradient>
       <clipPath id="cp${c.id}">${rects.replace(/ fill="[^"]+"/g, '')}</clipPath></defs>
@@ -308,7 +356,10 @@ function merchPage() {
 
 const browser = await chromium.launch({ executablePath: CHROME });
 const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, deviceScaleFactor: 1 });
-for (const [file, html] of [['milo-robot-concepts.png', conceptsPage()], ['milo-robot-merch.png', merchPage()]]) {
+for (const [file, html] of [
+  ['milo-robot-concepts.png', conceptsPage()],
+  ['milo-robot-merch.png', merchPage()],
+]) {
   await page.setContent(html);
   await page.evaluate(() => document.fonts.ready);
   await page.locator('#sheet').screenshot({ path: join(OUT, file) });

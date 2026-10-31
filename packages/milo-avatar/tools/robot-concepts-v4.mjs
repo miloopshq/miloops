@@ -1,9 +1,9 @@
 // Renders the v4 MILO robot concept sheet (head only, composed on-duty tone; detailed 32×32 master + hand-simplified 16×16) and a merch mock for the top pick.
 // Usage: OUT_DIR=captures CHROME=/path/to/chrome TOP=crt node tools/robot-concepts-v4.mjs
-import { chromium } from 'playwright-core';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright-core';
 
 const OUT = resolve(process.env.OUT_DIR || 'out');
 const CHROME = process.env.CHROME || '/usr/local/bin/google-chrome';
@@ -12,22 +12,60 @@ const TOP = process.env.TOP || 'crt';
 // Material ramps. Tokens are material letter + tone (higher = lighter). `l` + letter is that material's line colour.
 const PAL = {
   K: '#0b151a',
-  L4: '#f5f9fa', L3: '#e2ebee', L2: '#c7d5da', L1: '#9db1b9', L0: '#76909b', lL: '#4b6470',
-  P3: '#a9bfc7', P2: '#87a2ac', P1: '#66828d', P0: '#47606a', lP: '#2a3f48',
-  C1: '#34464e', C0: '#25343b', lC: '#16232a',
-  D3: '#2e5462', D2: '#234350', D1: '#16303a', D0: '#11262e',
-  G2: '#f0fcff', G1: '#a6dce8', G0: '#5d9fb1',
-  S3: '#d6e8ee', S2: '#b3cfd8', S1: '#90b3bf', S0: '#7499a7', lS: '#46697a',
+  L4: '#f5f9fa',
+  L3: '#e2ebee',
+  L2: '#c7d5da',
+  L1: '#9db1b9',
+  L0: '#76909b',
+  lL: '#4b6470',
+  P3: '#a9bfc7',
+  P2: '#87a2ac',
+  P1: '#66828d',
+  P0: '#47606a',
+  lP: '#2a3f48',
+  C1: '#34464e',
+  C0: '#25343b',
+  lC: '#16232a',
+  D3: '#2e5462',
+  D2: '#234350',
+  D1: '#16303a',
+  D0: '#11262e',
+  G2: '#f0fcff',
+  G1: '#a6dce8',
+  G0: '#5d9fb1',
+  S3: '#d6e8ee',
+  S2: '#b3cfd8',
+  S1: '#90b3bf',
+  S0: '#7499a7',
+  lS: '#46697a',
   E1: '#1a3039',
-  O3: '#f7cba3', O2: '#e2a473', O1: '#c98b5e', O0: '#8e5d3a', lO: '#5c3820', Wo: '#e2d2c6',
-  R3: '#ffb8b0', R2: '#ff7b70', R1: '#ff4d42', R0: '#b3261e', lR: '#6c1812', Wr: '#efc7c3',
+  O3: '#f7cba3',
+  O2: '#e2a473',
+  O1: '#c98b5e',
+  O0: '#8e5d3a',
+  lO: '#5c3820',
+  Wo: '#e2d2c6',
+  R3: '#ffb8b0',
+  R2: '#ff7b70',
+  R1: '#ff4d42',
+  R0: '#b3261e',
+  lR: '#6c1812',
+  Wr: '#efc7c3',
 };
 const mat = (t) => (t[0] === 'l' ? t[1] : t[0]);
 
 class Grid {
-  constructor(w = 32, h = 32) { this.w = w; this.h = h; this.p = Array.from({ length: h }, () => Array(w).fill(null)); }
-  set(x, y, t) { if (x >= 0 && y >= 0 && x < this.w && y < this.h) this.p[y][x] = t; }
-  get(x, y) { return x >= 0 && y >= 0 && x < this.w && y < this.h ? this.p[y][x] : null; }
+  constructor(w = 32, h = 32) {
+    this.w = w;
+    this.h = h;
+    this.p = Array.from({ length: h }, () => Array(w).fill(null));
+  }
+  set(x, y, t) {
+    if (x >= 0 && y >= 0 && x < this.w && y < this.h) this.p[y][x] = t;
+  }
+  get(x, y) {
+    return x >= 0 && y >= 0 && x < this.w && y < this.h ? this.p[y][x] : null;
+  }
 }
 
 function rr(x0, y0, w, h, r) {
@@ -35,115 +73,217 @@ function rr(x0, y0, w, h, r) {
     if (x < x0 || y < y0 || x >= x0 + w || y >= y0 + h) return false;
     const cx = x < x0 + r ? x0 + r : x >= x0 + w - r ? x0 + w - r - 1 : x;
     const cy = y < y0 + r ? y0 + r : y >= y0 + h - r ? y0 + h - r - 1 : y;
-    const dx = x - cx, dy = y - cy;
+    const dx = x - cx,
+      dy = y - cy;
     return dx * dx + dy * dy <= r * r + r * 0.6;
   };
 }
 
 // Light from the top-left: lit rim, base, shaded bottom/right rim, plus a second shaded row along the bottom.
 function shade(g, inside, m, { hi = 3, base = 2, sh = 1, soft = false, spec = false } = {}) {
-  for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) {
-    if (!inside(x, y)) continue;
-    const up = inside(x, y - 1), lf = inside(x - 1, y), dn = inside(x, y + 1), rt = inside(x + 1, y);
-    let t = base;
-    if ((!up && rt) || (!lf && dn)) t = hi;
-    if ((!dn && lf) || (!rt && up)) t = sh;
-    if ((!up && !rt) || (!dn && !lf)) t = base;
-    if (!soft && t === base && !inside(x, y + 2) && lf && rt) t = sh;
-    g.set(x, y, m + t);
-  }
+  for (let y = 0; y < g.h; y++)
+    for (let x = 0; x < g.w; x++) {
+      if (!inside(x, y)) continue;
+      const up = inside(x, y - 1),
+        lf = inside(x - 1, y),
+        dn = inside(x, y + 1),
+        rt = inside(x + 1, y);
+      let t = base;
+      if ((!up && rt) || (!lf && dn)) t = hi;
+      if ((!dn && lf) || (!rt && up)) t = sh;
+      if ((!up && !rt) || (!dn && !lf)) t = base;
+      if (!soft && t === base && !inside(x, y + 2) && lf && rt) t = sh;
+      g.set(x, y, m + t);
+    }
   if (spec) {
-    outer: for (let y = 0; y < g.h; y++) for (let x = 0; x < g.w; x++) if (inside(x, y) && inside(x + 1, y + 1)) { g.set(x + 1, y + 1, m + 4); g.set(x + 2, y + 1, m + 4); g.set(x + 1, y + 2, m + 4); break outer; }
+    outer: for (let y = 0; y < g.h; y++)
+      for (let x = 0; x < g.w; x++)
+        if (inside(x, y) && inside(x + 1, y + 1)) {
+          g.set(x + 1, y + 1, m + 4);
+          g.set(x + 2, y + 1, m + 4);
+          g.set(x + 1, y + 2, m + 4);
+          break outer;
+        }
   }
 }
 
 function band(g, cx, cy, a, b, th) {
   const e = (x, y, aa, bb) => ((x + 0.5 - cx) / aa) ** 2 + ((y + 0.5 - cy) / bb) ** 2;
-  for (let y = 0; y < cy; y++) for (let x = 0; x < g.w; x++) {
-    const o = e(x, y, a, b), i = e(x, y, a - th, b - th);
-    if (o <= 1 && i > 1) {
-      const rim = e(x, y - 1, a, b) > 1 || e(x - (x < cx ? 1 : -1), y, a, b) > 1;
-      const inner = e(x, y + 1, a - th, b - th) <= 1;
-      g.set(x, y, rim ? 'P2' : inner ? 'P0' : 'P1');
+  for (let y = 0; y < cy; y++)
+    for (let x = 0; x < g.w; x++) {
+      const o = e(x, y, a, b),
+        i = e(x, y, a - th, b - th);
+      if (o <= 1 && i > 1) {
+        const rim = e(x, y - 1, a, b) > 1 || e(x - (x < cx ? 1 : -1), y, a, b) > 1;
+        const inner = e(x, y + 1, a - th, b - th) <= 1;
+        g.set(x, y, rim ? 'P2' : inner ? 'P0' : 'P1');
+      }
     }
-  }
 }
 
 function light(g, x, y, state, halo = true) {
   const m = state === 'alert' ? 'R' : 'O';
   const dim = state === 'thinking';
-  g.set(x, y, dim ? 'O1' : m + '3'); g.set(x + 1, y, dim ? 'O0' : m + '2');
-  g.set(x, y + 1, dim ? 'O0' : m + '2'); g.set(x + 1, y + 1, dim ? 'O0' : m + '1');
-  if (halo && state === 'alert') for (const [dx, dy] of [[-1, 0], [2, 0], [-1, 1], [2, 1], [0, -1], [1, -1], [0, 2], [1, 2]]) {
-    const t = g.get(x + dx, y + dy);
-    if (t && t[0] === 'L') g.set(x + dx, y + dy, state === 'alert' ? 'Wr' : 'Wo');
-  }
+  g.set(x, y, dim ? 'O1' : m + '3');
+  g.set(x + 1, y, dim ? 'O0' : m + '2');
+  g.set(x, y + 1, dim ? 'O0' : m + '2');
+  g.set(x + 1, y + 1, dim ? 'O0' : m + '1');
+  if (halo && state === 'alert')
+    for (const [dx, dy] of [
+      [-1, 0],
+      [2, 0],
+      [-1, 1],
+      [2, 1],
+      [0, -1],
+      [1, -1],
+      [0, 2],
+      [1, 2],
+    ]) {
+      const t = g.get(x + dx, y + dy);
+      if (t && t[0] === 'L') g.set(x + dx, y + dy, state === 'alert' ? 'Wr' : 'Wo');
+    }
 }
 
 // Composed face drawn on the screen rect: narrowed eyes, flat dim mouth, faint horizontal glow only.
 // `crt` = light pixels on dark glass, otherwise dark pixels on a blue screen. `visor` joins the eyes with a scan line.
 function face(g, s, state, { crt, inset = 1, visor = false } = {}) {
-  const ey = s.y + Math.floor(s.h / 2) - 2, my = ey + 4;
+  const ey = s.y + Math.floor(s.h / 2) - 2,
+    my = ey + 4;
   const ex = [s.x + inset, s.x + s.w - inset - 3];
   const mx = s.x + s.w / 2 - 1;
-  const hi = crt ? 'G1' : 'E1', lo = crt ? 'G0' : 'S0', core = crt ? 'G2' : 'E1';
+  const hi = crt ? 'G1' : 'E1',
+    lo = crt ? 'G0' : 'S0',
+    core = crt ? 'G2' : 'E1';
   const set = (x, y, t) => g.set(x, y, t);
-  if (visor && crt) for (let x = ex[0] - 1; x <= ex[1] + 3; x++) if ((g.get(x, ey + 1) || '')[0] === 'D') set(x, ey + 1, 'D3');
+  if (visor && crt)
+    for (let x = ex[0] - 1; x <= ex[1] + 3; x++) if ((g.get(x, ey + 1) || '')[0] === 'D') set(x, ey + 1, 'D3');
   const look = state === 'thinking' ? 1 : 0;
   for (const x0 of ex) {
     const x = x0 + look;
-    if (state === 'blink') { for (let i = 0; i < 3; i++) set(x + i, ey + 1, lo); continue; }
+    if (state === 'blink') {
+      for (let i = 0; i < 3; i++) set(x + i, ey + 1, lo);
+      continue;
+    }
     if (state === 'alert') for (let i = 0; i < 3; i++) set(x + i, ey - 1, lo);
-    for (let i = 0; i < 3; i++) { set(x + i, ey, state === 'alert' ? hi : lo); set(x + i, ey + 1, hi); }
+    for (let i = 0; i < 3; i++) {
+      set(x + i, ey, state === 'alert' ? hi : lo);
+      set(x + i, ey + 1, hi);
+    }
     if (crt && state === 'alert') set(x + 1, ey + 1, core);
   }
   const mouth = (pts, t) => pts.forEach(([dx, dy]) => set(mx + dx, my + dy, t));
-  if (state === 'speaking') { mouth([[-1, 0], [0, 0], [1, 0], [2, 0]], hi); mouth([[0, 1], [1, 1]], lo); }
-  else if (state === 'speakB') mouth([[0, 0], [1, 0]], hi);
-  else if (state === 'thinking') mouth([[1, 0], [2, 0]], lo);
-  else mouth([[0, 0], [1, 0]], lo);
+  if (state === 'speaking') {
+    mouth(
+      [
+        [-1, 0],
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ],
+      hi,
+    );
+    mouth(
+      [
+        [0, 1],
+        [1, 1],
+      ],
+      lo,
+    );
+  } else if (state === 'speakB')
+    mouth(
+      [
+        [0, 0],
+        [1, 0],
+      ],
+      hi,
+    );
+  else if (state === 'thinking')
+    mouth(
+      [
+        [1, 0],
+        [2, 0],
+      ],
+      lo,
+    );
+  else
+    mouth(
+      [
+        [0, 0],
+        [1, 0],
+      ],
+      lo,
+    );
   if (crt) {
-    for (let y = s.y; y < s.y + s.h; y++) for (let x = s.x; x < s.x + s.w; x++) {
-      const t = g.get(x, y);
-      if (!t || t[0] !== 'D' || t === 'D3') continue;
-      if ([[1, 0], [-1, 0]].some(([dx, dy]) => /^G[12]/.test(g.get(x + dx, y + dy) || ''))) set(x, y, 'D2');
-    }
+    for (let y = s.y; y < s.y + s.h; y++)
+      for (let x = s.x; x < s.x + s.w; x++) {
+        const t = g.get(x, y);
+        if (!t || t[0] !== 'D' || t === 'D3') continue;
+        if (
+          [
+            [1, 0],
+            [-1, 0],
+          ].some(([dx, dy]) => /^G[12]/.test(g.get(x + dx, y + dy) || ''))
+        )
+          set(x, y, 'D2');
+      }
   }
 }
 
 function screen(g, s, crt) {
   const inside = rr(s.x, s.y, s.w, s.h, s.r);
-  for (let y = s.y; y < s.y + s.h; y++) for (let x = s.x; x < s.x + s.w; x++) {
-    if (!inside(x, y)) continue;
-    if (crt) g.set(x, y, (y - s.y) % 2 ? 'D0' : 'D1');
-    else g.set(x, y, y === s.y ? 'S3' : y < s.y + 3 ? 'S2' : y >= s.y + s.h - 2 ? 'S0' : 'S1');
-  }
+  for (let y = s.y; y < s.y + s.h; y++)
+    for (let x = s.x; x < s.x + s.w; x++) {
+      if (!inside(x, y)) continue;
+      if (crt) g.set(x, y, (y - s.y) % 2 ? 'D0' : 'D1');
+      else g.set(x, y, y === s.y ? 'S3' : y < s.y + 3 ? 'S2' : y >= s.y + s.h - 2 ? 'S0' : 'S1');
+    }
   // glass reflection, top-left (same side as the light)
-  for (const [dx, dy] of [[1, 1], [2, 1], [1, 2]]) if (inside(s.x + dx, s.y + dy)) g.set(s.x + dx, s.y + dy, crt ? 'D3' : 'S3');
+  for (const [dx, dy] of [
+    [1, 1],
+    [2, 1],
+    [1, 2],
+  ])
+    if (inside(s.x + dx, s.y + dy)) g.set(s.x + dx, s.y + dy, crt ? 'D3' : 'S3');
   // bezel shadow on the glass edge, top and left
   for (let x = s.x; x < s.x + s.w; x++) if (inside(x, s.y) && crt) g.set(x, s.y, 'D0');
 }
 
 const CONCEPTS = {
   crt: {
-    name: 'CRT', crt: true, inset: 2,
-    pitch: 'A square monitor head with dark glass and steady, narrowed eyes, and a flat mouth line. The status light sits in a small pod on the headband.',
-    head: { x: 6, y: 7, w: 20, h: 19, r: 3 }, screen: { x: 9, y: 10, w: 14, h: 12, r: 2 },
-    cups: { y: 12, h: 12, lx: 1, rx: 27, w: 4 }, band: { cx: 16, cy: 16, a: 15, b: 13, th: 2 },
+    name: 'CRT',
+    crt: true,
+    inset: 2,
+    pitch:
+      'A square monitor head with dark glass and steady, narrowed eyes, and a flat mouth line. The status light sits in a small pod on the headband.',
+    head: { x: 6, y: 7, w: 20, h: 19, r: 3 },
+    screen: { x: 9, y: 10, w: 14, h: 12, r: 2 },
+    cups: { y: 12, h: 12, lx: 1, rx: 27, w: 4 },
+    band: { cx: 16, cy: 16, a: 15, b: 13, th: 2 },
     light: 'band',
   },
   tv: {
-    name: 'Broadcast', crt: false, inset: 3,
-    pitch: 'A wide TV head with a blue screen and heavy-lidded dark eyes. A short antenna on the ear cup carries the status LED.',
-    head: { x: 5, y: 8, w: 22, h: 17, r: 3 }, screen: { x: 8, y: 11, w: 16, h: 10, r: 2 },
-    cups: { y: 12, h: 11, lx: 1, rx: 27, w: 4 }, band: { cx: 16, cy: 16, a: 15, b: 12.5, th: 2 },
+    name: 'Broadcast',
+    crt: false,
+    inset: 3,
+    pitch:
+      'A wide TV head with a blue screen and heavy-lidded dark eyes. A short antenna on the ear cup carries the status LED.',
+    head: { x: 5, y: 8, w: 22, h: 17, r: 3 },
+    screen: { x: 8, y: 11, w: 16, h: 10, r: 2 },
+    cups: { y: 12, h: 11, lx: 1, rx: 27, w: 4 },
+    band: { cx: 16, cy: 16, a: 15, b: 12.5, th: 2 },
     light: 'antenna',
   },
   operator: {
-    name: 'Operator', crt: true, inset: 2, visor: true,
-    pitch: 'The CRT head with a visor scan line joining the eyes. The headset mic boom runs under the chin, and its tip is the status light.',
-    head: { x: 6, y: 7, w: 20, h: 19, r: 3 }, screen: { x: 9, y: 10, w: 14, h: 12, r: 2 },
-    cups: { y: 12, h: 12, lx: 1, rx: 27, w: 4 }, band: { cx: 16, cy: 16, a: 15, b: 13, th: 2 },
+    name: 'Operator',
+    crt: true,
+    inset: 2,
+    visor: true,
+    pitch:
+      'The CRT head with a visor scan line joining the eyes. The headset mic boom runs under the chin, and its tip is the status light.',
+    head: { x: 6, y: 7, w: 20, h: 19, r: 3 },
+    screen: { x: 9, y: 10, w: 14, h: 12, r: 2 },
+    cups: { y: 12, h: 12, lx: 1, rx: 27, w: 4 },
+    band: { cx: 16, cy: 16, a: 15, b: 13, th: 2 },
     light: 'mic',
   },
 };
@@ -154,20 +294,32 @@ function draw(c, state = 'idle') {
   band(g, c.band.cx, c.band.cy, c.band.a, c.band.b, c.band.th);
   for (const x of [cu.lx, cu.rx]) shade(g, rr(x, cu.y, cu.w, cu.h, 2), 'P', { hi: 2, base: 1, sh: 0 });
   // cushions between cups and head
-  for (let y = cu.y + 1; y < cu.y + cu.h - 1; y++) { g.set(cu.lx + cu.w, y, y === cu.y + 1 ? 'C1' : 'C0'); g.set(cu.rx - 1, y, y === cu.y + 1 ? 'C1' : 'C0'); }
+  for (let y = cu.y + 1; y < cu.y + cu.h - 1; y++) {
+    g.set(cu.lx + cu.w, y, y === cu.y + 1 ? 'C1' : 'C0');
+    g.set(cu.rx - 1, y, y === cu.y + 1 ? 'C1' : 'C0');
+  }
   // cup detail: inner ridge
-  for (let y = cu.y + 3; y < cu.y + cu.h - 3; y++) { g.set(cu.lx + 1, y, 'P2'); g.set(cu.rx + 2, y, 'P0'); }
+  for (let y = cu.y + 3; y < cu.y + cu.h - 3; y++) {
+    g.set(cu.lx + 1, y, 'P2');
+    g.set(cu.rx + 2, y, 'P0');
+  }
   // head, bezel, screen, face
   shade(g, rr(h.x, h.y, h.w, h.h, h.r), 'L', { spec: true });
   const si = rr(s.x - 1, s.y - 1, s.w + 2, s.h + 2, s.r + 1);
-  for (let y = s.y - 1; y <= s.y + s.h; y++) for (let x = s.x - 1; x <= s.x + s.w; x++) if (si(x, y)) g.set(x, y, y >= s.y + s.h || x >= s.x + s.w ? 'L3' : 'L0');
+  for (let y = s.y - 1; y <= s.y + s.h; y++)
+    for (let x = s.x - 1; x <= s.x + s.w; x++)
+      if (si(x, y)) g.set(x, y, y >= s.y + s.h || x >= s.x + s.w ? 'L3' : 'L0');
   screen(g, s, c.crt);
   face(g, s, state, c);
   // lower bezel: vent slots and a small trim button
   const by = s.y + s.h + 1;
   if (by < h.y + h.h - 1) {
-    for (const dx of [5, 3, 1]) { g.set(s.x + s.w - dx - 1, by, 'L0'); g.set(s.x + s.w - dx - 1, by + 1, 'L3'); }
-    g.set(s.x + 1, by, 'P1'); g.set(s.x + 2, by, 'P0');
+    for (const dx of [5, 3, 1]) {
+      g.set(s.x + s.w - dx - 1, by, 'L0');
+      g.set(s.x + s.w - dx - 1, by + 1, 'L3');
+    }
+    g.set(s.x + 1, by, 'P1');
+    g.set(s.x + 2, by, 'P0');
   }
   // status light
   if (c.light === 'band') {
@@ -179,22 +331,37 @@ function draw(c, state = 'idle') {
     light(g, cu.rx + 2, 5, state, false);
   }
   if (c.light === 'mic') {
-    for (const [x, y] of [[28, 24], [27, 25], [26, 26], [25, 27], [24, 27], [23, 27]]) g.set(x, y, 'P0');
+    for (const [x, y] of [
+      [28, 24],
+      [27, 25],
+      [26, 26],
+      [25, 27],
+      [24, 27],
+      [23, 27],
+    ])
+      g.set(x, y, 'P0');
     g.set(28, 23, 'P1');
     light(g, 21, 27, state, false);
   }
   // selective outline: material line colour on top/left edges, near-black on bottom/right
   const out = new Grid();
-  for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
-    const t = g.get(x, y);
-    if (t) { out.set(x, y, t); continue; }
-    const below = g.get(x, y + 1), right = g.get(x + 1, y), above = g.get(x, y - 1), left = g.get(x - 1, y);
-    if (!(below || right || above || left)) continue;
-    const src = below || right;
-    const m = src ? mat(src) : null;
-    const lk = m && PAL['l' + m] && !above && !left ? 'l' + m : 'K';
-    out.set(x, y, lk);
-  }
+  for (let y = 0; y < 32; y++)
+    for (let x = 0; x < 32; x++) {
+      const t = g.get(x, y);
+      if (t) {
+        out.set(x, y, t);
+        continue;
+      }
+      const below = g.get(x, y + 1),
+        right = g.get(x + 1, y),
+        above = g.get(x, y - 1),
+        left = g.get(x - 1, y);
+      if (!(below || right || above || left)) continue;
+      const src = below || right;
+      const m = src ? mat(src) : null;
+      const lk = m && PAL['l' + m] && !above && !left ? 'l' + m : 'K';
+      out.set(x, y, lk);
+    }
   const used = out.p.map((r, y) => (r.some(Boolean) ? y : -1)).filter((y) => y >= 0);
   const shift = Math.floor((31 - used[used.length - 1] - used[0]) / 2);
   if (shift > 0) out.p = [...Array.from({ length: shift }, () => Array(32).fill(null)), ...out.p.slice(0, 32 - shift)];
@@ -204,16 +371,46 @@ function draw(c, state = 'idle') {
 // Hand-simplified 16×16 masters for favicon/tiny sizes.
 const MINI = {
   crt: [
-    '......OO......', '...PPPPPPPP...', '..P........P..', '.P.LLLLLLLL.P.', 'PPLLLLLLLLLLPP', 'PPLDDDDDDDDLPP',
-    'PPLDGGDDGGDLPP', 'PPLDDDDDDDDLPP', 'PPLDDDggDDDLPP', 'PPLDDDDDDDDLPP', '..LLLLLLLLLL..', '...LLLLLLLL...',
+    '......OO......',
+    '...PPPPPPPP...',
+    '..P........P..',
+    '.P.LLLLLLLL.P.',
+    'PPLLLLLLLLLLPP',
+    'PPLDDDDDDDDLPP',
+    'PPLDGGDDGGDLPP',
+    'PPLDDDDDDDDLPP',
+    'PPLDDDggDDDLPP',
+    'PPLDDDDDDDDLPP',
+    '..LLLLLLLLLL..',
+    '...LLLLLLLL...',
   ],
   tv: [
-    '............O.', '...PPPPPPPP.P.', '..P........PP.', '.P.LLLLLLLL.P.', 'PPLLLLLLLLLLPP', 'PPLSSSSSSSSLPP',
-    'PPLSEESSEESLPP', 'PPLSSSSSSSSLPP', 'PPLSSSeeSSSLPP', 'PPLSSSSSSSSLPP', '..LLLLLLLLLL..', '...LLLLLLLL...',
+    '............O.',
+    '...PPPPPPPP.P.',
+    '..P........PP.',
+    '.P.LLLLLLLL.P.',
+    'PPLLLLLLLLLLPP',
+    'PPLSSSSSSSSLPP',
+    'PPLSEESSEESLPP',
+    'PPLSSSSSSSSLPP',
+    'PPLSSSeeSSSLPP',
+    'PPLSSSSSSSSLPP',
+    '..LLLLLLLLLL..',
+    '...LLLLLLLL...',
   ],
   operator: [
-    '...PPPPPPPP...', '..P........P..', '.P.LLLLLLLL.P.', 'PPLLLLLLLLLLPP', 'PPLDDDDDDDDLPP', 'PPLvGGvvGGvLPP',
-    'PPLDDDDDDDDLPP', 'PPLDDDggDDDLPP', 'PPLDDDDDDDDLPP', '..LLLLLLLLLLP.', '...LLLLLLLLP..', '.........OO...',
+    '...PPPPPPPP...',
+    '..P........P..',
+    '.P.LLLLLLLL.P.',
+    'PPLLLLLLLLLLPP',
+    'PPLDDDDDDDDLPP',
+    'PPLvGGvvGGvLPP',
+    'PPLDDDDDDDDLPP',
+    'PPLDDDggDDDLPP',
+    'PPLDDDDDDDDLPP',
+    '..LLLLLLLLLLP.',
+    '...LLLLLLLLP..',
+    '.........OO...',
   ],
 };
 const MINI_TOK = { L: 'L2', P: 'P1', D: 'D1', G: 'G1', g: 'G0', v: 'D3', S: 'S1', E: 'E1', e: 'E1', O: 'O1' };
@@ -221,13 +418,18 @@ function drawMini(id) {
   const rows = MINI[id];
   const g = new Grid(16, 16);
   const top = Math.floor((14 - rows.length) / 2) + 1;
-  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== '.') g.set(x + 1, y + top, MINI_TOK[ch]); }));
+  rows.forEach((r, y) =>
+    [...r].forEach((ch, x) => {
+      if (ch !== '.') g.set(x + 1, y + top, MINI_TOK[ch]);
+    }),
+  );
   const out = new Grid(16, 16);
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    const t = g.get(x, y);
-    if (t) out.set(x, y, t);
-    else if (g.get(x + 1, y) || g.get(x - 1, y) || g.get(x, y + 1) || g.get(x, y - 1)) out.set(x, y, 'K');
-  }
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      const t = g.get(x, y);
+      if (t) out.set(x, y, t);
+      else if (g.get(x + 1, y) || g.get(x - 1, y) || g.get(x, y + 1) || g.get(x, y - 1)) out.set(x, y, 'K');
+    }
   return out;
 }
 
@@ -378,7 +580,10 @@ export { CONCEPTS, PAL, draw, drawMini };
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const browser = await chromium.launch({ executablePath: CHROME });
   const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, deviceScaleFactor: 1 });
-  for (const [file, html] of [['milo-robot-concepts-v4.png', conceptsPage()], ['milo-robot-merch-v4.png', merchPage()]]) {
+  for (const [file, html] of [
+    ['milo-robot-concepts-v4.png', conceptsPage()],
+    ['milo-robot-merch-v4.png', merchPage()],
+  ]) {
     await page.setContent(html);
     await page.evaluate(() => document.fonts.ready);
     await page.locator('#sheet').screenshot({ path: join(OUT, file) });

@@ -1,15 +1,17 @@
 // Builds nothing; run `npm run build` first. Serves dist/ and writes PNG captures + an MP4 demo loop.
 // Usage: OUT_DIR=captures CHROME=/path/to/chrome [WORDMARK='MILO|OPS'] node tools/capture.mjs
 // WORDMARK overrides the wordmark (text after `|` renders in the brand copper); the default is WORDMARK in preview/main.tsx.
-import { preview } from 'vite';
-import { chromium } from 'playwright-core';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
+import { chromium } from 'playwright-core';
+import { preview } from 'vite';
 
 const font = (f) => createRequire(import.meta.url).resolve(`@fontsource/${f}`);
-const WORDMARK = process.env.WORDMARK || readFileSync(new URL('../preview/main.tsx', import.meta.url), 'utf8').match(/^const WORDMARK = '(.+)';$/m)[1];
+const WORDMARK =
+  process.env.WORDMARK ||
+  readFileSync(new URL('../preview/main.tsx', import.meta.url), 'utf8').match(/^const WORDMARK = '(.+)';$/m)[1];
 const wm = `&wordmark=${encodeURIComponent(WORDMARK)}`;
 const [wmLead, wmOps = ''] = WORDMARK.split('|');
 const OUT = resolve(process.env.OUT_DIR || 'captures');
@@ -64,8 +66,18 @@ for (const [file, , w, h, view, extra] of KIT) {
     const scale = Math.min(1, 560 / w, 300 / h);
     return `<figure><img src="${img(f)}" style="width:${Math.round(w * scale)}px;height:${Math.round(h * scale)}px;${scale >= 1 ? 'image-rendering:pixelated;' : ''}"><figcaption><b>${label}</b> ${w}×${h}<br><span>brand/${f}</span></figcaption></figure>`;
   }).join('');
-  const checks = [['slack-icon-512.png', 32, 'Slack 32px'], ['github-org-avatar.png', 40, 'GitHub 40px'], ['x-avatar-400.png', 48, 'X 48px'], ['favicon-32.png', 32, 'Favicon 32px'], ['favicon-64.png', 16, 'Tab 16px']]
-    .map(([f, px, label]) => `<figure class="chk"><canvas data-src="${img(f)}" data-px="${px}"></canvas><figcaption><b>${label}</b> 1× and 4× zoom</figcaption></figure>`).join('');
+  const checks = [
+    ['slack-icon-512.png', 32, 'Slack 32px'],
+    ['github-org-avatar.png', 40, 'GitHub 40px'],
+    ['x-avatar-400.png', 48, 'X 48px'],
+    ['favicon-32.png', 32, 'Favicon 32px'],
+    ['favicon-64.png', 16, 'Tab 16px'],
+  ]
+    .map(
+      ([f, px, label]) =>
+        `<figure class="chk"><canvas data-src="${img(f)}" data-px="${px}"></canvas><figcaption><b>${label}</b> 1× and 4× zoom</figcaption></figure>`,
+    )
+    .join('');
   const page = await browser.newPage({ viewport: { width: 1840, height: 1200 }, deviceScaleFactor: 1 });
   await page.setContent(`<style>
     @font-face{font-family:B;src:url(${'data:font/woff2;base64,' + readFileSync(font('barlow/files/barlow-latin-400-normal.woff2')).toString('base64')})}
@@ -81,11 +93,21 @@ for (const [file, , w, h, view, extra] of KIT) {
   </style><div id="s"><h1>${wmLead}<b>${wmOps}</b> <span>// SOCIAL KIT</span></h1><div class="g">${tiles}</div><h2>Small-size checks</h2><div class="row">${checks}</div></div>`);
   await page.evaluate(async () => {
     for (const c of document.querySelectorAll('canvas')) {
-      const px = +c.dataset.px; const im = new Image(); im.src = c.dataset.src; await im.decode();
-      const small = document.createElement('canvas'); small.width = small.height = px;
-      const sx = small.getContext('2d'); sx.imageSmoothingQuality = 'high'; sx.drawImage(im, 0, 0, px, px);
-      c.width = px * 5 + 16; c.height = px * 4; const cx = c.getContext('2d'); cx.imageSmoothingEnabled = false;
-      cx.drawImage(small, 0, px * 3); cx.drawImage(small, px + 16, 0, px * 4, px * 4);
+      const px = +c.dataset.px;
+      const im = new Image();
+      im.src = c.dataset.src;
+      await im.decode();
+      const small = document.createElement('canvas');
+      small.width = small.height = px;
+      const sx = small.getContext('2d');
+      sx.imageSmoothingQuality = 'high';
+      sx.drawImage(im, 0, 0, px, px);
+      c.width = px * 5 + 16;
+      c.height = px * 4;
+      const cx = c.getContext('2d');
+      cx.imageSmoothingEnabled = false;
+      cx.drawImage(small, 0, px * 3);
+      cx.drawImage(small, px + 16, 0, px * 4, px * 4);
     }
   });
   await page.locator('#s').screenshot({ path: join(BRAND, 'social-kit-overview.png') });
@@ -108,10 +130,31 @@ const start = (Date.now() - t0) / 1000;
 await page.waitForSelector('[data-capture="demo"][data-loop="1"]', { timeout: 60000 });
 const end = (Date.now() - t0) / 1000;
 await ctx.close();
-const webm = join(tmp, readdirSync(tmp).find((f) => f.endsWith('.webm')));
+const webm = join(
+  tmp,
+  readdirSync(tmp).find((f) => f.endsWith('.webm')),
+);
 const mp4 = join(OUT, 'milo-avatar-demo.mp4');
-execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-ss', String(start + 0.2), '-to', String(end), '-i', webm,
-  '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-movflags', '+faststart', mp4 + '.tmp.mp4']);
+execFileSync('ffmpeg', [
+  '-y',
+  '-loglevel',
+  'error',
+  '-ss',
+  String(start + 0.2),
+  '-to',
+  String(end),
+  '-i',
+  webm,
+  '-c:v',
+  'libx264',
+  '-pix_fmt',
+  'yuv420p',
+  '-crf',
+  '20',
+  '-movflags',
+  '+faststart',
+  mp4 + '.tmp.mp4',
+]);
 renameSync(mp4 + '.tmp.mp4', mp4);
 rmSync(tmp, { recursive: true, force: true });
 console.log('wrote', mp4, `(${(end - start).toFixed(1)}s)`);

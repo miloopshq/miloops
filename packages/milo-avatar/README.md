@@ -26,11 +26,13 @@ src/milo/
   art.ts           GENERATED pixels: palette, 32×32 base head + eye/mouth/light patches, 16×16 mini (do not hand edit)
   frames.ts        styles (crt/mono), expressions per state, status labels, timing, visemes, composeFrame/composeWave
   types.ts         shared types
-  MiloAvatar.tsx   React component (state, timing, Sprite + Wave SVG renderers)
-  mountMilo.ts     framework-free renderer with the same markup, classes and timing (for the vanilla landing page)
+  miloFrame.ts     what MILO shows at a moment (state, face, layout, labels), shared by both renderers
+  rects.ts         sprite and waveform rects (horizontal runs merged)
+  MiloAvatar.tsx   React component; Sprite.tsx, Wave.tsx and hooks/ (reduced motion, clock, blink)
+  mountMilo.ts     framework-free renderer with the same markup, classes and timing (for the vanilla landing page); miloDom.ts builds its elements
   MiloAvatar.css   HUD panel frame; all colors are --milo-* vars with command-center fallbacks
   index.ts         React exports (import mountMilo from './mountMilo' directly)
-preview/           preview page (?view=options | states | demo | square | favicon | banner)
+preview/           preview page (?view=options | states | demo | square | favicon | banner); App.tsx routes to views/
 tools/
   bake-art.mjs     node tools/bake-art.mjs src/milo/art.ts: renders the v4 CRT states, diffs them into patches, verifies, writes art.ts
   capture.mjs      writes the PNGs, the MP4 loop and brand/* (Playwright + system Chrome + ffmpeg)
@@ -40,7 +42,7 @@ tools/
 
 ## Command center
 
-The command center has a copy of the component in `apps/command-center/src/components/milo/` (`art.ts`, `frames.ts`, `types.ts`, `MiloAvatar.tsx`, `MiloAvatar.css`, `index.ts`).
+The command center imports the component from `@miloops-hq/milo-avatar`.
 
 It reads the command-center tokens, so it follows the active fonts and palette:
 

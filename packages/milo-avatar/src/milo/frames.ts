@@ -57,8 +57,24 @@ export const PALETTE_MONO: Palette = Object.fromEntries(
 );
 
 export const STYLES: Record<MiloStyleId, MiloStyle> = {
-  crt: { id: 'crt', name: 'CRT', blurb: 'Monitor head, dark glass, steady eyes, headband status light.', art: HEAD_ART, mini: MINI_ART, palette: PALETTE_COLOR, wave: { bar: '#66828d', lead: '#c98b5e' } },
-  mono: { id: 'mono', name: 'Mono', blurb: 'Single-ink HUD rendering of the same head.', art: HEAD_ART, mini: MINI_ART, palette: PALETTE_MONO, wave: { bar: '#66828d', lead: '#a9bfc7' } },
+  crt: {
+    id: 'crt',
+    name: 'CRT',
+    blurb: 'Monitor head, dark glass, steady eyes, headband status light.',
+    art: HEAD_ART,
+    mini: MINI_ART,
+    palette: PALETTE_COLOR,
+    wave: { bar: '#66828d', lead: '#c98b5e' },
+  },
+  mono: {
+    id: 'mono',
+    name: 'Mono',
+    blurb: 'Single-ink HUD rendering of the same head.',
+    art: HEAD_ART,
+    mini: MINI_ART,
+    palette: PALETTE_MONO,
+    wave: { bar: '#66828d', lead: '#a9bfc7' },
+  },
 };
 export const RECOMMENDED_STYLE: MiloStyleId = 'crt';
 
@@ -110,7 +126,11 @@ export interface FrameSpec {
 export function composeFrame(art: MiloArt, spec: FrameSpec): string[] {
   const grid = art.base.map((row) => Array.from(row));
   const stamp = (patch: Patch) =>
-    patch.forEach(([row, col, keys]) => Array.from(keys).forEach((k, i) => { if (grid[row]) grid[row][col + i] = k; }));
+    patch.forEach(([row, col, keys]) =>
+      Array.from(keys).forEach((k, i) => {
+        if (grid[row]) grid[row][col + i] = k;
+      }),
+    );
   stamp(art.eyes[spec.eyes]);
   stamp(art.mouths[spec.mouth]);
   stamp(art.lights[spec.light ?? 'on']);

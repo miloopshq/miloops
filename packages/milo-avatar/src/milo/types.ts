@@ -6,3 +6,4 @@ export type Light = 'on' | 'dim' | 'alert';
 export type Palette = Record<string, string>;
 /** Runs of palette keys stamped onto a base sprite: [row, col, keys]. */
 export type Patch = readonly (readonly [row: number, col: number, keys: string])[];
+export type MiloSize = 'xs' | 'sm' | 'md' | 'lg';
