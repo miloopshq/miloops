@@ -1,8 +1,11 @@
-import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { agentPaths, type HostSessionLink, type SessionUsage, type UsageSource } from '@miloops-hq/core';
+import type { SessionUsage, UsageSource } from '@miloops-hq/core';
+import { claudeCandidates, findCodexRollout } from './logLocations';
 import { LogFile, claudeTranscriptParser, codexRolloutParser, type UsageEvent } from './logs';
+import { ls, size, tail } from './quietFs';
+
+export { claudeProjectDirName } from './logLocations';
 
 export interface MeterOptions {
   /** Tracker folder, for Claude Code session links written by `miloops hook claude`. */
@@ -13,51 +16,6 @@ export interface MeterOptions {
 }
 
 type Meta = Record<string, unknown> | undefined;
-
-/** Claude Code's folder name for a project: every character outside [A-Za-z0-9] becomes `-`. */
-export const claudeProjectDirName = (dir: string) => dir.replace(/[^a-zA-Z0-9]/g, '-');
-
-const DAY = 86_400_000;
-
-function tail(file: string, bytes = 256 << 10) {
-  try {
-    const size = fs.statSync(file).size;
-    const fd = fs.openSync(file, 'r');
-    try {
-      const buf = Buffer.alloc(Math.min(size, bytes));
-      fs.readSync(fd, buf, 0, buf.length, size - buf.length);
-      return buf.toString('utf8');
-    } finally {
-      fs.closeSync(fd);
-    }
-  } catch {
-    return '';
-  }
-}
-
-const size = (file: string) => {
-  try {
-    return fs.statSync(file).size;
-  } catch {
-    return -1;
-  }
-};
-
-const recent = (file: string, since: number) => {
-  try {
-    return fs.statSync(file).mtimeMs >= since;
-  } catch {
-    return false;
-  }
-};
-
-const ls = (dir: string) => {
-  try {
-    return fs.readdirSync(dir);
-  } catch {
-    return [];
-  }
-};
 
 /**
  * Real model usage of the agent this MCP server is connected to, read from the
@@ -102,7 +60,7 @@ export class UsageMeter {
     const codexMeta = meta?.['x-codex-turn-metadata'] as Record<string, unknown> | undefined;
     const thread = (meta?.threadId ?? codexMeta?.thread_id ?? codexMeta?.session_id) as string | undefined;
     if (typeof thread === 'string' && thread !== this.threadId) {
-      const file = this.findCodexRollout(thread);
+      const file = findCodexRollout(thread, this.env, this.home);
       if (file) {
         this.threadId = thread;
         this.attach(file, 'codex');
@@ -138,7 +96,15 @@ export class UsageMeter {
         const prev = this.events.get(e.key);
         this.events.set(
           e.key,
-          prev ? { ...e, at: prev.at, input: Math.max(prev.input, e.input), output: Math.max(prev.output, e.output), costUsd: Math.max(prev.costUsd, e.costUsd) } : e,
+          prev
+            ? {
+                ...e,
+                at: prev.at,
+                input: Math.max(prev.input, e.input),
+                output: Math.max(prev.output, e.output),
+                costUsd: Math.max(prev.costUsd, e.costUsd),
+              }
+            : e,
         );
       }
     }
@@ -165,7 +131,7 @@ export class UsageMeter {
     this.toolUses = this.toolUses.filter((id) => !known(id));
     if (!this.toolUses.length) return;
     const sig = this.toolUses.join();
-    for (const f of this.claudeCandidates()) {
+    for (const f of claudeCandidates(this.opts.root, this.env, this.cwd, this.home)) {
       if (this.files.has(f)) continue;
       const seen = `${size(f)}:${sig}`;
       if (this.checked.get(f) === seen) continue;
@@ -179,52 +145,17 @@ export class UsageMeter {
     }
   }
 
-  private claudeCandidates() {
-    const since = Date.now() - 2 * DAY;
-    const out: string[] = [];
-    const links = path.join(this.opts.root, agentPaths.hosts);
-    for (const n of ls(links)) {
-      try {
-        const l = JSON.parse(fs.readFileSync(path.join(links, n), 'utf8')) as HostSessionLink;
-        if (l.agent === 'claude-code' && l.at >= since && l.transcriptPath) out.push(l.transcriptPath);
-      } catch {
-        // not a link
-      }
-    }
-    const config = this.env.CLAUDE_CONFIG_DIR || path.join(this.home, '.claude');
-    const dir = path.join(config, 'projects', claudeProjectDirName(this.env.CLAUDE_PROJECT_DIR || this.cwd));
-    if (this.env.CLAUDE_CODE_SESSION_ID) out.push(path.join(dir, `${this.env.CLAUDE_CODE_SESSION_ID}.jsonl`));
-    const byAge = ls(dir)
-      .filter((n) => n.endsWith('.jsonl'))
-      .map((n) => path.join(dir, n))
-      .filter((f) => recent(f, since))
-      .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)
-      .slice(0, 12);
-    return [...new Set([...out, ...byAge])].filter((f) => recent(f, since));
-  }
-
-  private findCodexRollout(thread: string) {
-    const sessions = path.join(this.env.CODEX_HOME || path.join(this.home, '.codex'), 'sessions');
-    const desc = (dir: string) => ls(dir).sort().reverse();
-    let days = 0;
-    for (const y of desc(sessions))
-      for (const m of desc(path.join(sessions, y)))
-        for (const d of desc(path.join(sessions, y, m))) {
-          if (++days > 400) return undefined;
-          const dir = path.join(sessions, y, m, d);
-          const hit = ls(dir).find((n) => n.startsWith('rollout-') && n.endsWith(`-${thread}.jsonl`));
-          if (hit) return path.join(dir, hit);
-        }
-    return undefined;
-  }
-
   /**
    * Usage logged in `(from, to]`; undefined while no log is attached (fall back to
    * what the agent reports). With `openedBy` (the tool call that opened the window)
    * the window starts when the model call that issued it began, but not before
    * `notBefore`; `from` applies until that call's record is read.
    */
-  measure(from: number, to = Date.now(), opts: { openedBy?: string; notBefore?: number } = {}): SessionUsage | undefined {
+  measure(
+    from: number,
+    to = Date.now(),
+    opts: { openedBy?: string; notBefore?: number } = {},
+  ): SessionUsage | undefined {
     this.resolveClaude();
     if (!this.files.size || !this.source) return undefined;
     this.poll();

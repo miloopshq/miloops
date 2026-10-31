@@ -44,12 +44,19 @@ export function claudeTranscriptParser(): LogParser {
       const at = Date.parse(o.timestamp) || Date.now();
       if (typeof m.id === 'string' && !firstSeen.has(m.id)) firstSeen.set(m.id, at);
       const began = (firstSeen.get(m.id) ?? at) - 1;
-      if (Array.isArray(m.content)) for (const c of m.content) if (c?.type === 'tool_use' && typeof c.id === 'string' && !calls.has(c.id)) calls.set(c.id, began);
+      if (Array.isArray(m.content))
+        for (const c of m.content)
+          if (c?.type === 'tool_use' && typeof c.id === 'string' && !calls.has(c.id)) calls.set(c.id, began);
       const u = m.usage as Obj | undefined;
       if (!u || typeof m.model !== 'string' || m.model === '<synthetic>') return;
       const cacheRead = num(u.cache_read_input_tokens);
       const cacheWrite = num(u.cache_creation_input_tokens);
-      const e = { input: num(u.input_tokens) + cacheRead + cacheWrite, cacheRead, cacheWrite, output: num(u.output_tokens) };
+      const e = {
+        input: num(u.input_tokens) + cacheRead + cacheWrite,
+        cacheRead,
+        cacheWrite,
+        output: num(u.output_tokens),
+      };
       return {
         key: `${m.id ?? o.uuid}:${o.requestId ?? ''}`,
         at,
@@ -85,7 +92,12 @@ export function codexRolloutParser(): LogParser {
   let records = false;
   const calls = new Map<string, number>();
   const event = (key: string, at: number, d: CodexTotals): UsageEvent | undefined => {
-    const e = { input: num(d.input_tokens), cacheRead: num(d.cached_input_tokens), cacheWrite: num(d.cache_write_input_tokens), output: num(d.output_tokens) };
+    const e = {
+      input: num(d.input_tokens),
+      cacheRead: num(d.cached_input_tokens),
+      cacheWrite: num(d.cache_write_input_tokens),
+      output: num(d.output_tokens),
+    };
     if (!e.input && !e.output) return;
     return { key, at, model, ...e, costUsd: priceUsage(model, e) };
   };
@@ -96,7 +108,13 @@ export function codexRolloutParser(): LogParser {
       if (!p) return;
       const at = Date.parse(o.timestamp) || Date.now();
       if (o.type === 'turn_context' && typeof p.model === 'string') model = p.model;
-      if (o.type === 'response_item' && p.type === 'function_call' && typeof p.call_id === 'string' && !calls.has(p.call_id)) calls.set(p.call_id, at - 1);
+      if (
+        o.type === 'response_item' &&
+        p.type === 'function_call' &&
+        typeof p.call_id === 'string' &&
+        !calls.has(p.call_id)
+      )
+        calls.set(p.call_id, at - 1);
       if (o.type === 'token_usage_record' && p.usage) {
         records = true;
         return event(`r:${p.response_id ?? n++}`, at, p.usage as CodexTotals);
@@ -111,7 +129,8 @@ export function codexRolloutParser(): LogParser {
           cache_write_input_tokens: num(t.cache_write_input_tokens) - num(prev?.cache_write_input_tokens),
           output_tokens: num(t.output_tokens) - num(prev?.output_tokens),
         };
-      } else if (num(t.total_tokens) < num(prev.total_tokens) && p.info.last_token_usage) d = p.info.last_token_usage as CodexTotals;
+      } else if (num(t.total_tokens) < num(prev.total_tokens) && p.info.last_token_usage)
+        d = p.info.last_token_usage as CodexTotals;
       else return;
       prev = t;
       return event(`c${n++}`, at, d);

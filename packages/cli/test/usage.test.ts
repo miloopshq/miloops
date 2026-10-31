@@ -1,14 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { readAgentDocs } from '@miloops-hq/core/agents';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { readAgentDocs } from '@miloops-hq/core/agents';
-import { installClaudeHook } from '../src/usage/hook';
 import { MissionAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
-import { recordClaudeSession } from '../src/usage/hook';
+import { installClaudeHook, recordClaudeSession  } from '../src/usage/hook';
 import { claudeTranscriptParser, codexRolloutParser, readLog, type UsageEvent } from '../src/usage/logs';
 import { UsageMeter, claudeProjectDirName } from '../src/usage/meter';
 import { priceUsage, rateFor } from '../src/usage/pricing';
@@ -26,14 +25,28 @@ const CODEX_THREAD = '01a192e3-57d0-73f1-a6e2-cc5c2d20ee19';
 const CODEX_ROLLOUT = path.join(FIX, 'codex', `rollout-2026-10-31T16-55-35-${CODEX_THREAD}.jsonl`);
 
 const total = (es: UsageEvent[]) =>
-  es.reduce((a, e) => ({ input: a.input + e.input, cacheRead: a.cacheRead + e.cacheRead, output: a.output + e.output, costUsd: a.costUsd + e.costUsd }), { input: 0, cacheRead: 0, output: 0, costUsd: 0 });
+  es.reduce(
+    (a, e) => ({
+      input: a.input + e.input,
+      cacheRead: a.cacheRead + e.cacheRead,
+      output: a.output + e.output,
+      costUsd: a.costUsd + e.costUsd,
+    }),
+    { input: 0, cacheRead: 0, output: 0, costUsd: 0 },
+  );
 
 const calls = (agent: 'claude' | 'codex') =>
   fs
     .readFileSync(path.join(FIX, agent, 'mcp-calls.jsonl'), 'utf8')
     .trim()
     .split('\n')
-    .map((l) => JSON.parse(l) as { at: number; msg: { params: { name: string; arguments: Record<string, unknown>; _meta: Record<string, unknown> } } });
+    .map(
+      (l) =>
+        JSON.parse(l) as {
+          at: number;
+          msg: { params: { name: string; arguments: Record<string, unknown>; _meta: Record<string, unknown> } };
+        },
+    );
 
 let tmp: string;
 const open: { close(): void | Promise<void> }[] = [];
@@ -54,7 +67,9 @@ describe('Claude Code transcript', () => {
     expect(byKey.size).toBe(7);
     const t = total([...byKey.values()]);
     const own = JSON.parse(fs.readFileSync(path.join(FIX, 'claude', 'print-result.json'), 'utf8'));
-    expect(t.input).toBe(own.usage.input_tokens + own.usage.cache_creation_input_tokens + own.usage.cache_read_input_tokens);
+    expect(t.input).toBe(
+      own.usage.input_tokens + own.usage.cache_creation_input_tokens + own.usage.cache_read_input_tokens,
+    );
     expect(t.cacheRead).toBe(own.usage.cache_read_input_tokens);
     expect(t.output).toBe(own.usage.output_tokens);
     expect(t.costUsd).toBeCloseTo(own.total_cost_usd, 9);
@@ -69,23 +84,48 @@ describe('Claude Code transcript', () => {
 
   it('uses costUSD when an older transcript recorded it, and skips synthetic messages', () => {
     const p = claudeTranscriptParser();
-    const rec = (model: string, extra = {}) => ({ type: 'assistant', timestamp: '2026-01-01T00:00:00Z', requestId: 'r', costUSD: 0.5, ...extra, message: { id: `m-${model}`, model, usage: { input_tokens: 10, output_tokens: 5 } } });
+    const rec = (model: string, extra = {}) => ({
+      type: 'assistant',
+      timestamp: '2026-01-01T00:00:00Z',
+      requestId: 'r',
+      costUSD: 0.5,
+      ...extra,
+      message: { id: `m-${model}`, model, usage: { input_tokens: 10, output_tokens: 5 } },
+    });
     expect(p.line(rec('claude-sonnet-4-20250514'))?.costUsd).toBe(0.5);
     expect(p.line(rec('<synthetic>'))).toBeUndefined();
   });
 });
 
 describe('Codex rollout', () => {
-  const lines = () => fs.readFileSync(CODEX_ROLLOUT, 'utf8').trim().split('\n').map((l) => JSON.parse(l));
-  const last = () => lines().filter((o) => o.payload?.type === 'token_count').at(-1).payload.info.total_token_usage;
+  const lines = () =>
+    fs
+      .readFileSync(CODEX_ROLLOUT, 'utf8')
+      .trim()
+      .split('\n')
+      .map((l) => JSON.parse(l));
+  const last = () =>
+    lines()
+      .filter((o) => o.payload?.type === 'token_count')
+      .at(-1).payload.info.total_token_usage;
 
   it('reads one event per model response from token_usage_record', () => {
     const events = readLog(CODEX_ROLLOUT, codexRolloutParser());
     expect(events.length).toBe(7);
     expect(events.every((e) => e.key.startsWith('r:') && e.model === 'gpt-5-codex')).toBe(true);
     const t = total(events);
-    expect({ input: t.input, cacheRead: t.cacheRead, output: t.output }).toEqual({ input: last().input_tokens, cacheRead: last().cached_input_tokens, output: last().output_tokens });
-    expect(t.costUsd).toBeCloseTo(((last().input_tokens - last().cached_input_tokens) * 1.25 + last().cached_input_tokens * 0.125 + last().output_tokens * 10) / 1e6, 9);
+    expect({ input: t.input, cacheRead: t.cacheRead, output: t.output }).toEqual({
+      input: last().input_tokens,
+      cacheRead: last().cached_input_tokens,
+      output: last().output_tokens,
+    });
+    expect(t.costUsd).toBeCloseTo(
+      ((last().input_tokens - last().cached_input_tokens) * 1.25 +
+        last().cached_input_tokens * 0.125 +
+        last().output_tokens * 10) /
+        1e6,
+      9,
+    );
   });
 
   it('falls back to running token_count totals (older Codex) and ignores repeated counts', () => {
@@ -137,24 +177,90 @@ async function replay(meter: UsageMeter, agent: 'claude' | 'codex', clientName: 
   const results: Record<string, unknown>[] = [];
   for (const c of calls(agent)) {
     vi.setSystemTime(c.at);
-    const r = (await client.callTool({ name: c.msg.params.name, arguments: c.msg.params.arguments, _meta: c.msg.params._meta })) as { isError?: boolean; content: { text: string }[] };
+    const r = (await client.callTool({
+      name: c.msg.params.name,
+      arguments: c.msg.params.arguments,
+      _meta: c.msg.params._meta,
+    })) as { isError?: boolean; content: { text: string }[] };
     if (r.isError) throw new Error(r.content[0].text);
     results.push(JSON.parse(r.content[0].text));
   }
-  const sessions = (await readAgentDocs(root, { recentMs: 10 * 365 * 86_400_000 })).map((d) => d.session).sort((x, y) => x.startedAt - y.startedAt);
+  const sessions = (await readAgentDocs(root, { recentMs: 10 * 365 * 86_400_000 }))
+    .map((d) => d.session)
+    .sort((x, y) => x.startedAt - y.startedAt);
   return { sessions, results, mission, root };
 }
 
 /** Per-session usage the real runs ended with (session docs written by `miloops mcp`). */
 const CLAUDE_EXPECTED = [
-  { mode: 'chart', usage: { inputTokens: 21009, outputTokens: 410, costUsd: 0.084927, cachedInputTokens: 0, source: 'claude-code', models: ['claude-sonnet-4-5'] } },
-  { mode: 'research', usage: { inputTokens: 69415, outputTokens: 915, costUsd: 0.045285, cachedInputTokens: 66300, source: 'claude-code', models: ['claude-sonnet-4-5'] } },
-  { mode: 'research', usage: { inputTokens: 49312, outputTokens: 228, costUsd: 0.020661, cachedInputTokens: 48600, source: 'claude-code', models: ['claude-sonnet-4-5'] } },
+  {
+    mode: 'chart',
+    usage: {
+      inputTokens: 21009,
+      outputTokens: 410,
+      costUsd: 0.084927,
+      cachedInputTokens: 0,
+      source: 'claude-code',
+      models: ['claude-sonnet-4-5'],
+    },
+  },
+  {
+    mode: 'research',
+    usage: {
+      inputTokens: 69415,
+      outputTokens: 915,
+      costUsd: 0.045285,
+      cachedInputTokens: 66300,
+      source: 'claude-code',
+      models: ['claude-sonnet-4-5'],
+    },
+  },
+  {
+    mode: 'research',
+    usage: {
+      inputTokens: 49312,
+      outputTokens: 228,
+      costUsd: 0.020661,
+      cachedInputTokens: 48600,
+      source: 'claude-code',
+      models: ['claude-sonnet-4-5'],
+    },
+  },
 ];
 const CODEX_EXPECTED = [
-  { mode: 'chart', usage: { inputTokens: 12000, outputTokens: 800, costUsd: 0.023, cachedInputTokens: 0, source: 'codex', models: ['gpt-5-codex'] } },
-  { mode: 'research', usage: { inputTokens: 42300, outputTokens: 940, costUsd: 0.018738, cachedInputTokens: 38700, source: 'codex', models: ['gpt-5-codex'] } },
-  { mode: 'research', usage: { inputTokens: 31600, outputTokens: 180, costUsd: 0.006875, cachedInputTokens: 30600, source: 'codex', models: ['gpt-5-codex'] } },
+  {
+    mode: 'chart',
+    usage: {
+      inputTokens: 12000,
+      outputTokens: 800,
+      costUsd: 0.023,
+      cachedInputTokens: 0,
+      source: 'codex',
+      models: ['gpt-5-codex'],
+    },
+  },
+  {
+    mode: 'research',
+    usage: {
+      inputTokens: 42300,
+      outputTokens: 940,
+      costUsd: 0.018738,
+      cachedInputTokens: 38700,
+      source: 'codex',
+      models: ['gpt-5-codex'],
+    },
+  },
+  {
+    mode: 'research',
+    usage: {
+      inputTokens: 31600,
+      outputTokens: 180,
+      costUsd: 0.006875,
+      cachedInputTokens: 30600,
+      source: 'codex',
+      models: ['gpt-5-codex'],
+    },
+  },
 ];
 
 describe('usage attributed to miloops sessions', () => {
@@ -165,7 +271,11 @@ describe('usage attributed to miloops sessions', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.copyFileSync(CLAUDE_TRANSCRIPT, path.join(dir, `${CLAUDE_SESSION}.jsonl`));
     fs.writeFileSync(path.join(dir, 'other-session.jsonl'), '{"type":"user"}\n');
-    const meter = new UsageMeter({ root: path.join(tmp, 'tracker'), env: { CLAUDE_CONFIG_DIR: config, CLAUDE_PROJECT_DIR: project }, home: tmp });
+    const meter = new UsageMeter({
+      root: path.join(tmp, 'tracker'),
+      env: { CLAUDE_CONFIG_DIR: config, CLAUDE_PROJECT_DIR: project },
+      home: tmp,
+    });
     const { sessions, results } = await replay(meter, 'claude', 'claude-code');
     expect(meter.attached.files).toEqual([path.join(dir, `${CLAUDE_SESSION}.jsonl`)]);
     expect(sessions.map((s) => ({ mode: s.mode, usage: s.usage }))).toEqual(CLAUDE_EXPECTED);
@@ -179,8 +289,16 @@ describe('usage attributed to miloops sessions', () => {
     fs.mkdirSync(path.dirname(elsewhere), { recursive: true });
     fs.copyFileSync(CLAUDE_TRANSCRIPT, elsewhere);
     const project = path.join(tmp, 'project');
-    const payload = { ...JSON.parse(fs.readFileSync(path.join(FIX, 'claude', 'session-start.json'), 'utf8')), session_id: CLAUDE_SESSION, transcript_path: elsewhere, cwd: project };
-    const link = recordClaudeSession(JSON.stringify(payload), { dir: '../tracker', env: { CLAUDE_PROJECT_DIR: project } });
+    const payload = {
+      ...JSON.parse(fs.readFileSync(path.join(FIX, 'claude', 'session-start.json'), 'utf8')),
+      session_id: CLAUDE_SESSION,
+      transcript_path: elsewhere,
+      cwd: project,
+    };
+    const link = recordClaudeSession(JSON.stringify(payload), {
+      dir: '../tracker',
+      env: { CLAUDE_PROJECT_DIR: project },
+    });
     expect(link).toBe(path.join(tmp, 'tracker', '.agents', 'hosts', `claude-code-${CLAUDE_SESSION}.json`));
     expect(recordClaudeSession('not json', { dir: '.' })).toBeUndefined();
     const meter = new UsageMeter({ root: path.join(tmp, 'tracker'), env: {}, home: tmp, cwd: project });
@@ -205,7 +323,11 @@ describe('usage attributed to miloops sessions', () => {
     const meter = new UsageMeter({ root: path.join(tmp, 'tracker'), env: {}, home: tmp });
     const { sessions, results } = await replay(meter, 'codex', 'codex-mcp-client');
     expect(meter.attached.source).toBeUndefined();
-    expect(sessions.map((s) => s.usage)).toEqual([undefined, { inputTokens: 5, outputTokens: 5, costUsd: 5, source: 'reported' }, undefined]);
+    expect(sessions.map((s) => s.usage)).toEqual([
+      undefined,
+      { inputTokens: 5, outputTokens: 5, costUsd: 5, source: 'reported' },
+      undefined,
+    ]);
     expect((results[2] as { usageSource: string }).usageSource).toBe('reported');
   });
 });
@@ -218,7 +340,17 @@ describe('connect claude', () => {
       file,
       JSON.stringify({
         permissions: { allow: ['Bash(ls)'] },
-        hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'echo hi' }, { type: 'command', command: 'npx miloops hook claude --dir old' }] }], Stop: [{ hooks: [{ type: 'command', command: 'say done' }] }] },
+        hooks: {
+          SessionStart: [
+            {
+              hooks: [
+                { type: 'command', command: 'echo hi' },
+                { type: 'command', command: 'npx miloops hook claude --dir old' },
+              ],
+            },
+          ],
+          Stop: [{ hooks: [{ type: 'command', command: 'say done' }] }],
+        },
       }),
     );
     expect(installClaudeHook(file)).toBe('updated');
@@ -226,8 +358,13 @@ describe('connect claude', () => {
     const s = JSON.parse(fs.readFileSync(file, 'utf8'));
     expect(s.permissions).toEqual({ allow: ['Bash(ls)'] });
     expect(s.hooks.Stop).toHaveLength(1);
-    expect(s.hooks.SessionStart).toEqual([{ hooks: [{ type: 'command', command: 'echo hi' }] }, { hooks: [{ type: 'command', command: 'npx -y miloops hook claude', timeout: 30 }] }]);
+    expect(s.hooks.SessionStart).toEqual([
+      { hooks: [{ type: 'command', command: 'echo hi' }] },
+      { hooks: [{ type: 'command', command: 'npx -y miloops hook claude', timeout: 30 }] },
+    ]);
     installClaudeHook(file, 'plans');
-    expect(JSON.parse(fs.readFileSync(file, 'utf8')).hooks.SessionStart[1].hooks[0].command).toBe('npx -y miloops hook claude --dir "plans"');
+    expect(JSON.parse(fs.readFileSync(file, 'utf8')).hooks.SessionStart[1].hooks[0].command).toBe(
+      'npx -y miloops hook claude --dir "plans"',
+    );
   });
 });

@@ -1,15 +1,16 @@
 // Bundles the CLI into dist/cli.js (no runtime dependencies) and copies the prebuilt command center into dist/app.
-import { build } from 'esbuild';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.join(here, 'dist');
 const appDist = path.resolve(here, '../../apps/command-center/dist');
 const { version } = JSON.parse(fs.readFileSync(path.join(here, 'package.json'), 'utf8'));
 
-if (!fs.existsSync(path.join(appDist, 'index.html'))) throw new Error(`run the command-center build first (${appDist} missing)`);
+if (!fs.existsSync(path.join(appDist, 'index.html')))
+  throw new Error(`run the command-center build first (${appDist} missing)`);
 fs.rmSync(dist, { recursive: true, force: true });
 
 await build({

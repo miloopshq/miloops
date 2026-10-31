@@ -137,8 +137,11 @@ apps/command-center      Vite + React front end; plugins/trackerFs.ts mounts the
   src/hooks/             useCommandCenter (state + actions), useBriefing, useBreakpoint, useNow, usePrefs
   src/lib/               React-free helpers: runtime, prefs, format, labels, sessions, operator actions
   src/styles/            index.css imports the design system then one stylesheet per zone, in cascade order
-packages/cli             the `miloops` npm package: src/cli.ts (flags, static server, browser open), build.mjs (bundle + copy app)
-  src/mcp/               `miloops mcp`: MCP server (server.ts) over the agent controller (agent.ts)
+packages/cli             the `miloops` npm package: src/cli.ts (subcommand dispatch), build.mjs (bundle + copy app)
+  src/args/              flags and help text
+  src/serve/             the default command: static server for the bundle + tracker API, port retry, browser open
+  src/mcp/               `miloops mcp`: MCP server (server.ts, tools/ by area) over the agent controller (agent.ts, mission/)
+  src/usage/             real token and cost usage read from Claude Code and Codex logs
   src/connect.ts         `miloops connect claude|codex`; commands/milo.md is the /milo command
 scripts/                 capture.mjs (media), flow.mjs (user-flow shots), verify-cli.mjs (CLI smoke test), verify-mcp.mjs (MCP end-to-end), seed-markdown.ts, check-markdown.mjs, shot.mjs
 THIRD_PARTY_NOTICES.md   credit and MIT licence for the reused skill concepts

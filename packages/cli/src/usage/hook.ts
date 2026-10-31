@@ -29,7 +29,14 @@ export function recordClaudeSession(input: string, opts: { dir: string; env?: No
   const env = opts.env ?? process.env;
   const project = env.CLAUDE_PROJECT_DIR || p.cwd || opts.cwd || process.cwd();
   const root = path.resolve(project, opts.dir);
-  const link: HostSessionLink = { agent: 'claude-code', hostSessionId: p.session_id, transcriptPath: p.transcript_path, cwd: p.cwd, source: p.source, at: Date.now() };
+  const link: HostSessionLink = {
+    agent: 'claude-code',
+    hostSessionId: p.session_id,
+    transcriptPath: p.transcript_path,
+    cwd: p.cwd,
+    source: p.source,
+    at: Date.now(),
+  };
   const file = path.join(root, agentPaths.host('claude-code', p.session_id));
   writeJsonAtomic(file, link);
   return file;
@@ -51,7 +58,14 @@ export async function readStdin(timeoutMs = 5000) {
 
 /** The SessionStart hook command; `--dir` only when the tracker folder is not the default. */
 export function hookCommand(dir?: string) {
-  return ['npx', '-y', BRAND.slug, 'hook', 'claude', ...(dir && dir !== BRAND.dataDir ? ['--dir', JSON.stringify(dir)] : [])].join(' ');
+  return [
+    'npx',
+    '-y',
+    BRAND.slug,
+    'hook',
+    'claude',
+    ...(dir && dir !== BRAND.dataDir ? ['--dir', JSON.stringify(dir)] : []),
+  ].join(' ');
 }
 
 interface HookEntry {
@@ -73,10 +87,15 @@ export function installClaudeHook(file: string, dir?: string) {
     }
   }
   const command = hookCommand(dir);
-  const ours = (h: { command?: string }) => !!h.command && new RegExp(`\\b${BRAND.slug}\\b.*\\bhook claude\\b`).test(h.command);
+  const ours = (h: { command?: string }) =>
+    !!h.command && new RegExp(`\\b${BRAND.slug}\\b.*\\bhook claude\\b`).test(h.command);
   const entries = settings.hooks?.SessionStart ?? [];
-  const kept = entries.map((e) => ({ ...e, hooks: (e.hooks ?? []).filter((h) => !ours(h)) })).filter((e) => e.hooks.length);
-  const next = { ...settings, hooks: { ...settings.hooks, SessionStart: [...kept, { hooks: [{ type: 'command', command, timeout: 30 }] }] } };
+  const kept = entries
+    .map((e) => ({ ...e, hooks: (e.hooks ?? []).filter((h) => !ours(h)) }))
+    .filter((e) => e.hooks.length);
+  const next = {
+    ...settings,
+    hooks: { ...settings.hooks, SessionStart: [...kept, { hooks: [{ type: 'command', command, timeout: 30 }] }] },
+  };
   return writeIfChanged(file, `${JSON.stringify(next, null, 2)}\n`);
 }
-
