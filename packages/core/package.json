@@ -17,6 +17,8 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p . && tsc -p test",
+    "test": "node test/run.mjs",
+    "record": "node test/run.mjs record"
   }
 }

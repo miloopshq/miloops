@@ -1,0 +1,115 @@
+{
+  "source": "live",
+  "recordedAt": "2026-10-31T14:40:55.013Z",
+  "notes": "Read-only, miloopshq/miloops on api.github.com: test connection, list missions, two ETag polls (200 then 304). Bodies trimmed to the fields the adapter reads.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "GET",
+        "url": "/repos/miloopshq/miloops"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "etag": "W/\"43d6f6ba4ef110b63eecc08f77c86c49ef399ff719033d72654e7cd1667919b5\"",
+          "x-ratelimit-limit": "5000",
+          "x-ratelimit-remaining": "4972",
+          "x-ratelimit-reset": "1793459402",
+          "x-ratelimit-resource": "core",
+          "x-ratelimit-used": "28"
+        },
+        "body": {
+          "full_name": "miloopshq/miloops",
+          "private": true,
+          "has_issues": true,
+          "permissions": {
+            "admin": false,
+            "maintain": false,
+            "push": false,
+            "triage": false,
+            "pull": false
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/user"
+      },
+      "res": {
+        "status": 403,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-ratelimit-limit": "5000",
+          "x-ratelimit-remaining": "4971",
+          "x-ratelimit-reset": "1793459402",
+          "x-ratelimit-resource": "core",
+          "x-ratelimit-used": "29"
+        },
+        "body": {
+          "message": "Resource not accessible by integration",
+          "documentation_url": "https://docs.github.com/rest/users/users#get-the-authenticated-user",
+          "status": "403"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/repos/miloopshq/miloops/issues?labels=miloops%3Amap&state=all&per_page=100"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "etag": "\"9de519bb7c39f0fbaccf7a9df9b64726eadb2ce7f9b6df373c2b0c49cb56f549\"",
+          "x-ratelimit-limit": "5000",
+          "x-ratelimit-remaining": "4970",
+          "x-ratelimit-reset": "1793459402",
+          "x-ratelimit-resource": "core",
+          "x-ratelimit-used": "30"
+        },
+        "body": []
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/repos/miloopshq/miloops/issues?state=all&sort=updated&direction=desc&per_page=50"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "etag": "\"9de519bb7c39f0fbaccf7a9df9b64726eadb2ce7f9b6df373c2b0c49cb56f549\"",
+          "x-ratelimit-limit": "5000",
+          "x-ratelimit-remaining": "4969",
+          "x-ratelimit-reset": "1793459402",
+          "x-ratelimit-resource": "core",
+          "x-ratelimit-used": "31"
+        },
+        "body": []
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/repos/miloopshq/miloops/issues?state=all&sort=updated&direction=desc&per_page=50",
+        "ifNoneMatch": "\"9de519bb7c39f0fbaccf7a9df9b64726eadb2ce7f9b6df373c2b0c49cb56f549\""
+      },
+      "res": {
+        "status": 304,
+        "headers": {
+          "etag": "\"9de519bb7c39f0fbaccf7a9df9b64726eadb2ce7f9b6df373c2b0c49cb56f549\"",
+          "x-ratelimit-limit": "5000",
+          "x-ratelimit-remaining": "4969",
+          "x-ratelimit-reset": "1793459402",
+          "x-ratelimit-resource": "core",
+          "x-ratelimit-used": "31"
+        }
+      }
+    }
+  ]
+}
