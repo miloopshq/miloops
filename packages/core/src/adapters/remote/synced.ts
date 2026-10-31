@@ -30,6 +30,40 @@ export interface SyncOptions {
   now?: () => number;
   /** No timers: the caller drives polling and queue flushes with `tick()` (tests). */
   manual?: boolean;
+  /** Keeps queued writes across restarts; without it they live in memory only. */
+  outbox?: OutboxStore;
+}
+
+/** A write that can wait for the tracker, as plain data so a later run can send it. */
+export type QueuedChange =
+  | { kind: 'mode'; mode: MapMode }
+  | { kind: 'sections'; sections: MapSections }
+  | { kind: 'blocking'; blockerId: string; blockedId: string }
+  | { kind: 'claim'; ticketId: string; assignee?: string }
+  | { kind: 'comment'; ticketId: string; author: string; body: string }
+  | { kind: 'close'; ticketId: string; reason: 'completed' | 'not_planned' }
+  | { kind: 'decision'; decision: DecisionRecord }
+  | { kind: 'supersede'; decisionId: string; supersededBy: string };
+
+export interface QueuedWrite {
+  /** Unique per write; comments carry it in the tracker, so a replay can tell they already landed. */
+  id: string;
+  mapId: string;
+  label: string;
+  at: number;
+  change: QueuedChange;
+  /** May have reached the tracker already (the connection dropped mid-request, or a run exited mid-send): check before sending. */
+  verify?: boolean;
+}
+
+/** Where queued writes survive a restart or crash (outboxFile.ts). */
+export interface OutboxStore {
+  /** Writes left unsent by earlier runs, oldest first; they now belong to this adapter. */
+  load(): QueuedWrite[];
+  /** The whole queue, after every change to it. */
+  save(writes: QueuedWrite[]): void;
+  /** Stop owning the queue; unsent writes wait for the next run. */
+  release(): void;
 }
 
 type Without<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
@@ -41,10 +75,8 @@ interface Entry {
   at: number;
 }
 
-interface Pending {
-  label: string;
-  send: () => Promise<unknown>;
-}
+/** Changes that would duplicate if sent twice; the rest set state, so sending them again is harmless. */
+const CHECKED = new Set<QueuedChange['kind']>(['comment', 'decision', 'blocking']);
 
 /** Map sections exactly as they read back from the tracker, so cache and remote compare equal. */
 const roundtrip = (s: MapSections) => parseMapBody(serializeMapBody(s));
@@ -72,6 +104,8 @@ function fingerprint(e: Entry) {
  * - writes that need no answer from the tracker (comments, claims, closes,
  *   blocking, mission edits, decisions) are queued while offline or rate
  *   limited and sent in order when it answers again; creates fail fast;
+ * - with an `outbox` store the queue survives an exit or crash and is replayed
+ *   by the next run; writes that may already have landed are checked first;
  * - polling (while subscribed) picks up changes made in the tracker and emits
  *   `external.changed` only when the mission really differs from the cache.
  */
@@ -91,7 +125,8 @@ export abstract class SyncedAdapter implements TrackerAdapter {
   protected abstract remoteAddBlocking(map: MapDoc, blocker: Ticket, blocked: Ticket): Promise<void>;
   /** Persist the claim (`t.assignee`) of an already-updated ticket. */
   protected abstract remoteSetClaim(map: MapDoc, t: Ticket): Promise<void>;
-  protected abstract remoteComment(map: MapDoc, t: Ticket, author: string, body: string): Promise<void>;
+  /** `writeId` must be readable back as the comment's `writeId`. */
+  protected abstract remoteComment(map: MapDoc, t: Ticket, author: string, body: string, writeId: string): Promise<void>;
   protected abstract remoteClose(map: MapDoc, t: Ticket, reason: 'completed' | 'not_planned'): Promise<void>;
   protected abstract remoteUpdateMap(map: MapDoc): Promise<void>;
   protected abstract remoteSetMode(map: MapDoc, mode: MapMode): Promise<void>;
@@ -106,11 +141,13 @@ export abstract class SyncedAdapter implements TrackerAdapter {
   private entries = new Map<string, Entry>();
   private loading = new Map<string, Promise<Entry>>();
   private locks = new Map<string, Promise<unknown>>();
-  private outbox: Pending[] = [];
+  private outbox: QueuedWrite[];
+  private store?: OutboxStore;
   private subscribers = 0;
   private timer?: ReturnType<typeof setTimeout>;
   private failures = 0;
   private lastDecision = 0;
+  private writes = 0;
   private closed = false;
   protected readonly now: () => number;
   private pollMs: number;
@@ -124,6 +161,10 @@ export abstract class SyncedAdapter implements TrackerAdapter {
     this.pollMs = opts.pollMs ?? 10_000;
     this.maxBackoffMs = opts.maxBackoffMs ?? 120_000;
     this.ttlMs = opts.ttlMs ?? 15_000;
+    this.store = opts.outbox;
+    this.outbox = (this.store?.load() ?? []).map((w) => ({ ...w, verify: true }));
+    this.current = { ...this.current, queued: this.outbox.length };
+    this.schedule(0);
   }
 
   get status(): SyncStatus {
@@ -201,12 +242,27 @@ export abstract class SyncedAdapter implements TrackerAdapter {
     return p;
   }
 
+  /** Remote state plus the queued writes not sent yet (after a restart there is no cache that has them). */
+  private withQueued(mapId: string, remote: Entry): Entry {
+    const queued = this.outbox.filter((w) => w.mapId === mapId);
+    if (!queued.length) return remote;
+    const e = structuredClone(remote);
+    for (const w of queued) {
+      try {
+        this.apply(e, w);
+      } catch {
+        // its ticket is gone; flush() drops the write
+      }
+    }
+    return e;
+  }
+
   /** Cached mission; refetched when stale, served stale while the tracker is unreachable. */
   protected async entry(mapId: string): Promise<Entry> {
     const cached = this.entries.get(mapId);
     if (cached && (this.fresh(cached.at) || this.outbox.length)) return cached;
     try {
-      const e = await this.fetchEntry(mapId);
+      const e = this.withQueued(mapId, await this.fetchEntry(mapId));
       this.entries.set(mapId, e);
       return e;
     } catch (err) {
@@ -232,40 +288,125 @@ export abstract class SyncedAdapter implements TrackerAdapter {
 
   /* ---------- writes ---------- */
 
+  /** Applies a queueable write to a cached (or freshly fetched) mission. Safe to repeat. */
+  private apply(e: Entry, w: QueuedWrite) {
+    const c = w.change;
+    switch (c.kind) {
+      case 'mode':
+        e.snap.map.mode = c.mode;
+        break;
+      case 'sections':
+        e.snap.map.sections = c.sections;
+        break;
+      case 'blocking': {
+        const t = this.ticketOf(e, c.blockedId);
+        if (!t.blockedBy.includes(c.blockerId)) this.touch(t, { blockedBy: [...t.blockedBy, c.blockerId] });
+        break;
+      }
+      case 'claim':
+        this.touch(this.ticketOf(e, c.ticketId), { assignee: c.assignee });
+        break;
+      case 'comment': {
+        const t = this.ticketOf(e, c.ticketId);
+        if (!t.comments.some((x) => x.writeId === w.id)) this.touch(t, { comments: [...t.comments, { id: `local-${w.id}`, author: c.author, body: c.body.trim(), createdAt: w.at, writeId: w.id }] });
+        break;
+      }
+      case 'close':
+        this.touch(this.ticketOf(e, c.ticketId), { state: 'closed', closeReason: c.reason, closedAt: w.at });
+        break;
+      case 'decision':
+        if (!e.decisions.some((d) => d.id === c.decision.id)) e.decisions.push(c.decision);
+        break;
+      case 'supersede':
+        e.decisions = e.decisions.map((d) => (d.id === c.decisionId ? { ...d, supersededBy: c.supersededBy } : d));
+        break;
+    }
+  }
+
+  /** Sends a queueable write, reading tickets and decisions from `e` (the mission before the write is applied). */
+  private send(e: Entry, w: QueuedWrite): Promise<unknown> {
+    const c = w.change;
+    const map = e.snap.map;
+    switch (c.kind) {
+      case 'mode':
+        return this.remoteSetMode(map, c.mode);
+      case 'sections':
+        return this.remoteUpdateMap({ ...map, sections: c.sections });
+      case 'blocking':
+        return this.remoteAddBlocking(map, this.ticketOf(e, c.blockerId), this.ticketOf(e, c.blockedId));
+      case 'claim':
+        return this.remoteSetClaim(map, { ...this.ticketOf(e, c.ticketId), assignee: c.assignee });
+      case 'comment':
+        return this.remoteComment(map, this.ticketOf(e, c.ticketId), c.author, c.body, w.id);
+      case 'close':
+        return this.remoteClose(map, this.ticketOf(e, c.ticketId), c.reason);
+      case 'decision':
+        return this.remotePostDecision(map, c.decision, c.decision.ticketId ? e.snap.tickets.find((t) => t.id === c.decision.ticketId) : undefined);
+      case 'supersede': {
+        const d = e.decisions.find((x) => x.id === c.decisionId);
+        if (!d) throw new OperationError(`decision ${c.decisionId} not found in ${w.mapId}`);
+        return this.remoteUpdateDecision(map, { ...d, supersededBy: c.supersededBy });
+      }
+    }
+  }
+
+  /** Whether the tracker (`remote`, uncached) already has a write of a kind that must not be sent twice. */
+  private landed(remote: Entry, w: QueuedWrite) {
+    const c = w.change;
+    const ticket = (id: string) => remote.snap.tickets.find((t) => t.id === id);
+    if (c.kind === 'comment') return !!ticket(c.ticketId)?.comments.some((x) => x.writeId === w.id);
+    if (c.kind === 'blocking') return !!ticket(c.blockedId)?.blockedBy.includes(c.blockerId);
+    if (c.kind === 'decision') return remote.decisions.some((d) => d.id === c.decision.id && d.decidedAt === c.decision.decidedAt && d.answer === c.decision.answer);
+    return false;
+  }
+
+  /** Same inputs give the same id (recorded fixtures stay stable); the clock and a counter keep real writes apart. */
+  private writeId(mapId: string, change: QueuedChange) {
+    const s = `${mapId}\n${JSON.stringify(change)}\n${this.now()}\n${++this.writes}`;
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
+    return `${this.now().toString(36)}${(h >>> 0).toString(36)}`;
+  }
+
   /**
-   * Sends one write and applies it to the cache. Queueable writes that hit an
-   * offline or rate-limited tracker (or arrive while others are queued, to
-   * keep order) are applied to the cache now and sent later.
+   * Sends one queueable write and applies it to the cache. When the tracker is
+   * offline or rate limited (or other writes are queued, to keep order) it is
+   * applied to the cache now and queued, persisted when there is a store.
    */
-  private async write<R>(
-    mapId: string,
-    op: { label: string; prepare?: (e: Entry) => void; send: () => Promise<R>; apply?: (e: Entry, r?: R) => void; queue?: boolean; event?: EventInit },
-  ): Promise<R | undefined> {
-    return this.lock(mapId, async () => {
+  private async change(mapId: string, label: string, change: QueuedChange | ((e: Entry) => QueuedChange), event: EventInit) {
+    await this.lock(mapId, async () => {
       const e = await this.entry(mapId);
-      op.prepare?.(e);
-      let result: R | undefined;
-      if (op.queue && this.outbox.length) this.enqueue(op);
+      const c = typeof change === 'function' ? change(e) : change;
+      const w: QueuedWrite = { id: this.writeId(mapId, c), mapId, label, at: this.now(), change: c };
+      if (this.outbox.length) this.enqueue(w);
       else {
         try {
-          result = await op.send();
+          await this.send(e, w);
           this.online();
         } catch (err) {
           this.failed(err);
-          if (!(op.queue && isTransient(err))) throw err;
-          this.enqueue(op);
+          if (!isTransient(err)) throw err;
+          this.enqueue({ ...w, verify: err.code === 'offline' || undefined });
         }
       }
-      op.apply?.(e, result);
+      this.apply(e, w);
       e.at = this.now();
       e.snap.map.updatedAt = this.now();
-      if (op.event) this.emit(op.event);
-      return result;
+      this.emit(event);
     });
   }
 
-  private enqueue(op: Pending) {
-    this.outbox.push({ label: op.label, send: op.send });
+  private persist() {
+    try {
+      this.store?.save(this.outbox);
+    } catch (err) {
+      this.current = { ...this.current, error: `Could not save queued writes: ${(err as Error).message}` };
+    }
+  }
+
+  private enqueue(w: QueuedWrite) {
+    this.outbox.push(w);
+    this.persist();
     this.setStatus({});
     this.schedule(this.current.state === 'rate-limited' && this.current.resetAt ? Math.max(1000, this.current.resetAt - this.now()) : Math.min(this.pollMs, 5000));
   }
@@ -292,35 +433,36 @@ export abstract class SyncedAdapter implements TrackerAdapter {
   }
 
   async setMapMode(mapId: string, mode: MapMode) {
-    await this.write(mapId, {
-      label: `mode ${mode}`,
-      queue: true,
-      send: async () => this.remoteSetMode((await this.entry(mapId)).snap.map, mode),
-      apply: (e) => (e.snap.map.mode = mode),
-      event: { kind: 'map.mode', mapId, mode },
-    });
+    await this.change(mapId, `mode ${mode}`, { kind: 'mode', mode }, { kind: 'map.mode', mapId, mode });
   }
 
   async updateMapSections(mapId: string, patch: Partial<MapSections>) {
-    let next: MapDoc;
-    await this.write(mapId, {
-      label: 'mission sections',
-      queue: true,
-      prepare: (e) => (next = { ...e.snap.map, sections: roundtrip({ ...e.snap.map.sections, ...patch }) }),
-      send: () => this.remoteUpdateMap(next),
-      apply: (en) => (en.snap.map.sections = next.sections),
-      event: { kind: 'map.updated', mapId, section: Object.keys(patch)[0] as keyof MapSections },
+    await this.change(mapId, 'mission sections', (e) => ({ kind: 'sections', sections: roundtrip({ ...e.snap.map.sections, ...patch }) }), {
+      kind: 'map.updated',
+      mapId,
+      section: Object.keys(patch)[0] as keyof MapSections,
     });
   }
 
+  /** Creates need the tracker's answer (the new id), so they fail fast instead of queueing: never a duplicate issue. */
   async createTicket(mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }): Promise<Ticket> {
-    const t = await this.write(mapId, {
-      label: `create ${input.title}`,
-      send: async () => this.remoteCreateTicket((await this.entry(mapId)).snap.map, input),
-      apply: (e, r) => r && e.snap.tickets.push(r),
+    const t = await this.lock(mapId, async () => {
+      const e = await this.entry(mapId);
+      let r: Ticket;
+      try {
+        r = await this.remoteCreateTicket(e.snap.map, input);
+        this.online();
+      } catch (err) {
+        this.failed(err);
+        throw err;
+      }
+      e.snap.tickets.push(r);
+      e.at = this.now();
+      e.snap.map.updatedAt = this.now();
+      return r;
     });
-    this.emit({ kind: 'ticket.created', mapId, ticketId: t!.id });
-    return structuredClone(t!);
+    this.emit({ kind: 'ticket.created', mapId, ticketId: t.id });
+    return structuredClone(t);
   }
 
   async addBlocking(mapId: string, blockerId: string, blockedId: string) {
@@ -329,56 +471,27 @@ export abstract class SyncedAdapter implements TrackerAdapter {
     const blocked = this.ticketOf(e, blockedId);
     const event: EventInit = { kind: 'edge.added', mapId, blockerId, blockedId };
     if (blocked.blockedBy.includes(blockerId)) return void this.emit(event);
-    await this.write(mapId, {
-      label: `${blocker.key} blocks ${blocked.key}`,
-      queue: true,
-      send: () => this.remoteAddBlocking(e.snap.map, blocker, blocked),
-      apply: (en) => {
-        const t = this.ticketOf(en, blockedId);
-        if (!t.blockedBy.includes(blockerId)) this.touch(t, { blockedBy: [...t.blockedBy, blockerId] });
-      },
-      event,
-    });
+    await this.change(mapId, `${blocker.key} blocks ${blocked.key}`, { kind: 'blocking', blockerId, blockedId }, event);
   }
 
   async assign(mapId: string, ticketId: string, assignee: string | null) {
-    const e = await this.entry(mapId);
-    let next = this.ticketOf(e, ticketId);
-    await this.write(mapId, {
-      label: `${assignee ? 'claim' : 'release'} ${next.key}`,
-      queue: true,
-      prepare: (en) => (next = { ...this.ticketOf(en, ticketId), assignee: assignee ?? undefined }),
-      send: () => this.remoteSetClaim(e.snap.map, next),
-      apply: (en) => this.touch(this.ticketOf(en, ticketId), { assignee: next.assignee }),
-      event: assignee ? { kind: 'ticket.claimed', mapId, ticketId, assignee } : { kind: 'ticket.released', mapId, ticketId },
-    });
+    const t = this.ticketOf(await this.entry(mapId), ticketId);
+    await this.change(
+      mapId,
+      `${assignee ? 'claim' : 'release'} ${t.key}`,
+      { kind: 'claim', ticketId, assignee: assignee ?? undefined },
+      assignee ? { kind: 'ticket.claimed', mapId, ticketId, assignee } : { kind: 'ticket.released', mapId, ticketId },
+    );
   }
 
   async comment(mapId: string, ticketId: string, author: string, body: string) {
-    const e = await this.entry(mapId);
-    const t = this.ticketOf(e, ticketId);
-    await this.write(mapId, {
-      label: `comment on ${t.key}`,
-      queue: true,
-      send: () => this.remoteComment(e.snap.map, t, author, body),
-      apply: (en) => {
-        const x = this.ticketOf(en, ticketId);
-        this.touch(x, { comments: [...x.comments, { id: `local-${this.now().toString(36)}-${x.comments.length}`, author, body: body.trim(), createdAt: this.now() }] });
-      },
-      event: { kind: 'ticket.commented', mapId, ticketId },
-    });
+    const t = this.ticketOf(await this.entry(mapId), ticketId);
+    await this.change(mapId, `comment on ${t.key}`, { kind: 'comment', ticketId, author, body }, { kind: 'ticket.commented', mapId, ticketId });
   }
 
   async close(mapId: string, ticketId: string, reason: 'completed' | 'not_planned') {
-    const e = await this.entry(mapId);
-    const t = this.ticketOf(e, ticketId);
-    await this.write(mapId, {
-      label: `close ${t.key}`,
-      queue: true,
-      send: () => this.remoteClose(e.snap.map, t, reason),
-      apply: (en) => this.touch(this.ticketOf(en, ticketId), { state: 'closed', closeReason: reason, closedAt: this.now() }),
-      event: { kind: 'ticket.closed', mapId, ticketId, reason },
-    });
+    const t = this.ticketOf(await this.entry(mapId), ticketId);
+    await this.change(mapId, `close ${t.key}`, { kind: 'close', ticketId, reason }, { kind: 'ticket.closed', mapId, ticketId, reason });
   }
 
   /** `D-<n>` unique across every mission in the tracker, as with local markdown. */
@@ -390,31 +503,16 @@ export abstract class SyncedAdapter implements TrackerAdapter {
   }
 
   async createDecision(mapId: string, input: DecisionInput): Promise<DecisionRecord> {
-    const e = await this.entry(mapId);
+    await this.entry(mapId);
     const d = buildDecision(await this.nextDecisionId(), mapId, input);
-    const ticket = d.ticketId ? e.snap.tickets.find((t) => t.id === d.ticketId) : undefined;
-    await this.write(mapId, {
-      label: `decision ${d.id}`,
-      queue: true,
-      send: () => this.remotePostDecision(e.snap.map, d, ticket),
-      apply: (en) => en.decisions.push(d),
-      event: { kind: 'decision.recorded', mapId, decisionId: d.id, ticketId: d.ticketId },
-    });
+    await this.change(mapId, `decision ${d.id}`, { kind: 'decision', decision: d }, { kind: 'decision.recorded', mapId, decisionId: d.id, ticketId: d.ticketId });
     return structuredClone(d);
   }
 
   async markSuperseded(mapId: string, decisionId: string, supersededBy: string) {
     const e = await this.entry(mapId);
-    const d = e.decisions.find((x) => x.id === decisionId);
-    if (!d) throw new OperationError(`decision ${decisionId} not found in ${mapId}`);
-    const next = { ...d, supersededBy };
-    await this.write(mapId, {
-      label: `supersede ${decisionId}`,
-      queue: true,
-      send: () => this.remoteUpdateDecision(e.snap.map, next),
-      apply: (en) => (en.decisions = en.decisions.map((x) => (x.id === decisionId ? next : x))),
-      event: { kind: 'decision.superseded', mapId, decisionId, supersededBy },
-    });
+    if (!e.decisions.some((x) => x.id === decisionId)) throw new OperationError(`decision ${decisionId} not found in ${mapId}`);
+    await this.change(mapId, `supersede ${decisionId}`, { kind: 'supersede', decisionId, supersededBy }, { kind: 'decision.superseded', mapId, decisionId, supersededBy });
   }
 
   /* ---------- sync loop ---------- */
@@ -454,18 +552,39 @@ export abstract class SyncedAdapter implements TrackerAdapter {
   }
 
   private async flush() {
+    /** Uncached remote state read during this flush, to check writes that may have landed. */
+    const remote = new Map<string, Entry>();
+    const read = async (mapId: string) => {
+      let r = remote.get(mapId);
+      if (!r) {
+        r = await this.fetchEntry(mapId);
+        remote.set(mapId, r);
+        if (!this.entries.has(mapId)) this.entries.set(mapId, this.withQueued(mapId, r));
+      }
+      return r;
+    };
     while (this.outbox.length) {
-      const op = this.outbox[0];
+      const w = this.outbox[0];
       try {
-        await op.send();
+        const check = w.verify && CHECKED.has(w.change.kind);
+        if (check || !this.entries.has(w.mapId)) await read(w.mapId);
+        if (!(check && this.landed(remote.get(w.mapId)!, w))) await this.send(await this.entry(w.mapId), w);
       } catch (err) {
-        if (isTransient(err)) throw err;
+        if (isTransient(err)) {
+          if (err.code === 'offline' && !w.verify) {
+            w.verify = true;
+            this.persist();
+          }
+          throw err;
+        }
         // the tracker rejected it for good (deleted issue, revoked access): drop it rather than block the queue
         this.outbox.shift();
-        this.setStatus({ error: `Dropped queued write (${op.label}): ${(err as Error).message}` });
+        this.persist();
+        this.setStatus({ error: `Dropped queued write (${w.label}): ${(err as Error).message}` });
         continue;
       }
       this.outbox.shift();
+      this.persist();
       this.online();
       this.setStatus({});
     }
@@ -503,9 +622,10 @@ export abstract class SyncedAdapter implements TrackerAdapter {
     }
   }
 
-  /** Stops polling. Queued writes that were not sent are dropped. */
+  /** Stops polling. Unsent queued writes stay in the outbox store for the next run (lost without one). */
   dispose() {
     this.closed = true;
     clearTimeout(this.timer);
+    this.store?.release();
   }
 }

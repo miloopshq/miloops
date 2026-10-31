@@ -8,11 +8,13 @@ import { TICKET_TYPES, type Comment, type DecisionRecord, type MapMode, type Tic
  *   claim                           `<!-- miloops:meta {"assignee":…} -->` at the end of the issue body;
  *                                   a human assignee in the tracker counts as a claim too
  *   comment author                  `<!-- miloops:author <id> -->` first line (the API user posts every comment)
+ *   comment write id                `<!-- miloops:write <id> -->` next line, so a replayed queued write can tell it already landed
  *   decision record                 a comment on its ticket (or the mission) ending in `<!-- miloops:decision {json} -->`
  */
 const P = BRAND.labelPrefix;
 const META_RE = new RegExp(`\\s*<!-- ${P}:meta (\\{.*?\\}) -->\\s*$`, 's');
 const AUTHOR_RE = new RegExp(`^<!-- ${P}:author (.+?) -->\\n?`);
+const WRITE_RE = new RegExp(`^<!-- ${P}:write (\\S+) -->\\n?`);
 const DECISION_RE = new RegExp(`<!-- ${P}:decision (\\{.*\\}) -->\\s*$`, 's');
 /** GitHub caps comments at 65 536 characters. */
 const MAX_COMMENT = 60_000;
@@ -39,18 +41,23 @@ export function joinBody(text: string, meta: BodyMeta): string {
   return Object.keys(clean).length ? `${text.trim()}\n\n<!-- ${P}:meta ${JSON.stringify(clean)} -->` : text.trim();
 }
 
-export const authoredBody = (author: string, body: string) => `<!-- ${P}:author ${author.replace(/-->/g, '')} -->\n${body}`;
+export const authoredBody = (author: string, body: string, writeId?: string) =>
+  `<!-- ${P}:author ${author.replace(/-->/g, '')} -->\n${writeId ? `<!-- ${P}:write ${writeId.replace(/\s|-->/g, '')} -->\n` : ''}${body}`;
 
 /** A tracker comment as a ticket comment; `undefined` for decision-record comments, which are not conversation. */
 export function readComment(c: { id: string; body: string; author?: string; createdAt: string | number }): Comment | undefined {
-  const body = c.body.replace(/\r\n/g, '\n');
+  let body = c.body.replace(/\r\n/g, '\n');
   if (DECISION_RE.test(body)) return undefined;
   const m = body.match(AUTHOR_RE);
+  if (m) body = body.slice(m[0].length);
+  const w = body.match(WRITE_RE);
+  if (w) body = body.slice(w[0].length);
   return {
     id: c.id,
     author: m ? m[1] : c.author ?? 'unknown',
-    body: (m ? body.slice(m[0].length) : body).trim(),
+    body: body.trim(),
     createdAt: typeof c.createdAt === 'number' ? c.createdAt : Date.parse(c.createdAt) || 0,
+    ...(w ? { writeId: w[1] } : {}),
   };
 }
 
