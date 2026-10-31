@@ -21,10 +21,9 @@
   border: 1px solid var(--line2);
   background: transparent;
   cursor: pointer;
-  font-family: var(--mono);
-  font-size: var(--fs-sm);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  font-weight: 500;
   color: var(--text);
 }
 .toggle i {

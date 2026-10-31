@@ -22,7 +22,7 @@
   color: var(--accent);
 }
 
-/* ---------- Type voices: humans (Barlow) vs agents and MILO (Chakra Petch) vs tracker data (mono) ---------- */
+/* ---------- Type voices: people and agents (Barlow) vs tracker data (mono) ---------- */
 .msg.voice-agent .msg-text {
   font-family: var(--voice-agent);
   letter-spacing: var(--ls-text);
@@ -52,19 +52,17 @@
   color: var(--accent);
 }
 
-/* ---------- Signal moments: dot-matrix, used sparingly ---------- */
+/* ---------- Signal moments: mono caps, used sparingly ---------- */
 .log-row.signal .msg {
-  font-family: var(--dot);
-  font-weight: 700;
-  font-size: var(--fs-body);
-  letter-spacing: var(--ls-text);
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-label);
   line-height: var(--lh-snug);
   text-transform: uppercase;
 }
 .signal-tag {
-  font-family: var(--dot);
-  font-weight: 900;
-  font-size: var(--fs-body);
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
   color: var(--urgent);

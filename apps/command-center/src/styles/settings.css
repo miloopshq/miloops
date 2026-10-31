@@ -326,10 +326,9 @@
 }
 .onb-tagline {
   margin: 0;
-  font-family: var(--display);
+  font-family: var(--sans);
   font-weight: 500;
   font-size: var(--fs-title);
-  letter-spacing: var(--ls-text);
   color: var(--text-hi);
 }
 .milo-line {
