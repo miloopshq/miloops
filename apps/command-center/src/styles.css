@@ -302,9 +302,6 @@ code { font-family: var(--mono); font-size: 12px; color: var(--text-hi); backgro
 .comms .status.running { color: var(--st-claimed); }
 .comms .status.done { color: var(--st-decided); }
 .back { background: none; border: 0; color: var(--accent); font-family: var(--mono); font-size: 12px; padding: 0 6px 0 0; cursor: pointer; text-transform: uppercase; }
-.comms-milo { display: flex; align-items: flex-start; gap: 12px; padding: 0 14px 10px; flex: 0 0 auto; }
-.comms-milo .milo { flex: 0 0 auto; }
-.comms-milo .comms-ticket { padding: 2px 0 0; min-width: 0; font-size: 15px; }
 .comms-ticket { padding: 0 14px 8px; color: var(--text-hi); font-family: var(--display); font-weight: 600; font-size: 17px; line-height: 1.2; }
 .comms-ticket .dim { font-family: var(--mono); font-weight: 400; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px; }
 .comms-log { flex: 1; min-height: 0; overflow: auto; padding: 4px 14px 10px; display: flex; flex-direction: column; gap: 10px; }
@@ -315,11 +312,23 @@ code { font-family: var(--mono); font-size: 12px; color: var(--text-hi); backgro
 .msg.from-human .msg-meta { text-align: right; color: var(--amber); }
 .msg.from-human .msg-text { background: rgba(var(--amber-rgb), 0.07); border-color: rgba(var(--amber-rgb), 0.35); border-left-width: 1px; border-right: 2px solid var(--amber); color: var(--text-hi); }
 .msg.open-q .msg-text { border-color: var(--urgent); border-left: 2px solid var(--urgent); background: var(--urgent-bg); color: var(--text-hi); }
+/* Open question: 32px MILO beside the text column; suggestions and the answer row share that column. */
+.comms { --q-col: 42px; container-type: inline-size; }
+.msg.open-q { max-width: none; display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 10px; }
+.msg.open-q > * { grid-column: 2; }
+.msg.open-q .q-avatar { grid-column: 1; grid-row: 1 / span 2; align-self: start; position: relative; margin-top: 2px; }
+.msg.open-q .q-avatar::after { content: ''; position: absolute; top: -3px; right: -3px; width: 6px; height: 6px; background: var(--urgent); }
 .suggest { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 8px; }
 .suggest .chip { border-color: rgba(var(--amber-rgb), 0.4); }
 .suggest .chip:hover { border-color: var(--amber); color: var(--amber); }
 .comms-input { display: flex; gap: 8px; padding: 8px 14px 12px; align-items: flex-end; }
-.comms-input textarea { flex: 1; resize: none; }
+.comms-input textarea { flex: 1; min-width: 0; resize: none; height: 36px; min-height: 36px; max-height: 120px; field-sizing: content; padding: 7px 9px; line-height: 20px; }
+.comms-input .btn { flex: 0 0 auto; height: 36px; min-width: 76px; line-height: 20px; }
+.comms.asking .suggest, .comms.asking .comms-input { padding-left: calc(14px + var(--q-col)); }
+@container (max-width: 300px) {
+  .comms-input { flex-wrap: wrap; }
+  .comms-input textarea, .comms-input .btn { flex: 1 0 100%; }
+}
 
 .upnext { display: flex; flex-direction: column; min-height: 0; flex: 0 1 auto; max-height: 30%; border-top: 1px solid var(--line); }
 .inbox.split:not(.has-conv) .upnext { flex: 1 1 auto; max-height: none; }

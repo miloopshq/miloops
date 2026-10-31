@@ -161,7 +161,7 @@ function Conversation(props: { activity: ActivityState; snaps: Record<string, Ma
   const status = !session ? '' : pending ? 'Your answer is needed' : session.status === 'running' ? `${session.agent} is working…` : session.status === 'done' ? 'Resolved · ticket closed' : 'Session ended';
 
   return (
-    <div className="comms">
+    <div className={`comms ${pending ? 'asking' : ''}`}>
       <header className="part-h">
         {props.onBack && (
           <button className="back" onClick={props.onBack} aria-label="Back to inbox">
@@ -175,24 +175,25 @@ function Conversation(props: { activity: ActivityState; snaps: Record<string, Ma
         <Empty>No conversation</Empty>
       ) : (
         <>
-          <div className="comms-milo">
-            <MiloAvatar size="sm" state={pending ? 'alert' : 'idle'} />
-            <div className="comms-ticket">
-              <span className="key">{ticket?.key}</span> {ticket?.title}
-              <div className="dim">
-                {mission?.map.title} · {session.agent}
-              </div>
+          <div className="comms-ticket">
+            <span className="key">{ticket?.key}</span> {ticket?.title}
+            <div className="dim">
+              {mission?.map.title} · {session.agent}
             </div>
           </div>
           <div className="comms-log" ref={logRef}>
-            {messages.map((m) => (
-              <div key={m.id} className={`msg from-${m.from} voice-${m.from === 'human' ? 'human' : 'agent'} ${m.questionId && m.questionId === pending?.id ? 'open-q' : ''}`}>
-                <div className="msg-meta">
-                  {m.author} · {clock(m.at)}
+            {messages.map((m) => {
+              const open = !!m.questionId && m.questionId === pending?.id;
+              return (
+                <div key={m.id} className={`msg from-${m.from} voice-${m.from === 'human' ? 'human' : 'agent'} ${open ? 'open-q' : ''}`}>
+                  {open && <MiloAvatar size="xs" state="alert" className="q-avatar" />}
+                  <div className="msg-meta">
+                    {m.author} · {clock(m.at)}
+                  </div>
+                  <div className="msg-text">{m.text}</div>
                 </div>
-                <div className="msg-text">{m.text}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           {pending?.suggestions && (
             <div className="suggest">
@@ -212,7 +213,7 @@ function Conversation(props: { activity: ActivityState; snaps: Record<string, Ma
           >
             <textarea
               ref={inputRef}
-              rows={2}
+              rows={1}
               value={draft}
               disabled={!pending}
               placeholder={pending ? 'Answer' : ''}
