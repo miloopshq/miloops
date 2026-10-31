@@ -16,6 +16,12 @@ test('comment author marker is read back; plain tracker comments keep the tracke
   assert.equal(readComment({ id: '2', body: 'LGTM', author: 'mona', createdAt: '2026-10-31T12:00:00Z' })!.author, 'mona');
 });
 
+test('the write id of a queued comment is hidden from its body and read back', () => {
+  const body = authoredBody('claude-07', 'Found it.', 'mvwc1a2b');
+  assert.match(body, /^<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwc1a2b -->\nFound it\.$/);
+  assert.deepEqual(readComment({ id: '3', body, createdAt: 0 }), { id: '3', author: 'claude-07', body: 'Found it.', createdAt: 0, writeId: 'mvwc1a2b' });
+});
+
 test('decision comments survive text that would close an HTML comment', () => {
   const d = buildDecision('D-7', 'm', { question: 'Q?', answer: 'Use --> arrows <!-- and --> dashes.', decidedBy: 'operator', source: { kind: 'command-center' }, ticketId: '12', ticketKey: '#12' });
   const body = decisionComment(d);

@@ -282,8 +282,8 @@ export class GitHubAdapter extends SyncedAdapter {
     await this.rest('PATCH', this.repoPath(`/issues/${t.id}`), { body: joinBody(t.body, { assignee: t.assignee }) });
   }
 
-  protected async remoteComment(_map: MapDoc, t: Ticket, author: string, body: string) {
-    await this.rest('POST', this.repoPath(`/issues/${t.id}/comments`), { body: authoredBody(author, body) });
+  protected async remoteComment(_map: MapDoc, t: Ticket, author: string, body: string, writeId: string) {
+    await this.rest('POST', this.repoPath(`/issues/${t.id}/comments`), { body: authoredBody(author, body, writeId) });
   }
 
   protected async remoteClose(_map: MapDoc, t: Ticket, reason: 'completed' | 'not_planned') {

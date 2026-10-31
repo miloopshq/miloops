@@ -7,11 +7,13 @@ import { DECISION_SOURCES, parseDecision } from './decisions';
 import { recordDecision, supersedeDecision } from './operations';
 import { AnswerError, readAgentDoc, readAgentDocs, writeAgentAnswer } from './agentHost';
 import { SESSION_DOC_PATH, agentPaths, isAgentPath, type AgentAnswer } from './agentLink';
+import { isOutboxPath } from './adapters/remote/outboxFile';
 import { createTrackerRoutes, sendTrackerError, type TrackerRoutesOptions } from './trackerRoutes';
 import type { TrackerAdapter } from './adapter';
 import type { DecisionInput, DecisionRecord } from './types';
 
 export { activeTracker } from './trackerRoutes';
+export { outboxFile, outboxKey } from './adapters/remote/outboxFile';
 
 export interface TrackerBridge {
   root: string;
@@ -117,6 +119,7 @@ export function createTrackerBridge(root: string, trackers: Omit<TrackerRoutesOp
 
   const unwatch = fs.watch!((rel) => {
     if (isAgentPath(rel)) return onAgentFile(rel);
+    if (isOutboxPath(rel)) return;
     send(`data: ${JSON.stringify({ path: rel })}\n\n`);
     if (DECISION_PATH.test(rel)) void onDecisionFile(rel);
   });
