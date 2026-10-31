@@ -1,4 +1,5 @@
 import { Emitter, sleep } from '../lib/emitter';
+import type { TicketMetaPatch } from '../model/lifecycle';
 import {
   DEFAULT_MAP_MODE,
   type DecisionInput,
@@ -13,6 +14,7 @@ import {
 } from '../model/types';
 import { buildDecision } from '../planning/decisions/decisionRecord';
 import type { TrackerAdapter } from './adapter';
+import { withMeta } from './ticketMeta';
 
 export interface MemoryAdapterOptions {
   /** Simulated network latency range in ms. */
@@ -174,6 +176,12 @@ export class MemoryAdapter implements TrackerAdapter {
     const t = this.ticket(mapId, ticketId);
     this.touch(mapId, { ...t, state: 'closed', closeReason: reason, closedAt: Date.now() });
     this.emit({ kind: 'ticket.closed', mapId, ticketId, reason, at: Date.now() });
+  }
+
+  async setMeta(mapId: string, ticketId: string, patch: TicketMetaPatch) {
+    await this.wait();
+    this.touch(mapId, withMeta(this.ticket(mapId, ticketId), patch));
+    this.emit({ kind: 'ticket.updated', mapId, ticketId, at: Date.now() });
   }
 
   async listDecisions(mapId: string) {

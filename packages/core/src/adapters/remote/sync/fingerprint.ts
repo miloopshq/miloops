@@ -22,6 +22,7 @@ export function fingerprint(e: CacheEntry) {
         t.state,
         t.closeReason ?? '',
         t.assignee ?? '',
+        t.status ?? '',
         [...t.blockedBy].sort(),
         t.body.trim(),
         t.comments.map((c) => [c.author, c.body.trim()]),

@@ -1,5 +1,7 @@
 import type { TrackerAdapter } from '../../adapters/adapter';
 import type { TicketType, DecisionSource } from '../../model/types';
+import { transition } from '../lifecycle/transition';
+import type { ActorOptions } from './claims';
 import { recordDecision } from './decisionOps';
 import { assertTypeAllowed } from './mapMode';
 import { OperationError } from './operationError';
@@ -35,6 +37,7 @@ export async function ruleOutOfScope(
   mapId: string,
   target: ScopeTarget,
   input: { reason: string; author: string; source?: DecisionSource },
+  opts: ActorOptions = {},
 ) {
   const snap = await adapter.loadMap(mapId);
   const { unspecified, outOfScope } = snap.map.sections;
@@ -50,7 +53,19 @@ export async function ruleOutOfScope(
   const t = snap.tickets.find((x) => x.id === target.ticketId);
   if (!t) throw new OperationError(`ticket ${target.ticketId} not found`);
   await adapter.comment(mapId, t.id, input.author, `**Ruled out of scope**\n\n${input.reason}`);
-  await adapter.close(mapId, t.id, 'not_planned');
+  await transition(
+    adapter,
+    mapId,
+    t.id,
+    {
+      event: 'cancel',
+      actor: input.author,
+      actorKind: opts.actorKind ?? 'agent',
+      reason: input.reason,
+      sessionId: opts.sessionId,
+    },
+    opts,
+  );
   await recordDecision(
     adapter,
     mapId,

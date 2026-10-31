@@ -3,6 +3,7 @@ import type { SessionHandle } from '../activity/sessionHandle';
 import type { TrackerAdapter } from '../adapters/adapter';
 import { sleep } from '../lib/emitter';
 import type { HitlTranscriptMode } from '../model/integrations';
+import type { Journal } from '../model/lifecycle';
 import type { AgentBrain } from './brain';
 
 export interface ProcedureContext {
@@ -15,6 +16,8 @@ export interface ProcedureContext {
   hitlTranscript?: () => HitlTranscriptMode;
   /** Actor id recorded as `decidedBy` on HITL decisions. */
   operator?: string;
+  /** Where the simulated agents' transitions are recorded. */
+  journal?: Journal;
 }
 
 export const think = (ctx: ProcedureContext, ms: number) => sleep(ms * (ctx.pace ?? 1) * (0.7 + Math.random() * 0.6));

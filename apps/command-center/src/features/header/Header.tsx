@@ -62,7 +62,7 @@ export function Header(props: {
               value={hms(now - map.createdAt)}
               title="Mission elapsed time, since it was charted"
             />
-            <Readout label="Decided" value={`${p.decided}/${p.total}`} />
+            <Readout label="Done" value={`${p.decided}/${p.total}`} />
           </span>
         )}
         {map && (

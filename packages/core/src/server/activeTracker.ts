@@ -53,6 +53,7 @@ export function activeTracker(o: TrackerRoutesOptions): TrackerAdapter & { dispo
     assign: call('assign'),
     comment: call('comment'),
     close: call('close'),
+    setMeta: call('setMeta'),
     listDecisions: call('listDecisions'),
     createDecision: call('createDecision'),
     markSuperseded: call('markSuperseded'),

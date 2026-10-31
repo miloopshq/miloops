@@ -1,3 +1,4 @@
+import type { TicketMetaPatch } from '../../../model/lifecycle';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -113,6 +114,16 @@ export abstract class SyncedAdapter extends SyncedWriter implements TrackerAdapt
       `${assignee ? 'claim' : 'release'} ${t.key}`,
       { kind: 'claim', ticketId, assignee: assignee ?? undefined },
       assignee ? { kind: 'ticket.claimed', mapId, ticketId, assignee } : { kind: 'ticket.released', mapId, ticketId },
+    );
+  }
+
+  async setMeta(mapId: string, ticketId: string, patch: TicketMetaPatch) {
+    const t = ticketOf(await this.entry(mapId), ticketId);
+    await this.change(
+      mapId,
+      `${patch.status ? `mark ${patch.status}` : 'clear status of'} ${t.key}`,
+      { kind: 'meta', ticketId, patch },
+      { kind: 'ticket.updated', mapId, ticketId },
     );
   }
 

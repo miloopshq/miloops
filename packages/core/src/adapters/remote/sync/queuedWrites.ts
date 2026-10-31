@@ -1,5 +1,6 @@
 import type { Ticket } from '../../../model/types';
 import { OperationError } from '../../../planning/operations/operationError';
+import { withMeta } from '../../ticketMeta';
 import type { CacheEntry, QueuedChange, QueuedWrite } from './types';
 
 /** Changes that would duplicate if sent twice; the rest set state, so sending them again is harmless. */
@@ -34,6 +35,13 @@ export function applyWrite(e: CacheEntry, w: QueuedWrite, now: () => number) {
     case 'claim':
       touch(ticketOf(e, c.ticketId), { assignee: c.assignee }, now);
       break;
+    case 'meta': {
+      const t = ticketOf(e, c.ticketId);
+      const next = withMeta(t, c.patch);
+      if (!next.status) delete t.status;
+      touch(t, next, now);
+      break;
+    }
     case 'comment': {
       const t = ticketOf(e, c.ticketId);
       if (!t.comments.some((x) => x.writeId === w.id))

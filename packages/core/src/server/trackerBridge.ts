@@ -7,6 +7,7 @@ import { handleAgents } from './agentRoutes';
 import type { BridgeOptions, TrackerBridge } from './bridgeTypes';
 import { handleDecisions } from './decisionRoutes';
 import { BadRequest, openEventStream, readText, sendJson } from './http';
+import { handleJournal } from './journalRoutes';
 import { handleLeases } from './leaseRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
@@ -61,6 +62,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       if (url.pathname.startsWith('/decisions') && (await handleDecisions(await routes.active(), req, res, url)))
         return;
       if (await handleLeases(abs, () => routes.active(), req, res, url)) return;
+      if (await handleJournal(abs, req, res, url)) return;
       if (await handleAgents(abs, req, res, url)) return;
       res.statusCode = 404;
       res.end('not found');

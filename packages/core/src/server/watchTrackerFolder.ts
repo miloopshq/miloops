@@ -5,6 +5,7 @@ import { DECISION_PATH } from '../adapters/markdown/paths';
 import { isOutboxPath } from '../adapters/remote/outboxFile';
 import { readAgentDoc } from '../agents/agentDocs';
 import { SESSION_DOC_PATH, agentPaths, isAgentPath } from '../agents/agentLink';
+import { JOURNAL_DIR } from '../history/journalFile';
 import { parseDecision } from '../planning/decisions/decisionFile';
 import type { DecisionEvent } from './bridgeTypes';
 
@@ -79,7 +80,7 @@ export function watchTrackerFolder(abs: string, fs: MarkdownFs, send: (text: str
 
   const unwatch = fs.watch!((rel) => {
     if (isAgentPath(rel)) return onAgentFile(rel);
-    if (isOutboxPath(rel)) return;
+    if (isOutboxPath(rel) || rel.startsWith(`${JOURNAL_DIR}/`) || rel === JOURNAL_DIR) return;
     send(`data: ${JSON.stringify({ path: rel })}\n\n`);
     if (DECISION_PATH.test(rel)) void onDecisionFile(rel);
   });

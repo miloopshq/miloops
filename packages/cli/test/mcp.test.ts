@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { MarkdownAdapter } from '@miloops-hq/core';
-import { readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/agents';
+import { journalPath, readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
@@ -238,6 +238,33 @@ describe('miloops MCP server', () => {
     });
     expect((await asked).answer).toBe('Milo');
     expect(two.agent.defaultWaitSeconds()).toBe(50);
+  });
+
+  it('journals every transition the agent makes, with its callsign and session', async () => {
+    const { call } = await connect('claude-07');
+    const started = await call<{ mission: { id: string } }>('start_mission', {
+      title: 'Journal',
+      destination: 'D',
+      tickets: [
+        { ref: 'a', title: 'Look', type: 'research' },
+        { ref: 'b', title: 'Drop', type: 'task' },
+      ],
+    });
+    const c = await call<{ claimed: { key: string }; session: { id: string } }>('claim_ticket');
+    await call('close_ticket', { resolution: 'Found it.' });
+    await call('close_ticket', { ticket: '#3', resolution: 'Not needed.', outcome: 'out_of_scope' });
+    await call('claim_ticket', { ticket: '#3' }).catch(() => {});
+    const lines = fs
+      .readFileSync(journalPath(root, started.mission.id), 'utf8')
+      .trim()
+      .split('\n')
+      .map((l) => JSON.parse(l));
+    expect(lines.map((e) => [e.ticketKey, e.event, e.from, e.to, e.actor, e.actorKind])).toEqual([
+      [c.claimed.key, 'claim', 'ready', 'working', 'claude-07', 'agent'],
+      [c.claimed.key, 'complete', 'working', 'done', 'claude-07', 'agent'],
+      ['#3', 'cancel', 'ready', 'cancelled', 'claude-07', 'agent'],
+    ]);
+    expect(lines[1].sessionId).toBe(c.session.id);
   });
 
   it('rejects bad input with clear errors', async () => {

@@ -1,3 +1,4 @@
+import type { TicketMetaPatch } from '../model/lifecycle';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -22,6 +23,7 @@ import type {
  *   map            -> issue labelled MAP_LABEL (brand.ts)
  *   ticket         -> child/sub-issue labelled label(<type>)
  *   claim          -> assignment
+ *   status         -> MILOOPS metadata on the ticket (frontmatter, or the issue meta marker)
  *   blockedBy      -> native "blocked by" relation
  *   out of scope   -> closed as not planned (+ line in the map's Out of scope)
  */
@@ -48,6 +50,8 @@ export interface TrackerAdapter {
   assign(mapId: string, ticketId: string, assignee: string | null): Promise<void>;
   comment(mapId: string, ticketId: string, author: string, body: string): Promise<void>;
   close(mapId: string, ticketId: string, reason: 'completed' | 'not_planned'): Promise<void>;
+  /** Lifecycle status (model/lifecycle.ts). Use `transition()`, not this directly. */
+  setMeta(mapId: string, ticketId: string, patch: TicketMetaPatch): Promise<void>;
 
   /** Decision records of a mission, any order. Real trackers: a comment marker or a linked doc per record. */
   listDecisions(mapId: string): Promise<DecisionRecord[]>;

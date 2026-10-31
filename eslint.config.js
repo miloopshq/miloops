@@ -93,6 +93,20 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
+    // Ticket state changes only through transition() (core planning/lifecycle), which checks and records them.
+    files: ['packages/*/src/**/*.{ts,tsx}', 'apps/*/src/**/*.{ts,tsx}'],
+    ignores: ['packages/core/src/planning/lifecycle/**', 'packages/core/src/adapters/**'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        ...["callee.object.name='adapter'", "callee.object.property.name='adapter'"].map((obj) => ({
+          selector: `CallExpression[callee.property.name=/^(assign|close|setMeta)$/][${obj}]`,
+          message: 'Change ticket state with transition() or an operation (claim, release, resolve), not the adapter.',
+        })),
+      ],
+    },
+  },
+  {
     // Tests and one-off tooling scripts: long fixtures and generators are fine, structure rules are not.
     files: ['**/test/**', 'scripts/**', '**/scripts/**', '**/tools/**'],
     rules: { 'max-lines': 'off' },

@@ -1,4 +1,5 @@
 import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label } from '../../model/brand';
+import { TICKET_STATUSES } from '../../model/lifecycle';
 import {
   TICKET_TYPES,
   type Comment,
@@ -12,7 +13,7 @@ import { DECISION_SOURCES } from '../../planning/decisions/decisionRecord';
 /*
  * How MILOOPS state rides on a plain issue tracker, shared by GitHub and Linear:
  *   ticket type, HITL, plan-only    labels (brand.ts)
- *   claim                           `<!-- miloops:meta {"assignee":…} -->` at the end of the issue body;
+ *   claim, status                   `<!-- miloops:meta {"assignee":…,"status":…} -->` at the end of the issue body;
  *                                   a human assignee in the tracker counts as a claim too
  *   comment author                  `<!-- miloops:author <id> -->` first line (the API user posts every comment)
  *   comment write id                `<!-- miloops:write <id> -->` next line, so a replayed queued write can tell it already landed
@@ -28,7 +29,14 @@ const MAX_COMMENT = 60_000;
 
 export interface BodyMeta {
   assignee?: string;
+  status?: string;
 }
+
+/** Everything MILOOPS keeps in a ticket's meta marker, so one write never drops another's field. */
+export const ticketMeta = (t: Pick<Ticket, 'assignee' | 'status'>): BodyMeta => ({
+  assignee: t.assignee,
+  status: t.status,
+});
 
 export function splitBody(raw: string | null | undefined): { text: string; meta: BodyMeta } {
   const body = (raw ?? '').replace(/\r\n/g, '\n');
@@ -152,6 +160,7 @@ export interface IssueParts {
 export function ticketFromIssue(p: IssueParts): Ticket {
   const { text, meta } = splitBody(p.body);
   const type = typeFromLabels(p.labels);
+  const status = TICKET_STATUSES.find((s) => s === meta.status);
   return {
     id: p.id,
     key: p.key,
@@ -162,6 +171,7 @@ export function ticketFromIssue(p: IssueParts): Ticket {
     state: p.closed ? 'closed' : 'open',
     closeReason: p.closed ? (p.closeReason ?? 'completed') : undefined,
     assignee: meta.assignee ?? p.trackerAssignee,
+    ...(status ? { status } : {}),
     blockedBy: p.blockedBy,
     comments: p.comments,
     createdAt: Date.parse(p.createdAt) || 0,

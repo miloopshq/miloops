@@ -2,6 +2,7 @@ import {
   attention,
   deriveStates,
   isHandoff,
+  PHASE_OF,
   type AgentSessionDoc,
   type DecisionRecord,
   type MapSnapshot,
@@ -24,6 +25,7 @@ export function ticketView(snap: MapSnapshot, t: Ticket, records: DecisionRecord
     type: t.type,
     attention: att,
     state: states.get(t.id),
+    phase: PHASE_OF[states.get(t.id)!],
     assignee: t.assignee,
     body: t.body,
     blockedBy: t.blockedBy.map((b) => ({

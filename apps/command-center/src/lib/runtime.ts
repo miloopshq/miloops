@@ -22,6 +22,8 @@ import {
   Autopilot,
   runWork,
   callsign,
+  httpJournal,
+  type Journal,
 } from '@miloops-hq/core';
 import { LeaseBoard } from './leaseBoard';
 import { type TrackerChoice, loadPrefs, currentPrefs } from './prefs';
@@ -117,6 +119,8 @@ export function createRuntime(kind: TrackerKind) {
   const activity = new ActivityStream();
   const leases = new LeaseBoard(activity);
   const store: { presence?: Presence } = {};
+  /** Demo missions keep no history; real trackers append to `.events/` through the local server. */
+  const journal: Journal | undefined = kind === 'demo' ? undefined : httpJournal(BRAND.apiPrefix);
   if (kind === 'github' || kind === 'linear') {
     const remote = new BridgeAdapter(kind, BRAND.apiPrefix);
     raw = remote;
@@ -173,6 +177,7 @@ export function createRuntime(kind: TrackerKind) {
     pace,
     operator: 'operator',
     hitlTranscript: () => currentPrefs().hitlTranscript,
+    journal,
   };
   let currentMap: string | undefined;
   const autopilot = new Autopilot(ctx, () => currentMap, { maxParallel: 2, interval: 4200 * pace });
@@ -185,6 +190,7 @@ export function createRuntime(kind: TrackerKind) {
       return store.presence;
     },
     adapter,
+    journal,
     monitor,
     activity,
     leases,

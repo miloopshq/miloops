@@ -8,9 +8,26 @@ export interface Release {
 export const NEXT: { area: string; items: string[] }[] = [
   { area: 'Agents', items: ['Start agent sessions from the command center', 'Cursor'] },
   { area: 'Packaging', items: ['Publish to npm'] },
+  {
+    area: 'Verification',
+    items: [
+      'Completion checked by your repo’s own commands before a ticket is done',
+      'Git evidence and stale results',
+      'Independent review by another agent session',
+      'Pull request and CI evidence',
+    ],
+  },
 ];
 
 export const RELEASES: Release[] = [
+  {
+    version: '0.14.0',
+    date: '2026-10-31',
+    items: [
+      'Ticket lifecycle in plain words: Ready, Backlog, Working, Done and Cancelled (with Verifying, Rework and Blocked to come with verification)',
+      'Every claim, release, return to queue, resolution and rule-out goes through one lifecycle engine that records who, why and when in `.miloops/.events/<mission>.jsonl` (local history, never committed)',
+    ],
+  },
   {
     version: '0.13.0',
     date: '2026-10-31',

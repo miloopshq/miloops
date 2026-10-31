@@ -1,12 +1,12 @@
 export function Legend({ planOnly }: { planOnly: boolean }) {
   const items: [string, string][] = [
-    ['frontier', 'Frontier'],
-    ['claimed', 'Claimed'],
+    ['frontier', 'Ready'],
+    ['claimed', 'Working'],
     ['stalled', 'Stalled'],
-    ['blocked', 'Blocked'],
-    ['decided', 'Decided'],
+    ['blocked', 'Backlog'],
+    ['decided', 'Done'],
     ...(planOnly ? ([['parked', 'Parked']] as [string, string][]) : []),
-    ['out-of-scope', 'Out of scope'],
+    ['out-of-scope', 'Cancelled'],
     ['waiting', 'Waiting on you'],
   ];
   return (

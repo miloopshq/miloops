@@ -19,6 +19,7 @@ import {
   mapLabels,
   ticketFromIssue,
   ticketLabels,
+  ticketMeta,
 } from '../format';
 import { TrackerError, type HttpOptions } from '../http';
 import { SyncedAdapter } from '../sync/syncedAdapter';
@@ -187,8 +188,8 @@ export class GitHubAdapter extends SyncedAdapter {
     });
   }
 
-  protected async remoteSetClaim(_map: MapDoc, t: Ticket) {
-    await this.gh.repo('PATCH', `/issues/${t.id}`, { body: joinBody(t.body, { assignee: t.assignee }) });
+  protected async remoteSetMeta(_map: MapDoc, t: Ticket) {
+    await this.gh.repo('PATCH', `/issues/${t.id}`, { body: joinBody(t.body, ticketMeta(t)) });
   }
 
   protected async remoteComment(_map: MapDoc, t: Ticket, author: string, body: string, writeId: string) {
