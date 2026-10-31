@@ -11,6 +11,7 @@ export function fingerprint(e: CacheEntry) {
   return JSON.stringify([
     map.title,
     map.mode,
+    map.verification ?? '',
     roundtrip(map.sections),
     [...tickets]
       .sort((a, b) => a.id.localeCompare(b.id))
@@ -23,6 +24,8 @@ export function fingerprint(e: CacheEntry) {
         t.closeReason ?? '',
         t.assignee ?? '',
         t.status ?? '',
+        t.verification ?? '',
+        t.checks ?? null,
         [...t.blockedBy].sort(),
         t.body.trim(),
         t.comments.map((c) => [c.author, c.body.trim()]),

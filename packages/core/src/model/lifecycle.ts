@@ -46,12 +46,27 @@ export type LifecycleEvent =
   | 'unblock'
   | 'cancel';
 
+/**
+ * How much evidence a completion needs before the ticket is done. Missions
+ * without a level are `off`: completing closes the ticket, as always.
+ */
+export type VerificationLevel = 'off' | 'checks' | 'checks+review' | 'checks+review+human';
+
+export const VERIFICATION_LEVELS: VerificationLevel[] = ['off', 'checks', 'checks+review', 'checks+review+human'];
+
+/** `v` as a level, when it is one (stored values are read leniently). */
+export const levelOf = (v: unknown) => VERIFICATION_LEVELS.find((l) => l === v);
+
 /** `engine`: MILOOPS itself (lease reaper, check runner, reconciler). */
 export type ActorKind = 'agent' | 'operator' | 'engine';
 
-/** What a transition may change besides assignment and closing. `null` clears the status. */
+/** MILOOPS fields stored with a ticket besides assignment and closing. `null` clears a field. */
 export interface TicketMetaPatch {
+  /** Only `transition()` writes this. */
   status?: TicketStatus | null;
+  /** Operator only (`setVerification`). */
+  verification?: VerificationLevel | null;
+  checks?: string[] | null;
 }
 
 /** One line of a mission's history (`.events/<mapId>.jsonl`). History and UI only; the tracker holds the state. */

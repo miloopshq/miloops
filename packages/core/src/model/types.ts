@@ -1,4 +1,4 @@
-import type { TicketStatus } from './lifecycle';
+import type { TicketStatus, VerificationLevel } from './lifecycle';
 
 /** `execute` tickets carry out decided work (implementation) rather than decide something. */
 export type TicketType = 'research' | 'prototype' | 'grilling' | 'task' | 'execute';
@@ -33,6 +33,10 @@ export interface Ticket {
   assignee?: string;
   /** Lifecycle status on top of open + assignee (model/lifecycle.ts); only `transition()` sets it. */
   status?: TicketStatus;
+  /** Overrides the mission's verification level for this ticket. */
+  verification?: VerificationLevel;
+  /** Check names (verification.json) this ticket runs instead of the config's `run` list. */
+  checks?: string[];
   /** Ids of tickets that block this one (native blocking edges). */
   blockedBy: string[];
   comments: Comment[];
@@ -69,6 +73,8 @@ export interface MapDoc {
   key: string;
   title: string;
   mode: MapMode;
+  /** Unset means off: missions that predate verification complete as they always have. */
+  verification?: VerificationLevel;
   sections: MapSections;
   createdAt: number;
   updatedAt: number;

@@ -17,6 +17,7 @@ import { Changelog } from './Changelog';
 import { SettingsSection } from './SettingsSection';
 import { SlackSection } from './SlackSection';
 import { TranscriptChoice } from './TranscriptChoice';
+import { VerificationSection } from './VerificationSection';
 
 export function SettingsPanel(props: {
   prefs: Prefs;
@@ -68,6 +69,8 @@ export function SettingsPanel(props: {
             </SettingsSection>
 
             <SlackSection focus={props.focus === 'slack'} />
+
+            <VerificationSection map={props.map} />
 
             <SettingsSection title="Labels">
               <div className="label-codes">

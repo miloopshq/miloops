@@ -1,6 +1,7 @@
 export * from './model/brand';
 export * from './model/types';
 export * from './model/lifecycle';
+export type * from './model/verification';
 export * from './adapters/adapter';
 export * from './planning/derive';
 export * from './model/mapBody';
@@ -8,6 +9,8 @@ export * from './model/steps';
 export * from './planning/operations';
 export * from './planning/lifecycle';
 export { httpJournal } from './history/httpJournal';
+export { DEFAULT_CHECK_TIMEOUT_SEC, DEFAULT_CONFIG, parseVerificationConfig } from './verification/config';
+export { verificationFor, type LevelInfo } from './verification/policy';
 export * from './activity/activityStream';
 export * from './activity/describeTrackerEvent';
 export type { SessionHandle } from './activity/sessionHandle';

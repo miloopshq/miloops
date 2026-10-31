@@ -11,6 +11,7 @@ import { handleJournal } from './journalRoutes';
 import { handleLeases } from './leaseRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
+import { handleVerification } from './verificationRoutes';
 import { watchLeases } from './watchLeases';
 import { watchTrackerFolder } from './watchTrackerFolder';
 
@@ -63,6 +64,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
         return;
       if (await handleLeases(abs, () => routes.active(), req, res, url)) return;
       if (await handleJournal(abs, req, res, url)) return;
+      if (handleVerification(abs, req, res, url)) return;
       if (await handleAgents(abs, req, res, url)) return;
       res.statusCode = 404;
       res.end('not found');

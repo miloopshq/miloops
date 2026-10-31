@@ -6,3 +6,25 @@ export { writeJsonAtomic } from './lib/jsonFile';
 export { dropLease, readLease, readLeases, renewLease, writeLease } from './agents/leaseStore';
 export { LEASE_REAPER, reclaimExpired, returnToQueue, type ReturnOutcome } from './agents/returnToQueue';
 export { journalFile, journalPath, JOURNAL_DIR } from './history/journalFile';
+export { configHash, readVerificationConfig, VERIFICATION_FILE, type ConfigRead } from './verification/configFile';
+export { checkPassed, runCheck, MAX_LOG_BYTES, type CheckRun } from './verification/runCheck';
+export { runChecks, type ChecksOutcome } from './verification/runChecks';
+export {
+  EVIDENCE_DIR,
+  evidencePaths,
+  nextAttemptId,
+  readAttempt,
+  readAttempts,
+  readVerdicts,
+  writeAttempt,
+  writeVerdict,
+} from './verification/evidenceStore';
+export {
+  acquireRunLock,
+  readRunLock,
+  readRunLocks,
+  recoverInterrupted,
+  releaseRunLock,
+  RUNS_DIR,
+  type RunLock,
+} from './verification/runLock';
