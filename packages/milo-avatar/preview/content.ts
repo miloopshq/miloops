@@ -21,3 +21,6 @@ export const SCRIPT: { state: MiloState; speaking?: string; ms: number; log?: st
   { state: 'speaking', speaking: LINES.pickup, ms: LINES.pickup.length * 55 + 800, log: LINES.pickup },
   { state: 'idle', ms: 1400 },
 ];
+
+/** Animated README banner: one pass through watching, processing, transmitting and decision waiting. */
+export const BANNER_LOOP = SCRIPT.slice(0, 4);

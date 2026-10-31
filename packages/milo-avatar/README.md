@@ -35,7 +35,7 @@ src/milo/
 preview/           preview page (?view=options | states | demo | square | favicon | banner); App.tsx routes to views/
 tools/
   bake-art.mjs     node tools/bake-art.mjs src/milo/art.ts: renders the v4 CRT states, diffs them into patches, verifies, writes art.ts
-  capture.mjs      writes the PNGs, the MP4 loop and brand/* (Playwright + system Chrome + ffmpeg)
+  capture.mjs      writes the PNGs, the banner GIF, the MP4 loop and brand/* (Playwright + system Chrome + ffmpeg)
   outline.mjs      helper: adds a 1px outline around a hand-drawn fill grid
   robot-concepts*.mjs  concept explorations v1–v4 (milo-robot-*.png); v4 is the source the bake reads
 ```
@@ -139,6 +139,7 @@ npm run capture              # needs Chrome (CHROME=...) and ffmpeg
 
 - `github-org-avatar.png` (1000²)
 - `github-social-preview.png` (1280×640)
+- `miloops-banner.gif` (1280×640): the README banner, one `BANNER_LOOP` pass (preview/content.ts) rendered frame by frame with a frozen clock
 - `og-image-1200x630.png`
 - `x-header-1500x500.png`
 - `wordmark-lockup.png`: the logo lockup, mini MILO beside the wordmark

@@ -335,7 +335,7 @@ body {
 .banner-copy {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--u) * 14);
+  gap: calc(var(--u) * 18);
 }
 .wordmark {
   font-family: var(--display);
@@ -366,28 +366,15 @@ body {
   color: #c98b5e;
 }
 .social-tag {
+  margin-top: calc(var(--u) * 6);
   max-width: calc(var(--u) * 560);
   font-size: calc(var(--u) * 26);
   line-height: 1.35;
   color: var(--text);
 }
 .banner.header .social-tag {
+  margin-top: calc(var(--u) * 6);
   max-width: calc(var(--u) * 820);
-}
-.social-cmd {
-  margin-top: calc(var(--u) * 8);
-  font-family: var(--mono);
-  font-size: calc(var(--u) * 20);
-  color: var(--text-hi);
-}
-.social-cmd span {
-  color: var(--dim);
-  margin-right: 8px;
-}
-.social-cmd em {
-  font-style: normal;
-  color: #8fc4ce;
-  margin-left: calc(var(--u) * 28);
 }
 
 .controls {
