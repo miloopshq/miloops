@@ -74,6 +74,7 @@ export function fakeLinear(opts: { start?: number } = {}) {
     return i;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- GraphQL variables arrive untyped
   function op(name: string, v: Record<string, any>): unknown {
     switch (name) {
       case 'Test':

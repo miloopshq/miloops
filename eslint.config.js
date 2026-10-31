@@ -93,10 +93,5 @@ export default tseslint.config(
     files: ['**/test/**', 'scripts/**', '**/scripts/**', '**/tools/**'],
     rules: { 'max-lines': 'off' },
   },
-  {
-    // Fakes decode untyped wire payloads (GraphQL variables, REST bodies).
-    files: ['**/test/**'],
-    rules: { '@typescript-eslint/no-explicit-any': 'off' },
-  },
   prettier,
 );
