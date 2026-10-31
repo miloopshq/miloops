@@ -15,4 +15,6 @@ The final MILO CRT mascot, rendered at exact pixel sizes. Source and re-renderin
 | `favicon-32.png` | 32×32 | Browser favicon |
 | `favicon-64.png` | 64×64 | High-DPI browser favicon |
 
+[`miloops-social-kit.zip`](miloops-social-kit.zip) bundles every image above (prefixed `milo-final-`) plus the `social-kit-overview.png` contact sheet in one download.
+
 The landing serves its own copies of the favicons, OG image and Slack icon from `apps/landing/public/media/brand/`.
