@@ -1,8 +1,8 @@
 // Renders the v2 MILO robot concept sheet (screen-face bust with headphones) and a merch mock for the top pick.
 // Usage: OUT_DIR=captures CHROME=/path/to/chrome TOP=crt node tools/robot-concepts-v2.mjs
-import { chromium } from 'playwright-core';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { chromium } from 'playwright-core';
 
 const OUT = resolve(process.env.OUT_DIR || 'out');
 const CHROME = process.env.CHROME || '/usr/local/bin/google-chrome';
@@ -18,8 +18,11 @@ const PAL = { L: '#d3dfe3', P: '#6f8e9a', D: INK, S: '#8fb2be', E: INK, O: '#c98
 // `holes` are the keys cut out in the one-colour version (the outline is always cut).
 const CONCEPTS = [
   {
-    id: 'crt', name: 'CRT', holes: 'D',
-    pitch: 'A square monitor head with a dark screen and light pixel eyes. Over-ear headphones, floating hands, and the status light on the chest.',
+    id: 'crt',
+    name: 'CRT',
+    holes: 'D',
+    pitch:
+      'A square monitor head with a dark screen and light pixel eyes. Over-ear headphones, floating hands, and the status light on the chest.',
     grid: [
       '....PPPPPP....',
       '...P......P...',
@@ -37,13 +40,25 @@ const CONCEPTS = [
       '.LL..LLLL..LL.',
     ],
     states: {
-      speaking: [[8, 5, 'LLLL'], [9, 6, 'LL']],
-      thinking: [[4, 5, 'L..L'], [6, 5, 'D..D'], [8, 6, 'DL']],
-      alert: [[4, 5, 'L..L'], [9, 6, 'LL']],
+      speaking: [
+        [8, 5, 'LLLL'],
+        [9, 6, 'LL'],
+      ],
+      thinking: [
+        [4, 5, 'L..L'],
+        [6, 5, 'D..D'],
+        [8, 6, 'DL'],
+      ],
+      alert: [
+        [4, 5, 'L..L'],
+        [9, 6, 'LL'],
+      ],
     },
   },
   {
-    id: 'tv', name: 'Broadcast', holes: 'S',
+    id: 'tv',
+    name: 'Broadcast',
+    holes: 'S',
     pitch: 'A wide TV head with a calm blue screen and big ear cups. The status light is an LED on the left cup.',
     grid: [
       '...PPPPPPPP...',
@@ -61,13 +76,24 @@ const CONCEPTS = [
       '.....LLLL.....',
     ],
     states: {
-      speaking: [[6, 5, 'EEEE'], [7, 6, 'EE']],
-      thinking: [[3, 4, 'E....E'], [5, 4, 'S....S']],
-      alert: [[3, 4, 'E....E'], [7, 6, 'EE']],
+      speaking: [
+        [6, 5, 'EEEE'],
+        [7, 6, 'EE'],
+      ],
+      thinking: [
+        [3, 4, 'E....E'],
+        [5, 4, 'S....S'],
+      ],
+      alert: [
+        [3, 4, 'E....E'],
+        [7, 6, 'EE'],
+      ],
     },
   },
   {
-    id: 'operator', name: 'Operator', holes: 'D',
+    id: 'operator',
+    name: 'Operator',
+    holes: 'D',
     pitch: 'The CRT head with a mic boom. One hand holds the headset, and the mic tip is the status light.',
     grid: [
       '....PPPPPP....',
@@ -86,14 +112,27 @@ const CONCEPTS = [
       '.....LLLL..LL.',
     ],
     states: {
-      speaking: [[8, 5, 'LLLL'], [9, 6, 'LL']],
-      thinking: [[4, 5, 'L..L'], [6, 5, 'D..D'], [8, 6, 'DL']],
-      alert: [[4, 5, 'L..L'], [9, 6, 'LL']],
+      speaking: [
+        [8, 5, 'LLLL'],
+        [9, 6, 'LL'],
+      ],
+      thinking: [
+        [4, 5, 'L..L'],
+        [6, 5, 'D..D'],
+        [8, 6, 'DL'],
+      ],
+      alert: [
+        [4, 5, 'L..L'],
+        [9, 6, 'LL'],
+      ],
     },
   },
   {
-    id: 'chibi', name: 'Pocket', holes: 'S',
-    pitch: 'Mostly head: a big blue screen with a tiny body and mitten hands. The status light sits on top of the headband.',
+    id: 'chibi',
+    name: 'Pocket',
+    holes: 'S',
+    pitch:
+      'Mostly head: a big blue screen with a tiny body and mitten hands. The status light sits on top of the headband.',
     grid: [
       '......OO......',
       '...PPPPPPPP...',
@@ -110,7 +149,11 @@ const CONCEPTS = [
     ],
     states: {
       speaking: [[8, 5, 'EEEE']],
-      thinking: [[4, 5, 'E..E'], [6, 5, 'S..S'], [8, 6, 'SE']],
+      thinking: [
+        [4, 5, 'E..E'],
+        [6, 5, 'S..S'],
+        [8, 6, 'SE'],
+      ],
       alert: [[4, 5, 'E..E']],
     },
   },
@@ -126,14 +169,24 @@ function compose(c, state = 'idle') {
       if (ch !== '.') g[r][col + i] = ch === '-' ? '.' : ch;
     });
   }
-  if (state === 'alert') for (const row of g) row.forEach((ch, i) => { if (ch === 'O') row[i] = 'R'; });
+  if (state === 'alert')
+    for (const row of g)
+      row.forEach((ch, i) => {
+        if (ch === 'O') row[i] = 'R';
+      });
   const top = Math.floor((14 - g.length) / 2) + 1;
   const out = Array.from({ length: 16 }, () => Array(16).fill('.'));
-  g.forEach((row, y) => row.forEach((ch, x) => { out[y + top][x + 1] = ch; }));
+  g.forEach((row, y) =>
+    row.forEach((ch, x) => {
+      out[y + top][x + 1] = ch;
+    }),
+  );
   const filled = (y, x) => y >= 0 && y < 16 && x >= 0 && x < 16 && out[y][x] !== '.' && out[y][x] !== 'K';
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    if (out[y][x] === '.' && (filled(y - 1, x) || filled(y + 1, x) || filled(y, x - 1) || filled(y, x + 1))) out[y][x] = 'K';
-  }
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      if (out[y][x] === '.' && (filled(y - 1, x) || filled(y + 1, x) || filled(y, x - 1) || filled(y, x + 1)))
+        out[y][x] = 'K';
+    }
   return out.map((r) => r.join(''));
 }
 
@@ -261,7 +314,10 @@ function tee(fill) {
 
 const browser = await chromium.launch({ executablePath: CHROME });
 const page = await browser.newPage({ viewport: { width: 1800, height: 1000 }, deviceScaleFactor: 1 });
-for (const [file, html] of [['milo-robot-concepts-v2.png', conceptsPage()], ['milo-robot-merch-v2.png', merchPage()]]) {
+for (const [file, html] of [
+  ['milo-robot-concepts-v2.png', conceptsPage()],
+  ['milo-robot-merch-v2.png', merchPage()],
+]) {
   await page.setContent(html);
   await page.evaluate(() => document.fonts.ready);
   await page.locator('#sheet').screenshot({ path: join(OUT, file) });
