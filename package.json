@@ -1,0 +1,32 @@
+{
+  "name": "miloops-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @miloops-hq/command-center",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "capture": "node scripts/capture.mjs capture",
+    "seed:markdown": "esbuild scripts/seed-markdown.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/seed-markdown.mjs && node node_modules/.cache/seed-markdown.mjs",
+    "dev:markdown": "npm run seed:markdown && npm run dev",
+    "start": "node packages/cli/dist/cli.js",
+    "pack": "npm pack -w miloops --pack-destination .",
+    "dev:landing": "npm run dev -w @miloops-hq/landing",
+    "dev:avatar": "npm run dev -w @miloops-hq/milo-avatar"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "playwright-core": "^1.48.0",
+    "typescript": "^5.6.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miloopshq/miloops.git"
+  }
+}

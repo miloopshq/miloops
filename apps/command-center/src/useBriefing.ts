@@ -1,0 +1,109 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { buildBriefing, briefingLine, type Briefing } from '@miloops-hq/core';
+import type { Runtime } from './runtime';
+import type { CommandCenterApi } from './useCommandCenter';
+import type { Prefs } from './prefs';
+
+const TICK_MS = 15_000;
+const INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'] as const;
+
+/**
+ * "While you were away". While the tab is visible the operator was last present
+ * at their last input; hiding the tab while active counts as present until then.
+ * Presence marks every mission seen. Opening
+ * the app, or coming back after being away longer than the threshold, shows a
+ * briefing of what changed since each mission was last seen, unless nothing did.
+ */
+export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['briefing']) {
+  const [since, setSince] = useState<Record<string, number> | null>(null);
+  /** Last-seen times the most recent briefing was built from, for the header button. */
+  const lastSince = useRef<{ seen: Record<string, number>; any?: number }>();
+  const lastInput = useRef(Date.now());
+  const started = useRef(false);
+  const awayMs = prefs.awayMinutes * 60_000;
+  const apiRef = useRef(api);
+  apiRef.current = api;
+
+  const compute = useCallback(
+    (seen: Record<string, number>, any?: number): Briefing => {
+      const a = apiRef.current;
+      return buildBriefing({
+        snaps: Object.values(a.allSnaps),
+        decisions: a.decisions,
+        activity: a.activity,
+        ledger: rt.activity.ledger,
+        since: (id) => seen[id] ?? any ?? a.allSnaps[id]?.map.createdAt ?? Date.now(),
+        currentMapId: a.mapId,
+      });
+    },
+    [rt],
+  );
+
+  const markSeen = useCallback((at = Date.now()) => rt.presence?.markSeen(apiRef.current.maps.map((m) => m.id), at), [rt]);
+
+  /** Called when the operator arrives (app open) or comes back; opens the briefing if they were away and something changed. */
+  const arrive = useCallback(() => {
+    const p = rt.presence;
+    if (!p) return;
+    const any = p.lastSeenAny();
+    if (any !== undefined && Date.now() - any >= awayMs) {
+      const seen = p.snapshot();
+      lastSince.current = { seen, any };
+      if (prefs.enabled && compute(seen, any).changed) setSince(seen);
+    }
+    markSeen();
+  }, [rt, awayMs, prefs.enabled, compute, markSeen]);
+
+  useEffect(() => {
+    if (!api.loaded || started.current || !rt.presence) return;
+    started.current = true;
+    arrive();
+  }, [api.loaded, rt, arrive]);
+
+  useEffect(() => {
+    const onInput = () => {
+      const idle = Date.now() - lastInput.current >= awayMs;
+      lastInput.current = Date.now();
+      if (idle && started.current && document.visibilityState === 'visible') arrive();
+    };
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') {
+        if (started.current) markSeen(Date.now() - lastInput.current < awayMs ? Date.now() : lastInput.current);
+        return;
+      }
+      lastInput.current = Date.now();
+      if (started.current) arrive();
+    };
+    for (const e of INPUT_EVENTS) window.addEventListener(e, onInput, { passive: true });
+    document.addEventListener('visibilitychange', onVisible);
+    const tick = setInterval(() => {
+      if (!started.current) return;
+      if (document.visibilityState === 'visible') markSeen(lastInput.current);
+    }, TICK_MS);
+    return () => {
+      for (const e of INPUT_EVENTS) window.removeEventListener(e, onInput);
+      document.removeEventListener('visibilitychange', onVisible);
+      clearInterval(tick);
+    };
+  }, [awayMs, arrive, markSeen]);
+
+  const briefing = useMemo(
+    () => (since ? compute(since, lastSince.current?.any) : undefined),
+    // Recomputed live while open so answers and new results show up.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [since, compute, api.allSnaps, api.decisions, api.activity],
+  );
+  const line = useMemo(() => (briefing ? briefingLine(briefing) : ''), [briefing]);
+
+  return {
+    shown: since !== null,
+    briefing,
+    line,
+    /** Header button: the last briefing again, or everything since this session started. */
+    open: () => {
+      const l = lastSince.current;
+      setSince(l?.seen ?? rt.presence?.snapshot() ?? {});
+    },
+    dismiss: () => setSince(null),
+  };
+}

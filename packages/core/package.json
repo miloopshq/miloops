@@ -1,0 +1,21 @@
+{
+  "name": "@miloops-hq/core",
+  "version": "0.1.0",
+  "description": "UI-free planning engine: map/ticket model, frontier logic, operations, tracker adapters, event stream.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts",
+    "./bridge": "./src/bridge.ts"
+  },
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miloopshq/miloops.git",
+    "directory": "packages/core"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  }
+}
