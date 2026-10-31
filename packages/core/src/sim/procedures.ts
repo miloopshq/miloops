@@ -1,10 +1,15 @@
-import type { ActivityStream, SessionHandle } from '../activity';
-import type { TrackerAdapter } from '../adapter';
-import { sleep } from '../emitter';
-import { attention } from '../derive';
-import { PRIMARY_AGENT, type HitlTranscriptMode } from '../integrations';
-import type { MapMode, MapSnapshot, Ticket, TicketType, TranscriptEntry } from '../types';
-import { chartMap, chooseNext, claim, promoteToTicket, resolve, ruleOutOfScope, OperationError, type DecisionMeta } from '../operations';
+import type { ActivityStream } from '../activity/activityStream';
+import type { SessionHandle } from '../activity/sessionHandle';
+import type { TrackerAdapter } from '../adapters/adapter';
+import { sleep } from '../lib/emitter';
+import { PRIMARY_AGENT, type HitlTranscriptMode } from '../model/integrations';
+import type { MapMode, MapSnapshot, Ticket, TicketType, TranscriptEntry } from '../model/types';
+import { attention } from '../planning/derive';
+import { chartMap } from '../planning/operations/chart';
+import { chooseNext, claim } from '../planning/operations/claims';
+import { OperationError } from '../planning/operations/operationError';
+import { resolve, type DecisionMeta } from '../planning/operations/resolve';
+import { promoteToTicket, ruleOutOfScope } from '../planning/operations/scope';
 import type { AgentBrain } from './brain';
 
 export interface ProcedureContext {

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import type { OutboxStore, QueuedWrite } from './sync/types';
 import type { RemoteKind } from './types';
-import type { OutboxStore, QueuedWrite } from './synced';
 
 /*
  * Queued tracker writes on disk, so they survive an exit or crash:
@@ -13,7 +13,8 @@ import type { OutboxStore, QueuedWrite } from './synced';
  */
 export const OUTBOX_DIR = '.outbox';
 
-export const isOutboxPath = (rel: string) => rel === OUTBOX_DIR || rel.startsWith(`${OUTBOX_DIR}/`) || rel.startsWith(`${OUTBOX_DIR}\\`);
+export const isOutboxPath = (rel: string) =>
+  rel === OUTBOX_DIR || rel.startsWith(`${OUTBOX_DIR}/`) || rel.startsWith(`${OUTBOX_DIR}\\`);
 
 /** `github-owner_name`, `linear-<team>[-<project>]`: a queue only replays into the tracker it was written for. */
 export function outboxKey(kind: RemoteKind, ...target: (string | undefined)[]) {
@@ -52,7 +53,9 @@ function orphans(dir: string, key: string) {
   } catch {
     return [];
   }
-  return names.filter((n) => n.startsWith(`${key}.`) && n.endsWith('.json') && !owned(n.slice(key.length + 1, -'.json'.length))).sort();
+  return names
+    .filter((n) => n.startsWith(`${key}.`) && n.endsWith('.json') && !owned(n.slice(key.length + 1, -'.json'.length)))
+    .sort();
 }
 
 function readWrites(file: string): QueuedWrite[] {
@@ -61,7 +64,9 @@ function readWrites(file: string): QueuedWrite[] {
       v?: number;
       writes?: QueuedWrite[];
     };
-    return doc.v === 1 && Array.isArray(doc.writes) ? doc.writes.filter((w) => w && typeof w.id === 'string' && typeof w.mapId === 'string' && w.change) : [];
+    return doc.v === 1 && Array.isArray(doc.writes)
+      ? doc.writes.filter((w) => w && typeof w.id === 'string' && typeof w.mapId === 'string' && w.change)
+      : [];
   } catch {
     return [];
   }

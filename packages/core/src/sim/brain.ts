@@ -1,5 +1,5 @@
-import type { ChartPlan } from '../operations';
-import type { MapSnapshot, Ticket, TicketType } from '../types';
+import type { MapSnapshot, Ticket, TicketType } from '../model/types';
+import { type ChartPlan } from '../planning/operations/chart';
 
 /**
  * Decisions an agent makes while running a procedure. The simulated

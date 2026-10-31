@@ -2,11 +2,11 @@
 //   node test/run.mjs                 run every *.node.test.ts (the *.test.ts files are vitest's)
 //   node test/run.mjs record [fake|live]   re-record fixtures (see record.ts)
 //   node test/run.mjs serve [port]         fake GitHub + Linear over HTTP (see serve-fakes.ts)
-import { build } from 'esbuild';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const out = path.resolve(here, '../../../node_modules/.cache/miloops-core-tests');

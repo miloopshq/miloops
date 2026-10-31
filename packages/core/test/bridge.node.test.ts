@@ -4,9 +4,9 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { createTrackerBridge, type TrackerBridge } from '../src/bridge';
-import { parseGitHubRemote, resolveGitHubToken, resolveLinearKey } from '../src/trackerConfig';
 import type { TrackerSettings, TrackerTestResult } from '../src/adapters/remote/types';
+import { createTrackerBridge, type TrackerBridge } from '../src/bridge';
+import { parseGitHubRemote, resolveGitHubToken, resolveLinearKey } from '../src/server/trackerConfig';
 import { fakeGitHub } from './fakes/github';
 
 const GH_TOKEN = 'gho_from_gh_cli_0000';

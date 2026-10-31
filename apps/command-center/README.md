@@ -2,7 +2,7 @@
 
 > One command center. Every agent. Total operational awareness.
 
-A sci-fi-inspired HUD for planning with agents: a live map of decision tickets, HITL conversations in-window, and a step-by-step activity log. **MILO** (Mission Intelligence & Logistics Operator) is the platform's own voice: system and coordinator lines in the activity log and onboarding speak as MILO, while worker agents keep their own ids (`claude-07`, `claude-r1`, …). In the UI a map is called a **mission**; the core model and API still say `map`. The product name, assistant name, tagline and label prefix live in exactly one place: `packages/core/src/brand.ts`.
+A sci-fi-inspired HUD for planning with agents: a live map of decision tickets, HITL conversations in-window, and a step-by-step activity log. **MILO** (Mission Intelligence & Logistics Operator) is the platform's own voice: system and coordinator lines in the activity log and onboarding speak as MILO, while worker agents keep their own ids (`claude-07`, `claude-r1`, …). In the UI a map is called a **mission**; the core model and API still say `map`. The product name, assistant name, tagline and label prefix live in exactly one place: `packages/core/src/model/brand.ts`.
 
 ## Install and run
 
@@ -47,7 +47,7 @@ npm run pack                # → ./miloops-<version>.tgz, installable with `npm
 
 ### How the package is built
 
-`packages/cli` is the publishable `miloops` package. `npm run build` builds the command center with Vite, then `packages/cli/build.mjs` bundles `src/cli.ts` with esbuild into a single `dist/cli.js` (no runtime dependencies) and copies the static bundle into `dist/app`. At runtime one Node process serves `dist/app` and the tracker API (`/__miloops/list`, `/file`, `/events`, `/decisions`). There's no Vite at runtime. The API handler lives in `packages/core/src/bridge.ts` and is shared with the Vite dev plugin, so dev and the CLI serve the same contract.
+`packages/cli` is the publishable `miloops` package. `npm run build` builds the command center with Vite, then `packages/cli/build.mjs` bundles `src/cli.ts` with esbuild into a single `dist/cli.js` (no runtime dependencies) and copies the static bundle into `dist/app`. At runtime one Node process serves `dist/app` and the tracker API (`/__miloops/list`, `/file`, `/events`, `/decisions`). There's no Vite at runtime. The API handler lives in `packages/core/src/server/` (entry `packages/core/src/bridge.ts`) and is shared with the Vite dev plugin, so dev and the CLI serve the same contract.
 
 ## Screen layers (progressive disclosure)
 
@@ -89,7 +89,7 @@ The MILO mark (`src/components/ui/MiloMark.tsx`) is an open ring with an arrow t
 
 ## HUD widgets → metrics
 
-Rule: every number on screen is either a raw field of the tracker / activity stream or a named metric in `packages/core/src/metrics.ts`. Demo mode does not fake widgets; it feeds simulated sessions and an in-memory tracker through the same inputs, so the widgets go live unchanged when real agents and trackers are wired in.
+Rule: every number on screen is either a raw field of the tracker / activity stream or a named metric in `packages/core/src/planning/metrics.ts`. Demo mode does not fake widgets; it feeds simulated sessions and an in-memory tracker through the same inputs, so the widgets go live unchanged when real agents and trackers are wired in.
 
 | Widget (zone) | Metric (`@miloops-hq/core`) | Source | Demo feed |
 | --- | --- | --- | --- |
@@ -104,7 +104,7 @@ Rule: every number on screen is either a raw field of the tracker / activity str
 | Status panel: Decided / h + burndown sparkline | `throughput` (rolling hour; decided per bucket; open tickets per bucket) | ticket `createdAt` / `closedAt` | in-memory map (sample has backdated times) |
 | Status panel: Type mix bars | `typeMix` | tracker | in-memory map |
 | Briefing: done, ruled out, blocked, waiting, agent decisions, active, MILO line | `buildBriefing`, `briefingLine` (`briefing.ts`) | tracker tickets (`closedAt`, `createdAt`), decision records, `activity.pending/sessions`, each since `Presence.lastSeen(mission)` | in-memory map, seeded decisions, presence marked 14 h ago |
-| Briefing: spend · tokens · sessions since | `UsageLedger.since` (`presence.ts`) | agent usage reports via `ActivityStream`, 5-minute buckets kept 14 days | `seedUsage` at ticket close times, then live sessions |
+| Briefing: spend · tokens · sessions since | `UsageLedger.since` (`activity/usageLedger.ts`) | agent usage reports via `ActivityStream`, 5-minute buckets kept 14 days | `seedUsage` at ticket close times, then live sessions |
 | Decisions: Active, Superseded, Last 24h, Human %, per-source counts | `decisionStats` | decision records + derived tracker entries | `seedDecisions` through `recordDecision` / `supersedeDecision`, then live sessions |
 | Current step: `WORK 3/5 : RESOLVE #7` + pipeline | raw `SessionInfo.step/total/stepLabel` | session step events | simulated procedures |
 | Sessions: live timer | raw `SessionInfo.startedAt` | session start | simulated procedures |
@@ -118,23 +118,18 @@ Rule: every number on screen is either a raw field of the tracker / activity str
 
 ```
 packages/core            UI-free engine (@miloops-hq/core). No React, no DOM.
-  src/brand.ts           product + assistant name, tagline, label prefix, data dir, env vars — the only place the name appears
-  src/types.ts           map / ticket / session / feed model; MapMode (plan+execute | plan-only)
-  src/derive.ts          node state (decided/claimed/frontier/blocked/parked/out-of-scope), frontier, HITL/AFK, layout
-  src/metrics.ts         named HUD metrics + tracker monitor (see table above)
-  src/operations.ts      chartMap, chooseNext, claim, resolve, promoteToTicket, ruleOutOfScope, setMapMode
-  src/adapter.ts         TrackerAdapter interface (tracker = source of truth; only primitives)
-  src/adapters/          markdown (real), memory (demo), github/linear (stubs), seed
-  src/activity.ts        ActivityStream: sessions, step events, usage, HITL ask/answer, feed
-  src/integrations.ts    connectors + agent integrations (Claude Code first)
+  src/model/             brand (the only place the product name appears), types (map / ticket / session / feed; MapMode), steps, frontmatter, integrations
+  src/planning/          derive (node state, frontier, HITL/AFK, layout), metrics (named HUD metrics + tracker monitor), briefing,
+                         operations/ (chartMap, chooseNext, claim, resolve, promoteToTicket, ruleOutOfScope, setMapMode),
+                         decisions/ (record file format, source registry, audit merge, filters, chain, export, stats)
+  src/adapters/          adapter.ts (TrackerAdapter: tracker = source of truth; only primitives), markdown/ (real, plus node:fs MarkdownFs),
+                         memoryAdapter (demo), seed/, remote/ (sync engine, github, linear, bridge client)
+  src/activity/          ActivityStream (sessions, step events, usage, HITL ask/answer, feed), Presence and UsageLedger on a KeyValueStore
   src/sim/               simulated agent brain, chart/work/research procedures, usage meter, autopilot
-  src/node.ts            node:fs MarkdownFs (@miloops-hq/core/node)
-  src/presence.ts        Presence (last seen per mission) and UsageLedger (usage over time), on a KeyValueStore
-  src/briefing.ts        buildBriefing / briefingLine: what changed since the operator was last present
-  src/decisions.ts       decision record file format, source registry, audit merge, filters, chain, export, stats
-  src/bridge.ts          HTTP tracker API over node.ts (@miloops-hq/core/bridge), used by the CLI and the dev server
-  src/agentLink.ts       session docs + answers shared between MCP agent processes and the command center
-  src/agentHost.ts       node side of the agent link (@miloops-hq/core/agents): doc writer, answers, server lock
+  src/server/            HTTP tracker API (tracker routes, decisions, agents, SSE), used by the CLI and the dev server
+  src/agents/            agent link: session docs + answers shared between MCP agent processes and the command center; doc writer, server lock
+  src/lib/               small shared helpers (emitter, keyed lock, JSON files)
+  src/index.ts, node.ts, bridge.ts, agentHost.ts   entry points: @miloops-hq/core, /node, /bridge, /agents
 apps/command-center      Vite + React front end; plugins/trackerFs.ts mounts the tracker API on the dev server
   src/App.tsx            layout shell per breakpoint; its private parts (header, briefing, settings wiring, phone views, navigation) are in src/app/
   src/components/ui/     design-system primitives, one per file (Button, Panel, Card, Tabs, Zone, MiloMark, …)
@@ -149,15 +144,15 @@ scripts/                 capture.mjs (media), flow.mjs (user-flow shots), verify
 THIRD_PARTY_NOTICES.md   credit and MIT licence for the reused skill concepts
 ```
 
-Every UI write goes through `operations.ts`, then through the monitored adapter. The UI re-reads from the tracker on every tracker event. External edits to the markdown files (for example by another agent) stream in over SSE.
+Every UI write goes through `planning/operations/`, then through the monitored adapter. The UI re-reads from the tracker on every tracker event. External edits to the markdown files (for example by another agent) stream in over SSE.
 
 ## While you were away
 
-`Presence` (`packages/core/src/presence.ts`) stores when the operator was last present, per mission, in a `KeyValueStore` (localStorage scoped by tracker root; memory in demo). `apps/command-center/src/hooks/useBriefing.ts` decides presence: while the tab is visible, the operator was present at their last input; hiding the tab while active counts as present until then. The briefing opens when the app loads, the tab becomes visible, or input arrives after an idle stretch, if the operator was away at least the threshold (Settings → Briefing, default 15 min, or Off) and `buildBriefing(...).changed`. A first run, with no presence yet, shows none. Header → Briefing reopens the last one.
+`Presence` (`packages/core/src/activity/presence.ts`) stores when the operator was last present, per mission, in a `KeyValueStore` (localStorage scoped by tracker root; memory in demo). `apps/command-center/src/hooks/useBriefing.ts` decides presence: while the tab is visible, the operator was present at their last input; hiding the tab while active counts as present until then. The briefing opens when the app loads, the tab becomes visible, or input arrives after an idle stretch, if the operator was away at least the threshold (Settings → Briefing, default 15 min, or Off) and `buildBriefing(...).changed`. A first run, with no presence yet, shows none. Header → Briefing reopens the last one.
 
 ## Decision records
 
-Every resolve, ticket rule-out and supersede writes a `DecisionRecord` (`packages/core/src/types.ts`) through `recordDecision` / `supersedeDecision` in `operations.ts`. Local markdown keeps each one at `.miloops/<mission>/decisions/D-<n>.md` (frontmatter plus Question, Decision, Summary, Alternatives, Rationale, Transcript sections). The record keeps the full HITL transcript even when only a summary is posted to the ticket. Decided tickets without a record (closed by hand in the tracker) appear as derived `tracker` entries built from their resolution comment.
+Every resolve, ticket rule-out and supersede writes a `DecisionRecord` (`packages/core/src/model/types.ts`) through `recordDecision` / `supersedeDecision` in `planning/operations/`. Local markdown keeps each one at `.miloops/<mission>/decisions/D-<n>.md` (frontmatter plus Question, Decision, Summary, Alternatives, Rationale, Transcript sections). The record keeps the full HITL transcript even when only a summary is posted to the ticket. Decided tickets without a record (closed by hand in the tracker) appear as derived `tracker` entries built from their resolution comment.
 
 `source.kind` is one of `command-center | agent | slack | tracker`. To add a source, extend `DecisionSourceKind` and `DECISION_SOURCES`. Put source-specific ids in `source.meta` and the permalink in `source.url`. `source.ref` dedupes re-imports. Actor ids are namespaced strings (`operator`, `claude-07`, `slack:U123`).
 
@@ -172,7 +167,7 @@ Every resolve, ticket rule-out and supersede writes a `DecisionRecord` (`package
 
 ## Agents over MCP
 
-`miloops mcp` (`packages/cli/src/mcp/`) is the MCP server a coding agent starts over stdio. Each agent process runs its own `ActivityStream` and writes one doc per session to `.miloops/.agents/sessions/<id>.json` (`AgentDocWriter`, `agentHost.ts`). The bridge streams those docs as `agent` events; in local-markdown mode `runtime.ts` mirrors them with `ActivityStream.syncRemote`, so remote sessions, their questions, chat and usage use the same inbox, sessions and map UI as everything else. An answer in the inbox goes to `POST /agents/answer`, which writes `.miloops/.agents/answers/<session>/<question>.json`; the agent process picks it up and its `ask_human` call returns. Docs are polled by mtime as well as watched, and a session whose process is gone shows as disconnected. While `miloops` serves, `.miloops/.agents/server.json` tells agents the command-center URL.
+`miloops mcp` (`packages/cli/src/mcp/`) is the MCP server a coding agent starts over stdio. Each agent process runs its own `ActivityStream` and writes one doc per session to `.miloops/.agents/sessions/<id>.json` (`AgentDocWriter`, `agents/agentDocWriter.ts`). The bridge streams those docs as `agent` events; in local-markdown mode `runtime.ts` mirrors them with `ActivityStream.syncRemote`, so remote sessions, their questions, chat and usage use the same inbox, sessions and map UI as everything else. An answer in the inbox goes to `POST /agents/answer`, which writes `.miloops/.agents/answers/<session>/<question>.json`; the agent process picks it up and its `ask_human` call returns. Docs are polled by mtime as well as watched, and a session whose process is gone shows as disconnected. While `miloops` serves, `.miloops/.agents/server.json` tells agents the command-center URL.
 
 ## Model notes
 
@@ -194,6 +189,6 @@ Every resolve, ticket rule-out and supersede writes a `DecisionRecord` (`package
 
 ## Renaming
 
-1. Edit `packages/core/src/brand.ts`. That changes the display name, assistant, tagline, label prefix, data dir, API route and env var.
+1. Edit `packages/core/src/model/brand.ts`. That changes the display name, assistant, tagline, label prefix, data dir, API route and env var.
 2. Change the npm scope `@miloops-hq/*` and the published package name `miloops` (`packages/cli/package.json`, its `bin`, and the root scripts), if desired.
 3. Existing trackers then need their labels migrating (for example `miloops:map` to `<new>:map`).

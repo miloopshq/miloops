@@ -1,5 +1,5 @@
 import type { RateInfo, TrackerErrorCode } from './http';
-import type { SyncStatus } from './synced';
+import type { SyncStatus } from './sync/types';
 
 export type RemoteKind = 'github' | 'linear';
 export type ActiveTracker = 'markdown' | RemoteKind;
