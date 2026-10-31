@@ -2,6 +2,8 @@
 
 Run `npm run check` before opening a pull request. It runs lint, the Prettier format check, typecheck, build, the vitest and node:test suites, and `verify:mcp`. Changes that touch the command center UI should include a before/after screenshot.
 
+Check new features against [`PRODUCT_VISION.md`](PRODUCT_VISION.md) before proposing them.
+
 ## Code standards
 
 ESLint (`eslint.config.js`) and Prettier (`.prettierrc.json`) enforce most of these.
