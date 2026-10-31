@@ -1,0 +1,485 @@
+{
+  "source": "fake",
+  "recordedAt": "2026-10-31T23:16:18.564Z",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Restart with approvals waiting: stored messages updated in place, an approved one closed with its outcome, stale Approve and Rework… refused.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/conversations.open",
+        "body": {
+          "users": "U0ANA0001"
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": {
+            "id": "D00ANA0001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Approve · #2 Write API",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◆ *APPROVE* · Event store · #2 Write API\n>claude-02 reviewed: The write path is covered by tests"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "approval:map-1:t-2",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "verify_approve",
+                  "style": "primary",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Approve",
+                    "emoji": true
+                  },
+                  "value": "{\"m\":\"map-1\",\"t\":\"t-2\",\"a\":\"A-1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "verify_rework",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Rework…",
+                    "emoji": true
+                  },
+                  "value": "{\"m\":\"map-1\",\"t\":\"t-2\",\"a\":\"A-1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Approve · #2 Write API",
+            "ts": "1793448000.000001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Held · #3 Migrate schema",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "⛔ *HELD* · Event store · #3 Migrate schema\n>A-1 failed its checks too many times"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "approval:map-1:t-3",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "verify_rework",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Rework…",
+                    "emoji": true
+                  },
+                  "value": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Held · #3 Migrate schema",
+            "ts": "1793448001.000002"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=2&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "text": "No longer waiting on you: #2 is done.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *DECIDED* · Event store · #2 Write API"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "No longer waiting on you: #2 is done."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "text": "No longer waiting on you: #2 is done."
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "Held · #3 Migrate schema",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "⛔ *HELD* · Event store · #3 Migrate schema\n>A-1 failed its checks too many times"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "approval:map-1:t-3",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "verify_rework",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Rework…",
+                    "emoji": true
+                  },
+                  "value": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "Held · #3 Migrate schema"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/1/fakeresponse1",
+        "body": {
+          "response_type": "ephemeral",
+          "replace_original": false,
+          "text": "Nothing changed: this message is out of date. #2 is done."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/2/fakeresponse2",
+        "body": {
+          "response_type": "ephemeral",
+          "replace_original": false,
+          "text": "Nothing changed: this message is out of date. #3 went back to rework."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "No longer waiting on you: #3 went back to rework.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *DECIDED* · Event store · #3 Migrate schema"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "No longer waiting on you: #3 went back to rework."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "No longer waiting on you: #3 went back to rework."
+        }
+      }
+    }
+  ],
+  "envelopes": [
+    {
+      "label": "ana clicks Approve on the message from before the restart",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448000.000001",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448002.1.fake1",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448000.000001",
+          "text": "No longer waiting on you: #2 is done."
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/1/fakeresponse1",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "verify_approve",
+            "block_id": "approval:map-1:t-2",
+            "text": {
+              "type": "plain_text",
+              "text": "Approve",
+              "emoji": true
+            },
+            "value": "{\"m\":\"map-1\",\"t\":\"t-2\",\"a\":\"A-1\"}",
+            "action_ts": "1793448002.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana clicks Rework… after the operator sent it back",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448001.000002",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448002.2.fake2",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448001.000002",
+          "text": "Held · #3 Migrate schema"
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/2/fakeresponse2",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "verify_rework",
+            "block_id": "approval:map-1:t-3",
+            "text": {
+              "type": "plain_text",
+              "text": "Rework…",
+              "emoji": true
+            },
+            "value": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\"}",
+            "action_ts": "1793448002.000002"
+          }
+        ]
+      }
+    }
+  ]
+}

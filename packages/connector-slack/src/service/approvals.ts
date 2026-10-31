@@ -1,42 +1,131 @@
-import type { ApprovalItem, MapSnapshot } from '@miloops-hq/core';
+import { derivePhases, type ApprovalItem, type MapSnapshot } from '@miloops-hq/core';
 import { approvalItems, journalFile, operatorAction } from '@miloops-hq/core/agents';
 import { postResponse } from '../api';
 import { approvalClosedMessage, approvalMessage, type ApprovalRef } from '../blocks';
 import type { SlackConfig } from '../store';
 import type { SlackContext } from './slackContext';
+import type { PostedApproval } from './types';
 
 const keyOf = (i: Pick<ApprovalItem, 'mapId' | 'ticketId' | 'attemptId' | 'kind'>) =>
   `${i.mapId}/${i.ticketId}/${i.attemptId ?? ''}/${i.kind}`;
 
+const PHASE_LINE: Record<string, string> = {
+  done: 'is done',
+  cancelled: 'was cancelled',
+  rework: 'went back to rework',
+  verifying: 'is being verified again',
+  blocked: 'is held for you',
+  ready: 'is back in the queue',
+  working: 'is being worked on',
+  backlog: 'is in the backlog',
+};
+
+/** What became of a ticket that stopped waiting, for the message that loses its buttons. */
+function outcome(snap: MapSnapshot | undefined, i: ApprovalItem) {
+  const phase = snap && derivePhases(snap.tickets, snap.map.mode).get(i.ticketId);
+  return phase
+    ? `No longer waiting on you: ${i.ticketKey} ${PHASE_LINE[phase] ?? `is ${phase}`}.`
+    : 'No longer waiting on you.';
+}
+
+async function close(ctx: SlackContext, posted: PostedApproval, line: string) {
+  await ctx
+    .call('chat.update', {
+      channel: posted.channel,
+      ts: posted.ts,
+      ...approvalClosedMessage(posted.mission, posted.item, line),
+    })
+    .catch(() => {});
+}
+
+/** Strips the buttons from every stored message of a ticket and forgets them. */
+async function closeTicket(ctx: SlackContext, mapId: string, ticketId: string, line: string) {
+  const stored = ctx.approvals.read();
+  for (const [key, posted] of Object.entries(stored))
+    if (posted.item.mapId === mapId && posted.item.ticketId === ticketId) {
+      await close(ctx, posted, line);
+      delete stored[key];
+      ctx.approvals.write(stored);
+    }
+}
+
 /**
  * Posts each ticket that starts waiting on the operator (a reviewed pass to
- * approve, a held ticket) once, and strips the buttons when it stops waiting.
- * Part of the "awaiting" notifications.
+ * approve, a held ticket) once. Messages are kept in the tracker folder: after
+ * a restart they are updated in place, and a ticket that stopped waiting gets
+ * its outcome and loses the buttons. Part of the "awaiting" notifications.
  */
 export async function syncApprovals(ctx: SlackContext, snaps: MapSnapshot[], c: SlackConfig) {
   if (!c.notify.events.includes('awaiting')) return;
+  const byMap = new Map(snaps.map((s) => [s.map.id, s]));
   const now = new Map<string, { item: ApprovalItem; mission: string }>();
   for (const s of snaps)
     for (const i of approvalItems(ctx.o.root, s)) now.set(keyOf(i), { item: i, mission: s.map.title });
-  for (const [key, posted] of ctx.approvals)
+  const stored = ctx.approvals.read();
+  for (const [key, posted] of Object.entries(stored))
     if (!now.has(key)) {
-      await ctx.call('chat.update', {
-        channel: posted.channel,
-        ts: posted.ts,
-        ...approvalClosedMessage(posted.mission, posted.item, 'No longer waiting on you.'),
-      });
-      ctx.approvals.delete(key);
+      await close(ctx, posted, outcome(byMap.get(posted.item.mapId), posted.item));
+      delete stored[key];
+      ctx.approvals.write(stored);
     }
   for (const [key, { item, mission }] of now) {
-    if (ctx.approvals.has(key)) continue;
+    const posted = stored[key];
+    if (posted && ctx.refreshed.has(key)) continue;
+    const message = approvalMessage(mission, item, ctx.o.url());
+    if (posted) {
+      const updated = await ctx.call('chat.update', { channel: posted.channel, ts: posted.ts, ...message }).then(
+        () => true,
+        () => false,
+      );
+      ctx.refreshed.add(key);
+      if (updated) {
+        stored[key] = { ...posted, item, mission };
+        ctx.approvals.write(stored);
+        continue;
+      }
+    }
     const channel = await ctx.target();
     if (!channel) return;
-    const r = await ctx.call<{ ts: string; channel: string }>('chat.postMessage', {
-      channel,
-      ...approvalMessage(mission, item, ctx.o.url()),
-    });
-    ctx.approvals.set(key, { channel: r.channel ?? channel, ts: r.ts, item, mission });
+    const r = await ctx.call<{ ts: string; channel: string }>('chat.postMessage', { channel, ...message });
+    stored[key] = { channel: r.channel ?? channel, ts: r.ts, item, mission };
+    ctx.refreshed.add(key);
+    ctx.approvals.write(stored);
   }
+}
+
+/**
+ * The approval a button is about, if it still waits: same ticket, same
+ * attempt, and still a reviewed pass for Approve. A button from a message that
+ * is out of date is refused, and its message closed with the outcome.
+ */
+export async function waitingApproval(
+  ctx: SlackContext,
+  ref: ApprovalRef,
+  action: 'approve' | 'rework',
+  responseUrl?: string,
+): Promise<ApprovalItem | undefined> {
+  const snap = await (await ctx.o.active()).loadMap(ref.m).catch(() => undefined);
+  const item = snap
+    ? approvalItems(ctx.o.root, snap).find(
+        (i) => i.ticketId === ref.t && i.attemptId === ref.a && (action === 'rework' || i.kind === 'approve'),
+      )
+    : undefined;
+  if (item) return item;
+  const t = snap?.tickets.find((x) => x.id === ref.t);
+  const stale = { mapId: ref.m, ticketId: ref.t, ticketKey: t?.key ?? ref.t } as ApprovalItem;
+  const line = outcome(snap, stale);
+  if (responseUrl)
+    await postResponse(
+      responseUrl,
+      {
+        response_type: 'ephemeral',
+        replace_original: false,
+        text: `Nothing changed: this message is out of date. ${line.replace('No longer waiting on you: ', '')}`,
+      },
+      ctx.o.fetch,
+    );
+  await closeTicket(ctx, ref.m, ref.t, line);
+  return undefined;
 }
 
 /** Approve or send back to rework from Slack, as the operator would in the command center. */
@@ -47,10 +136,7 @@ export async function decideApproval(
   d: { action: 'approve' } | { action: 'rework'; reason: string },
   responseUrl?: string,
 ) {
-  const say = (text: string) =>
-    responseUrl
-      ? postResponse(responseUrl, { response_type: 'ephemeral', replace_original: false, text }, ctx.o.fetch)
-      : Promise.resolve();
+  if (!(await waitingApproval(ctx, ref, d.action, responseUrl))) return;
   const env = { adapter: await ctx.o.active(), root: ctx.o.root, journal: journalFile(ctx.o.root) };
   try {
     await operatorAction(env, {
@@ -61,19 +147,18 @@ export async function decideApproval(
       ...(d.action === 'rework' ? { reason: d.reason } : {}),
     });
   } catch (e) {
-    return say(`Could not ${d.action}: ${(e as Error).message}`);
+    if (responseUrl)
+      await postResponse(
+        responseUrl,
+        { response_type: 'ephemeral', replace_original: false, text: `Could not ${d.action}: ${(e as Error).message}` },
+        ctx.o.fetch,
+      );
+    return;
   }
-  for (const [key, posted] of ctx.approvals)
-    if (posted.item.mapId === ref.m && posted.item.ticketId === ref.t) {
-      const line =
-        d.action === 'approve'
-          ? `✓ Approved by <@${user}> via Slack.`
-          : `↺ Sent back to rework by <@${user}> via Slack.`;
-      await ctx.call('chat.update', {
-        channel: posted.channel,
-        ts: posted.ts,
-        ...approvalClosedMessage(posted.mission, posted.item, line),
-      });
-      ctx.approvals.delete(key);
-    }
+  await closeTicket(
+    ctx,
+    ref.m,
+    ref.t,
+    d.action === 'approve' ? `✓ Approved by <@${user}> via Slack.` : `↺ Sent back to rework by <@${user}> via Slack.`,
+  );
 }

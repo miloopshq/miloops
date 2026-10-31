@@ -1,11 +1,11 @@
 import { BRAND } from '@miloops-hq/core';
 import { SlackApi, SlackApiError } from '../api';
 import { SocketMode, type WebSocketCtor } from '../socket';
-import { askStore, slackLock, slackStore } from '../store';
+import { approvalStore, askStore, slackLock, slackStore } from '../store';
 import type { SlackState } from '../types';
 import { AUTH_CODES } from './constants';
 import { onEnvelope } from './interactions';
-import type { Batch, Env, MissionNotes, Payload, PostedApproval, SlackServiceOptions } from './types';
+import type { Batch, Env, MissionNotes, Payload, SlackServiceOptions } from './types';
 
 /** State of the Slack connection shared by the service modules: config, socket, bot client and caches. */
 export class SlackContext {
@@ -26,8 +26,10 @@ export class SlackContext {
   readonly answering = new Set<string>();
   readonly missions = new Map<string, MissionNotes>();
   readonly batches = new Map<string, Batch>();
-  /** Approval messages with live buttons, by mission/ticket/attempt/kind. */
-  readonly approvals = new Map<string, PostedApproval>();
+  /** Approval messages with live buttons, kept across restarts. */
+  readonly approvals;
+  /** Approval messages already brought up to date by this process. */
+  readonly refreshed = new Set<string>();
   ticks = 0;
   ticking?: Promise<void>;
 
@@ -36,6 +38,7 @@ export class SlackContext {
     this.store = slackStore(o.configDir, this.env);
     this.lock = slackLock(o.configDir, o.lockOwner ?? `${process.pid}:${o.root}`);
     this.asks = askStore(o.root);
+    this.approvals = approvalStore(o.root);
     this.apiUrl = o.apiUrl ?? this.env[`${BRAND.slug.toUpperCase()}_SLACK_API`];
     this.WS = o.WebSocket ?? (globalThis as { WebSocket?: WebSocketCtor }).WebSocket;
   }
