@@ -1,5 +1,6 @@
 import type { Ticket } from '../../../model/types';
 import { OperationError } from '../../../planning/operations/operationError';
+import { withMapMeta } from '../../mapMeta';
 import { withMeta } from '../../ticketMeta';
 import type { CacheEntry, QueuedChange, QueuedWrite } from './types';
 
@@ -26,6 +27,9 @@ export function applyWrite(e: CacheEntry, w: QueuedWrite, now: () => number) {
       break;
     case 'sections':
       e.snap.map.sections = c.sections;
+      break;
+    case 'mapMeta':
+      e.snap.map = withMapMeta(e.snap.map, c.patch);
       break;
     case 'blocking': {
       const t = ticketOf(e, c.blockedId);

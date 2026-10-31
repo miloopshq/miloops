@@ -66,7 +66,17 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
       description:
         "Claim a ticket is done (default: the one you claimed). Without verification it closes like close_ticket. With verification, the repo's checks run and the result is done, rework (fix the `feedback`, then claim and complete again), blocked (a human decides) or verifying with pending=true (call verification_status with wait=true).",
     },
-    completion,
+    {
+      ...completion,
+      pr: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe(
+          'The pull request number with this work, when there is one; PR and CI status are then tracked for it.',
+        ),
+    },
     (a, extra) => agent.reportCompletion(a, waitControl(extra, CHECKS_WAIT)),
   );
 

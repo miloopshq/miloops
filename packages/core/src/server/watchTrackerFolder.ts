@@ -7,13 +7,14 @@ import { readAgentDoc } from '../agents/agentDocs';
 import { SESSION_DOC_PATH, agentPaths, isAgentPath } from '../agents/agentLink';
 import { JOURNAL_DIR } from '../history/journalFile';
 import { parseDecision } from '../planning/decisions/decisionFile';
-import { EVIDENCE_DIR } from '../verification/evidenceStore';
 import type { DecisionEvent } from './bridgeTypes';
+import { verificationEvents } from './verificationEvents';
 
 /**
  * Turns changes in the tracker folder into SSE messages for `send`: `{ path }`
  * per changed file, named `decision` events for decision records and named
- * `agent` events for agent session docs. Returns the function that stops watching.
+ * `agent` events for agent session docs, and named `verification` events for
+ * attempts, verdicts, check logs and run locks. Returns the function that stops watching.
  */
 export function watchTrackerFolder(abs: string, fs: MarkdownFs, send: (text: string) => void): () => void {
   const seen = new Map<string, { text: string; supersededBy?: string }>();
@@ -79,15 +80,18 @@ export function watchTrackerFolder(abs: string, fs: MarkdownFs, send: (text: str
   }, 500);
   liveness.unref?.();
 
+  const verification = verificationEvents(send);
   const unwatch = fs.watch!((rel) => {
+    if (verification(rel)) return;
     if (isAgentPath(rel)) return onAgentFile(rel);
-    if (isOutboxPath(rel) || [JOURNAL_DIR, EVIDENCE_DIR].some((d) => rel === d || rel.startsWith(`${d}/`))) return;
+    if (isOutboxPath(rel) || rel === JOURNAL_DIR || rel.startsWith(`${JOURNAL_DIR}/`)) return;
     send(`data: ${JSON.stringify({ path: rel })}\n\n`);
     if (DECISION_PATH.test(rel)) void onDecisionFile(rel);
   });
 
   return () => {
     unwatch();
+    verification.close();
     clearInterval(liveness);
   };
 }

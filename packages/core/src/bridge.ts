@@ -7,6 +7,7 @@ export type {
   DecisionEvent,
   TrackerBridge,
 } from './server/bridgeTypes';
+export type { VerificationEvidenceEvent } from './server/verificationEvents';
 export { activeTracker } from './server/activeTracker';
 export { crossSite } from './server/trackerErrors';
 export { configDir, credentialStore, type Credentials } from './server/trackerConfig';

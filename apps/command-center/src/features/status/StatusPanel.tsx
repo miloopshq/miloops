@@ -20,6 +20,13 @@ export const ORDER: [NodeState, string][] = [
   ['out-of-scope', 'Cancelled'],
 ];
 
+/** Shown once a mission verifies completions, or while any ticket is in one of these states. */
+const VERIFY_ORDER: [NodeState, string][] = [
+  ['verifying', 'Verifying'],
+  ['rework', 'Rework'],
+  ['held', 'Blocked'],
+];
+
 /** Mission status counters (also the map legend) and the resolution bar. */
 export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: ActivityState['sessions'] }) {
   const now = useNow(5000);
@@ -31,6 +38,8 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
   const tp = throughput(snap, now);
   const mix = typeMix(snap);
   const mixMax = Math.max(1, ...mix.map((m) => m.open + m.closed));
+  const verifies = (snap.map.verification ?? 'off') !== 'off' || VERIFY_ORDER.some(([s]) => n(s));
+  const rows = verifies ? [...ORDER.slice(0, 2), ...VERIFY_ORDER, ...ORDER.slice(2)] : ORDER;
   return (
     <div className="status-panel">
       <div className="sp-head">
@@ -38,7 +47,7 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
         <span className="mono-label">{c.total} tickets</span>
       </div>
       <ul>
-        {ORDER.map(([s, label]) => (
+        {rows.map(([s, label]) => (
           <li key={s} className={`st-${s} ${n(s) ? '' : 'zero'}`}>
             <i />
             <span>{label}</span>

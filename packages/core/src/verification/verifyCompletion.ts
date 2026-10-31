@@ -45,6 +45,8 @@ export interface Submission {
   transcript?: string;
   /** Why no files changed is fine for this ticket; the no-changes flag then stays informational. */
   noCodeReason?: string;
+  /** The pull request with this work; kept on the attempt, where PR sync finds it. */
+  pr?: number;
   /** In-process only: this run already re-runs a pass that went stale. */
   reverified?: boolean;
 }
@@ -92,6 +94,7 @@ export async function verify(
     ...(sub.rationale ? { rationale: sub.rationale } : {}),
     ...(sub.alternatives?.length ? { alternatives: sub.alternatives } : {}),
     ...(sub.noCodeReason ? { noCodeReason: sub.noCodeReason } : {}),
+    ...(sub.pr ? { pr: sub.pr } : {}),
   };
   const id = nextAttemptId(env.root, mapId, t.id);
   const lock = acquireRunLock(env.root, { ...base, id });
@@ -213,5 +216,6 @@ export async function rerun(env: VerifyEnv, snap: MapSnapshot, interrupted: Veri
     rationale: interrupted.rationale,
     alternatives: interrupted.alternatives,
     noCodeReason: interrupted.noCodeReason,
+    pr: interrupted.pr,
   });
 }

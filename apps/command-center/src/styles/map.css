@@ -73,6 +73,15 @@
 .st-out-of-scope {
   --c: var(--st-oos);
 }
+.st-verifying {
+  --c: var(--st-verifying);
+}
+.st-rework {
+  --c: var(--st-rework);
+}
+.st-held {
+  --c: var(--st-held);
+}
 .st-stalled {
   --c: var(--amber);
 }
@@ -183,6 +192,9 @@
 .status-panel li.st-parked i {
   background: transparent;
   border: 1px dashed var(--c);
+}
+.status-panel li.st-verifying i {
+  background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 6px);
 }
 .status-panel li.st-out-of-scope i {
   background: repeating-linear-gradient(45deg, var(--c) 0 2px, transparent 2px 4px);
@@ -438,6 +450,18 @@
 .node.st-claimed .body {
   fill: rgba(var(--claimed-rgb), 0.08);
   stroke-opacity: 0.9;
+}
+.node.st-verifying .body {
+  stroke-dasharray: 6 3;
+  stroke-opacity: 0.9;
+}
+.node.st-rework .body {
+  fill: rgba(var(--amber-rgb), 0.08);
+  stroke-opacity: 0.9;
+}
+.node.st-held .body {
+  fill: var(--urgent-bg);
+  stroke-opacity: 1;
 }
 .node.st-decided .body {
   stroke-opacity: 0.4;

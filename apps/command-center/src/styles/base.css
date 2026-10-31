@@ -26,6 +26,9 @@
   --st-blocked: #4a585c;
   --st-parked: #4a585c;
   --st-oos: #ff4d42;
+  --st-verifying: #a9c3c9;
+  --st-rework: var(--amber);
+  --st-held: var(--urgent);
   --urgent: #ff4d42;
   --urgent-bg: rgba(255, 77, 66, 0.1);
   --amber: rgb(var(--amber-rgb));

@@ -39,6 +39,9 @@ export {
   type Submission,
   type VerifyEnv,
 } from './verification/verifyCompletion';
+export { operatorAction, type OperatorAction, type OperatorRequest } from './verification/operatorActions';
+export { rerunChecks } from './verification/operatorRerun';
+export { LOG_VIEW_BYTES, readEvidenceLog, ticketEvidence } from './verification/ticketEvidence';
 export { baselineForClaim, captureBaseline, latestBaseline, readBaseline, type ClaimInfo } from './evidence/baseline';
 export { collectEvidence, type EvidenceRequest } from './evidence/collectEvidence';
 export { evidenceFlags, flagEffect, type OtherWork } from './evidence/flags';

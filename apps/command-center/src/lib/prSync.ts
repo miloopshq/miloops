@@ -14,6 +14,7 @@ const keyOf = (mapId: string, ticketId: string) => `${mapId}/${ticketId}`;
 let snap: PrSyncSnapshot = { reached: false, live: false, tickets: {} };
 let started = false;
 const listeners = new Set<() => void>();
+const evidenceListeners = new Set<() => void>();
 
 function set(next: PrSyncSnapshot) {
   snap = next;
@@ -41,6 +42,7 @@ function start() {
   const es = new EventSource(`${BRAND.apiPrefix}/events`);
   es.addEventListener('verification', (m) => {
     const e = JSON.parse((m as MessageEvent<string>).data) as VerificationSyncEvent | { kind?: string };
+    if (e.kind === 'evidence') for (const l of evidenceListeners) l();
     if (e.kind !== 'sync') return;
     const tickets = { ...snap.tickets };
     for (const t of (e as VerificationSyncEvent).tickets) tickets[keyOf(t.mapId, t.ticketId)] = t;
@@ -58,6 +60,12 @@ export const prSync = {
     return () => void listeners.delete(l);
   },
   get: () => snap,
+  /** Attempts, verdicts, check logs or a run lock changed (`kind: 'evidence'` on the same stream). */
+  onEvidence(l: () => void) {
+    if (!started) start();
+    evidenceListeners.add(l);
+    return () => void evidenceListeners.delete(l);
+  },
   ticket: (s: PrSyncSnapshot, mapId: string, ticketId: string): TicketSync | undefined =>
     s.tickets[keyOf(mapId, ticketId)],
 };

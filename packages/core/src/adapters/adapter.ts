@@ -1,4 +1,4 @@
-import type { TicketMetaPatch, VerificationLevel } from '../model/lifecycle';
+import type { MapMetaPatch, TicketMetaPatch, VerificationLevel } from '../model/lifecycle';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -47,6 +47,8 @@ export interface TrackerAdapter {
   createMap(input: MapInput): Promise<MapDoc>;
   /** Real trackers: add/remove the PLAN_ONLY_LABEL on the map issue. */
   setMapMode(mapId: string, mode: MapMode): Promise<void>;
+  /** Mission fields kept in `map.md` frontmatter or the mission issue's meta marker. Use `setVerification`. */
+  setMapMeta(mapId: string, patch: MapMetaPatch): Promise<void>;
   /** Rewrites the named sections of the map issue body. */
   updateMapSections(mapId: string, patch: Partial<MapSections>): Promise<void>;
 

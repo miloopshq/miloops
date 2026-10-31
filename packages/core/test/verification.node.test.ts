@@ -11,6 +11,7 @@ import { parseTicket, serializeTicket } from '../src/adapters/markdown/ticketFil
 import { MemoryAdapter } from '../src/adapters/memoryAdapter';
 import { joinBody, mapBody, ticketFromIssue, ticketMeta } from '../src/adapters/remote/format';
 import { mapFromIssue } from '../src/adapters/remote/issueMapping';
+import { applyWrite } from '../src/adapters/remote/sync/queuedWrites';
 import { createTrackerBridge } from '../src/bridge';
 import { serializeMapBody } from '../src/model/mapBody';
 import type { MapDoc, Ticket } from '../src/model/types';
@@ -340,4 +341,21 @@ test('chooseNext: rework before ready, oldest first', async () => {
   assert.equal(chooseNext(await a.loadMap(map.id))?.id, tickets[0].id);
   await a.setMeta(map.id, tickets[1].id, { status: 'rework' });
   assert.equal(chooseNext(await a.loadMap(map.id))?.id, tickets[1].id);
+});
+
+test('a queued mission level change applies to the cache and reaches the issue body marker', () => {
+  const e = { snap: { map: mapDoc(), tickets: [] }, decisions: [], at: 0 };
+  const w = (patch: { verification: 'checks' | null }) => ({
+    id: 'w',
+    mapId: 'm',
+    label: 'mission verification',
+    at: 0,
+    change: { kind: 'mapMeta' as const, patch },
+  });
+  applyWrite(e, w({ verification: 'checks' }), () => 1);
+  assert.equal(e.snap.map.verification, 'checks');
+  assert.match(mapBody(e.snap.map), /miloops:meta \{"verification":"checks"\}/);
+  applyWrite(e, w({ verification: null }), () => 2);
+  assert.equal(e.snap.map.verification, undefined);
+  assert.equal(mapBody(e.snap.map), serializeMapBody(SECTIONS));
 });

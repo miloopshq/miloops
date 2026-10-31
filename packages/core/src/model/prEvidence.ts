@@ -55,11 +55,12 @@ export interface PrCandidate {
 }
 
 /**
- * How a ticket found its PR, strongest first: an operator link, the branch
- * its latest attempt ran on (git evidence), then a body marker or a
+ * How a ticket found its PR, strongest first: an operator link, the PR an
+ * agent named in report_completion (kept on its attempt), the branch its
+ * latest attempt ran on (git evidence), then a body marker or a
  * `miloops-<mapId>-<ticketId>` branch name.
  */
-export type PrLinkSource = 'explicit' | 'branch' | 'marker';
+export type PrLinkSource = 'explicit' | 'attempt' | 'branch' | 'marker';
 
 export interface PrLink {
   number: number;

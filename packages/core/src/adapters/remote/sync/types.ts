@@ -1,4 +1,4 @@
-import type { TicketMetaPatch } from '../../../model/lifecycle';
+import type { MapMetaPatch, TicketMetaPatch } from '../../../model/lifecycle';
 import type { DecisionRecord, MapMode, MapSections, MapSnapshot, TrackerEvent } from '../../../model/types';
 import type { RateInfo } from '../http';
 
@@ -34,6 +34,7 @@ export interface SyncOptions {
 export type QueuedChange =
   | { kind: 'mode'; mode: MapMode }
   | { kind: 'sections'; sections: MapSections }
+  | { kind: 'mapMeta'; patch: MapMetaPatch }
   | { kind: 'blocking'; blockerId: string; blockedId: string }
   | { kind: 'claim'; ticketId: string; assignee?: string }
   | { kind: 'meta'; ticketId: string; patch: TicketMetaPatch }

@@ -1,12 +1,18 @@
 import { BRAND, type MapDoc } from '@miloops-hq/core';
+import { useState } from 'react';
 import { Meta } from '../../components/ui';
+import { OPERATOR } from '../../lib';
+import { verificationApi } from '../../lib/verification';
+import { LevelControl } from '../verification';
 import { SettingsSection } from './SettingsSection';
 import { useVerificationConfig } from './useVerificationConfig';
 
 /** Read-only: checks are changed in the repo, so an agent cannot edit what verifies its own work. */
 export function VerificationSection(props: { map?: MapDoc }) {
   const view = useVerificationConfig();
+  const [error, setError] = useState<string>();
   if (!view) return null;
+  const map = props.map;
   const c = view.config;
   const file = `${BRAND.dataDir}/${view.file}`;
   const [cls, text] = view.errors.length
@@ -20,6 +26,21 @@ export function VerificationSection(props: { map?: MapDoc }) {
         <span className="dot" />
         <span>{text}</span>
       </div>
+      {map && (
+        <div className="vf-mission">
+          <span className="mono-label">Mission {map.key}</span>
+          <LevelControl
+            value={map.verification}
+            onChange={(level) => {
+              setError(undefined);
+              verificationApi
+                .act({ action: 'level', mapId: map.id, level, by: OPERATOR })
+                .catch((e: Error) => setError(e.message));
+            }}
+          />
+          {error && <span className="vf-err">{error}</span>}
+        </div>
+      )}
       {view.errors.length > 0 && (
         <ul className="vf-errors">
           {view.errors.map((e) => (
@@ -31,7 +52,6 @@ export function VerificationSection(props: { map?: MapDoc }) {
         <>
           <Meta
             parts={[
-              props.map && `Mission ${props.map.key}: ${props.map.verification ?? 'off'}`,
               `New missions: ${c.default}`,
               `${c.maxAttempts} attempts`,
               c.failFast && 'Stops at the first failure',

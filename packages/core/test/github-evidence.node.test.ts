@@ -174,6 +174,39 @@ test('association by branch name, body marker, attempt branch and explicit link;
   assert.equal(readTicketSync(root, mapId, t[0].id)?.pr?.sameRepo, false);
 });
 
+test('a PR named in report_completion links the ticket ahead of its branch; a newer attempt names a newer one', async () => {
+  const { root, mapId, t, gh, tick } = await setup();
+  gh.open(5, { sha: SHA_A, ref: 'agent/work' });
+  gh.open(6, { sha: SHA_A, ref: 'elsewhere' });
+  gh.open(7, { sha: SHA_B, ref: 'elsewhere-2' });
+  const attempt = (id: string, pr: number): VerificationAttempt => ({
+    v: 1,
+    id,
+    mapId,
+    ticketId: t[2].id,
+    ticketKey: t[2].key,
+    agent: 'claude-07',
+    level: 'checks',
+    configHash: 'none',
+    submittedAt: 0,
+    finishedAt: 0,
+    resolution: 'done',
+    checks: [],
+    result: 'fail',
+    git: gitOf('agent/work', SHA_A),
+    pr,
+  });
+  writeAttempt(root, attempt('A-1', 6));
+  await tick();
+  assert.deepEqual(
+    [readTicketSync(root, mapId, t[2].id)?.link.source, readTicketSync(root, mapId, t[2].id)?.pr?.number],
+    ['attempt', 6],
+  );
+  writeAttempt(root, attempt('A-2', 7));
+  await tick();
+  assert.equal(readTicketSync(root, mapId, t[2].id)?.pr?.number, 7);
+});
+
 test('mismatch flags are raised and cleared with events, and the ticket is never changed', async () => {
   const { root, a, mapId, t, gh, tick } = await setup();
   const ref = (i: number) => `miloops-${mapId}-${t[i].id}`;

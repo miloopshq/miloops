@@ -1,7 +1,14 @@
-export function Legend({ planOnly }: { planOnly: boolean }) {
+export function Legend({ planOnly, verifies }: { planOnly: boolean; verifies: boolean }) {
   const items: [string, string][] = [
     ['frontier', 'Ready'],
     ['claimed', 'Working'],
+    ...(verifies
+      ? ([
+          ['verifying', 'Verifying'],
+          ['rework', 'Rework'],
+          ['held', 'Blocked'],
+        ] as [string, string][])
+      : []),
     ['stalled', 'Stalled'],
     ['blocked', 'Backlog'],
     ['decided', 'Done'],
