@@ -1,6 +1,6 @@
 import { BRAND } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Panel, MiloMark, Wordmark, Label, Choice, Button } from '../../components/ui';
+import { Panel, MiloLogo, MiloMark, Wordmark, Label, Choice, Button } from '../../components/ui';
 import type { Prefs, TrackerChoice } from '../../lib';
 import { useTrackerSettings, trackerApi, switchTracker } from '../trackers';
 import { SettingsSection } from './SettingsSection';
@@ -37,7 +37,7 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
     <div className="scrim">
       <Panel as="div" className="dialog onboarding">
         <div className="onb-brand">
-          <MiloMark size={40} />
+          <MiloLogo scale={3} />
           <Wordmark as="div" className="onb-title" />
         </div>
         <div className="onb-cat mono-label">{BRAND.category}</div>

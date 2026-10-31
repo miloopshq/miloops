@@ -4,9 +4,8 @@ import {
   type ActivityState,
   type TrackerHealth,
   missionProgress,
-  BRAND,
 } from '@miloops-hq/core';
-import { Panel, MiloMark, Wordmark, Label, Readout, Button } from '../../components/ui';
+import { Panel, MiloLogo, MiloMark, Wordmark, Label, Readout, Button } from '../../components/ui';
 import { useNow } from '../../hooks';
 import { hms } from '../../lib';
 import { MissionSwitcher } from './MissionSwitcher';
@@ -41,7 +40,7 @@ export function Header(props: {
   return (
     <Panel as="header" className="header">
       <div className="h-brand">
-        <MiloMark size={28} className="logo" title={BRAND.name} />
+        <MiloLogo className="logo" />
         <Wordmark className="wordmark" />
       </div>
       <div className="h-title">

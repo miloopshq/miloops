@@ -4,6 +4,7 @@ import { Banner } from './views/Banner';
 import { BrandSquare } from './views/BrandSquare';
 import { Demo } from './views/Demo';
 import { Favicon } from './views/Favicon';
+import { Lockup } from './views/Lockup';
 import { Options } from './views/Options';
 import { Playground } from './views/Playground';
 import { States } from './views/States';
@@ -17,6 +18,8 @@ export function App() {
   if (view === 'demo') return <Demo variant={variant} />;
   if (view === 'square') return <BrandSquare n={Number(q.get('n') || 512)} />;
   if (view === 'favicon') return <Favicon px={Number(q.get('px') || 64)} />;
+  if (view === 'lockup')
+    return <Lockup w={Number(q.get('w') || 960)} h={Number(q.get('h') || 240)} wordmark={q.get('wordmark') || WORDMARK} />;
   if (view === 'banner')
     return (
       <Banner

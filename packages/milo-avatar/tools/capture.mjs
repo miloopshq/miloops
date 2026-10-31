@@ -1,6 +1,6 @@
 // Builds nothing; run `npm run build` first. Serves dist/ and writes PNG captures + an MP4 demo loop.
 // Usage: OUT_DIR=captures CHROME=/path/to/chrome [WORDMARK='MILO|OPS'] node tools/capture.mjs
-// WORDMARK overrides the wordmark (text after `|` renders in the brand copper); the default is WORDMARK in preview/main.tsx.
+// WORDMARK overrides the wordmark (text after `|` renders in the brand copper); the default is WORDMARK in preview/content.ts.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -11,7 +11,7 @@ import { preview } from 'vite';
 const font = (f) => createRequire(import.meta.url).resolve(`@fontsource/${f}`);
 const WORDMARK =
   process.env.WORDMARK ||
-  readFileSync(new URL('../preview/main.tsx', import.meta.url), 'utf8').match(/^const WORDMARK = '(.+)';$/m)[1];
+  readFileSync(new URL('../preview/content.ts', import.meta.url), 'utf8').match(/^export const WORDMARK = '(.+)';$/m)[1];
 const wm = `&wordmark=${encodeURIComponent(WORDMARK)}`;
 const [wmLead, wmOps = ''] = WORDMARK.split('|');
 const OUT = resolve(process.env.OUT_DIR || 'captures');
@@ -43,6 +43,7 @@ const KIT = [
   ['github-social-preview.png', 'GitHub repo social preview', 1280, 640, 'banner', '&w=1280&h=640'],
   ['og-image-1200x630.png', 'Open Graph · miloops.app', 1200, 630, 'banner', '&w=1200&h=630&url=miloops.app'],
   ['x-header-1500x500.png', 'X header', 1500, 500, 'banner', '&w=1500&h=500&layout=header'],
+  ['wordmark-lockup.png', 'Logo lockup', 960, 240, 'lockup', '&w=960&h=240'],
   ['x-avatar-400.png', 'X avatar', 400, 400, 'square', '&n=400'],
   ['slack-icon-512.png', 'Slack app / workspace icon', 512, 512, 'square', '&n=512'],
   ['linkedin-discord-avatar-512.png', 'LinkedIn / Discord avatar', 512, 512, 'square', '&n=512'],
@@ -51,7 +52,7 @@ const KIT = [
 ];
 for (const [file, , w, h, view, extra] of KIT) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
-  await page.goto(`${base}?view=${view}${extra}${view === 'banner' ? wm : ''}`);
+  await page.goto(`${base}?view=${view}${extra}${view === 'banner' || view === 'lockup' ? wm : ''}`);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
   await page.locator(`[data-capture="${view}"]`).screenshot({ path: join(BRAND, file) });
@@ -82,9 +83,10 @@ for (const [file, , w, h, view, extra] of KIT) {
   await page.setContent(`<style>
     @font-face{font-family:B;src:url(${'data:font/woff2;base64,' + readFileSync(font('barlow/files/barlow-latin-400-normal.woff2')).toString('base64')})}
     @font-face{font-family:M;src:url(${'data:font/woff2;base64,' + readFileSync(font('share-tech-mono/files/share-tech-mono-latin-400-normal.woff2')).toString('base64')})}
+    @font-face{font-family:C;font-weight:700;src:url(${'data:font/woff2;base64,' + readFileSync(font('chakra-petch/files/chakra-petch-latin-700-normal.woff2')).toString('base64')})}
     body{margin:0;background:#04080a;color:#bfdfe3;font:13px B}
     #s{display:inline-block;padding:28px 32px}
-    h1{margin:0 0 18px;font:20px M;letter-spacing:.18em;color:#e6f6f7} h1 b{font-weight:400;color:#c98b5e} h1 span{color:#5f7f84;font-size:13px}
+    h1{margin:0 0 18px;font:700 20px C;letter-spacing:.12em;color:#e6f6f7} h1 b{color:#c98b5e} h1 span{font:13px M;letter-spacing:.18em;color:#5f7f84}
     .g{display:flex;flex-wrap:wrap;gap:22px;width:1776px;align-items:flex-end}
     figure{margin:0;display:flex;flex-direction:column;gap:6px} img{display:block;border:1px solid rgba(110,215,228,.16)}
     figcaption{font:12px M;letter-spacing:.06em;color:#5f7f84} figcaption b{color:#e6f6f7;font-weight:400}

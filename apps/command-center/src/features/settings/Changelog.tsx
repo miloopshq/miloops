@@ -1,5 +1,5 @@
 import { BRAND } from '@miloops-hq/core';
-import { Meta } from '../../components/ui';
+import { Meta, Wordmark } from '../../components/ui';
 import { NEXT, RELEASES } from './changelog';
 import { SettingsSection } from './SettingsSection';
 
@@ -7,7 +7,7 @@ export function Changelog() {
   return (
     <div className="changelog">
       <div className="about">
-        <span className="about-name">{BRAND.name}</span>
+        <Wordmark className="about-name" />
         <span className="mono-label">{BRAND.category}</span>
         <p className="onb-tagline">{BRAND.tagline}</p>
         <Meta as="p" parts={[BRAND.assistant.name, BRAND.assistant.expansion]} />
