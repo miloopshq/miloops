@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="brand/github-social-preview.png" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="640" />
-</p>
+<img src="brand/github-social-preview.png" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="100%" />
 
 # MILOOPS
 
