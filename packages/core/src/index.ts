@@ -1,10 +1,13 @@
 export * from './model/brand';
 export * from './model/types';
+export * from './model/lifecycle';
 export * from './adapters/adapter';
 export * from './planning/derive';
 export * from './model/mapBody';
 export * from './model/steps';
 export * from './planning/operations';
+export * from './planning/lifecycle';
+export { httpJournal } from './history/httpJournal';
 export * from './activity/activityStream';
 export * from './activity/describeTrackerEvent';
 export type { SessionHandle } from './activity/sessionHandle';

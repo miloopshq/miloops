@@ -1,3 +1,5 @@
+import type { TicketStatus } from './lifecycle';
+
 /** `execute` tickets carry out decided work (implementation) rather than decide something. */
 export type TicketType = 'research' | 'prototype' | 'grilling' | 'task' | 'execute';
 
@@ -29,6 +31,8 @@ export interface Ticket {
   /** `not_planned` is how a ticket is ruled out of scope. */
   closeReason?: 'completed' | 'not_planned';
   assignee?: string;
+  /** Lifecycle status on top of open + assignee (model/lifecycle.ts); only `transition()` sets it. */
+  status?: TicketStatus;
   /** Ids of tickets that block this one (native blocking edges). */
   blockedBy: string[];
   comments: Comment[];
@@ -175,8 +179,12 @@ export type TrackerEvent =
     }
   | { kind: 'external.changed'; mapId?: string; at: number };
 
-/** Derived, UI-facing state of a ticket. */
-export type NodeState = 'decided' | 'claimed' | 'frontier' | 'blocked' | 'parked' | 'out-of-scope';
+/**
+ * Derived state of a ticket, one step finer than its `TicketPhase`: `blocked`
+ * and `parked` are both backlog, `held` is the phase `blocked` (waiting on a human).
+ */
+export type NodeState =
+  'decided' | 'claimed' | 'frontier' | 'blocked' | 'parked' | 'out-of-scope' | 'verifying' | 'rework' | 'held';
 
 export type SessionMode = 'chart' | 'work' | 'research';
 

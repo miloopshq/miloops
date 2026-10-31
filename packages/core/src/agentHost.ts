@@ -5,3 +5,4 @@ export { readCommandCenterLock, writeCommandCenterLock } from './agents/commandC
 export { writeJsonAtomic } from './lib/jsonFile';
 export { dropLease, readLease, readLeases, renewLease, writeLease } from './agents/leaseStore';
 export { LEASE_REAPER, reclaimExpired, returnToQueue, type ReturnOutcome } from './agents/returnToQueue';
+export { journalFile, journalPath, JOURNAL_DIR } from './history/journalFile';

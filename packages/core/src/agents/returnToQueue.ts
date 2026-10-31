@@ -1,5 +1,6 @@
 import type { TrackerAdapter } from '../adapters/adapter';
-import { release } from '../planning/operations/claims';
+import { journalFile } from '../history/journalFile';
+import { transition } from '../planning/lifecycle/transition';
 import { dropLease, readLeases, takeLease } from './leaseStore';
 import { handoffComment, leaseHealth, TOMBSTONE_MS, type LeaseReturnReason, type TicketLease } from './ticketLease';
 
@@ -37,7 +38,19 @@ export async function returnToQueue(
       return { dropped: l };
     }
     await adapter.comment(l.mapId, l.ticketId, by, handoffComment(l, reason, by));
-    await release(adapter, l.mapId, l.ticketId);
+    await transition(
+      adapter,
+      l.mapId,
+      l.ticketId,
+      {
+        event: reason === 'expired' ? 'expire' : 'release',
+        actor: by,
+        actorKind: reason === 'expired' ? 'engine' : 'operator',
+        reason: reason === 'expired' ? `${l.agent} went silent` : `claim of ${l.agent} released`,
+        sessionId: l.sessionId,
+      },
+      { journal: journalFile(root) },
+    );
   } catch (e) {
     taken.put(l);
     throw e;

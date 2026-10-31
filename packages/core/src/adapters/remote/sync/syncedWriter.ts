@@ -1,5 +1,6 @@
 import type { DecisionRecord, MapDoc, MapMode, MapSections, Ticket, TicketType } from '../../../model/types';
 import { OperationError } from '../../../planning/operations/operationError';
+import { withMeta } from '../../ticketMeta';
 import { isTransient } from '../http';
 import { applyWrite, CHECKED, hasLanded, ticketOf, writeId } from './queuedWrites';
 import { SyncedStore } from './syncedStore';
@@ -17,8 +18,8 @@ export abstract class SyncedWriter extends SyncedStore {
     input: { title: string; type: TicketType; body: string; hitl?: boolean },
   ): Promise<Ticket>;
   protected abstract remoteAddBlocking(map: MapDoc, blocker: Ticket, blocked: Ticket): Promise<void>;
-  /** Persist the claim (`t.assignee`) of an already-updated ticket. */
-  protected abstract remoteSetClaim(map: MapDoc, t: Ticket): Promise<void>;
+  /** Persist the claim and status (`ticketMeta`) of an already-updated ticket. */
+  protected abstract remoteSetMeta(map: MapDoc, t: Ticket): Promise<void>;
   /** `writeId` must be readable back as the comment's `writeId`. */
   protected abstract remoteComment(
     map: MapDoc,
@@ -48,7 +49,9 @@ export abstract class SyncedWriter extends SyncedStore {
       case 'blocking':
         return this.remoteAddBlocking(map, ticketOf(e, c.blockerId), ticketOf(e, c.blockedId));
       case 'claim':
-        return this.remoteSetClaim(map, { ...ticketOf(e, c.ticketId), assignee: c.assignee });
+        return this.remoteSetMeta(map, { ...ticketOf(e, c.ticketId), assignee: c.assignee });
+      case 'meta':
+        return this.remoteSetMeta(map, withMeta(ticketOf(e, c.ticketId), c.patch));
       case 'comment':
         return this.remoteComment(map, ticketOf(e, c.ticketId), c.author, c.body, w.id);
       case 'close':

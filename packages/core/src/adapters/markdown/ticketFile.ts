@@ -1,5 +1,6 @@
 import { HITL_LABEL, label } from '../../model/brand';
 import { arr, iso, parseFront, str, time, writeFront, type Front } from '../../model/frontmatter';
+import { TICKET_STATUSES } from '../../model/lifecycle';
 import type { Comment, Ticket, TicketType } from '../../model/types';
 
 /** `<map-slug>/tickets/<n>.md`: frontmatter + body + "## Comments". */
@@ -15,6 +16,7 @@ export function parseTicket(md: string): Ticket {
       return { id: `c${i}`, author: author.trim(), createdAt: Date.parse(at) || 0, body: chunk.slice(nl + 1).trim() };
     });
   const reason = str(front.close_reason);
+  const status = TICKET_STATUSES.find((s) => s === str(front.status));
   return {
     id: str(front.id),
     key: `#${str(front.id)}`,
@@ -24,6 +26,7 @@ export function parseTicket(md: string): Ticket {
     state: str(front.state) === 'closed' ? 'closed' : 'open',
     closeReason: reason === 'completed' || reason === 'not_planned' ? reason : undefined,
     assignee: str(front.assignee) || undefined,
+    ...(status ? { status } : {}),
     blockedBy: arr(front.blocked_by),
     body: main.trim(),
     comments,
@@ -42,6 +45,7 @@ export function serializeTicket(t: Ticket) {
     state: t.state,
     close_reason: t.closeReason ?? '',
     assignee: t.assignee ?? '',
+    ...(t.status ? { status: t.status } : {}),
     blocked_by: t.blockedBy,
     created: iso(t.createdAt),
     updated: iso(t.updatedAt),

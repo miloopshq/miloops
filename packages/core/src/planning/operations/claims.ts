@@ -1,7 +1,16 @@
 import type { TrackerAdapter } from '../../adapters/adapter';
+import type { ActorKind } from '../../model/lifecycle';
 import type { MapSnapshot, TicketType } from '../../model/types';
 import { frontier, deriveStates } from '../derive';
+import { transition, type TransitionOptions } from '../lifecycle/transition';
 import { OperationError } from './operationError';
+
+/** Who is acting, for the journal. Agents are the default actor kind. */
+export interface ActorOptions extends TransitionOptions {
+  actorKind?: ActorKind;
+  reason?: string;
+  sessionId?: string;
+}
 
 export function chooseNext(snap: MapSnapshot, opts: { types?: TicketType[]; exclude?: string[] } = {}) {
   return frontier(snap.tickets, snap.map.mode).find(
@@ -10,19 +19,58 @@ export function chooseNext(snap: MapSnapshot, opts: { types?: TicketType[]; excl
 }
 
 /** Claim = assignment. Re-reads after assigning to detect a parallel session winning the race. */
-export async function claim(adapter: TrackerAdapter, mapId: string, ticketId: string, assignee: string) {
+export async function claim(
+  adapter: TrackerAdapter,
+  mapId: string,
+  ticketId: string,
+  assignee: string,
+  opts: ActorOptions = {},
+) {
   const before = await adapter.loadMap(mapId);
   const t = before.tickets.find((x) => x.id === ticketId);
   if (!t) throw new OperationError(`ticket ${ticketId} not found`);
   const state = deriveStates(before.tickets, before.map.mode).get(ticketId);
-  if (state !== 'frontier') throw new OperationError(`${t.key} is ${state}, not on the frontier`);
-  await adapter.assign(mapId, ticketId, assignee);
+  if (state !== 'frontier' && state !== 'rework') throw new OperationError(`${t.key} is ${state}, not on the frontier`);
+  await transition(
+    adapter,
+    mapId,
+    ticketId,
+    {
+      event: 'claim',
+      actor: assignee,
+      actorKind: opts.actorKind ?? 'agent',
+      reason: opts.reason,
+      sessionId: opts.sessionId,
+    },
+    opts,
+  );
   const after = await adapter.loadMap(mapId);
   const now = after.tickets.find((x) => x.id === ticketId)!;
   if (now.assignee !== assignee) throw new OperationError(`${t.key} was claimed by ${now.assignee}`);
   return now;
 }
 
-export async function release(adapter: TrackerAdapter, mapId: string, ticketId: string) {
-  await adapter.assign(mapId, ticketId, null);
+/** Back to the queue (ready, or rework when an attempt failed). `actor` defaults to the assignee. */
+export async function release(
+  adapter: TrackerAdapter,
+  mapId: string,
+  ticketId: string,
+  opts: ActorOptions & { actor?: string } = {},
+) {
+  const snap = await adapter.loadMap(mapId);
+  const t = snap.tickets.find((x) => x.id === ticketId);
+  if (!t) throw new OperationError(`ticket ${ticketId} not found`);
+  await transition(
+    adapter,
+    mapId,
+    ticketId,
+    {
+      event: 'release',
+      actor: opts.actor ?? t.assignee ?? 'operator',
+      actorKind: opts.actorKind ?? 'agent',
+      reason: opts.reason,
+      sessionId: opts.sessionId,
+    },
+    opts,
+  );
 }

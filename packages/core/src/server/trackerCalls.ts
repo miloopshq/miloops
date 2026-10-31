@@ -12,6 +12,7 @@ export const CALL_NAMES = [
   'assign',
   'comment',
   'close',
+  'setMeta',
   'listDecisions',
   'createDecision',
   'markSuperseded',

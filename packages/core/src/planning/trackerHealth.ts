@@ -24,6 +24,7 @@ const WRITES = new Set<keyof TrackerAdapter>([
   'assign',
   'comment',
   'close',
+  'setMeta',
   'createDecision',
   'markSuperseded',
 ]);

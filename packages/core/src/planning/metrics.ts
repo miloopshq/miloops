@@ -34,6 +34,9 @@ export function stateCounts(snap: MapSnapshot): StateCounts {
     blocked: 0,
     parked: 0,
     'out-of-scope': 0,
+    verifying: 0,
+    rework: 0,
+    held: 0,
     total: snap.tickets.length,
     resolvedPct: 0,
   };

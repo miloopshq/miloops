@@ -52,6 +52,7 @@ export function createActions({
   setSelection,
   setAutopilot,
 }: ActionDeps) {
+  const asOperator = { actorKind: 'operator' as const, journal: rt.journal };
   return {
     selectMap: (id: string) => setMapId(id),
     chart: (title: string, destination: string, mode: MapMode, notes?: string) =>
@@ -81,20 +82,30 @@ export function createActions({
     },
     openChat: (sessionId: string | undefined) => setChatSession(sessionId),
     answer: (questionId: string, text: string) => rt.activity.answer(questionId, text, OPERATOR),
-    claim: (ticketId: string) => guard('Claim', () => claim(rt.adapter, mapIdRef.current!, ticketId, OPERATOR)),
-    release: (ticketId: string) => guard('Release claim', () => release(rt.adapter, mapIdRef.current!, ticketId)),
+    claim: (ticketId: string) =>
+      guard('Claim', () => claim(rt.adapter, mapIdRef.current!, ticketId, OPERATOR, asOperator)),
+    release: (ticketId: string) =>
+      guard('Release claim', () =>
+        release(rt.adapter, mapIdRef.current!, ticketId, { ...asOperator, actor: OPERATOR }),
+      ),
     /** An agent's claim back to the queue, with a handoff comment of its notes. */
     releaseLease: (ticketId: string) =>
       guard('Release to queue', () => rt.leases.release(mapIdRef.current!, ticketId, OPERATOR)),
     resolve: (ticketId: string, answer: string, extra: { rationale?: string; alternatives?: string[] } = {}) =>
       guard('Resolve · record answer', async () => {
         const t = snapRef.current?.tickets.find((x) => x.id === ticketId);
-        if (t && !t.assignee) await claim(rt.adapter, mapIdRef.current!, ticketId, OPERATOR);
-        await resolve(rt.adapter, mapIdRef.current!, ticketId, {
-          answer,
-          author: OPERATOR,
-          decision: { ...extra, source: { kind: 'command-center', label: 'Ticket inspector' } },
-        });
+        if (t && !t.assignee) await claim(rt.adapter, mapIdRef.current!, ticketId, OPERATOR, asOperator);
+        await resolve(
+          rt.adapter,
+          mapIdRef.current!,
+          ticketId,
+          {
+            answer,
+            author: OPERATOR,
+            decision: { ...extra, source: { kind: 'command-center', label: 'Ticket inspector' } },
+          },
+          asOperator,
+        );
       }),
     /** Replace a decision. Derived (tracker-only) entries are persisted first so the chain has both ends. */
     supersede: (d: AuditDecision, input: { answer: string; rationale?: string; alternatives?: string[] }) =>
@@ -118,11 +129,17 @@ export function createActions({
       }),
     ruleOut: (target: ScopeTarget, reason: string) =>
       guard('Rule out of scope', async () => {
-        await ruleOutOfScope(rt.adapter, mapIdRef.current!, target, {
-          reason,
-          author: OPERATOR,
-          source: { kind: 'command-center', label: 'Ticket inspector' },
-        });
+        await ruleOutOfScope(
+          rt.adapter,
+          mapIdRef.current!,
+          target,
+          {
+            reason,
+            author: OPERATOR,
+            source: { kind: 'command-center', label: 'Ticket inspector' },
+          },
+          asOperator,
+        );
         setSelection(null);
       }),
     setMode: (mode: MapMode) => guard(`Mission mode · ${mode}`, () => setMapMode(rt.adapter, mapIdRef.current!, mode)),

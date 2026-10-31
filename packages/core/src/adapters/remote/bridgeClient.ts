@@ -1,4 +1,5 @@
 import { Emitter } from '../../lib/emitter';
+import type { TicketMetaPatch } from '../../model/lifecycle';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -89,6 +90,8 @@ export class BridgeAdapter implements TrackerAdapter {
     this.call<void>('comment', mapId, ticketId, author, body);
   close = (mapId: string, ticketId: string, reason: 'completed' | 'not_planned') =>
     this.call<void>('close', mapId, ticketId, reason);
+  setMeta = (mapId: string, ticketId: string, patch: TicketMetaPatch) =>
+    this.call<void>('setMeta', mapId, ticketId, patch);
   listDecisions = (mapId: string) => this.call<DecisionRecord[]>('listDecisions', mapId);
   createDecision = (mapId: string, input: DecisionInput) => this.call<DecisionRecord>('createDecision', mapId, input);
   markSuperseded = (mapId: string, decisionId: string, supersededBy: string) =>

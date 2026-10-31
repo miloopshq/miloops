@@ -12,12 +12,12 @@ import { useNow } from '../../hooks';
 import { TYPE_CODE, isWaiting } from '../../lib';
 
 export const ORDER: [NodeState, string][] = [
-  ['decided', 'Decided'],
-  ['claimed', 'Claimed'],
-  ['frontier', 'Frontier'],
-  ['blocked', 'Blocked'],
+  ['decided', 'Done'],
+  ['claimed', 'Working'],
+  ['frontier', 'Ready'],
+  ['blocked', 'Backlog'],
   ['parked', 'Parked'],
-  ['out-of-scope', 'Ruled out'],
+  ['out-of-scope', 'Cancelled'],
 ];
 
 /** Mission status counters (also the map legend) and the resolution bar. */
@@ -70,7 +70,7 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
         title="Bars: decided per interval since the mission started. Line: open tickets (burndown)."
       >
         <div className="sp-row">
-          <span className="mono-label">Decided / h</span>
+          <span className="mono-label">Done / h</span>
           <b>{tp.lastHour}</b>
         </div>
         <Spark line={tp.open} bars={tp.decided} height={24} />

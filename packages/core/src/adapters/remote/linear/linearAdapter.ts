@@ -11,7 +11,7 @@ import type {
   Ticket,
   TicketType,
 } from '../../../model/types';
-import { authoredBody, decisionComment, joinBody, mapLabels, ticketLabels } from '../format';
+import { authoredBody, decisionComment, joinBody, mapLabels, ticketLabels, ticketMeta } from '../format';
 import { HttpClient, TrackerError, linear, type HttpOptions } from '../http';
 import { SyncedAdapter } from '../sync/syncedAdapter';
 import type { SyncOptions } from '../sync/types';
@@ -188,8 +188,8 @@ export class LinearAdapter extends SyncedAdapter {
     );
   }
 
-  protected async remoteSetClaim(_map: MapDoc, t: Ticket) {
-    await this.update(t.id, { description: joinBody(t.body, { assignee: t.assignee }) });
+  protected async remoteSetMeta(_map: MapDoc, t: Ticket) {
+    await this.update(t.id, { description: joinBody(t.body, ticketMeta(t)) });
   }
 
   protected async remoteComment(_map: MapDoc, t: Ticket, author: string, body: string, writeId: string) {

@@ -1,6 +1,7 @@
 import { Emitter } from '../../lib/emitter';
 import { BRAND } from '../../model/brand';
 import { parseFront, str } from '../../model/frontmatter';
+import type { TicketMetaPatch } from '../../model/lifecycle';
 import {
   DEFAULT_MAP_MODE,
   type DecisionInput,
@@ -16,9 +17,11 @@ import {
 import { parseDecision, serializeDecision } from '../../planning/decisions/decisionFile';
 import { buildDecision, decisionNumber } from '../../planning/decisions/decisionRecord';
 import type { TrackerAdapter } from '../adapter';
+import { withMeta } from '../ticketMeta';
 import { ExternalChanges } from './externalChanges';
 import { parseMapFile, serializeMapFile } from './mapFile';
 import type { MarkdownFs } from './markdownFs';
+import { missionSlug } from './paths';
 import { parseTicket, serializeTicket } from './ticketFile';
 
 /*
@@ -103,12 +106,7 @@ export class MarkdownAdapter implements TrackerAdapter {
 
   async createMap(input: { title: string; sections: MapSections; mode?: MapMode }) {
     const n = await this.nextNumber();
-    const slug =
-      input.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 40) || `map-${n}`;
+    const slug = missionSlug(input.title, n);
     const map: MapDoc = {
       id: slug,
       key: `#${n}`,
@@ -164,9 +162,12 @@ export class MarkdownAdapter implements TrackerAdapter {
     this.events.emit({ kind: 'edge.added', mapId, blockerId, blockedId, at: Date.now() });
   }
 
+  private async update(mapId: string, ticketId: string, change: (t: Ticket) => Ticket) {
+    await this.writeTicket(mapId, change(await this.readTicket(mapId, ticketId)));
+  }
+
   async assign(mapId: string, ticketId: string, assignee: string | null) {
-    const t = await this.readTicket(mapId, ticketId);
-    await this.writeTicket(mapId, { ...t, assignee: assignee ?? undefined });
+    await this.update(mapId, ticketId, (t) => ({ ...t, assignee: assignee ?? undefined }));
     this.events.emit(
       assignee
         ? { kind: 'ticket.claimed', mapId, ticketId, assignee, at: Date.now() }
@@ -175,18 +176,21 @@ export class MarkdownAdapter implements TrackerAdapter {
   }
 
   async comment(mapId: string, ticketId: string, author: string, body: string) {
-    const t = await this.readTicket(mapId, ticketId);
-    await this.writeTicket(mapId, {
+    await this.update(mapId, ticketId, (t) => ({
       ...t,
       comments: [...t.comments, { id: `c${t.comments.length}`, author, body, createdAt: Date.now() }],
-    });
+    }));
     this.events.emit({ kind: 'ticket.commented', mapId, ticketId, at: Date.now() });
   }
 
   async close(mapId: string, ticketId: string, reason: 'completed' | 'not_planned') {
-    const t = await this.readTicket(mapId, ticketId);
-    await this.writeTicket(mapId, { ...t, state: 'closed', closeReason: reason, closedAt: Date.now() });
+    await this.update(mapId, ticketId, (t) => ({ ...t, state: 'closed', closeReason: reason, closedAt: Date.now() }));
     this.events.emit({ kind: 'ticket.closed', mapId, ticketId, reason, at: Date.now() });
+  }
+
+  async setMeta(mapId: string, ticketId: string, patch: TicketMetaPatch) {
+    await this.update(mapId, ticketId, (t) => withMeta(t, patch));
+    this.events.emit({ kind: 'ticket.updated', mapId, ticketId, at: Date.now() });
   }
 
   async listDecisions(mapId: string): Promise<DecisionRecord[]> {

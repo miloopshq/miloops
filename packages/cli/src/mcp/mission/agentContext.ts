@@ -6,12 +6,13 @@ import {
   leaseMs,
   MarkdownAdapter,
   OperationError,
+  type Journal,
   type MapSnapshot,
   type SessionHandle,
   type SessionMode,
   type Ticket,
 } from '@miloops-hq/core';
-import { AgentDocWriter, readAgentDocs, readCommandCenterLock } from '@miloops-hq/core/agents';
+import { AgentDocWriter, journalFile, readAgentDocs, readCommandCenterLock } from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { AgentLeases } from './agentLeases';
 import { AgentSessions } from './agentSessions';
@@ -25,6 +26,8 @@ export class AgentContext {
   readonly writer: AgentDocWriter;
   readonly sessions: AgentSessions;
   readonly leases: AgentLeases;
+  /** Mission history (`.events/`): every transition this agent makes. */
+  readonly journal: Journal;
   /** The mission this agent works on. */
   mission?: string;
   decisionSeq = 0;
@@ -38,6 +41,7 @@ export class AgentContext {
     this.adapter = opts.tracker ?? new MarkdownAdapter({ ...nodeMarkdownFs(opts.root), watch: undefined }, opts.root);
     this.writer = new AgentDocWriter(opts.root, this.activity, { client: opts.client, pollMs: opts.pollMs });
     this.sessions = new AgentSessions(this.activity, opts.usage, opts.usagePollMs);
+    this.journal = journalFile(opts.root);
     this.leases = new AgentLeases(opts.root, opts.leaseMs ?? leaseMs(process.env[LEASE_MINUTES_ENV]));
     this.offTracker = this.adapter.subscribe((e) => {
       const line = describeTrackerEvent(e, (id) => this.tickets.get(id) ?? ({ key: this.keyOf(id) } as Ticket));
@@ -153,6 +157,11 @@ export class AgentContext {
   flush() {
     this.sessions.measureAll();
     this.writer.flush();
+  }
+
+  /** Journal options for an operation done by this agent in its running session. */
+  actor() {
+    return { journal: this.journal, sessionId: this.sessions.running()?.id };
   }
 
   /** End the running session (agent disconnected) and write final state. */

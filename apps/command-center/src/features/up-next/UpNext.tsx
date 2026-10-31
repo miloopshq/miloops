@@ -38,7 +38,7 @@ export function UpNext(props: {
       {!snap ? (
         <Empty>No mission</Empty>
       ) : !items.length ? (
-        <Empty>Frontier empty</Empty>
+        <Empty>Nothing ready</Empty>
       ) : (
         <ul className="ticket-list">
           {items.map((t) => {

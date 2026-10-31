@@ -60,7 +60,7 @@ export async function runChart(
         if (t.type === 'research') {
           // Reserved for a research subagent at once so parallel sessions cannot take it.
           research.push(t.id);
-          await ctx.adapter.assign(mapId, t.id, researchCallsign(research.length));
+          await claim(ctx.adapter, mapId, t.id, researchCallsign(research.length), { journal: ctx.journal });
         }
         await think(ctx, 380);
       },
@@ -88,7 +88,10 @@ export async function runResearch(ctx: ProcedureContext, input: { mapId: string;
   );
   try {
     const pre = (await ctx.adapter.loadMap(input.mapId)).tickets.find((x) => x.id === input.ticketId);
-    const t = pre?.assignee === input.agent ? pre : await claim(ctx.adapter, input.mapId, input.ticketId, input.agent);
+    const t =
+      pre?.assignee === input.agent
+        ? pre
+        : await claim(ctx.adapter, input.mapId, input.ticketId, input.agent, { journal: ctx.journal });
     s.step(1, t.key, t.id);
     const snap = await ctx.adapter.loadMap(input.mapId);
     const { trace, answer, alternatives, rationale } = ctx.brain.resolve(t, snap);
@@ -98,11 +101,17 @@ export async function runResearch(ctx: ProcedureContext, input: { mapId: string;
       s.log(line);
     }
     s.step(3, `${t.key} decided`);
-    await resolve(ctx.adapter, input.mapId, t.id, {
-      answer,
-      author: input.agent,
-      decision: { alternatives, rationale, source: agentSource(s) },
-    });
+    await resolve(
+      ctx.adapter,
+      input.mapId,
+      t.id,
+      {
+        answer,
+        author: input.agent,
+        decision: { alternatives, rationale, source: agentSource(s) },
+      },
+      { journal: ctx.journal },
+    );
     s.done(true);
   } catch (err) {
     s.log(String((err as Error).message ?? err), 'alert');
@@ -125,7 +134,10 @@ export async function runWork(
       s.done(true, 'Frontier empty · nothing to claim');
       return;
     }
-    const t = target.assignee === input.agent ? target : await claim(ctx.adapter, input.mapId, target.id, input.agent);
+    const t =
+      target.assignee === input.agent
+        ? target
+        : await claim(ctx.adapter, input.mapId, target.id, input.agent, { journal: ctx.journal });
     s.step(2, `${t.key} ${t.title}`, t.id);
     await think(ctx, 900);
     snap = await ctx.adapter.loadMap(input.mapId);
@@ -135,7 +147,13 @@ export async function runWork(
       ? await converse(ctx, s, t, snap, ctx.operator ?? 'operator')
       : await afk(ctx, s, t, snap);
     s.step(4, `${transcript ? 'transcript + ' : ''}comment + close + record decision`);
-    await resolve(ctx.adapter, input.mapId, t.id, { answer, transcript, author: input.agent, decision });
+    await resolve(
+      ctx.adapter,
+      input.mapId,
+      t.id,
+      { answer, transcript, author: input.agent, decision },
+      { journal: ctx.journal },
+    );
     await think(ctx, 700);
     s.step(5);
     snap = await ctx.adapter.loadMap(input.mapId);
@@ -152,6 +170,7 @@ export async function runWork(
         input.mapId,
         { unspecified: move.unspecified },
         { reason: move.reason, author: input.agent, source: agentSource(s) },
+        { journal: ctx.journal },
       );
       s.log(`ruled out of scope · ${move.unspecified}`, 'warn');
     } else {

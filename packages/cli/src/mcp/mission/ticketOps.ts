@@ -54,7 +54,7 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
   const t =
     target.assignee === agent && target.state === 'open'
       ? target
-      : await claim(ctx.adapter, snap.map.id, target.id, agent);
+      : await claim(ctx.adapter, snap.map.id, target.id, agent, { journal: ctx.journal });
   const mode: SessionMode = t.type === 'research' ? 'research' : 'work';
   const cur = ctx.sessions.running();
   let s: SessionHandle;
@@ -96,7 +96,7 @@ export async function releaseTicket(ctx: AgentContext, input: { ticket?: string;
   const t = ctx.findTicket(snap, ref);
   if (t.assignee !== (await ctx.agentId()))
     throw new OperationError(`${t.key} is not claimed by you${t.assignee ? ` (assignee: ${t.assignee})` : ''}`);
-  await release(ctx.adapter, snap.map.id, t.id);
+  await release(ctx.adapter, snap.map.id, t.id, { ...ctx.actor(), reason: input.reason });
   ctx.leases.drop(snap.map.id, t.id);
   if (ctx.sessions.running()?.info.ticketId === t.id)
     ctx.sessions.end(true, `Released ${t.key}${input.reason ? ` · ${input.reason}` : ''}`);

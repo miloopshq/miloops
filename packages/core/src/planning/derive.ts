@@ -18,7 +18,10 @@ export const FLEXIBLE_ATTENTION: TicketType[] = ['task', 'execute'];
 
 export function nodeState(t: Ticket, byId: Map<string, Ticket>, mode: MapMode = DEFAULT_MAP_MODE): NodeState {
   if (t.state === 'closed') return t.closeReason === 'not_planned' ? 'out-of-scope' : 'decided';
+  if (t.status === 'verifying') return 'verifying';
+  if (t.status === 'blocked') return 'held';
   if (t.assignee) return 'claimed';
+  if (t.status === 'rework') return 'rework';
   if (mode === 'plan-only' && t.type === 'execute') return 'parked';
   const blocked = t.blockedBy.some((b) => byId.get(b)?.state === 'open');
   return blocked ? 'blocked' : 'frontier';

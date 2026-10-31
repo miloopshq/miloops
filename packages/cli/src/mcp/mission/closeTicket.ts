@@ -48,6 +48,7 @@ export async function closeTicket(
       snap.map.id,
       { ticketId: t.id },
       { reason: input.resolution, author: agent, source },
+      ctx.actor(),
     );
     decision = (await ctx.decisions(snap.map.id)).find((d) => d.ticketId === t.id && d.source.ref === source.ref);
   } else {
@@ -55,21 +56,27 @@ export async function closeTicket(
     const human = log.filter((e) => e.from === 'human');
     if (s.info.mode === 'research') s.step(3, `${t.key} decided`);
     else s.step(4, `${input.postTranscript && log.length ? 'transcript + ' : ''}comment + close + record decision`);
-    await resolve(ctx.adapter, snap.map.id, t.id, {
-      answer: input.resolution,
-      summary: input.summary,
-      author: agent,
-      transcript:
-        input.postTranscript && log.length ? log.map((e) => `**${e.author}:** ${e.text}`).join('\n\n') : undefined,
-      decision: {
-        rationale: input.rationale,
-        alternatives: input.alternatives,
-        decidedBy: human.length ? human[human.length - 1].author : agent,
-        participants: [...new Set([agent, ...human.map((e) => e.author)])].map((id) => ({ id })),
-        source,
-        transcript: log,
+    await resolve(
+      ctx.adapter,
+      snap.map.id,
+      t.id,
+      {
+        answer: input.resolution,
+        summary: input.summary,
+        author: agent,
+        transcript:
+          input.postTranscript && log.length ? log.map((e) => `**${e.author}:** ${e.text}`).join('\n\n') : undefined,
+        decision: {
+          rationale: input.rationale,
+          alternatives: input.alternatives,
+          decidedBy: human.length ? human[human.length - 1].author : agent,
+          participants: [...new Set([agent, ...human.map((e) => e.author)])].map((id) => ({ id })),
+          source,
+          transcript: log,
+        },
       },
-    });
+      ctx.actor(),
+    );
     decision = (await ctx.decisions(snap.map.id)).find((d) => d.source.ref === source.ref);
     if (s.info.mode === 'work') s.step(5);
   }

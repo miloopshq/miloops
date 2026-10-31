@@ -1,6 +1,8 @@
 import type { TrackerAdapter } from '../../adapters/adapter';
 import type { Participant, DecisionSource, TranscriptEntry } from '../../model/types';
 import { firstSentence } from '../decisions/decisionRecord';
+import { transition } from '../lifecycle/transition';
+import type { ActorOptions } from './claims';
 import { recordDecision } from './decisionOps';
 import { OperationError } from './operationError';
 
@@ -30,6 +32,7 @@ export async function resolve(
     decision?: DecisionMeta;
     missionLine?: string;
   },
+  opts: ActorOptions = {},
 ) {
   const snap = await adapter.loadMap(mapId);
   const t = snap.tickets.find((x) => x.id === ticketId);
@@ -38,7 +41,13 @@ export async function resolve(
   if (input.transcript)
     await adapter.comment(mapId, ticketId, input.author, `**HITL transcript**\n\n${input.transcript}`);
   await adapter.comment(mapId, ticketId, input.author, `**Resolution**\n\n${input.answer}`);
-  await adapter.close(mapId, ticketId, 'completed');
+  await transition(
+    adapter,
+    mapId,
+    ticketId,
+    { event: 'complete', actor: input.author, actorKind: opts.actorKind ?? 'agent', sessionId: opts.sessionId },
+    opts,
+  );
   const d = input.decision ?? {};
   await recordDecision(
     adapter,
