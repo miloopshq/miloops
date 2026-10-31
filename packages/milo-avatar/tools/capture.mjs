@@ -1,11 +1,17 @@
 // Builds nothing; run `npm run build` first. Serves dist/ and writes PNG captures + an MP4 demo loop.
-// Usage: OUT_DIR=captures CHROME=/path/to/chrome node tools/capture.mjs
+// Usage: OUT_DIR=captures CHROME=/path/to/chrome [WORDMARK='MILO|OPS'] node tools/capture.mjs
+// WORDMARK overrides the wordmark (text after `|` renders in the brand copper); the default is WORDMARK in preview/main.tsx.
 import { preview } from 'vite';
 import { chromium } from 'playwright-core';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 
+const font = (f) => createRequire(import.meta.url).resolve(`@fontsource/${f}`);
+const WORDMARK = process.env.WORDMARK || readFileSync(new URL('../preview/main.tsx', import.meta.url), 'utf8').match(/^const WORDMARK = '(.+)';$/m)[1];
+const wm = `&wordmark=${encodeURIComponent(WORDMARK)}`;
+const [wmLead, wmOps = ''] = WORDMARK.split('|');
 const OUT = resolve(process.env.OUT_DIR || 'captures');
 const CHROME = process.env.CHROME || '/usr/local/bin/google-chrome';
 mkdirSync(OUT, { recursive: true });
@@ -43,7 +49,7 @@ const KIT = [
 ];
 for (const [file, , w, h, view, extra] of KIT) {
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
-  await page.goto(`${base}?view=${view}${extra}`);
+  await page.goto(`${base}?view=${view}${extra}${view === 'banner' ? wm : ''}`);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
   await page.locator(`[data-capture="${view}"]`).screenshot({ path: join(BRAND, file) });
@@ -62,17 +68,17 @@ for (const [file, , w, h, view, extra] of KIT) {
     .map(([f, px, label]) => `<figure class="chk"><canvas data-src="${img(f)}" data-px="${px}"></canvas><figcaption><b>${label}</b> 1× and 4× zoom</figcaption></figure>`).join('');
   const page = await browser.newPage({ viewport: { width: 1840, height: 1200 }, deviceScaleFactor: 1 });
   await page.setContent(`<style>
-    @font-face{font-family:B;src:url(${'data:font/woff2;base64,' + readFileSync(resolve('node_modules/@fontsource/barlow/files/barlow-latin-400-normal.woff2')).toString('base64')})}
-    @font-face{font-family:M;src:url(${'data:font/woff2;base64,' + readFileSync(resolve('node_modules/@fontsource/share-tech-mono/files/share-tech-mono-latin-400-normal.woff2')).toString('base64')})}
+    @font-face{font-family:B;src:url(${'data:font/woff2;base64,' + readFileSync(font('barlow/files/barlow-latin-400-normal.woff2')).toString('base64')})}
+    @font-face{font-family:M;src:url(${'data:font/woff2;base64,' + readFileSync(font('share-tech-mono/files/share-tech-mono-latin-400-normal.woff2')).toString('base64')})}
     body{margin:0;background:#04080a;color:#bfdfe3;font:13px B}
     #s{display:inline-block;padding:28px 32px}
-    h1{margin:0 0 18px;font:20px M;letter-spacing:.18em;color:#e6f6f7} h1 span{color:#5f7f84;font-size:13px}
+    h1{margin:0 0 18px;font:20px M;letter-spacing:.18em;color:#e6f6f7} h1 b{font-weight:400;color:#c98b5e} h1 span{color:#5f7f84;font-size:13px}
     .g{display:flex;flex-wrap:wrap;gap:22px;width:1776px;align-items:flex-end}
     figure{margin:0;display:flex;flex-direction:column;gap:6px} img{display:block;border:1px solid rgba(110,215,228,.16)}
     figcaption{font:12px M;letter-spacing:.06em;color:#5f7f84} figcaption b{color:#e6f6f7;font-weight:400}
     h2{font:13px M;letter-spacing:.14em;color:#e6f6f7;margin:26px 0 12px;text-transform:uppercase}
     canvas{display:block} .row{display:flex;gap:30px;align-items:flex-end}
-  </style><div id="s"><h1>MILOOPS <span>// SOCIAL KIT</span></h1><div class="g">${tiles}</div><h2>Small-size checks</h2><div class="row">${checks}</div></div>`);
+  </style><div id="s"><h1>${wmLead}<b>${wmOps}</b> <span>// SOCIAL KIT</span></h1><div class="g">${tiles}</div><h2>Small-size checks</h2><div class="row">${checks}</div></div>`);
   await page.evaluate(async () => {
     for (const c of document.querySelectorAll('canvas')) {
       const px = +c.dataset.px; const im = new Image(); im.src = c.dataset.src; await im.decode();

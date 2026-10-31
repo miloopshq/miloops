@@ -32,7 +32,7 @@ export class MemoryAdapter implements TrackerAdapter {
   constructor(opts: MemoryAdapterOptions = {}) {
     this.latency = opts.latency ?? [40, 160];
     this.next = opts.startNumber ?? 1;
-    this.label = opts.label ?? 'Demo tracker';
+    this.label = opts.label ?? 'Demo';
     this.location = opts.location ?? 'mock://demo';
   }
 

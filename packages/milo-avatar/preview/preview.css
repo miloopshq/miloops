@@ -107,8 +107,8 @@ body {
 .banner .milo-head { font-size: 13px; }
 .banner .milo-name { font-size: 14px; }
 .banner-copy { display: flex; flex-direction: column; gap: calc(var(--u) * 14); }
-.social-chip { align-self: flex-start; padding: 3px 9px; font-family: var(--mono); font-size: calc(var(--u) * 14); letter-spacing: 0.16em; color: #8fc4ce; border: 1px solid var(--line2); }
 .wordmark { font-family: var(--display); font-weight: 700; font-size: calc(var(--u) * 116); line-height: 0.95; letter-spacing: 0.08em; color: var(--text-hi); }
+.wordmark-ops { color: #c98b5e; }
 .social-cat { font-family: var(--mono); font-size: calc(var(--u) * 18); letter-spacing: 0.2em; text-transform: uppercase; color: #c98b5e; }
 .social-tag { max-width: calc(var(--u) * 560); font-size: calc(var(--u) * 26); line-height: 1.35; color: var(--text); }
 .banner.header .social-tag { max-width: calc(var(--u) * 820); }
