@@ -17,14 +17,16 @@ Requires Node 20+.
 
 Screenshots, the 720p hero video and its poster live in `public/media/`; the favicons, apple-touch icon and OG image live in `public/media/brand/` (copies of the files in the repo's `brand/` folder). Everything is served from this app's own `public/` folder, so `dist/` is self-contained.
 
-`npm run media` re-captures all of them from the real command center: it onboards, loads the sample mission, charts a second one, answers a question, opens the briefing and the Decisions log, and records the hero video (with captions) along the way. Start the command center on an empty local tracker first; the folder name shows as the project name in the header:
+The hero video is a curated 61.4 s "A day with MILOOPS" journey (install and connect, `/milo new` interview, map, agents working, briefing, Decisions, an agent asking, `/milo status`, mission switcher). It is rendered separately from captures of the real command center plus terminal and Claude Code scenes; when the UI changes, re-render it with the same scenes, labels and length rather than replacing it with a plain recording.
+
+`npm run media` re-captures the screenshots from the real command center: it onboards, loads the sample mission, charts a second one, answers a question, and opens the briefing and the Decisions log. It never touches the hero video or its poster. Start the command center on an empty local tracker first; the folder name shows as the project name in the header:
 
 ```bash
 rm -rf /tmp/fieldnote-app && MILOOPS_DIR=/tmp/fieldnote-app/.miloops npm run dev   # repo root
 npm run media                                                                       # here
 ```
 
-Uses Playwright with the system Chrome (`CHROME_PATH`) and `ffmpeg`; Playwright's own ffmpeg is needed for the recording (`npx playwright-core install ffmpeg`).
+Uses Playwright with the system Chrome (`CHROME_PATH`).
 - The "Fixed zones" overlay positions are percentages of `command-center-overview.png` (inline `--x/--y/--w/--h` on each `.zone` in `index.html`). `npm run media` prints fresh values measured from the DOM; paste them in when the command-center layout moves.
 
 ## Capture
