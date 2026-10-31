@@ -6,7 +6,7 @@ import { writeJsonAtomic } from '@miloops-hq/core/bridge';
 import type { AgentSessionDoc, ChatMessage, PendingQuestion, TrackerAdapter } from '@miloops-hq/core';
 import { FIXTURES, recorder, replay, type Fixture } from '../../core/test/fixtures';
 import { SlackService, type SlackServiceOptions } from '../src/service';
-import { BOT_SCOPES } from '../src/manifest';
+import { BOT_SCOPES, OPTIONAL_SCOPES } from '../src/manifest';
 import { fakeSlack, type FakeSlack } from './fakes/slack';
 import { socketHub } from './fakes/socket';
 
@@ -60,6 +60,7 @@ export function world(mode: 'record' | 'replay', name: string) {
         backoffMs: () => 0,
         sleep: async () => {},
         lockOwner: `${name}:${services.length}`,
+        ownerEmail: () => undefined,
         ...extra,
       });
       services.push(s);
@@ -137,4 +138,4 @@ export function agentDoc(root: string, o: { sid: string; mapId: string; ticketId
 }
 
 export const readJson = (file: string) => JSON.parse(readFileSync(file, 'utf8'));
-export const ALL_SCOPES = [...BOT_SCOPES];
+export const ALL_SCOPES: string[] = [...BOT_SCOPES, ...OPTIONAL_SCOPES];

@@ -10,7 +10,7 @@ import { BOT_SCOPES, appIdFromToken, slackLinks, slackManifest, tokenKind } from
 import { deterministicSummary, plainText } from '../src/summary';
 import { SocketMode } from '../src/socket';
 import { FIXTURES } from '../../core/test/fixtures';
-import { ANA, RAJ, TOKENS, URL_, connected, freezeTime, until, world, type SlackFixture } from './harness';
+import { ALL_SCOPES, ANA, RAJ, TOKENS, URL_, connected, freezeTime, until, world, type SlackFixture } from './harness';
 import { fakeSlack } from './fakes/slack';
 import { socketHub } from './fakes/socket';
 import { askFlow, decisionFlow, notifyFlow, setupFlow, statusFlow } from './scenarios';
@@ -46,7 +46,7 @@ test('setup: tokens are routed by prefix, checked live, stored only in the local
   assert.deepEqual([r.bot.ok, r.bot.kind, r.bot.status.enabled], [true, 'bot', true]);
   assert.deepEqual([r.beforeClaim.state, r.beforeClaim.step], ['online', 5]);
   assert.equal(r.beforeClaim.links.home, 'slack://app?team=T0EFIKA01&id=A0MILO0001&tab=home');
-  assert.deepEqual([r.after.step, r.after.owners], ['done', [{ id: ANA, name: 'ana' }]], 'the first click wins; a later click does not take over');
+  assert.deepEqual([r.after.step, r.after.owners], ['done', [{ id: ANA, name: 'ana', via: 'home' }]], 'the first click wins; a later click does not take over');
   assert.deepEqual(r.creds, { slack: { appToken: TOKENS.app, botToken: TOKENS.bot } });
   assert.ok(!JSON.stringify(r.settings).includes('xox') && !JSON.stringify(r.settings).includes('xapp'), 'slack.json holds no secrets');
   assert.ok(!JSON.stringify(r.after).includes(TOKENS.bot) && !JSON.stringify(r.after).includes(TOKENS.app), 'status never echoes a token');
@@ -231,6 +231,40 @@ test('env tokens work like GITHUB_TOKEN: reported by source, never stored', asyn
   }
 });
 
+test('the owner is recognised by git email, so setup ends without the Home-tab claim', async () => {
+  const fake = fakeSlack();
+  const hub = socketHub();
+  const w = world('record', 'unused.json');
+  try {
+    const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), { fetch: fake.fetch, WebSocket: hub.WebSocket, ownerEmail: () => 'Ana@efika.test\n' });
+    await svc.pasteToken(TOKENS.app);
+    const r = await svc.pasteToken(TOKENS.bot);
+    assert.equal(r.ok, true);
+    assert.deepEqual([r.status.step, r.status.owners], ['done', [{ id: ANA, name: 'ana', via: 'git-email' }]]);
+    assert.deepEqual(fake.channels.get(fake.im(ANA))!.messages.map((m) => m.text), ['Connected. Decisions and questions will reach you here.']);
+    svc.close();
+  } finally {
+    w.cleanup();
+  }
+});
+
+test('no email match, or an app without users:read.email, falls back to the Home-tab claim', async () => {
+  for (const [email, scopes] of [['nobody@efika.test', ALL_SCOPES], ['ana@efika.test', [...BOT_SCOPES]]] as const) {
+    const fake = fakeSlack();
+    fake.state.scopes = [...scopes];
+    const w = world('record', 'unused.json');
+    try {
+      const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), { fetch: fake.fetch, WebSocket: socketHub().WebSocket, ownerEmail: () => email });
+      await svc.pasteToken(TOKENS.app);
+      const r = await svc.pasteToken(TOKENS.bot);
+      assert.deepEqual([r.ok, r.status.step, r.status.owners], [true, 5, []], email);
+      svc.close();
+    } finally {
+      w.cleanup();
+    }
+  }
+});
+
 /* ---------- routes ---------- */
 
 test('routes: status and token endpoints; cross-site requests are refused; the bridge mounts Slack as a plugin', async () => {
@@ -276,7 +310,7 @@ test('manifest: Socket Mode, /milo, Save as decision, App Home, the planned scop
   assert.equal(m.features.slash_commands[0].command, '/milo');
   assert.deepEqual(m.features.shortcuts[0], { name: 'Save as decision', type: 'message', callback_id: 'save_decision', description: 'Record this thread as a MILOOPS decision' });
   assert.equal(m.features.app_home.home_tab_enabled, true);
-  assert.deepEqual(m.oauth_config.scopes.bot, [...BOT_SCOPES]);
+  assert.deepEqual(m.oauth_config.scopes.bot, [...BOT_SCOPES, 'users:read.email']);
   assert.ok(!('user' in m.oauth_config.scopes));
   const url = new URL(slackLinks.create());
   assert.deepEqual(JSON.parse(url.searchParams.get('manifest_json')!), m);
