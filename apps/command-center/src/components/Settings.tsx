@@ -5,7 +5,7 @@ import { Tabs } from './Hud';
 import { NEXT, RELEASES } from '../changelog';
 import type { Prefs, TrackerChoice } from '../prefs';
 import { MiloMark } from './MiloMark';
-import { Button, Choice, Label, Meta, Panel } from './ui';
+import { Button, Choice, Label, Meta, Panel, Wordmark } from './ui';
 import { TrackerConnectors, switchTracker, trackerApi, useTrackerSettings } from './TrackerSetup';
 
 function TranscriptChoice(props: { value: HitlTranscriptMode; onChange: (v: HitlTranscriptMode) => void }) {
@@ -189,7 +189,7 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
       <Panel as="div" className="dialog onboarding">
         <div className="onb-brand">
           <MiloMark size={40} />
-          <div className="onb-title">{BRAND.name}</div>
+          <Wordmark as="div" className="onb-title" />
         </div>
         <div className="onb-cat mono-label">{BRAND.category}</div>
         <p className="onb-tagline">{BRAND.tagline}</p>

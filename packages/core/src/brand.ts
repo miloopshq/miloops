@@ -9,6 +9,8 @@ export const BRAND = {
   slug,
   /** Display name for HUD headings. */
   name: 'MILOOPS',
+  /** Two-tone wordmark: `lead + ops` spells `name`; `ops` renders in the brand amber. */
+  wordmark: { lead: 'MILO', ops: 'OPS' },
   category: 'Autonomous Agent Command Center',
   tagline: 'One command center. Every agent. Total operational awareness.',
   /** The platform's own voice: coordinator/system lines and onboarding. Worker agents keep their own ids. */

@@ -16,6 +16,8 @@
   --action-hi: #d29a74;
   --ok: #7fae9a;
   --warn: #ff4d42;
+  /* "OPS" half of the wordmark: MILO's antenna copper, shared with the brand kit. */
+  --brand-ops: #c98b5e;
 
   --display: 'Chakra Petch', 'Barlow', system-ui, sans-serif;
   --mono: 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -262,6 +264,10 @@ code {
   font-weight: 400;
   letter-spacing: 0.38em;
   color: var(--text-hi);
+}
+
+.wordmark-ops {
+  color: var(--brand-ops);
 }
 
 .nav__links {
