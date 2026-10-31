@@ -40,7 +40,9 @@ export function MapZone(props: {
             </div>
           </div>
         )}
-        {snap && props.compact && <Legend planOnly={snap.map.mode === 'plan-only'} />}
+        {snap && props.compact && (
+          <Legend planOnly={snap.map.mode === 'plan-only'} verifies={(snap.map.verification ?? 'off') !== 'off'} />
+        )}
       </div>
     </Panel>
   );

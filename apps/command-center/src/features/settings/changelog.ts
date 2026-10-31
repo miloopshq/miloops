@@ -16,6 +16,18 @@ export const NEXT: { area: string; items: string[] }[] = [
 
 export const RELEASES: Release[] = [
   {
+    version: '0.15.0',
+    date: '2026-10-31',
+    items: [
+      'Verification in the ticket inspector: the level that applies and where it comes from, every attempt newest first with the git evidence (base → head, files changed, flags), its checks, exit codes, durations and the failing output, and the full log on demand',
+      'Verifying, Rework and Blocked on the map, in the legend and as status counters on missions that verify completions',
+      'Operator calls on a verifying or blocked ticket: Approve, Re-run checks, Send to rework with a note, Accept anyway and Unblock. Overrides need a reason, and each call is kept as a verdict next to the attempts and in the mission history. Approve asks for a re-run when the code changed since the checks passed',
+      'Set the verification level of a mission (Settings → Verification) or of one ticket (inspector). Only you can change it; agents cannot',
+      'The inspector updates live while checks run',
+      'Agents can name their pull request in `report_completion` (`pr`); PR and CI tracking then follows that PR first',
+    ],
+  },
+  {
     version: '0.14.0',
     date: '2026-10-31',
     items: [

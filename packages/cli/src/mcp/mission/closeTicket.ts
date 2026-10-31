@@ -25,6 +25,8 @@ export interface CloseInput {
   postTranscript?: boolean;
   /** Why no files changed is fine for this ticket (verified completions only). */
   noCodeReason?: string;
+  /** The pull request with this work (report_completion), recorded on the attempt for PR sync. */
+  pr?: number;
   /** How long to wait for checks when the completion needs verification. */
   waitSeconds?: number;
 }
@@ -97,6 +99,7 @@ export async function closeTicket(ctx: AgentContext, input: CloseInput, wait: { 
           rationale: input.rationale,
           alternatives: input.alternatives,
           noCodeReason: input.noCodeReason,
+          pr: input.pr,
           decision: meta,
           transcript,
         },

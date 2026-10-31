@@ -1,7 +1,6 @@
 import { Emitter } from '../../lib/emitter';
 import { BRAND } from '../../model/brand';
-import { parseFront, str } from '../../model/frontmatter';
-import type { TicketMetaPatch } from '../../model/lifecycle';
+import type { MapMetaPatch, TicketMetaPatch } from '../../model/lifecycle';
 import {
   DEFAULT_MAP_MODE,
   type DecisionInput,
@@ -17,10 +16,12 @@ import {
 import { parseDecision, serializeDecision } from '../../planning/decisions/decisionFile';
 import { buildDecision, decisionNumber } from '../../planning/decisions/decisionRecord';
 import type { MapInput, TrackerAdapter } from '../adapter';
+import { withMapMeta } from '../mapMeta';
 import { withMeta } from '../ticketMeta';
 import { ExternalChanges } from './externalChanges';
 import { parseMapFile, serializeMapFile } from './mapFile';
 import type { MarkdownFs } from './markdownFs';
+import { nextNumber } from './nextNumber';
 import { missionSlug } from './paths';
 import { parseTicket, serializeTicket } from './ticketFile';
 
@@ -93,19 +94,8 @@ export class MarkdownAdapter implements TrackerAdapter {
     return { map, tickets: tickets.sort((a, b) => a.createdAt - b.createdAt) };
   }
 
-  private async nextNumber() {
-    const files = await this.fs.list();
-    const nums = files.filter((f) => !f.includes('/decisions/')).map((f) => Number(f.match(/(\d+)\.md$/)?.[1] ?? 0));
-    const keys = await Promise.all(
-      files
-        .filter((f) => f.endsWith('/map.md'))
-        .map(async (f) => Number(str(parseFront(await this.fs.read(f)).front.key).replace(/\D/g, '')) || 0),
-    );
-    return Math.max(0, ...nums, ...keys) + 1;
-  }
-
   async createMap(input: MapInput) {
-    const n = await this.nextNumber();
+    const n = await nextNumber(this.fs);
     const slug = missionSlug(input.title, n);
     const map: MapDoc = {
       id: slug,
@@ -122,25 +112,31 @@ export class MarkdownAdapter implements TrackerAdapter {
     return map;
   }
 
-  async setMapMode(mapId: string, mode: MapMode) {
-    const m = await this.readMap(mapId);
-    await this.writeMap({ ...m, mode, updatedAt: Date.now() });
-    this.events.emit({ kind: 'map.mode', mapId, mode, at: Date.now() });
+  private async editMap(mapId: string, edit: (m: MapDoc) => MapDoc, event: TrackerEvent) {
+    await this.writeMap({ ...edit(await this.readMap(mapId)), updatedAt: Date.now() });
+    this.events.emit(event);
   }
 
-  async updateMapSections(mapId: string, patch: Partial<MapSections>) {
-    const m = await this.readMap(mapId);
-    await this.writeMap({ ...m, sections: { ...m.sections, ...patch }, updatedAt: Date.now() });
-    this.events.emit({
+  setMapMode(mapId: string, mode: MapMode) {
+    return this.editMap(mapId, (m) => ({ ...m, mode }), { kind: 'map.mode', mapId, mode, at: Date.now() });
+  }
+
+  setMapMeta(mapId: string, patch: MapMetaPatch) {
+    return this.editMap(mapId, (m) => withMapMeta(m, patch), { kind: 'map.updated', mapId, at: Date.now() });
+  }
+
+  updateMapSections(mapId: string, patch: Partial<MapSections>) {
+    const section = Object.keys(patch)[0] as keyof MapSections;
+    return this.editMap(mapId, (m) => ({ ...m, sections: { ...m.sections, ...patch } }), {
       kind: 'map.updated',
       mapId,
-      section: Object.keys(patch)[0] as keyof MapSections,
+      section,
       at: Date.now(),
     });
   }
 
   async createTicket(mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }) {
-    const n = await this.nextNumber();
+    const n = await nextNumber(this.fs);
     const t: Ticket = {
       id: String(n),
       key: `#${n}`,

@@ -1,4 +1,4 @@
-import type { TicketMetaPatch } from '../../../model/lifecycle';
+import type { MapMetaPatch, TicketMetaPatch } from '../../../model/lifecycle';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -60,6 +60,10 @@ export abstract class SyncedAdapter extends SyncedWriter implements TrackerAdapt
 
   async setMapMode(mapId: string, mode: MapMode) {
     await this.change(mapId, `mode ${mode}`, { kind: 'mode', mode }, { kind: 'map.mode', mapId, mode });
+  }
+
+  async setMapMeta(mapId: string, patch: MapMetaPatch) {
+    await this.change(mapId, 'mission verification', { kind: 'mapMeta', patch }, { kind: 'map.updated', mapId });
   }
 
   async updateMapSections(mapId: string, patch: Partial<MapSections>) {

@@ -29,7 +29,7 @@ export interface ReconcileResult {
   failures: string[];
 }
 
-const RANK: Record<PrLinkSource, number> = { explicit: 3, branch: 2, marker: 1 };
+const RANK: Record<PrLinkSource, number> = { explicit: 4, attempt: 3, branch: 2, marker: 1 };
 
 function strongest(links: (PrLink | undefined)[]): PrLink | undefined {
   let best: PrLink | undefined;
@@ -50,7 +50,11 @@ async function reconcileTicket(
   const prev = readTicketSync(env.root, mapId, t.id);
   const refs = ticketRefs(readAttempts(env.root, mapId, t.id));
   const marked = byRef.get(ticketRef(mapId, t.id));
-  let link = strongest([prev?.link, marked ? { number: marked.pr.number, source: 'marker', at: now } : undefined]);
+  let link = strongest([
+    refs.pr ? { number: refs.pr, source: 'attempt', at: now } : undefined,
+    prev?.link,
+    marked ? { number: marked.pr.number, source: 'marker', at: now } : undefined,
+  ]);
   if (refs.branch && (!link || RANK[link.source] < RANK.branch)) {
     const found = await env.provider.forBranch(refs.branch);
     const pick = found.find((p) => p.state === 'open') ?? found[0];

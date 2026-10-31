@@ -1,6 +1,7 @@
 import type { DecisionRecord, MapDoc, MapMode, Ticket, TicketType } from '../../../model/types';
 import { OperationError } from '../../../planning/operations/operationError';
 import type { MapInput } from '../../adapter';
+import { withMapMeta } from '../../mapMeta';
 import { withMeta } from '../../ticketMeta';
 import { isTransient } from '../http';
 import { applyWrite, CHECKED, hasLanded, ticketOf, writeId } from './queuedWrites';
@@ -47,6 +48,8 @@ export abstract class SyncedWriter extends SyncedStore {
         return this.remoteSetMode(map, c.mode);
       case 'sections':
         return this.remoteUpdateMap({ ...map, sections: c.sections });
+      case 'mapMeta':
+        return this.remoteUpdateMap(withMapMeta(map, c.patch));
       case 'blocking':
         return this.remoteAddBlocking(map, ticketOf(e, c.blockerId), ticketOf(e, c.blockedId));
       case 'claim':

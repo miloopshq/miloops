@@ -1,5 +1,5 @@
 import { Emitter, sleep } from '../lib/emitter';
-import type { TicketMetaPatch } from '../model/lifecycle';
+import type { MapMetaPatch, TicketMetaPatch } from '../model/lifecycle';
 import {
   DEFAULT_MAP_MODE,
   type DecisionInput,
@@ -14,6 +14,7 @@ import {
 } from '../model/types';
 import { buildDecision } from '../planning/decisions/decisionRecord';
 import type { MapInput, TrackerAdapter } from './adapter';
+import { withMapMeta } from './mapMeta';
 import { withMeta } from './ticketMeta';
 
 export interface MemoryAdapterOptions {
@@ -118,6 +119,12 @@ export class MemoryAdapter implements TrackerAdapter {
     const m = this.maps.get(mapId)!;
     this.maps.set(mapId, { ...m, mode, updatedAt: Date.now() });
     this.emit({ kind: 'map.mode', mapId, mode, at: Date.now() });
+  }
+
+  async setMapMeta(mapId: string, patch: MapMetaPatch) {
+    await this.wait();
+    this.maps.set(mapId, { ...withMapMeta(this.maps.get(mapId)!, patch), updatedAt: Date.now() });
+    this.emit({ kind: 'map.updated', mapId, at: Date.now() });
   }
 
   async updateMapSections(mapId: string, patch: Partial<MapSections>) {

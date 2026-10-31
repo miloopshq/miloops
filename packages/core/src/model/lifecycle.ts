@@ -69,6 +69,12 @@ export interface TicketMetaPatch {
   checks?: string[] | null;
 }
 
+/** MILOOPS fields stored with a mission. `null` clears a field. */
+export interface MapMetaPatch {
+  /** Operator only (`setVerification`). */
+  verification?: VerificationLevel | null;
+}
+
 /** One line of a mission's history (`.events/<mapId>.jsonl`). History and UI only; the tracker holds the state. */
 export interface TransitionEntry {
   v: 1;

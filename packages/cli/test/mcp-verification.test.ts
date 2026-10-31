@@ -181,7 +181,7 @@ describe('verified completion over MCP', () => {
     const call = await connect();
     const m = await mission(call);
     await call('claim_ticket', { ticket: m.tickets[1].key });
-    const r = await call<Done>('report_completion', { resolution: 'Built', waitSeconds: 0 });
+    const r = await call<Done>('report_completion', { resolution: 'Built', waitSeconds: 0, pr: 42 });
     expect(r).toMatchObject({ status: 'verifying', pending: true, attempt: 'A-1' });
     await expect(call('close_ticket', { ticket: m.tickets[1].key, resolution: 'again' })).rejects.toThrow(
       /being verified/,
@@ -193,6 +193,7 @@ describe('verified completion over MCP', () => {
     });
     expect(st.phase).toBe('done');
     expect(st.attempts).toEqual([expect.objectContaining({ id: 'A-1', result: 'pass' })]);
+    expect(readAttempts(root, m.mission.id, m.tickets[1].key.replace('#', ''))[0].pr).toBe(42);
   });
 
   it('a run whose process died is recorded as interrupted and run again', async () => {

@@ -4,6 +4,7 @@ import { Empty, Pill, Button, Card, Field, Meta } from '../../components/ui';
 import { type CommandCenterApi } from '../../hooks';
 import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
 import { PrFlagBadges } from '../pr-sync';
+import { VerificationPanel } from '../verification';
 import { LeaseFacts } from './LeaseFacts';
 import type { Form } from './types';
 
@@ -65,6 +66,7 @@ export function TicketDetail(props: {
       <PrFlagBadges mapId={snap.map.id} ticketId={t.id} />
 
       {lease && <LeaseFacts lease={lease} onRelease={() => actions.releaseLease(t.id)} />}
+      <VerificationPanel mapId={snap.map.id} mission={snap.map.verification} ticket={t} state={state} />
 
       <div className="actions">
         {session && (

@@ -68,6 +68,8 @@ export interface VerificationAttempt {
   alternatives?: string[];
   /** The agent's reason no files needed to change. */
   noCodeReason?: string;
+  /** The pull request the agent named for this work. */
+  pr?: number;
   checks: CheckResult[];
   result: AttemptResult;
   /** Why the result is `error` or `interrupted`. */

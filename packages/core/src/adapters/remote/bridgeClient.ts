@@ -1,5 +1,5 @@
 import { Emitter } from '../../lib/emitter';
-import type { TicketMetaPatch } from '../../model/lifecycle';
+import type { MapMetaPatch, TicketMetaPatch } from '../../model/lifecycle';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -77,6 +77,7 @@ export class BridgeAdapter implements TrackerAdapter {
   loadMap = (mapId: string) => this.call<MapSnapshot>('loadMap', mapId);
   createMap = (input: MapInput) => this.call<MapDoc>('createMap', input);
   setMapMode = (mapId: string, mode: MapMode) => this.call<void>('setMapMode', mapId, mode);
+  setMapMeta = (mapId: string, patch: MapMetaPatch) => this.call<void>('setMapMeta', mapId, patch);
   updateMapSections = (mapId: string, patch: Partial<MapSections>) =>
     this.call<void>('updateMapSections', mapId, patch);
   createTicket = (mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }) =>
