@@ -10,7 +10,7 @@ import { LinearAdapter, testLinear } from '../src/adapters/remote/linear';
 import { fakeGitHub } from './fakes/github';
 import { fakeLinear } from './fakes/linear';
 import { faulty, recorder, type Exchange } from './fixtures';
-import { FROZEN, freezeTime, missionFlow, noSleep, offlineFlow, rateLimitFlow, syncFlow } from './scenarios';
+import { FROZEN, freezeTime, missionFlow, noSleep, offlineFlow, lateMissionFlow, rateLimitFlow, syncFlow } from './scenarios';
 
 const NOTE_FAKE = 'Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema).';
 
@@ -33,6 +33,12 @@ async function recordFake() {
         },
       });
       rec.save('github-sync.json', 'fake', `${NOTE_FAKE} Between polls, user "mona" comments on and closes the ticket in GitHub.`);
+    }
+    {
+      const fake = fakeGitHub();
+      const rec = recorder(fake.fetch);
+      await lateMissionFlow(() => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }));
+      rec.save('github-late-mission.json', 'fake', `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`);
     }
     {
       const fake = fakeGitHub();
@@ -75,6 +81,12 @@ async function recordFake() {
         },
       });
       rec.save('linear-sync.json', 'fake', `${NOTE_FAKE} Between polls, "Grace" comments on and completes the ticket in Linear.`);
+    }
+    {
+      const fake = fakeLinear();
+      const rec = recorder(fake.fetch);
+      await lateMissionFlow(() => new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }));
+      rec.save('linear-late-mission.json', 'fake', `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`);
     }
   } finally {
     thaw();

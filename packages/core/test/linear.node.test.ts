@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { LinearAdapter, testLinear } from '../src/adapters/remote/linear';
 import { replay } from './fixtures';
-import { freezeTime, missionFlow, noSleep, syncFlow } from './scenarios';
+import { freezeTime, lateMissionFlow, missionFlow, noSleep, syncFlow } from './scenarios';
 
 let thaw: () => void;
 before(() => (thaw = freezeTime()));
@@ -33,6 +33,16 @@ test('mission flow: parent issue, sub-issues, "blocks" relations, states and dec
   assert.ok(create, 'tickets are created as sub-issues');
   const close = rp.fixture.exchanges.find((e) => e.req.operation === 'Update' && (e.req.variables as { input: { stateId?: string } }).input.stateId);
   assert.equal((close!.req.variables as { input: { stateId: string } }).input.stateId, 'st-done', 'first "completed" workflow state');
+});
+
+test('missions charted by another process show up on the next poll, including before the first one', async () => {
+  const rp = replay('linear-late-mission.json');
+  const r = await lateMissionFlow(adapter(rp.fetch));
+  rp.done();
+  assert.deepEqual(r.before, []);
+  assert.deepEqual(r.after.map((m) => m.id), [r.map.id]);
+  assert.deepEqual(r.later.map((m) => m.id).sort(), [r.map.id, r.second.id].sort());
+  assert.ok(r.events.some((e) => e.kind === 'external.changed'));
 });
 
 test('sync: a teammate completing and commenting in Linear reaches subscribers', async () => {

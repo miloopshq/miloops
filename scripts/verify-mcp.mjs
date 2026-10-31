@@ -131,7 +131,7 @@ await shot('04-live-session-and-decisions');
 const ui = {
   decided: await page.locator('.node.st-decided, .node.decided').count(),
   sessions: await page.locator('.sessions-list li:not(.claim)').count(),
-  usage: (await page.locator('.sessions-head .usage.total').first().textContent())?.trim(),
+  usage: (await page.locator('.sessions-head .usage').first().textContent())?.trim(),
 };
 log(`command center shows: ${ui.sessions} live session(s), mission usage "${ui.usage}"`);
 

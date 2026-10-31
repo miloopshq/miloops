@@ -26,6 +26,7 @@ import {
   type SessionMode,
   type Ticket,
   type TicketType,
+  type TrackerAdapter,
   type TranscriptEntry,
 } from '@miloops-hq/core';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
@@ -44,6 +45,8 @@ export interface AgentOptions {
   client?: () => string | undefined;
   /** Poll interval for answers written by the command center. */
   pollMs?: number;
+  /** Tracker the missions live in (the project's active tracker). Default: local markdown in `root`. */
+  tracker?: TrackerAdapter & { dispose?(): void };
 }
 
 export interface TicketPlanInput {
@@ -86,7 +89,7 @@ export function callsignFamily(client?: string) {
  * in-process ActivityStream whose sessions are mirrored to the command center.
  */
 export class MissionAgent {
-  readonly adapter: MarkdownAdapter;
+  readonly adapter: TrackerAdapter & { dispose?(): void };
   readonly activity = new ActivityStream();
   private writer: AgentDocWriter;
   private callsign?: string;
@@ -100,17 +103,21 @@ export class MissionAgent {
   private offTracker: () => void;
 
   constructor(private opts: AgentOptions) {
-    const fs = nodeMarkdownFs(opts.root);
-    this.adapter = new MarkdownAdapter({ ...fs, watch: undefined }, opts.root);
+    this.adapter = opts.tracker ?? new MarkdownAdapter({ ...nodeMarkdownFs(opts.root), watch: undefined }, opts.root);
     this.writer = new AgentDocWriter(opts.root, this.activity, { client: opts.client, pollMs: opts.pollMs });
     this.offTracker = this.adapter.subscribe((e) => {
-      const line = describeTrackerEvent(e, (id) => this.tickets.get(id) ?? ({ key: `#${id}` } as Ticket));
+      const line = describeTrackerEvent(e, (id) => this.tickets.get(id) ?? ({ key: this.keyOf(id) } as Ticket));
       if (line && this.session) this.activity.push({ ...line, sessionId: this.session.id });
     });
   }
 
   get root() {
     return this.opts.root;
+  }
+
+  /** Display key of a ticket seen in this process (`#3`, `ENG-3`). */
+  private keyOf(ticketId: string) {
+    return this.tickets.get(ticketId)?.key ?? `#${ticketId}`;
   }
 
   /** This agent's callsign, picked on first use so the client name is known. */
@@ -222,7 +229,7 @@ export class MissionAgent {
         ready: snap.tickets.filter((t) => states.get(t.id) === 'frontier').map((t) => ({ key: t.key, title: t.title, type: t.type, attention: attention(t) })),
         claimed: snap.tickets.filter((t) => states.get(t.id) === 'claimed').map((t) => ({ key: t.key, title: t.title, assignee: t.assignee })),
         blocked: snap.tickets.filter((t) => states.get(t.id) === 'blocked').map((t) => ({ key: t.key, title: t.title })),
-        runningSessions: mine.filter((d) => d.session.status === 'running').map((d) => ({ agent: d.session.agent, step: d.session.stepLabel, ticket: d.session.ticketId && `#${d.session.ticketId}` })),
+        runningSessions: mine.filter((d) => d.session.status === 'running').map((d) => ({ agent: d.session.agent, step: d.session.stepLabel, ticket: d.session.ticketId && this.keyOf(d.session.ticketId) })),
         waitingOnYou: docs.flatMap((d) => d.pending).filter((q) => q.mapId === snap.map.id).length,
         decisions: records.filter((d) => !d.supersededBy).slice(-10).map((d) => ({ id: d.id, ticket: d.ticketKey, summary: d.summary })),
         notYetSpecified: snap.map.sections.unspecified,
@@ -501,7 +508,7 @@ export class MissionAgent {
   sessionView() {
     const s = this.session?.info;
     if (!s) return null;
-    return { id: s.id, agent: s.agent, mode: s.mode, step: s.step ? stepTag(s.mode, s.step) : 'BOOT', stepLabel: s.stepLabel, ticket: s.ticketId && `#${s.ticketId}`, status: s.status, usage: s.usage };
+    return { id: s.id, agent: s.agent, mode: s.mode, step: s.step ? stepTag(s.mode, s.step) : 'BOOT', stepLabel: s.stepLabel, ticket: s.ticketId && this.keyOf(s.ticketId), status: s.status, usage: s.usage };
   }
 
   async report(input: { message?: string; level?: 'info' | 'ok' | 'warn' | 'alert'; step?: string | number; say?: string; inputTokens?: number; outputTokens?: number; costUsd?: number }) {
@@ -614,7 +621,7 @@ export class MissionAgent {
           sessionId: q.sessionId,
           agent: q.agent,
           mission: maps.get(q.mapId)?.title ?? (q.mapId ? q.mapId : 'new mission (framing)'),
-          ticket: q.ticketId ? `#${q.ticketId}` : undefined,
+          ticket: q.ticketId ? this.keyOf(q.ticketId) : undefined,
           question: q.text,
           suggestions: q.suggestions,
           askedSecondsAgo: Math.round((Date.now() - q.at) / 1000),
@@ -647,5 +654,6 @@ export class MissionAgent {
     this.endSession(true, text);
     this.offTracker();
     this.writer.close();
+    this.adapter.dispose?.();
   }
 }

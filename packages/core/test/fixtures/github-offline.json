@@ -1,6 +1,6 @@
 {
   "source": "fake",
-  "recordedAt": "2026-10-31T14:40:49.323Z",
+  "recordedAt": "2026-10-31T16:18:20.385Z",
   "notes": "Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema). status 0 = network failure.",
   "exchanges": [
     {

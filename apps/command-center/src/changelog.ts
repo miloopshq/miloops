@@ -22,6 +22,7 @@ export const RELEASES: Release[] = [
       'Connect from Settings with Test connection; GitHub reuses your gh login or GITHUB_TOKEN, Linear takes a personal API key',
       'Tokens stay on your machine: kept by the local server, never sent to the browser or anywhere else',
       'Offline and rate limits: changes queue and send in order when the tracker answers again; the connector shows status, queue and remaining requests',
+      'Connected agents (MCP) work on the active tracker: with GitHub or Linear connected, their missions, claims and decisions land there, and their sessions show live in the command center',
     ],
   },
   {

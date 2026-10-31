@@ -202,7 +202,7 @@ export class LinearAdapter extends SyncedAdapter {
   protected async changedSince(known: (ref: string) => string | undefined): Promise<string[] | 'all'> {
     if (this.cursor === undefined) {
       this.cursor = new Date(this.now()).toISOString();
-      return [];
+      return 'all';
     }
     const since = this.cursor;
     const d = await this.gql<{

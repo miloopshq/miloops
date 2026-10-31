@@ -11,6 +11,8 @@ import { createTrackerRoutes, sendTrackerError, type TrackerRoutesOptions } from
 import type { TrackerAdapter } from './adapter';
 import type { DecisionInput, DecisionRecord } from './types';
 
+export { activeTracker } from './trackerRoutes';
+
 export interface TrackerBridge {
   root: string;
   /**

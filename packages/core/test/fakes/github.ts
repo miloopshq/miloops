@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 /**
  * In-memory stand-in for the slice of the GitHub REST + GraphQL API the
  * adapter uses. Response shapes follow the live API (see the `github-live-*`
@@ -69,7 +71,7 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
     ...(withBlocked ? { blockedBy: { nodes: i.blockedBy.map((id) => ({ number: byId(id)!.number })) } } : {}),
   });
 
-  const etagOf = (v: unknown) => `"${Buffer.from(JSON.stringify(v)).toString('base64').slice(-40)}"`;
+  const etagOf = (v: unknown) => `"${createHash('sha1').update(JSON.stringify(v)).digest('hex')}"`;
 
   function createIssue(b: { title: string; body?: string; labels?: string[] }): FakeIssue {
     const n = nextNumber++;

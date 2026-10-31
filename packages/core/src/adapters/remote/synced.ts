@@ -481,10 +481,10 @@ export abstract class SyncedAdapter implements TrackerAdapter {
     this.online();
     let ids = changed === 'all' ? [...this.entries.keys()] : [...new Set(changed)].filter((id) => this.entries.has(id));
     if (changed === 'all') {
-      const before = new Set(this.maps?.list.map((m) => m.id));
+      const prev = this.maps && new Set(this.maps.list.map((m) => m.id));
       const list = await this.fetchMaps();
       this.maps = { list, at: this.now() };
-      if (list.some((m) => !before.has(m.id)) || list.length !== before.size) this.emit({ kind: 'external.changed' });
+      if (prev && (list.some((m) => !prev.has(m.id)) || list.length !== prev.size)) this.emit({ kind: 'external.changed' });
       ids = ids.filter((id) => list.some((m) => m.id === id));
     }
     for (const id of ids) {

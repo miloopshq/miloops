@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { GitHubAdapter, testGitHub } from '../src/adapters/remote/github';
 import { replay } from './fixtures';
-import { FROZEN, freezeTime, missionFlow, noSleep, offlineFlow, rateLimitFlow, syncFlow } from './scenarios';
+import { FROZEN, freezeTime, missionFlow, lateMissionFlow, noSleep, offlineFlow, rateLimitFlow, syncFlow } from './scenarios';
 
 let thaw: () => void;
 before(() => (thaw = freezeTime()));
@@ -56,11 +56,21 @@ test('decision records are posted as readable comments on the ticket', () => {
   assert.match(record!, /<!-- miloops:decision \{/);
 });
 
+test('missions charted by another process show up on the next poll, including before the first one', async () => {
+  const rp = replay('github-late-mission.json');
+  const r = await lateMissionFlow(adapter(rp.fetch));
+  rp.done();
+  assert.deepEqual(r.before, []);
+  assert.deepEqual(r.after.map((m) => m.id), [r.map.id]);
+  assert.deepEqual(r.later.map((m) => m.id).sort(), [r.map.id, r.second.id].sort());
+  assert.ok(r.events.some((e) => e.kind === 'external.changed'));
+});
+
 test('sync: a teammate closing and commenting in GitHub reaches subscribers; an idle repo polls with free 304s', async () => {
   const rp = replay('github-sync.json');
   const r = await syncFlow(adapter(rp.fetch), { act() {} });
   rp.done();
-  assert.equal(r.quiet, 0, 'first poll only primes the cursor');
+  assert.equal(r.quiet, 0, 'the first poll resyncs but finds nothing new');
   assert.deepEqual(
     r.seen.map((e) => e.kind),
     ['external.changed'],

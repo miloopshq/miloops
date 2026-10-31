@@ -1,7 +1,9 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { BRAND, TICKET_TYPES, type TicketType } from '@miloops-hq/core';
+import { BRAND, MarkdownAdapter, TICKET_TYPES, type TicketType } from '@miloops-hq/core';
+import { activeTracker } from '@miloops-hq/core/bridge';
+import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { MissionAgent, OperationError, type WaitControl } from './agent';
 
 const INSTRUCTIONS = `${BRAND.name} is the command center for this repo's missions. A mission is a map of tickets (research, prototype, grilling, task, execute) with blocking edges; the human watches it live in the command center and answers questions there.
@@ -229,7 +231,8 @@ export async function runMcpServer(opts: { root: string; agent?: string; version
     const v = server?.server.getClientVersion();
     return v ? `${v.name} ${v.version}` : undefined;
   };
-  const agent = new MissionAgent({ root: opts.root, agent: opts.agent, client });
+  const markdown = new MarkdownAdapter({ ...nodeMarkdownFs(opts.root), watch: undefined }, opts.root);
+  const agent = new MissionAgent({ root: opts.root, agent: opts.agent, client, tracker: activeTracker({ root: opts.root, markdown }) });
   server = createMcpServer(agent, opts.version);
   let closed = false;
   const shutdown = (code = 0) => {

@@ -1,6 +1,6 @@
 {
   "source": "fake",
-  "recordedAt": "2026-10-31T14:40:49.310Z",
+  "recordedAt": "2026-10-31T16:18:20.369Z",
   "notes": "Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema).",
   "exchanges": [
     {
@@ -12,7 +12,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json; charset=utf-8",
-          "etag": "\"W10=\"",
+          "etag": "\"97d170e1550eee4afc0af065b78cda302a97674c\"",
           "x-ratelimit-limit": "5000",
           "x-ratelimit-remaining": "4990",
           "x-ratelimit-reset": "1793451600"
@@ -769,7 +769,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json; charset=utf-8",
-          "etag": "\"b2N0by1vcmcvbGF1bmNocGFkL2lzc3Vlcy8xIn1d\"",
+          "etag": "\"f10320b735bcda01e6c6aae5d5de73fb30f3ff89\"",
           "x-ratelimit-limit": "5000",
           "x-ratelimit-remaining": "4990",
           "x-ratelimit-reset": "1793451616"
