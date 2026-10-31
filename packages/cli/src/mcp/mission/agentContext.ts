@@ -2,6 +2,8 @@ import path from 'node:path';
 import {
   ActivityStream,
   describeTrackerEvent,
+  LEASE_MINUTES_ENV,
+  leaseMs,
   MarkdownAdapter,
   OperationError,
   type MapSnapshot,
@@ -11,6 +13,7 @@ import {
 } from '@miloops-hq/core';
 import { AgentDocWriter, readAgentDocs, readCommandCenterLock } from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
+import { AgentLeases } from './agentLeases';
 import { AgentSessions } from './agentSessions';
 import { callsignFamily, freeCallsign } from './callsign';
 import type { AgentOptions, AgentTracker } from './types';
@@ -21,6 +24,7 @@ export class AgentContext {
   readonly activity = new ActivityStream();
   readonly writer: AgentDocWriter;
   readonly sessions: AgentSessions;
+  readonly leases: AgentLeases;
   /** The mission this agent works on. */
   mission?: string;
   decisionSeq = 0;
@@ -34,6 +38,7 @@ export class AgentContext {
     this.adapter = opts.tracker ?? new MarkdownAdapter({ ...nodeMarkdownFs(opts.root), watch: undefined }, opts.root);
     this.writer = new AgentDocWriter(opts.root, this.activity, { client: opts.client, pollMs: opts.pollMs });
     this.sessions = new AgentSessions(this.activity, opts.usage, opts.usagePollMs);
+    this.leases = new AgentLeases(opts.root, opts.leaseMs ?? leaseMs(process.env[LEASE_MINUTES_ENV]));
     this.offTracker = this.adapter.subscribe((e) => {
       const line = describeTrackerEvent(e, (id) => this.tickets.get(id) ?? ({ key: this.keyOf(id) } as Ticket));
       if (line && this.sessions.current) this.activity.push({ ...line, sessionId: this.sessions.current.id });
@@ -133,6 +138,15 @@ export class AgentContext {
     const w = await this.open('work', snap.map.id);
     w.step(1, 'reading mission + tickets');
     return w;
+  }
+
+  /** Renews this agent's claim leases: on every tool call, and while waiting on a human. */
+  heartbeat(extra: { ticketId?: string; note?: string; decision?: string } = {}) {
+    if (!this.callsign) return;
+    const s = this.sessions.running()?.info;
+    const lost = this.leases.renew(this.callsign, { ticketId: s?.ticketId, sessionId: s?.id, ...extra });
+    const gone = lost.find((h) => h.ticketId === s?.ticketId && h.mapId === s?.mapId);
+    if (gone) this.sessions.end(false, `${gone.key} returned to the queue · claim no longer held`);
   }
 
   /** Write pending session state now, so a tool result never runs ahead of the command center. */

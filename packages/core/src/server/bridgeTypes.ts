@@ -12,6 +12,8 @@ export interface TrackerBridge {
    *                                          named `agent` events (AgentSessionDoc) when an agent session reports
    *   GET  /agents                           `{ sessions: AgentSessionDoc[] }` running and recent agent sessions
    *   POST /agents/answer                    body `{ sessionId, questionId, text, author? }` → AgentAnswer
+   *   GET  /agents/leases                    `{ leases: TicketLease[] }` claim leases and recent tombstones; SSE `leases` on change
+   *   POST /agents/leases/release            body `{ mapId, ticketId, by? }` → `{ returned }`: back to the queue with a handoff comment
    *   GET  /decisions[?mission=<id>]         `{ decisions: DecisionRecord[] }`
    *   POST /decisions                        body `{ mission, appendToMission?, ...DecisionInput }` → DecisionRecord (idempotent per source.kind + source.ref)
    *   POST /decisions/<id>/supersede         body `{ mission, ...DecisionInput }` → the new DecisionRecord
@@ -49,4 +51,6 @@ export type BridgePluginFactory = (ctx: BridgeContext) => BridgePlugin;
 export interface BridgeOptions extends Omit<TrackerRoutesOptions, 'root' | 'markdown'> {
   plugins?: BridgePluginFactory[];
   url?: () => string | undefined;
+  /** How often lease files are polled and expired leases returned to the queue. */
+  leases?: { pollMs?: number; reapMs?: number };
 }

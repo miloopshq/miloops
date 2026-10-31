@@ -23,6 +23,18 @@ function result(v: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(v, null, 2) }] };
 }
 
+/** Tells the agent, once, that a claim it held went back to the queue while it was silent. */
+function withLostLeases(v: unknown, lost: string[]) {
+  if (!lost.length || !v || typeof v !== 'object' || Array.isArray(v)) return v;
+  return {
+    ...v,
+    leaseLost: {
+      tickets: lost,
+      note: 'Your claim went back to the queue (no tool calls for the lease length, or released in the command center). claim_ticket it again to continue, unless another agent took it.',
+    },
+  };
+}
+
 function failure(e: unknown) {
   const msg = e instanceof OperationError ? e.message : `${(e as Error).message ?? e}`;
   return { isError: true, content: [{ type: 'text' as const, text: msg }] };
@@ -65,7 +77,8 @@ export function toolDefiner(server: McpServer, agent: MissionAgent) {
       (async (args: any, extra: any) => {
         try {
           agent.noteCall(extra?._meta);
-          return result(await fn(args, extra));
+          agent.heartbeat();
+          return result(withLostLeases(await fn(args, extra), agent.takeLostLeases()));
         } catch (e) {
           return failure(e);
         } finally {

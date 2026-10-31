@@ -5,26 +5,31 @@ import {
   usageDetail,
   sessionTokens,
   USAGE_SOURCE,
+  type TicketLease,
 } from '@miloops-hq/core';
 import { Empty, Card, Pill, MiloMark } from '../../components/ui';
 import { useNow } from '../../hooks';
-import { type Selection, tokens, usd, hms, isRunning } from '../../lib';
+import { type Selection, tokens, usd, hms, isRunning, heldLeases } from '../../lib';
+import { LeasePill } from './LeasePill';
 
 /** Who is working on what: agent sessions with live timers, plus claims without a session (e.g. teammates). */
 export function Sessions({
   snap,
   activity,
+  leases,
   onSelect,
   onOpenChat,
 }: {
   snap?: MapSnapshot;
   activity: ActivityState;
+  leases?: TicketLease[];
   onSelect: (s: Selection) => void;
   onOpenChat: (id: string) => void;
 }) {
   const now = useNow(1000);
   const running = activity.sessions.filter(isRunning);
   const live = new Set(running.map((s) => s.ticketId));
+  const held = heldLeases(leases, snap?.map.id);
   const claims = snap?.tickets.filter((t) => t.state === 'open' && t.assignee && !live.has(t.id)) ?? [];
   if (!running.length && !claims.length) return <Empty>Idle</Empty>;
   return (
@@ -45,6 +50,7 @@ export function Sessions({
               <span className="row">
                 <span className="callsign">{s.agent}</span>
                 {att && <Pill tone={att === 'hitl' ? 'fill' : undefined}>{att === 'hitl' ? 'HITL' : 'AFK'}</Pill>}
+                <LeasePill lease={t && held.get(t.id)} now={now} />
                 {s.usage && (
                   <span className="usage" title={usageDetail(s.usage)}>
                     {tokens(sessionTokens(s))} tok · {usd(s.usage.costUsd)}
@@ -84,6 +90,7 @@ export function Sessions({
             <span className="row">
               <span className="callsign">{t.assignee}</span>
               <Pill>claim</Pill>
+              <LeasePill lease={held.get(t.id)} now={now} />
             </span>
             <span className="row">
               <span className="tkt">

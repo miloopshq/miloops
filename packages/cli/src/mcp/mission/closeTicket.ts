@@ -73,6 +73,7 @@ export async function closeTicket(
     decision = (await ctx.decisions(snap.map.id)).find((d) => d.source.ref === source.ref);
     if (s.info.mode === 'work') s.step(5);
   }
+  ctx.leases.drop(snap.map.id, t.id);
   const after = await ctx.load(snap.map.id);
   const states = deriveStates(after.tickets, after.map.mode);
   const unblocked = after.tickets.filter((x) => states.get(x.id) === 'frontier' && !before.has(x.id));

@@ -85,6 +85,10 @@ Any MCP client works: run `npx -y miloops mcp` over stdio in the repo. `--dir <p
 
 Sessions, questions and usage reach the command center through `.miloops/.agents/`, so the agent and the command center can start in any order.
 
+### Claims are leases
+
+A claim lasts 15 minutes and every tool call from the claiming agent renews it (so do waits on `ask_human`). If the agent crashes or goes silent, the lease expires and the ticket goes back to the queue: the command center checks every 15 s, and so does any agent calling `next_ticket` or `claim_ticket`. The ticket gets a **Returned to queue** comment with the agent's `report_progress` notes and decisions, and the next agent's `claim_ticket` returns it as `resume`. The return is an ordinary tracker write (comment + unassign), so on GitHub and Linear it goes through the offline outbox like any other write. Tickets close to expiry show as **Stalled** in the command center, which can also release them by hand. Set the length with `--lease-minutes <n>` or `$MILOOPS_LEASE_MINUTES`.
+
 ### Usage
 
 Tokens and cost per session are measured from the agent's own local logs, priced at list rates, and tagged `LOG` in the sessions area:

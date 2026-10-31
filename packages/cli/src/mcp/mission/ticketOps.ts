@@ -4,6 +4,7 @@ import {
   chooseNext,
   claim,
   deriveStates,
+  leaseSpan,
   OperationError,
   promoteToTicket,
   release,
@@ -16,24 +17,40 @@ import type { AgentContext } from './agentContext';
 import { sessionView } from './reporting';
 import { ticketView } from './views';
 
+/** Expired claims of silent agents go back to the queue before work is picked. */
+async function recoverStalled(ctx: AgentContext) {
+  const back = await ctx.leases.reclaim(ctx.adapter);
+  return back.map((l) => ({
+    ticket: l.ticketKey,
+    from: l.agent,
+    note: `returned to queue after ${l.agent} went silent`,
+  }));
+}
+
 export async function nextTicket(ctx: AgentContext, input: { mission?: string; types?: TicketType[] } = {}) {
+  const recovered = await recoverStalled(ctx);
   const snap = await ctx.resolveMission(input.mission);
   const t = chooseNext(snap, { types: input.types });
-  if (t) return { ticket: ticketView(snap, t, await ctx.decisions(snap.map.id)) };
+  const extra = recovered.length ? { recovered } : {};
+  if (t) return { ticket: ticketView(snap, t, await ctx.decisions(snap.map.id)), ...extra };
   const states = deriveStates(snap.tickets, snap.map.mode);
   const open = snap.tickets.filter((x) => x.state === 'open');
   const reason = !open.length
     ? 'Every ticket is closed: the mission is decided.'
     : `No ready ticket: ${open.filter((x) => states.get(x.id) === 'claimed').length} claimed, ${open.filter((x) => states.get(x.id) === 'blocked').length} blocked, ${open.filter((x) => states.get(x.id) === 'parked').length} parked.`;
-  return { ticket: null, reason };
+  return { ticket: null, reason, ...extra };
 }
 
 export async function claimTicket(ctx: AgentContext, input: { ticket?: string; mission?: string } = {}) {
+  const recovered = await recoverStalled(ctx);
   const snap = await ctx.resolveMission(input.mission);
   ctx.mission = snap.map.id;
   const agent = await ctx.agentId();
   const target = input.ticket ? ctx.findTicket(snap, input.ticket) : chooseNext(snap);
-  if (!target) throw new OperationError((await nextTicket(ctx, { mission: snap.map.id })).reason ?? 'No ready ticket');
+  if (!target) {
+    const r = await nextTicket(ctx, { mission: snap.map.id });
+    throw new OperationError(('reason' in r ? r.reason : undefined) ?? 'No ready ticket');
+  }
   const t =
     target.assignee === agent && target.state === 'open'
       ? target
@@ -54,6 +71,7 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
     s.step(2, `${t.key} ${t.title}`, t.id);
     s.step(3, `${t.key} ${t.type} · ${hitl ? 'with you' : 'agent only'}`);
   }
+  const lease = ctx.leases.hold(agent, snap.map.id, t, s.id);
   const fresh = await ctx.load(snap.map.id);
   return {
     claimed: ticketView(
@@ -62,6 +80,12 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
       await ctx.decisions(snap.map.id),
     ),
     session: sessionView(ctx),
+    lease: {
+      expiresAt: new Date(lease.expiresAt).toISOString(),
+      length: leaseSpan(lease.ttlMs),
+      renewedBy: 'every tool call of yours; report_progress notes are kept for whoever resumes if you go silent',
+    },
+    ...(recovered.length ? { recovered } : {}),
   };
 }
 
@@ -73,6 +97,7 @@ export async function releaseTicket(ctx: AgentContext, input: { ticket?: string;
   if (t.assignee !== (await ctx.agentId()))
     throw new OperationError(`${t.key} is not claimed by you${t.assignee ? ` (assignee: ${t.assignee})` : ''}`);
   await release(ctx.adapter, snap.map.id, t.id);
+  ctx.leases.drop(snap.map.id, t.id);
   if (ctx.sessions.running()?.info.ticketId === t.id)
     ctx.sessions.end(true, `Released ${t.key}${input.reason ? ` · ${input.reason}` : ''}`);
   return { released: t.key };

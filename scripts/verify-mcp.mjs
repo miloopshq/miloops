@@ -160,6 +160,46 @@ const ui = {
 };
 log(`command center shows: ${ui.sessions} live session(s), mission usage "${ui.usage}"`);
 
+// Crash recovery: a second agent (3 s lease) claims a ticket, reports progress and is SIGKILLed. The command center
+// shows the claim as stalled, returns it to the queue once the lease runs out, and the next claim resumes from the notes.
+const added = await call('add_ticket', { title: 'Which date format?', type: 'research' });
+const crashTransport = new StdioClientTransport({
+  command: process.execPath,
+  args: [cli, 'mcp', '--agent', 'claude-09', '--lease-minutes', '0.05'],
+  cwd: repo,
+  stderr: 'pipe',
+  env: { ...process.env, CLAUDE_CONFIG_DIR: path.join(repo, '.claude-crash'), CLAUDE_PROJECT_DIR: repo },
+});
+const crashClient = new Client({ name: 'claude-code', version: '2.1.0' });
+await crashClient.connect(crashTransport);
+const crashCall = async (name, args = {}) => JSON.parse((await crashClient.callTool({ name, arguments: args })).content[0].text);
+const crashed = await crashCall('claim_ticket', { ticket: added.ticket.key });
+await crashCall('report_progress', { step: 'Investigate', message: 'ISO dates in the feed, relative dates in the UI' });
+process.kill(crashTransport.pid, 'SIGKILL');
+log(`claude-09 claimed ${crashed.claimed.key} (lease ${crashed.lease.length}) and was killed`);
+const stalledNode = page.locator('.node.stalled', { hasText: 'Which date format?' });
+await stalledNode.waitFor({ timeout: 15_000 });
+await stalledNode.click();
+await page.locator('.lease-stalled, .lease-expired').waitFor({ timeout: 10_000 });
+await shot('05-stalled-claim');
+const returnedLog = page.locator('.log-row', { hasText: `${crashed.claimed.key} returned to queue after claude-09 went silent` });
+await returnedLog.first().waitFor({ timeout: 30_000 });
+log('command center returned the ticket to the queue: "ticket returned to queue after agent went silent" logged');
+const resumed = await call('claim_ticket', { ticket: added.ticket.key });
+const handoffOk = resumed.claimed.assignee !== 'claude-09' && /claude-09 went silent/.test(resumed.claimed.resume?.handoff ?? '') && /ISO dates in the feed/.test(resumed.claimed.resume?.handoff ?? '');
+log(`${resumed.claimed.assignee} claimed ${resumed.claimed.key}; handoff ${handoffOk ? 'carries' : 'DOES NOT carry'} claude-09's notes`);
+
+// Manual release from the inspector; the agent learns on its next call and its session on the ticket ends.
+await page.locator('.node', { hasText: 'Which date format?' }).click();
+await page.getByRole('button', { name: 'Release to queue' }).click();
+const releasedLog = page.locator('.log-row', { hasText: `${added.ticket.key} returned to queue · claim of ${resumed.claimed.assignee} released by operator` });
+await releasedLog.first().waitFor({ timeout: 15_000 });
+const told = await call('status');
+const releaseOk = told.leaseLost?.tickets?.includes(added.ticket.key) && !told.mission.claimed.some((t) => t.key === added.ticket.key);
+log(`released in the command center; the agent ${releaseOk ? 'was told' : 'WAS NOT told'} its claim is gone`);
+await shot('06-released-to-queue');
+await crashClient.close().catch(() => {});
+
 await client.close();
 await page.waitForTimeout(1500);
 const after = await page.locator('.sessions-list li:not(.claim)').count();
@@ -168,5 +208,5 @@ log(`page errors: ${errors.length ? errors.join(' | ') : 'none'}`);
 await browser.close();
 server.kill('SIGTERM');
 if (!process.env.KEEP) fs.rmSync(repo, { recursive: true, force: true }); else log("kept", repo);
-if (errors.length || !spendOk || !ui.usage?.includes(uiTokens) || !/LOG$/.test(ui.usage) || f.answer !== 'Users of the CLI' || h.answer !== 'Grouped by version, newest first' || status.mission.progress !== '2/4 decided' || after !== 0) process.exit(1);
+if (errors.length || !spendOk || !ui.usage?.includes(uiTokens) || !/LOG$/.test(ui.usage) || f.answer !== 'Users of the CLI' || h.answer !== 'Grouped by version, newest first' || status.mission.progress !== '2/4 decided' || after !== 0 || !handoffOk || !releaseOk) process.exit(1);
 console.log('\nOK');

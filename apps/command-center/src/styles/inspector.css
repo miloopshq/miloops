@@ -92,3 +92,35 @@
   white-space: pre-wrap;
   margin-top: var(--sp-2);
 }
+
+/* Claim lease of an agent: amber once it went quiet. */
+.lease {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  border-left: 2px solid var(--st-claimed);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-12);
+}
+.lease-stalled,
+.lease-expired {
+  border-left-color: var(--amber);
+}
+.lease-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.lease-line {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.lease-stalled .lease-line,
+.lease-expired .lease-line {
+  color: var(--amber);
+}
+.lease-notes {
+  margin: 0;
+  padding-left: var(--sp-18);
+  font-size: var(--fs-sm);
+  color: var(--dim);
+}

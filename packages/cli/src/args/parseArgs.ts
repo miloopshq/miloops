@@ -72,7 +72,7 @@ export function parseArgs(argv: string[]): ServeOptions {
 
 /** Options of the `mcp` and `connect` subcommands. */
 export function parseSubArgs(argv: string[], allowed: string[]) {
-  const o: { dir: string; agent?: string; rest: string[] } = { dir: defaultDir(), rest: [] };
+  const o: { dir: string; agent?: string; leaseMinutes?: number; rest: string[] } = { dir: defaultDir(), rest: [] };
   eachFlag(argv, ({ flag, value, arg }) => {
     if (flag === '-h' || flag === '--help') {
       process.stdout.write(HELP);
@@ -80,7 +80,10 @@ export function parseSubArgs(argv: string[], allowed: string[]) {
     } else if (flag.startsWith('-') && !allowed.includes(flag)) fail(`unknown option: ${arg()}`);
     else if (flag === '--dir') o.dir = value();
     else if (flag === '--agent') o.agent = value();
-    else o.rest.push(arg());
+    else if (flag === '--lease-minutes') {
+      o.leaseMinutes = Number(value());
+      if (!(o.leaseMinutes > 0)) fail(`invalid lease length: ${arg()}`);
+    } else o.rest.push(arg());
   });
   return o;
 }

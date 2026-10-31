@@ -6,11 +6,14 @@ import { wrap } from './wrap';
 export function GraphNode({
   n,
   session: s,
+  stalled,
   selected,
   onSelect,
 }: {
   n: LaidOutNode;
   session?: SessionInfo;
+  /** Claimed by an agent whose lease is about to run out or ran out. */
+  stalled?: boolean;
   selected: boolean;
   onSelect: (s: Selection) => void;
 }) {
@@ -20,7 +23,7 @@ export function GraphNode({
   const waiting = !!s?.waitingOn;
   return (
     <g
-      className={`node st-${n.state} ${hitl ? 'hitl' : 'afk'} ${selected ? 'sel' : ''} ${s ? 'live' : ''} ${waiting ? 'waiting' : ''}`}
+      className={`node st-${n.state} ${hitl ? 'hitl' : 'afk'} ${selected ? 'sel' : ''} ${s ? 'live' : ''} ${waiting ? 'waiting' : ''} ${stalled && !waiting ? 'stalled' : ''}`}
       style={{ transform: `translate(${n.x}px, ${n.y}px)` }}
       onClick={(e) => {
         e.stopPropagation();
@@ -42,7 +45,13 @@ export function GraphNode({
         {t.key}
       </text>
       <text className="state" x={NODE_W - 6} y={14} textAnchor="end">
-        {waiting ? '▲ WAITING ON YOU' : n.state === 'claimed' ? `◆ ${t.assignee}` : STATE_LABEL[n.state].toUpperCase()}
+        {waiting
+          ? '▲ WAITING ON YOU'
+          : stalled
+            ? `◇ STALLED · ${t.assignee}`
+            : n.state === 'claimed'
+              ? `◆ ${t.assignee}`
+              : STATE_LABEL[n.state].toUpperCase()}
       </text>
       {lines.map((l, i) => (
         <text key={i} className="title" x={42} y={30 + i * 13}>
