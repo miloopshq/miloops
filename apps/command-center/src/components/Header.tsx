@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BRAND, eventPulse, missionProgress, type ActivityState, type MapDoc, type MapSnapshot, type TrackerHealth } from '@miloops-hq/core';
 import { Bars, dur, hms, useNow } from './Hud';
 import { MiloMark, type MarkState } from './MiloMark';
-import { Badge, Button, Label, Panel, Readout } from './ui';
+import { Badge, Button, Label, Panel, Readout, Wordmark } from './ui';
 
 export function Header(props: {
   repo: string;
@@ -33,7 +33,7 @@ export function Header(props: {
     <Panel as="header" className="header">
       <div className="h-brand">
         <MiloMark size={28} className="logo" title={BRAND.name} />
-        <span className="wordmark">{BRAND.name}</span>
+        <Wordmark className="wordmark" />
       </div>
       <div className="h-title">
         <div className="h-line1">

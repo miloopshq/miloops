@@ -145,7 +145,7 @@ function compose(c, state = 'idle') {
     });
   }
   if (state === 'alert') for (const row of g) row.forEach((ch, i) => { if (ch === 'O') row[i] = 'R'; });
-  const h = g.length, w = 14;
+  const h = g.length;
   const top = Math.floor((14 - h) / 2) + 1, left = 1;
   const out = Array.from({ length: 16 }, () => Array(16).fill('.'));
   g.forEach((row, y) => row.forEach((ch, x) => { out[y + top][x + left] = ch; }));

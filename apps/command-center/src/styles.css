@@ -29,6 +29,8 @@
   --urgent: #ff4d42;
   --urgent-bg: rgba(255, 77, 66, 0.1);
   --amber: rgb(var(--amber-rgb));
+  /* "OPS" half of the wordmark: MILO's antenna copper, shared with the brand kit. */
+  --brand-ops: #c98b5e;
 
   /* Option C "Hardware HUD" (src/fonts.ts). --display: headings; --mono: caps labels and readouts; --sans: body. */
   --display: 'Chakra Petch', sans-serif;
@@ -119,6 +121,7 @@ code { font-family: var(--mono); font-size: var(--fs-sm); color: var(--text-hi);
 .header { grid-area: header; display: flex; align-items: center; gap: 16px; padding: 0 var(--gutter); }
 .h-brand { color: var(--accent); display: flex; align-items: center; gap: var(--sp-10); padding-right: 16px; border-right: 1px solid var(--line); height: 38px; }
 .wordmark { font-family: var(--display); font-weight: 300; font-size: var(--fs-heading); letter-spacing: var(--ls-brand); text-transform: uppercase; color: var(--text-hi); }
+.wordmark-ops { color: var(--brand-ops); }
 .h-title { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .h-line1 { display: flex; align-items: baseline; gap: var(--sp-8); min-width: 0; }
 .repo { color: var(--dim); font-family: var(--mono); font-size: var(--fs-sm); letter-spacing: var(--ls-data); white-space: nowrap; }

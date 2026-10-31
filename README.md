@@ -59,9 +59,11 @@ npm test              # unit and MCP tests (vitest)
 npm run verify:mcp    # after a build: an MCP client drives a mission while the command center shows it
 npm run build         # every workspace; the CLI lands in packages/cli/dist
 npm start             # run the built CLI (same as `miloops`)
+npm run lint          # ESLint across the monorepo
+npm run check         # lint, typecheck, build, test and verify:mcp; run before opening a PR
 ```
 
-See [`apps/command-center/README.md`](apps/command-center/README.md) for the architecture, metrics and tracker API.
+See [`apps/command-center/README.md`](apps/command-center/README.md) for the architecture, metrics and tracker API, and [`CONTRIBUTING.md`](CONTRIBUTING.md) for code standards.
 
 ## License
 

@@ -124,7 +124,7 @@ export function createRuntime(kind: TrackerKind) {
         linkAgents(activity);
       });
   } else {
-    const mem = new MemoryAdapter({ label: 'Demo tracker', location: 'in-memory · resets on reload' });
+    const mem = new MemoryAdapter({ label: 'Demo', location: 'in-memory · resets on reload' });
     const demo = demoSnapshot();
     mem.seed(demo);
     const latency = mem.latency;

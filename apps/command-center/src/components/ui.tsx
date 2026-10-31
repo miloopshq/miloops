@@ -1,6 +1,17 @@
 import { forwardRef, type ButtonHTMLAttributes, type CSSProperties, type ElementType, type FormEvent, type MouseEvent, type ReactNode, type TextareaHTMLAttributes } from 'react';
+import { BRAND } from '@miloops-hq/core';
 
 const cx = (...c: (string | false | undefined | null)[]) => c.filter(Boolean).join(' ');
+
+/** Two-tone product wordmark; `className` sets the size and tracking. */
+export function Wordmark({ as: Tag = 'span', className }: { as?: ElementType; className?: string }) {
+  return (
+    <Tag className={className}>
+      {BRAND.wordmark.lead}
+      <span className="wordmark-ops">{BRAND.wordmark.ops}</span>
+    </Tag>
+  );
+}
 
 export type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger' | 'urgent';
 
