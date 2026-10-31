@@ -1,7 +1,6 @@
 import { type MapSnapshot, type ActivityState, deriveStates, type NodeState, attention } from '@miloops-hq/core';
 import { SectionHeader, Empty } from '../../components/ui';
-import type { Selection } from '../../hooks';
-import { STATE_TEXT } from '../../lib';
+import { type Selection, STATE_TEXT, isWaiting } from '../../lib';
 
 /** Layer 3: the tickets that can move now (frontier) or are moving (claimed), as a compact list. */
 export function UpNext(props: {
@@ -17,7 +16,7 @@ export function UpNext(props: {
   const items = (snap?.tickets ?? [])
     .filter((t) => rank[states.get(t.id)!] !== undefined)
     .sort((a, b) => rank[states.get(a.id)!]! - rank[states.get(b.id)!]!);
-  const waiting = new Set(props.sessions.filter((s) => s.status === 'running' && s.waitingOn).map((s) => s.ticketId));
+  const waiting = new Set(props.sessions.filter(isWaiting).map((s) => s.ticketId));
   const selId = props.selection?.kind === 'ticket' ? props.selection.id : undefined;
   return (
     <div className="upnext">

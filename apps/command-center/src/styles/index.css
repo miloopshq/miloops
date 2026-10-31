@@ -1,0 +1,17 @@
+/* Imported once from main.tsx. Order is the cascade: design system first, then layout and zones. */
+@import './design-system.css';
+@import './base.css';
+@import './layout.css';
+@import './header.css';
+@import './missions.css';
+@import './inbox.css';
+@import './map.css';
+@import './inspector.css';
+@import './plan.css';
+@import './activity.css';
+@import './phone.css';
+@import './dialogs.css';
+@import './briefing.css';
+@import './settings.css';
+@import './mark-and-voices.css';
+@import './decisions.css';

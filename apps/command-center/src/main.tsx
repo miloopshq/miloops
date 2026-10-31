@@ -1,7 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import './fonts';
-import './ui.css';
-import './styles.css';
+import './styles/index.css';
 import { App } from './App';
 import { MarkSheet } from './components/ui';
 

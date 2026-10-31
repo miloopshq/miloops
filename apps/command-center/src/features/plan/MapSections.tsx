@@ -1,7 +1,7 @@
 import type { MapSnapshot } from '@miloops-hq/core';
 import { useState } from 'react';
 import { Empty, Panel, Tabs } from '../../components/ui';
-import type { Selection } from '../../hooks';
+import type { Selection } from '../../lib';
 
 export type Tab = 'unspecified' | 'decisions' | 'oos' | 'notes';
 

@@ -2,7 +2,8 @@ import { Panel, Button } from '../components/ui';
 import { MapGraph } from '../features/map';
 import { CommandBar } from '../features/mission';
 import { StatusPanel } from '../features/status';
-import type { CommandCenterApi, Selection } from '../hooks';
+import type { CommandCenterApi } from '../hooks';
+import type { Selection } from '../lib';
 import { Legend } from './Legend';
 
 export function MapZone(props: {

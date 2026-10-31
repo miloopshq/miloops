@@ -2,7 +2,7 @@ import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { MiloAvatar } from '@miloops-hq/milo-avatar';
 import { useState, useRef, useEffect } from 'react';
 import { SectionHeader, Empty, Meta, InputRow } from '../../components/ui';
-import { clock } from '../../lib';
+import { clock, isRunning } from '../../lib';
 
 export function Conversation(props: {
   activity: ActivityState;
@@ -37,6 +37,8 @@ export function Conversation(props: {
   }, [messages.length, pending?.id]);
   useEffect(() => {
     if (pending && !props.onBack) inputRef.current?.focus({ preventScroll: true });
+    // Refocus only when a different question arrives, not on every update of the same one.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending?.id, props.onBack]);
 
   const send = (text: string) => {
@@ -48,7 +50,7 @@ export function Conversation(props: {
     ? ''
     : pending
       ? 'Your answer is needed'
-      : session.status === 'running'
+      : isRunning(session)
         ? `${session.agent} is working…`
         : session.status === 'done'
           ? 'Resolved · ticket closed'

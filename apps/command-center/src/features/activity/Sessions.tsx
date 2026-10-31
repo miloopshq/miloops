@@ -7,8 +7,8 @@ import {
   USAGE_SOURCE,
 } from '@miloops-hq/core';
 import { Empty, Card, Pill, MiloMark } from '../../components/ui';
-import { useNow, type Selection } from '../../hooks';
-import { tokens, usd, hms } from '../../lib';
+import { useNow } from '../../hooks';
+import { type Selection, tokens, usd, hms, isRunning } from '../../lib';
 
 /** Who is working on what: agent sessions with live timers, plus claims without a session (e.g. teammates). */
 export function Sessions({
@@ -23,7 +23,7 @@ export function Sessions({
   onOpenChat: (id: string) => void;
 }) {
   const now = useNow(1000);
-  const running = activity.sessions.filter((s) => s.status === 'running');
+  const running = activity.sessions.filter(isRunning);
   const live = new Set(running.map((s) => s.ticketId));
   const claims = snap?.tickets.filter((t) => t.state === 'open' && t.assignee && !live.has(t.id)) ?? [];
   if (!running.length && !claims.length) return <Empty>Idle</Empty>;

@@ -1,8 +1,9 @@
-import { type MapSnapshot, type SessionInfo, layout, NODE_W, NODE_H, attention } from '@miloops-hq/core';
+import { type MapSnapshot, type SessionInfo, layout } from '@miloops-hq/core';
 import { useRef, useState, useEffect, useMemo } from 'react';
-import type { Selection } from '../../hooks';
-import { TYPE_CODE, STATE_LABEL } from '../../lib';
-import { wrap } from './wrap';
+import { type Selection, isRunning } from '../../lib';
+import { GraphDefs } from './GraphDefs';
+import { GraphEdge } from './GraphEdge';
+import { GraphNode } from './GraphNode';
 
 export const PAD = 32;
 
@@ -68,7 +69,7 @@ export function MapGraph(props: {
     return { k: nk, x: p.x - ((p.x - v.x) * nk) / v.k, y: p.y - ((p.y - v.y) * nk) / v.k };
   };
 
-  const live = new Map(props.sessions.filter((s) => s.status === 'running' && s.ticketId).map((s) => [s.ticketId!, s]));
+  const live = new Map(props.sessions.filter((s) => isRunning(s) && s.ticketId).map((s) => [s.ticketId!, s]));
   const selId = selection?.kind === 'ticket' ? selection.id : undefined;
 
   return (
@@ -118,18 +119,7 @@ export function MapGraph(props: {
       }}
     >
       <svg className="graph" width={size.w} height={size.h} onClick={() => onSelect(null)}>
-        <defs>
-          <pattern id="hatch-oos" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <rect width="8" height="8" fill="rgba(255,77,66,0.05)" />
-            <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,77,66,0.45)" strokeWidth="2.2" />
-          </pattern>
-          <pattern id="hatch-dim" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(120,160,170,0.12)" strokeWidth="1.5" />
-          </pattern>
-          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M0 1L9 5L0 9" fill="none" stroke="context-stroke" strokeWidth="1.4" />
-          </marker>
-        </defs>
+        <GraphDefs />
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
           <g transform={`translate(${PAD} ${PAD})`}>
             {L.nodes.some((n) => n.state === 'out-of-scope') && (
@@ -147,92 +137,19 @@ export function MapGraph(props: {
               </g>
             )}
 
-            {L.edges.map(({ from, to }) => {
-              const open = from.ticket.state === 'open';
-              let d: string;
-              if (L.direction === 'LR') {
-                const x1 = from.x + NODE_W,
-                  y1 = from.y + NODE_H / 2,
-                  x2 = to.x - 4,
-                  y2 = to.y + NODE_H / 2;
-                const mx = (x1 + x2) / 2;
-                d = `M${x1} ${y1}C${mx} ${y1} ${mx} ${y2} ${x2} ${y2}`;
-              } else {
-                const x1 = from.x + NODE_W / 2,
-                  y1 = from.y + NODE_H,
-                  x2 = to.x + NODE_W / 2,
-                  y2 = to.y - 4;
-                const my = (y1 + y2) / 2;
-                d = `M${x1} ${y1}C${x1} ${my} ${x2} ${my} ${x2} ${y2}`;
-              }
-              return (
-                <path
-                  key={`${from.ticket.id}-${to.ticket.id}`}
-                  className={`edge ${open ? 'edge-open' : 'edge-done'}`}
-                  d={d}
-                  markerEnd="url(#arrow)"
-                />
-              );
-            })}
+            {L.edges.map(({ from, to }) => (
+              <GraphEdge key={`${from.ticket.id}-${to.ticket.id}`} from={from} to={to} direction={L.direction} />
+            ))}
 
-            {L.nodes.map((n) => {
-              const t = n.ticket;
-              const s = live.get(t.id);
-              const lines = wrap(t.title, 22);
-              const hitl = attention(t) === 'hitl';
-              const waiting = !!s?.waitingOn;
-              return (
-                <g
-                  key={t.id}
-                  className={`node st-${n.state} ${hitl ? 'hitl' : 'afk'} ${selId === t.id ? 'sel' : ''} ${s ? 'live' : ''} ${waiting ? 'waiting' : ''}`}
-                  style={{ transform: `translate(${n.x}px, ${n.y}px)` }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelect({ kind: 'ticket', id: t.id });
-                  }}
-                >
-                  {n.state === 'frontier' && (
-                    <rect className="halo" x={-4} y={-4} width={NODE_W + 8} height={NODE_H + 8} />
-                  )}
-                  {waiting && <rect className="alarm" x={-6} y={-6} width={NODE_W + 12} height={NODE_H + 12} />}
-                  <rect className="body" width={NODE_W} height={NODE_H} />
-                  {(n.state === 'blocked' || n.state === 'parked') && (
-                    <rect width={NODE_W} height={NODE_H} fill="url(#hatch-dim)" />
-                  )}
-                  {n.state === 'out-of-scope' && <rect width={NODE_W} height={NODE_H} fill="url(#hatch-oos)" />}
-                  <rect className="badge" width={34} height={NODE_H} />
-                  <text className="badge-t" x={17} y={NODE_H / 2 + 4} textAnchor="middle">
-                    {TYPE_CODE[t.type]}
-                  </text>
-                  <text className="key" x={42} y={14}>
-                    {t.key}
-                  </text>
-                  <text className="state" x={NODE_W - 6} y={14} textAnchor="end">
-                    {waiting
-                      ? '▲ WAITING ON YOU'
-                      : n.state === 'claimed'
-                        ? `◆ ${t.assignee}`
-                        : STATE_LABEL[n.state].toUpperCase()}
-                  </text>
-                  {lines.map((l, i) => (
-                    <text key={i} className="title" x={42} y={30 + i * 13}>
-                      {l}
-                    </text>
-                  ))}
-                  <g className={`att ${hitl ? 'hitl' : 'afk'}`} transform={`translate(${NODE_W - 30} ${NODE_H - 13})`}>
-                    <rect width={26} height={10} />
-                    <text x={13} y={8} textAnchor="middle">
-                      {hitl ? 'HITL' : 'AFK'}
-                    </text>
-                  </g>
-                  {s && !waiting && (
-                    <text className="live-tag" x={NODE_W} y={NODE_H + 13} textAnchor="end">
-                      {s.agent} · {s.mode.toUpperCase()} {s.step}/{s.total} {s.stepLabel.toUpperCase()}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
+            {L.nodes.map((n) => (
+              <GraphNode
+                key={n.ticket.id}
+                n={n}
+                session={live.get(n.ticket.id)}
+                selected={selId === n.ticket.id}
+                onSelect={onSelect}
+              />
+            ))}
           </g>
         </g>
       </svg>

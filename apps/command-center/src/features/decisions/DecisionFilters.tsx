@@ -7,6 +7,7 @@ import {
   DECISION_SOURCES,
   type DecisionStatus,
 } from '@miloops-hq/core';
+import { DecisionOption } from './DecisionOption';
 
 export function DecisionFilters(props: {
   filter: DecisionFilter;
@@ -70,21 +71,18 @@ export function DecisionFilters(props: {
         </select>
       </div>
     );
-  const Opt = (p: { on: boolean; label: string; n: number; onClick: () => void; cls?: string }) => (
-    <li>
-      <button className={`dv-opt ${p.on ? 'on' : ''} ${p.cls ?? ''}`} onClick={p.onClick}>
-        <span className="ttl">{p.label}</span>
-        <b>{p.n}</b>
-      </button>
-    </li>
-  );
   return (
     <aside className="dv-filters">
       <h3 className="mono-label">Mission</h3>
       <ul>
-        <Opt on={!filter.mapId} label="All missions" n={all.length} onClick={() => set({ mapId: undefined })} />
+        <DecisionOption
+          on={!filter.mapId}
+          label="All missions"
+          n={all.length}
+          onClick={() => set({ mapId: undefined })}
+        />
         {props.missions.map((s) => (
-          <Opt
+          <DecisionOption
             key={s.map.id}
             on={filter.mapId === s.map.id}
             label={`${s.map.key} ${s.map.title}`}
@@ -95,9 +93,9 @@ export function DecisionFilters(props: {
       </ul>
       <h3 className="mono-label">Source</h3>
       <ul>
-        <Opt on={!filter.source} label="All" n={all.length} onClick={() => set({ source: undefined })} />
+        <DecisionOption on={!filter.source} label="All" n={all.length} onClick={() => set({ source: undefined })} />
         {DECISION_SOURCE_KINDS.map((k) => (
-          <Opt
+          <DecisionOption
             key={k}
             cls={`src-${k}`}
             on={filter.source === k}
@@ -109,9 +107,14 @@ export function DecisionFilters(props: {
       </ul>
       <h3 className="mono-label">Decided by</h3>
       <ul>
-        <Opt on={!filter.decidedBy} label="Anyone" n={all.length} onClick={() => set({ decidedBy: undefined })} />
+        <DecisionOption
+          on={!filter.decidedBy}
+          label="Anyone"
+          n={all.length}
+          onClick={() => set({ decidedBy: undefined })}
+        />
         {props.people.map((p) => (
-          <Opt
+          <DecisionOption
             key={p}
             on={filter.decidedBy === p}
             label={p}
@@ -122,14 +125,14 @@ export function DecisionFilters(props: {
       </ul>
       <h3 className="mono-label">Status</h3>
       <ul>
-        <Opt on={!filter.status} label="Any" n={all.length} onClick={() => set({ status: undefined })} />
-        <Opt
+        <DecisionOption on={!filter.status} label="Any" n={all.length} onClick={() => set({ status: undefined })} />
+        <DecisionOption
           on={filter.status === 'active'}
           label="Active"
           n={count((d) => !d.supersededBy)}
           onClick={() => set({ status: filter.status === 'active' ? undefined : 'active' })}
         />
-        <Opt
+        <DecisionOption
           on={filter.status === 'superseded'}
           label="Superseded"
           n={count((d) => !!d.supersededBy)}

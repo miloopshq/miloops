@@ -9,7 +9,7 @@ import {
 } from '@miloops-hq/core';
 import { Label, Spark } from '../../components/ui';
 import { useNow } from '../../hooks';
-import { TYPE_CODE } from '../../lib';
+import { TYPE_CODE, isWaiting } from '../../lib';
 
 export const ORDER: [NodeState, string][] = [
   ['decided', 'Decided'],
@@ -26,7 +26,7 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
   const c = stateCounts(snap);
   const n = (s: NodeState) => c[s];
   const pct = c.resolvedPct;
-  const waiting = sessions.filter((s) => s.status === 'running' && s.waitingOn).length;
+  const waiting = sessions.filter(isWaiting).length;
   const path = criticalPath(snap);
   const tp = throughput(snap, now);
   const mix = typeMix(snap);

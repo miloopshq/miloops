@@ -1,0 +1,175 @@
+/* ---------- MILO mark + glyphs ---------- */
+.milo-mark {
+  display: inline-block;
+  flex: 0 0 auto;
+  vertical-align: -0.15em;
+}
+.logo.milo-mark {
+  color: var(--accent);
+}
+.waiting-chip .milo-mark,
+.urgent-text .milo-mark {
+  margin-right: var(--sp-2);
+}
+.log-row.src-system .src .milo-mark {
+  margin-right: var(--sp-4);
+  color: var(--accent);
+}
+.onb-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-14);
+  color: var(--accent);
+}
+
+/* ---------- Type voices: humans (Barlow) vs agents and MILO (Chakra Petch) vs tracker data (mono) ---------- */
+.msg.voice-agent .msg-text {
+  font-family: var(--voice-agent);
+  letter-spacing: var(--ls-text);
+}
+.msg.voice-human .msg-text {
+  font-family: var(--voice-human);
+}
+.log-row.src-session .msg,
+.log-row.src-system .msg {
+  font-family: var(--voice-agent);
+  letter-spacing: var(--ls-text);
+}
+.log-row.src-operator .msg {
+  font-family: var(--voice-human);
+  font-style: italic;
+}
+.log-row.src-tracker .msg {
+  font-family: var(--voice-data);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-text);
+  color: var(--dim);
+}
+.log-row.src-tracker.lv-ok .msg {
+  color: var(--text);
+}
+.log-row.src-system .msg {
+  color: var(--accent);
+}
+
+/* ---------- Signal moments: dot-matrix, used sparingly ---------- */
+.log-row.signal .msg {
+  font-family: var(--dot);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  letter-spacing: var(--ls-text);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+}
+.signal-tag {
+  font-family: var(--dot);
+  font-weight: 900;
+  font-size: var(--fs-body);
+  letter-spacing: var(--ls-data);
+  text-transform: uppercase;
+  color: var(--urgent);
+  line-height: 1;
+}
+
+/* ---------- Mark sheet (dev page, ?mark-sheet) ---------- */
+.mark-sheet {
+  height: 100%;
+  overflow: auto;
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+.ms-hero {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  color: var(--accent);
+}
+.ms-name {
+  font-family: var(--display);
+  font-weight: 300;
+  font-size: 64px;
+  letter-spacing: 0.3em;
+  color: var(--text-hi);
+  line-height: 1;
+}
+.ms-cat {
+  margin-top: var(--sp-10);
+  color: var(--accent);
+  font-size: var(--fs-body);
+}
+.ms-milo {
+  margin-top: var(--sp-14);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-10);
+  font-family: var(--display);
+  font-size: var(--fs-title);
+  color: var(--text);
+}
+.ms-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-12);
+}
+.ms-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding: var(--sp-18);
+  border: 1px solid var(--line2);
+  background: var(--panel);
+  color: var(--accent);
+}
+.ms-cell b {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--text-hi);
+}
+.ms-cell .dim {
+  font-size: var(--fs-body);
+}
+.ms-big {
+  height: 76px;
+  display: flex;
+  align-items: center;
+}
+.ms-small {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  height: 24px;
+}
+.ms-action {
+  color: var(--st-claimed);
+}
+.ms-alert {
+  color: var(--urgent);
+}
+.ms-status.ms-ok {
+  color: var(--st-decided);
+}
+.ms-status.ms-syncing {
+  color: var(--amber);
+}
+.ms-status.ms-error {
+  color: var(--urgent);
+}
+.ms-status.ms-idle {
+  color: var(--faint);
+}
+.ms-inline {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.ms-log {
+  width: 520px;
+  border: 1px solid var(--line);
+  padding: var(--sp-6) var(--sp-10);
+}

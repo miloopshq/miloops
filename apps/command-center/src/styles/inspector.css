@@ -1,0 +1,94 @@
+/* ---------- Ticket inspector ---------- */
+.inspector,
+.side {
+  grid-area: inspector;
+}
+.zone-tabs {
+  border-bottom: 1px solid var(--line);
+}
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+  padding-top: var(--sp-2);
+}
+.side .detail,
+.phone-view .detail {
+  padding-top: var(--sp-12);
+}
+.d-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  flex-wrap: wrap;
+}
+.d-head .meta {
+  margin-left: auto;
+}
+.d-head .meta.att-hitl {
+  color: var(--amber);
+}
+.facts {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 5px var(--sp-12);
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+.facts dt {
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-6);
+}
+.inline-form {
+  gap: var(--sp-8);
+  padding: var(--sp-10);
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-6);
+}
+.resolution {
+  border-left: 2px solid var(--st-decided);
+  padding: var(--sp-2) 0 var(--sp-2) var(--sp-12);
+}
+.resolution p {
+  margin: var(--sp-4) 0 0;
+  color: var(--text-hi);
+}
+.res-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.res-head .link {
+  margin-left: auto;
+}
+.detail .body {
+  margin: 0;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+.comments summary {
+  cursor: pointer;
+}
+.comment {
+  margin-top: var(--sp-10);
+  font-size: var(--fs-sm);
+}
+.c-body {
+  white-space: pre-wrap;
+  margin-top: var(--sp-2);
+}

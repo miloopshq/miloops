@@ -1,4 +1,5 @@
 import { SectionHeader } from '../../components/ui';
+import { isRunning } from '../../lib';
 import { ActivityLog } from './ActivityLog';
 import { Sessions } from './Sessions';
 import { SessionsHead } from './SessionsHead';
@@ -13,7 +14,7 @@ export function ActivityStack(props: ZoneProps) {
       <SessionsHead
         activity={props.activity}
         snap={props.snap}
-        running={props.activity.sessions.filter((s) => s.status === 'running').length}
+        running={props.activity.sessions.filter(isRunning).length}
       />
       <Sessions
         snap={props.snap}

@@ -1,4 +1,5 @@
 import { Panel, SectionHeader } from '../../components/ui';
+import { isRunning } from '../../lib';
 import { Sessions } from './Sessions';
 import { SessionsHead } from './SessionsHead';
 import { StepTracker } from './StepTracker';
@@ -6,7 +7,7 @@ import type { ZoneProps } from './types';
 
 /** Wide: current step + sessions in one fixed zone. */
 export function StepZone(props: ZoneProps) {
-  const running = props.activity.sessions.filter((s) => s.status === 'running').length;
+  const running = props.activity.sessions.filter(isRunning).length;
   return (
     <Panel className="zone step-zone" style={{ gridArea: 'step' }}>
       <SectionHeader title="Current step" />

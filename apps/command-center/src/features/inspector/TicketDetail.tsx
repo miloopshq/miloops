@@ -1,8 +1,8 @@
 import { type MapSnapshot, type SessionInfo, deriveStates, attention, label } from '@miloops-hq/core';
 import { useState, type FormEvent } from 'react';
 import { Empty, Pill, Button, Card, Field, Meta } from '../../components/ui';
-import { type CommandCenterApi, OPERATOR } from '../../hooks';
-import { STATE_TEXT } from '../../lib';
+import { type CommandCenterApi } from '../../hooks';
+import { OPERATOR, STATE_TEXT, isRunning } from '../../lib';
 import type { Form } from './types';
 
 export function TicketDetail(props: {
@@ -27,7 +27,7 @@ export function TicketDetail(props: {
   const byId = new Map(snap.tickets.map((x) => [x.id, x]));
   const blocks = snap.tickets.filter((x) => x.blockedBy.includes(t.id));
   const att = attention(t);
-  const session = props.sessions.find((s) => s.ticketId === t.id && s.status === 'running');
+  const session = props.sessions.find((s) => s.ticketId === t.id && isRunning(s));
   const mine = t.assignee === OPERATOR;
   const resolution = [...t.comments].reverse().find((c) => /^\*\*(Resolution|Ruled out of scope)\*\*/.test(c.body));
   const others = t.comments.filter((c) => c !== resolution);
