@@ -15,6 +15,9 @@ export function Header(props: {
   onNewMission: () => void;
   onToggleMode: () => void;
   onSettings: () => void;
+  /** Set when the Slack connection needs attention (revoked token, app uninstalled). */
+  slackAlert?: string;
+  onSlack: () => void;
   decisions: number;
   decisionsOpen: boolean;
   onDecisions: () => void;
@@ -61,6 +64,11 @@ export function Header(props: {
             <b>{waiting}</b>
             <span className="wl">&nbsp;waiting on you</span>
           </span>
+        )}
+        {props.slackAlert && (
+          <Button size="sm" variant="urgent" onClick={props.onSlack} title={props.slackAlert}>
+            Slack disconnected
+          </Button>
         )}
         <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
         <TrackerPulse health={props.health} now={now} />

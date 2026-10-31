@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
@@ -220,6 +220,12 @@ test('env tokens work like GITHUB_TOKEN: reported by source, never stored', asyn
     const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), { fetch: fake.fetch, WebSocket: hub.WebSocket, env: { MILOOPS_SLACK_APP_TOKEN: TOKENS.app, MILOOPS_SLACK_BOT_TOKEN: TOKENS.bot } });
     const s = svc.status();
     assert.deepEqual([s.setup.appToken, s.setup.botToken], ['MILOOPS_SLACK_APP_TOKEN', 'MILOOPS_SLACK_BOT_TOKEN']);
+    await until(() => svc.status().state === 'online');
+    const on = svc.status();
+    assert.deepEqual([on.enabled, on.step, on.setup.appId, on.workspace?.name], [true, 5, 'A0MILO0001', 'efika'], 'verified on first start, then setup continues at the claim');
+    const creds = path.join(w.configDir, 'credentials.json');
+    assert.ok(!existsSync(creds) || !readFileSync(creds, 'utf8').includes('xoxb-'), 'env tokens are not written to the credential store');
+    svc.close();
   } finally {
     w.cleanup();
   }

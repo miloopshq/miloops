@@ -38,7 +38,7 @@ export class SlackApi {
   async call<T = SlackResponse>(method: string, args: Record<string, unknown> = {}): Promise<T> {
     const read = READS.has(method);
     const qs = read
-      ? new URLSearchParams(Object.entries(args).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)])).toString()
+      ? new URLSearchParams(Object.entries(args).filter(([, v]) => v !== undefined).map(([k, v]): [string, string] => [k, String(v)])).toString()
       : '';
     const url = `${this.base}/${method}${qs ? `?${qs}` : ''}`;
     const init: RequestInit = read

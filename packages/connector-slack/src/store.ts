@@ -36,7 +36,7 @@ const DEFAULTS: SlackConfig = {
   owners: [],
   allow: [],
   notify: { target: 'dm', events: DEFAULT_NOTIFY_EVENTS, detail: 'full' },
-  summary: 'milo',
+  summary: 'deterministic',
   command: DEFAULT_COMMAND,
   channelMission: {},
 };

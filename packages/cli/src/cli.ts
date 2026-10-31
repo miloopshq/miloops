@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { BRAND } from '@miloops-hq/core';
 import { writeCommandCenterLock } from '@miloops-hq/core/agents';
 import { createTrackerBridge, type TrackerBridge } from '@miloops-hq/core/bridge';
+import { slackPlugin } from '@miloops-hq/connector-slack/node';
 import { runConnect } from './connect';
 import { runMcpServer } from './mcp/server';
 
@@ -17,6 +18,7 @@ const HELP = `${BRAND.name} — ${BRAND.category}
 Usage: ${BRAND.slug} [options]
        ${BRAND.slug} mcp [--dir <path>] [--agent <callsign>]
        ${BRAND.slug} connect claude|codex [--dir <path>]
+       ${BRAND.slug} connect slack [options]
 
 Starts the command center for the current folder and opens it in your browser.
 
@@ -24,6 +26,8 @@ Commands:
   mcp            Serve the MCP server for coding agents over stdio
                  (claude mcp add ${BRAND.slug} -- npx -y ${BRAND.slug} mcp)
   connect <agent>  Register the MCP server with Claude Code or Codex and add the /milo command
+  connect slack  Start the command center on the Slack setup (Socket Mode from this machine;
+                 tokens stay in your local credential store)
 
 Options:
   --dir <path>   Tracker folder (default: ./${BRAND.dataDir}, or $${BRAND.dataDirEnv})
@@ -168,7 +172,8 @@ async function main() {
     await runMcpServer({ root: path.resolve(process.cwd(), o.dir), agent: o.agent, version: __VERSION__ });
     return;
   }
-  if (argv[0] === 'connect') {
+  const slackSetup = argv[0] === 'connect' && argv[1] === 'slack';
+  if (argv[0] === 'connect' && !slackSetup) {
     const o = parseSubArgs(argv.slice(1), ['--dir']);
     const target = o.rest[0];
     if (target !== 'claude' && target !== 'codex') fail('connect needs an agent: claude or codex');
@@ -177,7 +182,7 @@ async function main() {
     process.stdout.write('\n');
     return;
   }
-  const opts = parseArgs(argv);
+  const opts = parseArgs(slackSetup ? argv.slice(2) : argv);
   const appDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app');
   if (!existsSync(path.join(appDir, 'index.html'))) fail(`command center bundle missing at ${appDir}; reinstall the package`);
 
@@ -207,16 +212,17 @@ async function main() {
     const e = err as NodeJS.ErrnoException;
     fail(e.code === 'EADDRINUSE' ? `port ${opts.port} is already in use; pick another with --port <n>` : e.message);
   }
-  bridge = createTrackerBridge(path.resolve(process.cwd(), opts.dir));
   const shownHost = opts.host === '127.0.0.1' || opts.host === '0.0.0.0' ? 'localhost' : opts.host;
   const url = `http://${shownHost}:${port}/`;
+  bridge = createTrackerBridge(path.resolve(process.cwd(), opts.dir), { plugins: [slackPlugin()], url: () => url });
   process.stdout.write(
     `\n  ${BRAND.name} ${__VERSION__} · ${BRAND.assistant.name} online\n\n` +
       `  Command center  ${url}\n` +
       `  Tracker         ${path.relative(process.cwd(), bridge.root) || '.'}${path.sep}  (${bridge.root})\n\n` +
       `  Press Ctrl+C to stop.\n\n`,
   );
-  if (opts.open) openBrowser(url);
+  if (slackSetup) process.stdout.write(`  Slack setup     ${url}?settings=slack\n\n`);
+  if (opts.open) openBrowser(slackSetup ? `${url}?settings=slack` : url);
   const unlock = writeCommandCenterLock(bridge.root, url);
 
   const stop = () => {

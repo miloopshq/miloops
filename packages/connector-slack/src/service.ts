@@ -37,7 +37,7 @@ import { SocketMode, probeSocket, type Envelope, type EnvelopeResult, type WebSo
 import { briefMission, formatTokens, missionListBlocks, statusBlocks } from './status';
 import { askStore, slackLock, slackStore, type AskRecord, type SlackConfig } from './store';
 import { deterministicSummary, plainText, type ThreadMessage } from './summary';
-import type { SlackSettingsPatch, SlackState, SlackStatus, SlackTokenResult, SlackUser } from './types';
+import { SLACK_NOTIFY_EVENTS, type SlackSettingsPatch, type SlackState, type SlackStatus, type SlackTokenResult, type SlackUser } from './types';
 
 type Env = Record<string, string | undefined>;
 type Payload = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -134,7 +134,9 @@ export class SlackService {
     this.asks = askStore(o.root);
     this.apiUrl = o.apiUrl ?? this.env[`${BRAND.slug.toUpperCase()}_SLACK_API`];
     this.WS = o.WebSocket ?? (globalThis as { WebSocket?: WebSocketCtor }).WebSocket;
-    if (this.store.read().enabled) this.start();
+    const c = this.store.read();
+    if (c.enabled) this.start();
+    else if (!c.workspace) void this.adoptEnvTokens();
     if (o.pollMs) {
       this.poll = setInterval(() => void this.tick(), o.pollMs);
       this.poll.unref?.();
@@ -185,8 +187,28 @@ export class SlackService {
   }
 
   /** Step 3 or 4: routes a pasted token by prefix and verifies it live before saving. */
-  async pasteToken(raw: string): Promise<SlackTokenResult> {
-    const token = raw.trim();
+  pasteToken(raw: string): Promise<SlackTokenResult> {
+    return this.verifyToken(raw.trim(), true);
+  }
+
+  /**
+   * Tokens from $MILOOPS_SLACK_APP_TOKEN / $MILOOPS_SLACK_BOT_TOKEN are verified like pasted ones
+   * on first start, but stay in the environment: nothing is written to the credential store.
+   */
+  private async adoptEnvTokens() {
+    const t = this.store.tokens();
+    if (!t.app || !t.bot || (t.app.source === 'stored' && t.bot.source === 'stored')) return;
+    for (const token of [t.app.token, t.bot.token]) {
+      const r = await this.verifyToken(token, false);
+      if (!r.ok) {
+        this.state = 'auth-error';
+        this.error = r.error;
+        return;
+      }
+    }
+  }
+
+  private async verifyToken(token: string, save: boolean): Promise<SlackTokenResult> {
     const fail = (error: string, code: string, kind?: 'app' | 'bot'): SlackTokenResult => ({ ok: false, error, code, kind, status: this.status() });
     const kind = tokenKind(token);
     if (kind === 'user') return fail('That is a user token (xoxp-). Paste the Bot User OAuth Token (xoxb-) from Install App.', 'user_token');
@@ -215,10 +237,10 @@ export class SlackService {
       if (prev.appId && appId && prev.appId !== appId) {
         // A different app: its bot token, workspace and owner no longer apply.
         this.stop();
-        this.store.saveToken('bot', '');
+        if (save) this.store.saveToken('bot', '');
         this.store.update({ workspace: undefined, bot: undefined, owners: [], enabled: false });
       }
-      this.store.saveToken('app', token);
+      if (save) this.store.saveToken('app', token);
       this.store.update({ appId, created: true });
     } else {
       const api = this.api(token);
@@ -237,7 +259,7 @@ export class SlackService {
         const info = await api.call<{ bot?: { app_id?: string } }>('bots.info', { bot: who.bot_id }).catch(() => undefined);
         if (info?.bot?.app_id && info.bot.app_id !== appId) return fail(`That bot token belongs to another Slack app (${info.bot.app_id}). Paste the token from ${BRAND.assistant.name}'s Install App page.`, 'wrong_app', 'bot');
       }
-      this.store.saveToken('bot', token);
+      if (save) this.store.saveToken('bot', token);
       this.store.update({ workspace: { id: who.team_id, name: who.team, url: who.url }, bot: { userId: who.user_id, name: who.user } });
     }
     const t = this.store.tokens();
@@ -253,7 +275,13 @@ export class SlackService {
     const c = this.store.read();
     const next: Partial<SlackConfig> = {};
     if (patch.allow) next.allow = patch.allow.filter((u) => /^[UW][A-Z0-9]+$/.test(u.id)).map((u) => ({ id: u.id, name: u.name }));
-    if (patch.notify) next.notify = { ...c.notify, ...patch.notify };
+    if (patch.notify) {
+      const n = { ...c.notify, ...patch.notify };
+      if (n.target !== 'dm' && !/^[CG][A-Z0-9]+$/.test(n.target)) n.target = c.notify.target;
+      n.events = n.events.filter((e) => SLACK_NOTIFY_EVENTS.includes(e));
+      if (n.detail !== 'titles-only') n.detail = 'full';
+      next.notify = n;
+    }
     if (patch.summary) next.summary = patch.summary;
     if (patch.enabled !== undefined) next.enabled = patch.enabled;
     this.store.update(next);
