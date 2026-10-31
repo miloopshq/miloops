@@ -46,7 +46,7 @@ Writes `landing-hero.png` (1440×900), `landing-desktop.png` (1440 wide, full pa
 - `src/styles.css`: design tokens at the top mirror the command center's palette (steel blue accent, copper action, red only for warnings).
 - `src/main.ts`: progressive enhancement. Respects `prefers-reduced-motion` (no reveals, no tab autoplay, hero video doesn't autoplay).
 - `src/terminal.ts`: the install terminal in step 01 of How it works. It types `npm i -g miloops` → `cd my-app` → `miloops`, then `cd my-app` → `npx miloops`, holds ~3 s on each finished state and loops; under reduced motion (and without JS) it shows the finished first run. `frameAt(t)` is pure, so a doc GIF can be rendered from the same frames.
-- `src/milo/`: framework-free copy of the MILO avatar (`mountMilo.ts` + baked art) from `packages/milo-avatar`; re-copy after re-baking there.
+- `src/miloStates.ts`: the Meet MILO panel, rendered with `mountMilo` from `@miloops-hq/milo-avatar/mount` (framework-free, no React).
 - Favicons, apple-touch icon and the OG / Twitter image are in `public/media/brand/`, copied from the repo's `brand/` folder.
 - `public/favicon.svg`: the older MILO line mark, no longer linked from `index.html`.
 

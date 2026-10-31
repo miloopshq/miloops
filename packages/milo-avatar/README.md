@@ -60,7 +60,7 @@ There is no onboarding placement. The activity log keeps `MiloMark`.
 
 ## Landing page
 
-The landing page has a copy of the framework-free files in `src/milo/` (`art.ts`, `frames.ts`, `types.ts`, `mountMilo.ts`, `MiloAvatar.css`). It does not use React.
+The landing page imports the framework-free renderer from `@miloops-hq/milo-avatar/mount`. It does not use React.
 
 The "Meet MILO" section (`#milo`) mounts an `lg` panel:
 

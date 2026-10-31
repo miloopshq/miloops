@@ -61,10 +61,12 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   background-image:
-    linear-gradient(var(--bg) 0 0),
-    linear-gradient(rgba(132, 182, 194, 0.03) 1px, transparent 1px),
+    linear-gradient(var(--bg) 0 0), linear-gradient(rgba(132, 182, 194, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(132, 182, 194, 0.03) 1px, transparent 1px);
-  background-size: 100% 0, 48px 48px, 48px 48px;
+  background-size:
+    100% 0,
+    48px 48px,
+    48px 48px;
 }
 
 img,
@@ -195,7 +197,11 @@ code {
   font-size: 13px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+  transition:
+    background-color 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    color 0.2s var(--ease),
+    transform 0.2s var(--ease);
   white-space: nowrap;
 }
 
@@ -236,7 +242,9 @@ code {
   top: 0;
   z-index: 50;
   border-bottom: 1px solid transparent;
-  transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease);
+  transition:
+    background-color 0.3s var(--ease),
+    border-color 0.3s var(--ease);
 }
 
 .nav.is-scrolled {
@@ -457,7 +465,9 @@ code {
   text-transform: uppercase;
   color: var(--dim);
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .seg button + button {
@@ -490,7 +500,10 @@ code {
   color: var(--accent);
   cursor: pointer;
   border-radius: var(--radius);
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .copy:hover {
@@ -547,10 +560,30 @@ code {
   pointer-events: none;
 }
 
-.corner--tl { top: -1px; left: -1px; border-top-width: 2px; border-left-width: 2px; }
-.corner--tr { top: -1px; right: -1px; border-top-width: 2px; border-right-width: 2px; }
-.corner--bl { bottom: -1px; left: -1px; border-bottom-width: 2px; border-left-width: 2px; }
-.corner--br { bottom: -1px; right: -1px; border-bottom-width: 2px; border-right-width: 2px; }
+.corner--tl {
+  top: -1px;
+  left: -1px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+.corner--tr {
+  top: -1px;
+  right: -1px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+.corner--bl {
+  bottom: -1px;
+  left: -1px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+.corner--br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
 
 /* ---------- facts strip ---------- */
 
@@ -698,7 +731,9 @@ code {
   text-align: left;
   color: var(--dim);
   cursor: pointer;
-  transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
+  transition:
+    background-color 0.25s var(--ease),
+    color 0.25s var(--ease);
 }
 
 .meet__states button::before {
@@ -823,7 +858,10 @@ code {
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-height 0.45s var(--ease), opacity 0.3s, margin 0.3s;
+  transition:
+    max-height 0.45s var(--ease),
+    opacity 0.3s,
+    margin 0.3s;
 }
 
 .steps__list button:hover .steps__t {
@@ -916,11 +954,25 @@ code {
   overflow: hidden;
 }
 
-.term__ps { color: var(--accent); }
-.term__cmd { color: var(--text-hi); }
-.term__body b { color: var(--text-hi); font-weight: 400; letter-spacing: 0.08em; }
-.term__body i { color: var(--dim); font-style: normal; }
-.term__body u { color: var(--text-hi); text-decoration: none; }
+.term__ps {
+  color: var(--accent);
+}
+.term__cmd {
+  color: var(--text-hi);
+}
+.term__body b {
+  color: var(--text-hi);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+}
+.term__body i {
+  color: var(--dim);
+  font-style: normal;
+}
+.term__body u {
+  color: var(--text-hi);
+  text-decoration: none;
+}
 
 .term__cur {
   display: inline-block;
@@ -930,7 +982,9 @@ code {
   background: var(--text-hi);
 }
 
-.term__cur.off { background: transparent; }
+.term__cur.off {
+  background: transparent;
+}
 
 @media (max-width: 860px) {
   .term--wrap {
@@ -978,7 +1032,10 @@ code {
   width: calc(var(--w) * 1%);
   height: calc(var(--h) * 1%);
   border: 1px solid transparent;
-  transition: border-color 0.3s var(--ease), background-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  transition:
+    border-color 0.3s var(--ease),
+    background-color 0.3s var(--ease),
+    box-shadow 0.3s var(--ease);
 }
 
 .zone b {
@@ -995,7 +1052,10 @@ code {
   background: var(--bg);
   color: var(--dim);
   border: 1px solid var(--line-2);
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    border-color 0.3s;
 }
 
 .zone.is-active {
@@ -1035,7 +1095,9 @@ code {
   border-top: 1px solid var(--line-2);
   color: var(--dim);
   cursor: pointer;
-  transition: border-color 0.25s, color 0.25s;
+  transition:
+    border-color 0.25s,
+    color 0.25s;
 }
 
 .zones__list button:hover {
@@ -1533,7 +1595,9 @@ code {
   color: var(--ok);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s, transform 0.25s var(--ease);
+  transition:
+    opacity 0.25s,
+    transform 0.25s var(--ease);
 }
 
 .toast.is-on {
@@ -1546,7 +1610,9 @@ code {
 .js .reveal {
   opacity: 0;
   transform: translateY(18px);
-  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  transition:
+    opacity 0.8s var(--ease),
+    transform 0.8s var(--ease);
   transition-delay: calc(var(--i, 0) * 70ms);
 }
 
@@ -1558,7 +1624,9 @@ code {
 .js .hero__title span {
   opacity: 0;
   transform: translateY(0.35em);
-  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  transition:
+    opacity 0.9s var(--ease),
+    transform 0.9s var(--ease);
 }
 
 .js .hero__title.is-in span {
@@ -1566,8 +1634,12 @@ code {
   transform: none;
 }
 
-.js .hero__title span:nth-child(2) { transition-delay: 0.12s; }
-.js .hero__title span:nth-child(3) { transition-delay: 0.24s; }
+.js .hero__title span:nth-child(2) {
+  transition-delay: 0.12s;
+}
+.js .hero__title span:nth-child(3) {
+  transition-delay: 0.24s;
+}
 
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -1653,7 +1725,6 @@ code {
     margin-bottom: 16px;
     font-size: 16px;
   }
-
 }
 
 @media (max-width: 860px) {
@@ -1901,4 +1972,3 @@ code {
     min-height: 0;
   }
 }
-

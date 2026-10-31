@@ -12,11 +12,7 @@ const BOOT = [
 ];
 
 export const SCRIPTS: Step[][] = [
-  [
-    { ps: '~ $', cmd: 'cd my-app' },
-    { ps: '~/my-app $', cmd: 'npx miloops' },
-    { out: BOOT },
-  ],
+  [{ ps: '~ $', cmd: 'cd my-app' }, { ps: '~/my-app $', cmd: 'npx miloops' }, { out: BOOT }],
   [
     { ps: '~ $', cmd: 'npm i -g miloops' },
     { out: ['<i>added 1 package in 2s</i>'] },
@@ -37,7 +33,13 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 /** Slightly uneven typing, the same on every loop. */
 const charTime = (i: number) => (1 + 0.45 * Math.sin(i * 2.3)) / CPS;
 
-interface Timed { step: Step; show: number; start: number; times: number[]; end: number }
+interface Timed {
+  step: Step;
+  show: number;
+  start: number;
+  times: number[];
+  end: number;
+}
 
 function plan(script: Step[]) {
   let t = 0;
@@ -81,7 +83,9 @@ export function frameAt(t: number, opts: { cursorOn?: boolean } = {}): string {
       const n = s.times.filter((x) => x <= lt).length;
       const active = lt < s.end;
       const typingNow = active && lt >= s.start;
-      lines.push(`<span class="term__ps">${esc(s.step.ps)}</span> <span class="term__cmd">${esc(s.step.cmd.slice(0, n))}</span>${active ? cur(typingNow || blink) : ''}`);
+      lines.push(
+        `<span class="term__ps">${esc(s.step.ps)}</span> <span class="term__cmd">${esc(s.step.cmd.slice(0, n))}</span>${active ? cur(typingNow || blink) : ''}`,
+      );
       cursorPlaced = active;
     } else {
       const n = Math.min(s.step.out.length, Math.floor((lt - s.start) / PER_LINE) + 1);
