@@ -16,7 +16,8 @@ const url = process.env.CC_URL ?? 'http://localhost:5173/';
 const size = { width: 1680, height: 945 };
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/local/bin/google-chrome' });
-const ctx = await browser.newContext({ viewport: size });
+// 2x pixels so the zoomed crops stay sharp; full-app shots are saved at 1x.
+const ctx = await browser.newContext({ viewport: size, deviceScaleFactor: 2 });
 const page = await ctx.newPage();
 page.on('pageerror', (e) => console.log('pageerror:', e.message));
 
@@ -38,8 +39,32 @@ const setVisible = (v) =>
   }, v);
 
 const shot = async (name) => {
-  await page.screenshot({ path: join(media, `${name}.png`) });
+  await page.screenshot({ path: join(media, `${name}.png`), scale: 'css' });
   console.log('saved', `${name}.png`);
+};
+
+/**
+ * Close-up of the part a landing section talks about: the union of `sels` plus padding,
+ * widened or heightened to `aspect` (w/h) around its center, kept inside the viewport. Saved at 2x.
+ */
+const zoom = async (name, sels, { aspect = 4 / 3, pad = 16 } = {}) => {
+  const boxes = await Promise.all(sels.map((s) => page.locator(s).first().boundingBox()));
+  let x0 = Math.min(...boxes.map((b) => b.x)) - pad;
+  let y0 = Math.min(...boxes.map((b) => b.y)) - pad;
+  let x1 = Math.max(...boxes.map((b) => b.x + b.width)) + pad;
+  let y1 = Math.max(...boxes.map((b) => b.y + b.height)) + pad;
+  const grow = (a0, a1, len, max) => {
+    const c = (a0 + a1) / 2;
+    const lo = Math.min(Math.max(0, c - len / 2), max - len);
+    return [Math.max(0, lo), Math.min(max, Math.max(0, lo) + len)];
+  };
+  if ((x1 - x0) / (y1 - y0) < aspect) [x0, x1] = grow(x0, x1, (y1 - y0) * aspect, size.width);
+  else [y0, y1] = grow(y0, y1, (x1 - x0) / aspect, size.height);
+  [x0, y0] = [Math.max(0, x0), Math.max(0, y0)];
+  [x1, y1] = [Math.min(size.width, x1), Math.min(size.height, y1)];
+  const clip = { x: Math.round(x0), y: Math.round(y0), width: Math.round(x1 - x0), height: Math.round(y1 - y0) };
+  await page.screenshot({ path: join(media, `${name}.png`), clip });
+  console.log('saved', `${name}.png`, `${clip.width * 2}x${clip.height * 2}`);
 };
 
 /** Overlay boxes for the landing's "Fixed zones" figure, as % of the viewport. */
@@ -53,11 +78,30 @@ const zoneBoxes = () =>
       activity: '.log-zone',
       sessions: '.step-zone',
       plan: '.sections',
+      // A list of selectors is measured as one box around all of them.
+      spend: ['.step-zone .sessions-head', '.step-zone .sessions-list'],
     };
+    /** Boxes that scroll inside a panel are cut to that panel. */
+    const within = { spend: '.step-zone' };
     const pct = (v, d) => +((v / d) * 100).toFixed(1);
+    const box = (s, clip) => {
+      const rs = [s].flat().map((x) => document.querySelector(x)?.getBoundingClientRect());
+      if (rs.some((r) => !r)) return undefined;
+      const c = (clip && document.querySelector(clip)?.getBoundingClientRect()) || {
+        left: 0,
+        top: 0,
+        right: innerWidth,
+        bottom: innerHeight,
+      };
+      const left = Math.max(c.left, Math.min(...rs.map((r) => r.left)));
+      const top = Math.max(c.top, Math.min(...rs.map((r) => r.top)));
+      const right = Math.min(c.right, Math.max(...rs.map((r) => r.right)));
+      const bottom = Math.min(c.bottom, Math.max(...rs.map((r) => r.bottom)));
+      return { left, top, width: right - left, height: bottom - top };
+    };
     return Object.fromEntries(
       Object.entries(sel).map(([k, s]) => {
-        const r = document.querySelector(s)?.getBoundingClientRect();
+        const r = box(s, within[k]);
         return [
           k,
           r &&
@@ -67,7 +111,10 @@ const zoneBoxes = () =>
     );
   });
 
-await page.goto(url);
+// Autopilot is hidden outside the demo tracker unless the URL opts in.
+const withAutopilot = new URL(url);
+withAutopilot.searchParams.set('autopilot', '');
+await page.goto(withAutopilot.href);
 await page.locator('.dialog.onboarding').waitFor({ timeout: 20000 });
 await wait(800);
 await page.getByRole('button', { name: 'Get started' }).click();
@@ -97,15 +144,15 @@ await fields
   .nth(2)
   .pressSequentially('Admins asked for this in the Q3 survey. Must work with existing SSO.', { delay: 18 });
 await wait(600);
-await shot('flow-05-new-mission');
+await zoom('flow-05-new-mission', ['.dialog'], { aspect: 16 / 10 });
 await page.locator('.dialog footer .btn.primary').click();
 await page.locator('.node').nth(3).waitFor({ timeout: 20000 });
 await wait(9000);
-await shot('flow-06-first-tickets');
+await zoom('flow-06-first-tickets', ['.map-zone'], { aspect: 16 / 10 });
 
 await page.locator('.mission-btn').click();
 await wait(1500);
-await shot('command-center-missions');
+await zoom('command-center-missions', ['.mission-btn', '.mission-menu'], { aspect: 16 / 10, pad: 48 });
 await wait(1500);
 await page.keyboard.press('Escape');
 await wait(600);
@@ -117,7 +164,7 @@ await page.locator('.inbox-list li', { hasText: 'Who is the primary' }).first().
 await page.locator('.inbox-list li button', { hasText: 'Who is the primary' }).first().click();
 await chip().waitFor({ timeout: 20000 });
 await wait(1500);
-await shot('flow-07-waiting-on-you');
+await zoom('flow-07-waiting-on-you', ['.inbox .comms'], { aspect: 16 / 10 });
 
 await page.locator('.inbox-list li button', { hasText: 'silent auto-merge' }).first().click();
 await chip().waitFor({ timeout: 20000 });
@@ -134,7 +181,7 @@ await wait(800);
 await chip().click();
 await page.locator('.msg-text', { hasText: 'Draft resolution' }).waitFor({ timeout: 20000 });
 await wait(1500);
-await shot('command-center-hitl-conversation');
+await zoom('command-center-hitl-conversation', ['.comms .msg.open-q', '.comms .suggest'], { aspect: 16 / 10 });
 await chip().click();
 await page.locator('.comms .status', { hasText: 'Resolved' }).waitFor({ timeout: 20000 });
 await wait(2500);
@@ -142,7 +189,11 @@ await wait(2500);
 await page.locator('.briefing-btn').click();
 await page.locator('.bf-tile').first().waitFor({ timeout: 10000 });
 await wait(2500);
-await shot('command-center-briefing');
+// Top of the briefing: MILO's summary and the stat tiles.
+await zoom('command-center-briefing', ['.dialog.briefing h2', '.dialog.briefing .bf-tiles'], {
+  aspect: 16 / 10,
+  pad: 24,
+});
 await wait(1500);
 await page.getByRole('button', { name: 'Dismiss' }).click();
 await wait(800);
@@ -153,7 +204,8 @@ await hideUnshipped();
 await page.locator('.dv-row', { hasText: 'silent auto-merge' }).first().click();
 await wait(1500);
 await hideUnshipped();
-await shot('command-center-decisions');
+// Top of the open decision: question, answer, facts and alternatives.
+await zoom('command-center-decisions', ['.dv-detail .d-head', '.dv-detail .dv-alts'], { aspect: 16 / 10 });
 await wait(3000);
 await page.locator('.decisions-btn').click();
 await wait(1500);
@@ -163,7 +215,11 @@ const cdp = await ctx.newCDPSession(page);
 await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true });
 await wait(2500);
-const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' });
+// Top half only: the header and the Waiting on you inbox.
+const { data } = await cdp.send('Page.captureScreenshot', {
+  format: 'png',
+  clip: { x: 0, y: 0, width: 390, height: 430, scale: 1 },
+});
 writeFileSync(join(media, 'command-center-phone.png'), Buffer.from(data, 'base64'));
 console.log('saved command-center-phone.png');
 await ctx.close();

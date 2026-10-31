@@ -201,7 +201,7 @@
 /* The frame is a real border inside the 36px column so nothing paints outside the scrolling log. */
 .msg.open-q .q-avatar {
   grid-column: 1;
-  grid-row: 1 / span 2;
+  grid-row: 2;
   align-self: start;
   position: relative;
   padding: 1px;

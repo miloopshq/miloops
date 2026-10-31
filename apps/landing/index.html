@@ -22,6 +22,7 @@
     <link rel="icon" href="/media/brand/favicon-64.png" type="image/png" sizes="64x64" />
     <link rel="apple-touch-icon" href="/media/brand/slack-icon-512.png" />
     <link rel="preload" as="image" href="/media/command-center-overview.png" />
+    <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
@@ -128,7 +129,9 @@
     <header class="nav" id="nav">
       <div class="wrap nav__inner">
         <a class="brand" href="#top" aria-label="MILOOPS home">
-          <svg class="brand__mark" viewBox="0 0 16 14" aria-hidden="true"><use href="#milo-mini" /></svg>
+          <svg class="brand__mark" width="32" height="28" viewBox="0 0 16 14" aria-hidden="true">
+            <use href="#milo-mini" />
+          </svg>
           <span class="brand__name">MILO<span class="wordmark-ops">OPS</span></span>
         </a>
         <nav class="nav__links" aria-label="Primary">
@@ -139,7 +142,8 @@
         </nav>
         <div class="nav__actions">
           <a class="btn btn--ghost btn--sm" href="https://github.com/miloopshq/miloops" rel="noopener">
-            <svg class="ico" aria-hidden="true"><use href="#i-github" /></svg><span class="hide-sm">GitHub</span>
+            <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-github" /></svg
+            ><span class="hide-sm">GitHub</span>
           </a>
           <a class="btn btn--primary btn--sm" href="#install">Install</a>
         </div>
@@ -179,7 +183,7 @@
                     <span class="install__hint">Opens the command center</span>
                   </div>
                   <button class="copy" type="button" data-copy="npx miloops" aria-label="Copy start command">
-                    <svg class="ico" aria-hidden="true"><use href="#i-copy" /></svg>
+                    <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-copy" /></svg>
                   </button>
                 </div>
                 <div class="install__line">
@@ -198,7 +202,7 @@
                     data-agent-copy
                     aria-label="Copy connect command"
                   >
-                    <svg class="ico" aria-hidden="true"><use href="#i-copy" /></svg>
+                    <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-copy" /></svg>
                   </button>
                 </div>
               </div>
@@ -206,7 +210,7 @@
             <div class="hero__buttons reveal">
               <a class="btn btn--primary" href="#how">See how it works</a>
               <a class="btn btn--ghost" href="https://github.com/miloopshq/miloops" rel="noopener">
-                <svg class="ico" aria-hidden="true"><use href="#i-github" /></svg>Star on GitHub
+                <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-github" /></svg>Star on GitHub
               </a>
               <p class="hero__demo">
                 New here? Pick <strong>Demo</strong> during setup to look around a ready-made mission first, then switch
@@ -426,8 +430,8 @@
               <div class="frame steps__panel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
                 <img
                   src="/media/flow-05-new-mission.png"
-                  width="1440"
-                  height="900"
+                  width="1526"
+                  height="954"
                   loading="lazy"
                   decoding="async"
                   alt="New mission form with title, destination, notes and mode."
@@ -436,8 +440,8 @@
               <div class="frame steps__panel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
                 <img
                   src="/media/flow-06-first-tickets.png"
-                  width="1440"
-                  height="900"
+                  width="1962"
+                  height="1226"
                   loading="lazy"
                   decoding="async"
                   alt="Mission map with the first tickets charted and agents starting on them."
@@ -446,8 +450,8 @@
               <div class="frame steps__panel" role="tabpanel" id="panel-5" aria-labelledby="tab-5" hidden>
                 <img
                   src="/media/flow-07-waiting-on-you.png"
-                  width="1440"
-                  height="900"
+                  width="1444"
+                  height="902"
                   loading="lazy"
                   decoding="async"
                   alt="An agent's question in the Waiting on you inbox with suggested replies."
@@ -477,7 +481,7 @@
                 />
                 <div class="zones__overlay" aria-hidden="true">
                   <span class="zone" data-zone="inbox" style="--x: 0.7; --y: 8.7; --w: 21.4; --h: 90.3"><b>1</b></span>
-                  <span class="zone" data-zone="mission" style="--x: 5; --y: 1.7; --w: 40.8; --h: 5.2"><b>2</b></span>
+                  <span class="zone" data-zone="mission" style="--x: 5.2; --y: 1.7; --w: 34.5; --h: 5.2"><b>2</b></span>
                   <span class="zone" data-zone="map" style="--x: 22.7; --y: 8.7; --w: 52.1; --h: 61.5"><b>3</b></span>
                   <span class="zone" data-zone="ticket" style="--x: 75.5; --y: 8.7; --w: 23.8; --h: 61.5"
                     ><b>4</b></span
@@ -489,6 +493,7 @@
                     ><b>6</b></span
                   >
                   <span class="zone" data-zone="plan" style="--x: 75.5; --y: 71.2; --w: 23.8; --h: 27.7"><b>7</b></span>
+                  <span class="zone" data-zone="spend" style="--x: 23.6; --y: 86; --w: 25.2; --h: 12.9"><b>8</b></span>
                 </div>
               </figure>
               <ol class="zones__list">
@@ -553,8 +558,7 @@
                     ><span class="zones__t"
                       ><strong>Current step and sessions</strong
                       ><span class="zones__d"
-                        >What each agent is doing right now, plus spend and tokens per agent and for the whole
-                        mission.</span
+                        >What each agent is doing right now, step by step, and which tickets each one holds.</span
                       ></span
                     >
                   </button>
@@ -566,6 +570,18 @@
                       ><strong>Plan</strong
                       ><span class="zones__d"
                         >Not yet specified, decisions so far, and out of scope. The mission's memory.</span
+                      ></span
+                    >
+                  </button>
+                </li>
+                <li>
+                  <button type="button" data-zone="spend" aria-pressed="false">
+                    <span class="zones__n">8</span
+                    ><span class="zones__t"
+                      ><strong>Tokens and spend</strong
+                      ><span class="zones__d"
+                        >Usage for every agent and the whole mission, always on screen, so costs never surprise
+                        you.</span
                       ></span
                     >
                   </button>
@@ -585,7 +601,7 @@
           </header>
           <ul class="features">
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true">
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <path d="M5 7h22v18H5z" />
                 <path d="m9 13 4 3-4 3M15 20h7" />
               </svg>
@@ -593,7 +609,7 @@
               <p>Works with the AI coding agents you already use, through MCP.</p>
             </li>
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true">
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <path d="M6 8h20v12H6z" />
                 <path d="M10 25h12M16 20v5" />
                 <path d="m10 12 3 2-3 2M15 16h5" />
@@ -605,7 +621,7 @@
               </p>
             </li>
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true">
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <rect x="4" y="5" width="9" height="6" />
                 <rect x="19" y="5" width="9" height="6" />
                 <rect x="11.5" y="21" width="9" height="6" />
@@ -618,7 +634,7 @@
               </p>
             </li>
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true">
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <path d="M5 25h22" />
                 <path d="M8 25V17M13 25V11M18 25v-6M23 25V7" />
               </svg>
@@ -626,7 +642,7 @@
               <p>What each agent costs and uses, and the running total for the mission. Always on screen.</p>
             </li>
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true">
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <path d="M5 8h22v14H13l-6 5v-5H5z" />
                 <path d="M16 12v4M16 18.5v.5" />
               </svg>
@@ -637,7 +653,7 @@
               </p>
             </li>
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true">
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <path d="M8 4h11l5 5v19H8z" />
                 <path d="M19 4v5h5" />
                 <path d="m12 18 3 3 5-6" />
@@ -649,7 +665,9 @@
               </p>
             </li>
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true"><use href="#voice" /></svg>
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+                <use href="#voice" />
+              </svg>
               <h3>While you were away</h3>
               <p>
                 Come back after a break and MILO briefs you: what got done, what's blocked, what's waiting on you and
@@ -657,7 +675,7 @@
               </p>
             </li>
             <li class="feature reveal">
-              <svg class="feature__ico" viewBox="0 0 32 32" aria-hidden="true">
+              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
                 <path d="M6 10h15l-4-4M26 22H11l4 4" />
               </svg>
               <h3>GitHub Issues and Linear, two-way</h3>
@@ -677,11 +695,15 @@
             <div class="agents__field">
               <ul class="agents__grid" aria-label="Coding agents">
                 <li class="tile tile--agent tile--on">
-                  <svg class="tile__logo" aria-hidden="true"><use href="/media/agents/agent-logos.svg#claude" /></svg>
+                  <svg class="tile__logo" width="52" height="52" aria-hidden="true">
+                    <use href="/media/agents/agent-logos.svg#claude" />
+                  </svg>
                   <span class="tile__name">Claude Code</span>
                 </li>
                 <li class="tile tile--agent tile--on">
-                  <svg class="tile__logo" aria-hidden="true"><use href="/media/agents/agent-logos.svg#openai" /></svg>
+                  <svg class="tile__logo" width="52" height="52" aria-hidden="true">
+                    <use href="/media/agents/agent-logos.svg#openai" />
+                  </svg>
                   <span class="tile__name">Codex</span>
                 </li>
                 <li class="tile tile--agent">
@@ -753,8 +775,8 @@
             <figure class="frame row__media">
               <img
                 src="/media/command-center-hitl-conversation.png"
-                width="1680"
-                height="945"
+                width="880"
+                height="550"
                 loading="lazy"
                 decoding="async"
                 alt="An agent's draft resolution in the conversation panel, waiting for the operator to record it."
@@ -774,8 +796,8 @@
             <figure class="frame row__media">
               <img
                 src="/media/command-center-briefing.png"
-                width="1680"
-                height="945"
+                width="1524"
+                height="952"
                 loading="lazy"
                 decoding="async"
                 alt="The While you were away briefing: tickets done, blocked, waiting on you, agent decisions and spend since you left."
@@ -795,8 +817,8 @@
             <figure class="frame row__media">
               <img
                 src="/media/command-center-decisions.png"
-                width="1680"
-                height="945"
+                width="1236"
+                height="772"
                 loading="lazy"
                 decoding="async"
                 alt="The Decisions log listing every decision with its source and who decided, with one decision open showing its rationale and transcript."
@@ -814,8 +836,8 @@
             <figure class="frame row__media">
               <img
                 src="/media/command-center-missions.png"
-                width="1680"
-                height="945"
+                width="1112"
+                height="696"
                 loading="lazy"
                 decoding="async"
                 alt="The mission switcher open over the command center, listing two missions."
@@ -835,7 +857,7 @@
               <img
                 src="/media/command-center-phone.png"
                 width="780"
-                height="1688"
+                height="860"
                 loading="lazy"
                 decoding="async"
                 alt="The command center on a phone, opened on the Waiting on you inbox."
@@ -1033,13 +1055,13 @@
       <section class="section final" aria-labelledby="final-title">
         <div class="wrap">
           <div class="final__card frame reveal">
-            <svg class="final__mark" aria-hidden="true"><use href="#mark" /></svg>
+            <svg class="final__mark" width="48" height="48" aria-hidden="true"><use href="#mark" /></svg>
             <h2 id="final-title">Autonomous operations. Under control.</h2>
             <div class="install install--inline">
               <div class="install__line">
                 <code><span class="prompt" aria-hidden="true">$</span> npx miloops</code>
                 <button class="copy" type="button" data-copy="npx miloops" aria-label="Copy start command">
-                  <svg class="ico" aria-hidden="true"><use href="#i-copy" /></svg>
+                  <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-copy" /></svg>
                 </button>
               </div>
             </div>
@@ -1056,7 +1078,9 @@
       <div class="wrap footer__grid">
         <div class="footer__brand">
           <a class="brand" href="#top" aria-label="MILOOPS home">
-            <svg class="brand__mark" viewBox="0 0 16 14" aria-hidden="true"><use href="#milo-mini" /></svg>
+            <svg class="brand__mark" width="32" height="28" viewBox="0 0 16 14" aria-hidden="true">
+              <use href="#milo-mini" />
+            </svg>
             <span class="brand__name">MILO<span class="wordmark-ops">OPS</span></span>
           </a>
           <p>One command center. Every agent. Total operational awareness.</p>

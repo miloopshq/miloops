@@ -189,6 +189,8 @@ export function useCommandCenter(rt: Runtime) {
     selection,
     setSelection,
     autopilot,
+    /** Autopilot runs simulated agents that close real tickets, so it's offered on the demo tracker only; `?autopilot` opts in (capture scripts). */
+    autopilotAvailable: rt.kind === 'demo' || new URLSearchParams(location.search).has('autopilot'),
     error,
     chatSession,
     decisions,

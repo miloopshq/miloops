@@ -6,3 +6,4 @@ apps/landing/public
 brand
 **/milo/art.ts
 packages/core/test/fixtures
+.vercel

@@ -13,7 +13,7 @@ import {
   useDocumentTitle,
   useRepoName,
   useScopedActivity,
-} from './app';
+} from './app/index';
 import { StepZone, LogZone, ActivityStack } from './features/activity';
 import { DecisionsView } from './features/decisions';
 import { InboxPane } from './features/inbox';

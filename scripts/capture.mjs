@@ -91,7 +91,10 @@ const annotate = (zones) =>
     document.body.appendChild(layer);
   }, zones);
 
-await page.goto(url);
+// Autopilot is hidden outside the demo tracker unless the URL opts in.
+const withAutopilot = new URL(url);
+withAutopilot.searchParams.set('autopilot', '');
+await page.goto(withAutopilot.href);
 await wait(1500);
 
 // First run: onboarding. Keep local markdown, choose full HITL transcripts.

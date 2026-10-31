@@ -11,9 +11,11 @@ export function CommandBar({ api }: { api: CommandCenterApi }) {
         <MiloMark variant="action" size={14} />
         Work next
       </Button>
-      <button className={`toggle ${api.autopilot ? 'on' : ''}`} onClick={actions.toggleAutopilot}>
-        <i /> Autopilot
-      </button>
+      {api.autopilotAvailable && (
+        <button className={`toggle ${api.autopilot ? 'on' : ''}`} onClick={actions.toggleAutopilot}>
+          <i /> Autopilot
+        </button>
+      )}
     </div>
   );
 }
