@@ -70,7 +70,8 @@ export function settledView(s: Settled) {
           ? `${s.failures} failed attempts: the human decides in the command center. Move on to another ticket.`
           : `The checks could not run (${a.note}). The human has to fix verification.json; move on to another ticket.`,
     };
-  if (s.phase === 'verifying') return { ...base, note: 'Checks passed; the ticket waits for review.' };
+  if (s.phase === 'verifying')
+    return { ...base, note: 'Checks passed; another agent reviews the work next. Move on to another ticket.' };
   return base;
 }
 

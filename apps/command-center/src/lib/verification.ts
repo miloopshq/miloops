@@ -1,5 +1,6 @@
 import {
   BRAND,
+  type ApprovalItem,
   type AttemptResult,
   type CheckResult,
   type LevelInfo,
@@ -59,6 +60,12 @@ export const verificationApi = {
     fetch(`${api}/ticket?mapId=${encodeURIComponent(mapId)}&ticketId=${encodeURIComponent(ticketId)}`).then(
       (r) => (r.ok ? (r.json() as Promise<TicketVerification>) : undefined),
       () => undefined,
+    ),
+  /** Tickets waiting on the operator across missions; empty without a local server. */
+  inbox: () =>
+    fetch(`${api}/inbox`).then(
+      (r) => (r.ok ? (r.json() as Promise<{ items: ApprovalItem[] }>).then((b) => b.items) : []),
+      () => [] as ApprovalItem[],
     ),
   log: (path: string) =>
     fetch(`${api}/log?path=${encodeURIComponent(path)}`).then((r) => json<{ text: string; clipped: boolean }>(r)),

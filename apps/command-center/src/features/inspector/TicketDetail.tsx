@@ -61,6 +61,12 @@ export function TicketDetail(props: {
         </dd>
         <dt>Blocks</dt>
         <dd>{blocks.map((b) => b.key).join(', ') || '—'}</dd>
+        {t.reviewOf && (
+          <>
+            <dt>Reviews</dt>
+            <dd>{byId.get(t.reviewOf)?.key ?? t.reviewOf}</dd>
+          </>
+        )}
       </dl>
 
       <PrFlagBadges mapId={snap.map.id} ticketId={t.id} />

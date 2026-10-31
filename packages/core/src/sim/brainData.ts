@@ -26,6 +26,7 @@ export const TRACES: Record<TicketType, string[]> = {
   ],
   task: ['executing task', 'verifying output', 'attaching artefact link'],
   execute: ['checking out branch', 'implementing change set', 'running test suite', 'opening pull request'],
+  review: ['reading the diff', 'running the checks again', 'writing findings'],
 };
 
 export const ANSWERS: Record<TicketType, string[]> = {
@@ -53,6 +54,7 @@ export const ANSWERS: Record<TicketType, string[]> = {
     'Implemented behind flag `offline_queue`; 42 tests added, CI green. PR opened for review.',
     'Change set landed on a branch with migration + rollback script. PR opened.',
   ],
+  review: ['The change does what the ticket asks and the checks cover it. PASS.'],
 };
 
 /** Alternatives weighed and the reason, index-aligned with ANSWERS. */
@@ -102,4 +104,5 @@ export const DETAILS: Record<TicketType, [string[], string][]> = {
     [['Ship without a flag'], 'The flag gives an instant rollback while the queue is new.'],
     [['Migrate in place without rollback'], 'A rollback script keeps the release reversible.'],
   ],
+  review: [[['Send back for more tests'], 'The existing checks already exercise the change.']],
 };

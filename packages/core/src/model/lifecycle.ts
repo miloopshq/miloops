@@ -67,6 +67,8 @@ export interface TicketMetaPatch {
   /** Operator only (`setVerification`). */
   verification?: VerificationLevel | null;
   checks?: string[] | null;
+  /** Set once, when MILOOPS creates a review ticket. */
+  reviewOf?: string | null;
 }
 
 /** MILOOPS fields stored with a mission. `null` clears a field. */

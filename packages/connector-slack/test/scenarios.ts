@@ -1,6 +1,8 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { MemoryAdapter, chartMap, claim, type MapSections } from '@miloops-hq/core';
+import { MemoryAdapter, chartMap, claim, transition, type MapSections, type Ticket } from '@miloops-hq/core';
+import { readVerdicts, writeAttempt, writeVerdict } from '@miloops-hq/core/agents';
+import type { FakeSlack } from './fakes/slack';
 import { ALL_SCOPES, ANA, EVE, RAJ, TOKENS, agentDoc, connected, readJson, until, type World } from './harness';
 
 const SECTIONS: MapSections = {
@@ -236,4 +238,92 @@ export async function notifyFlow(w: World) {
   for (const t of [bench, db, retention, migrate]) await a.close(map.id, t.id, 'completed');
   await svc.tick();
   await svc.tick();
+}
+
+/** The channel and ts of the message MILO posted whose text starts with `prefix`. */
+function posted(f: FakeSlack, prefix: string): [string, string] {
+  for (const [id, c] of f.channels) {
+    const m = c.messages.find((x) => x.text.startsWith(prefix));
+    if (m) return [id, m.ts];
+  }
+  throw new Error(`no message starting "${prefix}"`);
+}
+
+/** A reviewed pass to approve and a held ticket reach the owner; Approve and Rework… decide them from Slack. */
+export async function approvalFlow(w: World) {
+  const a = new MemoryAdapter({ latency: [0, 0] });
+  writeFileSync(
+    path.join(w.root, 'verification.json'),
+    JSON.stringify({ v: 1, checks: { ok: { run: ['true'] } }, run: ['ok'] }),
+  );
+  const { map, tickets } = await chartMap(a, {
+    title: 'Event store',
+    sections: SECTIONS,
+    verification: 'checks+review+human',
+    tickets: [
+      { ref: 'api', title: 'Write API', type: 'execute', body: 'Build.' },
+      { ref: 'mig', title: 'Migrate schema', type: 'execute', body: 'Apply.' },
+    ],
+  });
+  const [api, mig] = tickets;
+  const attempt = (t: Ticket, result: 'pass' | 'fail') =>
+    writeAttempt(w.root, {
+      v: 1,
+      id: 'A-1',
+      mapId: map.id,
+      ticketId: t.id,
+      ticketKey: t.key,
+      agent: 'claude-07',
+      level: 'checks+review+human',
+      configHash: 'x',
+      submittedAt: Date.now(),
+      finishedAt: Date.now(),
+      resolution: `Did ${t.title}`,
+      checks: [],
+      result,
+    });
+  for (const t of [api, mig]) {
+    await transition(a, map.id, t.id, { event: 'claim', actor: 'claude-07', actorKind: 'agent' });
+    await transition(a, map.id, t.id, { event: 'submit', actor: 'claude-07', actorKind: 'agent' });
+  }
+  attempt(api, 'pass');
+  writeVerdict(w.root, {
+    v: 1,
+    mapId: map.id,
+    ticketId: api.id,
+    attemptId: 'A-1',
+    by: 'claude-02',
+    byKind: 'agent',
+    verdict: 'PASS',
+    summary: 'The write path is covered by tests',
+    findings: [],
+    at: Date.now(),
+  });
+  attempt(mig, 'fail');
+  await transition(a, map.id, mig.id, { event: 'checks.fail', to: 'blocked', actor: 'miloops', actorKind: 'engine' });
+
+  connected(w, { allow: [RAJ] });
+  const svc = w.service(a);
+  await until(() => svc.status().state === 'online', 'socket online');
+  await svc.tick();
+  await w.send(svc, 'eve (not allowed) clicks Approve', (f) =>
+    f.payload.click(EVE, ...posted(f, 'Approve'), 'verify_approve'),
+  );
+  await w.send(svc, 'ana clicks Approve', (f) => f.payload.click(ANA, ...posted(f, 'Approve'), 'verify_approve'));
+  await w.send(svc, 'ana clicks Rework… on the held ticket', (f) =>
+    f.payload.click(ANA, ...posted(f, 'Held'), 'verify_rework'),
+  );
+  await w.send(svc, 'ana submits an empty reason', (f) =>
+    f.payload.submit(ANA, [...f.views.keys()].at(-1)!, { reason: '' }),
+  );
+  await w.send(svc, 'ana submits the reason', (f) =>
+    f.payload.submit(ANA, [...f.views.keys()].at(-1)!, { reason: 'Split the migration in two' }),
+  );
+  await svc.tick();
+  const snap = await a.loadMap(map.id);
+  return {
+    api: snap.tickets.find((t) => t.id === api.id)!,
+    mig: snap.tickets.find((t) => t.id === mig.id)!,
+    verdicts: [...readVerdicts(w.root, map.id, api.id), ...readVerdicts(w.root, map.id, mig.id)],
+  };
 }

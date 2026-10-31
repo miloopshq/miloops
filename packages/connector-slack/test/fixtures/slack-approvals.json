@@ -1,0 +1,632 @@
+{
+  "source": "fake",
+  "recordedAt": "2026-10-31T23:07:56.896Z",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). A reviewed pass to approve and a held ticket in the owner DM: refused click, Approve, Rework… modal with a reason.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/conversations.open",
+        "body": {
+          "users": "U0ANA0001"
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": {
+            "id": "D00ANA0001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Approve · #2 Write API",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◆ *APPROVE* · Event store · #2 Write API\n>claude-02 reviewed: The write path is covered by tests"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "approval:map-1:t-2",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "verify_approve",
+                  "style": "primary",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Approve",
+                    "emoji": true
+                  },
+                  "value": "{\"m\":\"map-1\",\"t\":\"t-2\",\"a\":\"A-1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "verify_rework",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Rework…",
+                    "emoji": true
+                  },
+                  "value": "{\"m\":\"map-1\",\"t\":\"t-2\",\"a\":\"A-1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Approve · #2 Write API",
+            "ts": "1793448000.000001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Held · #3 Migrate schema",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "⛔ *HELD* · Event store · #3 Migrate schema\n>A-1 failed its checks too many times"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "approval:map-1:t-3",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "verify_rework",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Rework…",
+                    "emoji": true
+                  },
+                  "value": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Held · #3 Migrate schema",
+            "ts": "1793448001.000002"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/1/fakeresponse1",
+        "body": {
+          "response_type": "ephemeral",
+          "replace_original": false,
+          "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "text": "✓ Approved by <@U0ANA0001> via Slack.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *DECIDED* · Event store · #2 Write API"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "✓ Approved by <@U0ANA0001> via Slack."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "text": "✓ Approved by <@U0ANA0001> via Slack."
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.open",
+        "body": {
+          "trigger_id": "1793448002.3.fake3",
+          "view": {
+            "type": "modal",
+            "callback_id": "verify_rework_modal",
+            "private_metadata": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Send back to rework",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Send back",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#3 Migrate schema"
+                  }
+                ]
+              },
+              {
+                "type": "input",
+                "block_id": "reason",
+                "label": {
+                  "type": "plain_text",
+                  "text": "What has to change",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true
+                }
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000001",
+            "hash": "1793448002.h1",
+            "type": "modal",
+            "callback_id": "verify_rework_modal",
+            "private_metadata": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Send back to rework",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Send back",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#3 Migrate schema"
+                  }
+                ]
+              },
+              {
+                "type": "input",
+                "block_id": "reason",
+                "label": {
+                  "type": "plain_text",
+                  "text": "What has to change",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "↺ Sent back to rework by <@U0ANA0001> via Slack.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *DECIDED* · Event store · #3 Migrate schema"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "↺ Sent back to rework by <@U0ANA0001> via Slack."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "↺ Sent back to rework by <@U0ANA0001> via Slack."
+        }
+      }
+    }
+  ],
+  "envelopes": [
+    {
+      "label": "eve (not allowed) clicks Approve",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0EVE0001",
+          "username": "eve",
+          "name": "eve",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448000.000001",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448002.1.fake1",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448000.000001",
+          "text": "Approve · #2 Write API"
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/1/fakeresponse1",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "verify_approve",
+            "block_id": "approval:map-1:t-2",
+            "text": {
+              "type": "plain_text",
+              "text": "Approve",
+              "emoji": true
+            },
+            "value": "{\"m\":\"map-1\",\"t\":\"t-2\",\"a\":\"A-1\"}",
+            "action_ts": "1793448002.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana clicks Approve",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448000.000001",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448002.2.fake2",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448000.000001",
+          "text": "Approve · #2 Write API"
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/2/fakeresponse2",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "verify_approve",
+            "block_id": "approval:map-1:t-2",
+            "text": {
+              "type": "plain_text",
+              "text": "Approve",
+              "emoji": true
+            },
+            "value": "{\"m\":\"map-1\",\"t\":\"t-2\",\"a\":\"A-1\"}",
+            "action_ts": "1793448002.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana clicks Rework… on the held ticket",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448001.000002",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448002.3.fake3",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448001.000002",
+          "text": "Held · #3 Migrate schema"
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "verify_rework",
+            "block_id": "approval:map-1:t-3",
+            "text": {
+              "type": "plain_text",
+              "text": "Rework…",
+              "emoji": true
+            },
+            "value": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\"}",
+            "action_ts": "1793448002.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana submits an empty reason",
+      "type": "interactive",
+      "payload": {
+        "type": "view_submission",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "trigger_id": "1793448002.4.fake4",
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448002.h1",
+          "type": "modal",
+          "callback_id": "verify_rework_modal",
+          "private_metadata": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3\"}",
+          "state": {
+            "values": {
+              "reason": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": ""
+                }
+              }
+            }
+          }
+        },
+        "response_urls": []
+      },
+      "ack": {
+        "response_action": "errors",
+        "errors": {
+          "reason": "Say what has to change"
+        }
+      }
+    },
+    {
+      "label": "ana submits the reason",
+      "type": "interactive",
+      "payload": {
+        "type": "view_submission",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "trigger_id": "1793448002.5.fake5",
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448002.h1",
+          "type": "modal",
+          "callback_id": "verify_rework_modal",
+          "private_metadata": "{\"m\":\"map-1\",\"t\":\"t-3\",\"a\":\"A-1\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3\"}",
+          "state": {
+            "values": {
+              "reason": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "Split the migration in two"
+                }
+              }
+            }
+          }
+        },
+        "response_urls": []
+      }
+    }
+  ]
+}

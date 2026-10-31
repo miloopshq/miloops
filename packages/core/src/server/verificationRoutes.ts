@@ -3,6 +3,7 @@ import type { TrackerAdapter } from '../adapters/adapter';
 import { journalFile } from '../history/journalFile';
 import { levelOf } from '../model/lifecycle';
 import { OperationError } from '../planning/operations/operationError';
+import { approvalItems } from '../verification/approvals';
 import { readVerificationConfig, VERIFICATION_FILE } from '../verification/configFile';
 import { operatorAction, type OperatorAction, type OperatorRequest } from '../verification/operatorActions';
 import { readEvidenceLog, ticketEvidence } from '../verification/ticketEvidence';
@@ -35,6 +36,7 @@ function request(b: Record<string, unknown>): OperatorRequest {
  *   GET  /verification/config                     the parsed `verification.json`, read-only
  *   GET  /verification/ticket?mapId=&ticketId=    level, attempts and verdicts (newest first), the run in progress
  *   GET  /verification/log?path=                  the end of a check log under `.evidence/`
+ *   GET  /verification/inbox                      tickets waiting on the operator (ApprovalItem[]), every mission
  *   POST /verification/action                     OperatorRequest → `{ attemptId? }`
  * The config file is edited in the repo, never through the API, so an agent
  * with API access cannot change what verifies its own work.
@@ -60,6 +62,13 @@ export async function handleVerification(
     const t = snap.tickets.find((x) => x.id === q('ticketId'));
     if (!t) return (sendJson(res, 404, { error: 'ticket not found' }), true);
     sendJson(res, 200, { level: levelFor(root, snap, t).info, ...ticketEvidence(root, snap.map.id, t.id) });
+    return true;
+  }
+  if (p === '/verification/inbox' && req.method === 'GET') {
+    const adapter = await active();
+    const maps = await adapter.listMaps();
+    const snaps = await Promise.all(maps.map((m) => adapter.loadMap(m.id)));
+    sendJson(res, 200, { items: snaps.flatMap((s) => approvalItems(root, s)).sort((a, b) => a.at - b.at) });
     return true;
   }
   if (p === '/verification/log' && req.method === 'GET') {

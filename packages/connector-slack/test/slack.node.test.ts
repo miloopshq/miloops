@@ -13,7 +13,7 @@ import { deterministicSummary, plainText } from '../src/summary';
 import { fakeSlack } from './fakes/slack';
 import { socketHub } from './fakes/socket';
 import { ALL_SCOPES, ANA, RAJ, TOKENS, URL_, connected, freezeTime, until, world, type SlackFixture } from './harness';
-import { askFlow, decisionFlow, notifyFlow, setupFlow, statusFlow } from './scenarios';
+import { approvalFlow, askFlow, decisionFlow, notifyFlow, setupFlow, statusFlow } from './scenarios';
 
 let thaw: () => void;
 before(() => (thaw = freezeTime()));
@@ -224,6 +224,41 @@ test('notifications: blocked and mission done reach the DM, batched per mission 
   assert.equal(msgs[1].thread_ts, '1793448000.000001');
   assert.match(msgs[1].text, /◉ \*MISSION DONE\* · Event store · 4 tickets/);
   assert.doesNotMatch(msgs[1].text, /Bench write paths → /, 'a closed ticket is not counted as unblocked');
+});
+
+test('approvals: a reviewed pass and a held ticket reach the owner; Approve and Rework… decide them as the operator', async () => {
+  const r = await replayed('slack-approvals.json', approvalFlow);
+  assert.deepEqual([r.api.state, r.api.closeReason], ['closed', 'completed']);
+  assert.deepEqual([r.mig.state, r.mig.status], ['open', 'rework']);
+  assert.deepEqual(
+    r.verdicts.map((v) => [v.by, v.byKind, v.verdict]),
+    [
+      ['claude-02', 'agent', 'PASS'],
+      [`slack:${ANA}`, 'operator', 'PASS'],
+      [`slack:${ANA}`, 'operator', 'FAIL'],
+    ],
+  );
+  const fx = fixture('slack-approvals.json');
+  const [approve, held] = posts(fx, 'chat.postMessage');
+  assert.match(
+    approve.blocks[0].text.text,
+    /^◆ \*APPROVE\* · Event store · #2 Write API\n>claude-02 reviewed: The write path/,
+  );
+  assert.deepEqual(
+    approve.blocks[1].elements.map((e: { text: { text: string } }) => e.text.text),
+    ['Approve', 'Rework…', 'Open in MILOOPS'],
+  );
+  assert.match(held.blocks[0].text.text, /^⛔ \*HELD\* · Event store · #3 Migrate schema/);
+  assert.deepEqual(
+    held.blocks[1].elements.map((e: { text: { text: string } }) => e.text.text),
+    ['Rework…', 'Open in MILOOPS'],
+  );
+  assert.deepEqual(
+    posts(fx, 'chat.update').map((u) => u.text),
+    [`✓ Approved by <@${ANA}> via Slack.`, `↺ Sent back to rework by <@${ANA}> via Slack.`],
+  );
+  assert.ok(posts(fx, 'chat.update').every((u) => !u.blocks.some((b: { type: string }) => b.type === 'actions')));
+  assert.equal(responses(fx)[0].text.startsWith('Only the MILOOPS owner'), true);
 });
 
 /* ---------- connection, lock, failures ---------- */

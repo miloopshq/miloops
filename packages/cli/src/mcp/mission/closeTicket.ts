@@ -45,6 +45,7 @@ export async function closeTicket(ctx: AgentContext, input: CloseInput, wait: { 
   const agent = await ctx.agentId();
   let t = ctx.findTicket(snap, ref);
   if (t.state === 'closed') throw new OperationError(`${t.key} is already closed`);
+  if (t.type === 'review') throw new OperationError(`${t.key} is a review: answer it with submit_review`);
   if (t.assignee && t.assignee !== agent) throw new OperationError(`${t.key} is claimed by ${t.assignee}`);
   if (t.status === 'verifying')
     throw new OperationError(`${t.key} is being verified: call verification_status ${t.key} for the result`);

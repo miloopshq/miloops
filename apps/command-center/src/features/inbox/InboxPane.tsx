@@ -1,9 +1,11 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { type ReactNode, useState, useEffect } from 'react';
 import { SectionHeader, MiloMark, Badge, Panel } from '../../components/ui';
+import { ApprovalList } from './ApprovalList';
 import { Conversation } from './Conversation';
 import { HitlReadout } from './HitlReadout';
 import { InboxList } from './InboxList';
+import { useApprovals } from './useApprovals';
 
 export function InboxPane(props: {
   activity: ActivityState;
@@ -14,6 +16,8 @@ export function InboxPane(props: {
   convRequest: number;
   onOpen: (sessionId: string, ticketId?: string) => void;
   onAnswer: (questionId: string, text: string) => void;
+  /** Opens a ticket waiting on approval in the inspector. */
+  onOpenTicket: (mapId: string, ticketId: string) => void;
   /** Rendered under the inbox in the same column (the Up next list). */
   below?: ReactNode;
 }) {
@@ -22,6 +26,8 @@ export function InboxPane(props: {
     if (props.convRequest) setView('conv');
   }, [props.convRequest]);
   const items = [...props.activity.pending].sort((a, b) => a.at - b.at);
+  const approvals = useApprovals(props.snaps);
+  const waiting = items.length + approvals.length;
   const open = (sessionId: string, ticketId?: string) => {
     props.onOpen(sessionId, ticketId);
     setView('conv');
@@ -30,23 +36,31 @@ export function InboxPane(props: {
   const list = (
     <div className="inbox-part">
       <SectionHeader
-        hot={items.length > 0}
+        hot={waiting > 0}
         title={
           <>
-            {items.length > 0 && <MiloMark variant="alert" size={12} />}
+            {waiting > 0 && <MiloMark variant="alert" size={12} />}
             Waiting on you
           </>
         }
-        count={<Badge key={items.length} n={items.length} urgent={items.length > 0} pop />}
+        count={<Badge key={waiting} n={waiting} urgent={waiting > 0} pop />}
       />
       <HitlReadout activity={props.activity} />
-      <InboxList
-        items={items}
+      <ApprovalList
+        items={approvals}
         snaps={props.snaps}
         currentMapId={props.currentMapId}
-        selected={props.sessionId}
-        onOpen={open}
+        onOpen={props.onOpenTicket}
       />
+      {(items.length > 0 || !approvals.length) && (
+        <InboxList
+          items={items}
+          snaps={props.snaps}
+          currentMapId={props.currentMapId}
+          selected={props.sessionId}
+          onOpen={open}
+        />
+      )}
     </div>
   );
   const conv = (

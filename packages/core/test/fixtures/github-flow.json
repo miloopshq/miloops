@@ -1,6 +1,6 @@
 {
   "source": "fake",
-  "recordedAt": "2026-10-31T16:45:40.249Z",
+  "recordedAt": "2026-10-31T23:06:27.052Z",
   "notes": "Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema).",
   "exchanges": [
     {
@@ -216,6 +216,28 @@
         },
         "body": {
           "name": "miloops:execute"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/repos/octo-org/launchpad/labels",
+        "body": {
+          "name": "miloops:review",
+          "color": "4b5563"
+        }
+      },
+      "res": {
+        "status": 201,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-ratelimit-limit": "5000",
+          "x-ratelimit-remaining": "4990",
+          "x-ratelimit-reset": "1793451600"
+        },
+        "body": {
+          "name": "miloops:review"
         }
       }
     },

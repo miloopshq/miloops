@@ -196,6 +196,28 @@ describe('verified completion over MCP', () => {
     expect(readAttempts(root, m.mission.id, m.tickets[1].key.replace('#', ''))[0].pr).toBe(42);
   });
 
+  it('checks+review: another agent reviews the work; the worker is never given its own review', async () => {
+    fs.writeFileSync(path.join(repo, 'fixed.txt'), 'ok');
+    writeConfig({ default: 'checks+review' });
+    const worker = await connect('claude-01');
+    const m = await mission(worker);
+    await worker('claim_ticket', { ticket: m.tickets[1].key });
+    const r = await worker<Done>('report_completion', { resolution: 'Built the page' });
+    expect(r).toMatchObject({ status: 'verifying', note: expect.stringMatching(/another agent reviews/) });
+
+    const reviewer = await connect('claude-02');
+    type Next = { ticket: { key: string; type: string } | null };
+    const offered = (await reviewer<Next>('next_ticket')).ticket!;
+    expect(offered.type).toBe('review');
+    expect((await worker<Next>('next_ticket')).ticket?.type).not.toBe('review');
+    await expect(worker('claim_ticket', { ticket: offered.key })).rejects.toThrow(/claude-01 worked on/);
+
+    await reviewer('claim_ticket', { ticket: offered.key });
+    await expect(reviewer('close_ticket', { resolution: 'fine' })).rejects.toThrow(/submit_review/);
+    const done = await reviewer('submit_review', { verdict: 'PASS', summary: 'The page renders the notes' });
+    expect(done).toMatchObject({ review: offered.key, verdict: 'V-1', ticket: m.tickets[1].key, phase: 'done' });
+  });
+
   it('a run whose process died is recorded as interrupted and run again', async () => {
     fs.writeFileSync(path.join(repo, 'fixed.txt'), 'ok');
     writeConfig();

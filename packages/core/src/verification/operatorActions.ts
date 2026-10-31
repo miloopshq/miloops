@@ -1,6 +1,7 @@
 import { staleAction } from '../evidence/stale';
 import type { TicketPhase, VerificationLevel } from '../model/lifecycle';
 import type { VerdictKind } from '../model/verification';
+import { withdrawReviews } from '../planning/lifecycle/reviewTicket';
 import { setVerification } from '../planning/lifecycle/setVerification';
 import { transition } from '../planning/lifecycle/transition';
 import { OperationError } from '../planning/operations/operationError';
@@ -9,7 +10,7 @@ import { DEFAULT_CONFIG } from './config';
 import { readVerificationConfig } from './configFile';
 import { readAttempts, writeVerdict } from './evidenceStore';
 import { rerunChecks } from './operatorRerun';
-import type { VerifyEnv } from './verifyCompletion';
+import { CHECK_RUNNER, type VerifyEnv } from './verifyCompletion';
 
 export type OperatorAction = 'rerun' | 'approve' | 'accept' | 'rework' | 'unblock' | 'level';
 
@@ -61,6 +62,12 @@ export async function operatorAction(env: VerifyEnv, r: OperatorRequest): Promis
         at: Date.now(),
       });
   };
+  const withdraw = async () =>
+    withdrawReviews(env.adapter, await env.adapter.loadMap(r.mapId), ticketId, {
+      actor: CHECK_RUNNER,
+      reason: `${r.by} decided it (${r.action})`,
+      journal: env.journal,
+    });
   switch (r.action) {
     case 'rerun': {
       const run = await rerunChecks(env, r.mapId, ticketId, r.by, reason);
@@ -85,12 +92,14 @@ export async function operatorAction(env: VerifyEnv, r: OperatorRequest): Promis
         { ...operator, event: r.action },
       );
       verdict('PASS', reason ?? (r.action === 'approve' ? 'approved' : 'accepted'));
+      await withdraw();
       return {};
     }
     case 'rework':
       await transition(env.adapter, r.mapId, ticketId, { ...operator, event: 'reject', to: 'rework' }, operator);
       await env.adapter.comment(r.mapId, ticketId, r.by, `**Sent back to rework**\n\n${reason}`);
       verdict('FAIL', reason!);
+      await withdraw();
       return {};
     case 'unblock':
       if (r.to !== 'ready' && r.to !== 'rework') throw new OperationError('unblock needs "to": ready or rework');

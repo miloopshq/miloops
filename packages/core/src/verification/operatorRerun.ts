@@ -2,6 +2,7 @@ import { ticketPhase } from '../planning/lifecycle/phase';
 import { transition } from '../planning/lifecycle/transition';
 import { OperationError } from '../planning/operations/operationError';
 import { readAttempts } from './evidenceStore';
+import { submissionOf } from './resubmit';
 import { levelFor, verify, type VerifyEnv } from './verifyCompletion';
 
 /**
@@ -29,14 +30,5 @@ export async function rerunChecks(env: VerifyEnv, mapId: string, ticketId: strin
     { journal: env.journal },
   );
   const { info } = levelFor(env.root, snap, t);
-  return verify(env, mapId, { ...t, status: 'verifying' }, info, {
-    agent: last.agent,
-    sessionId: last.sessionId,
-    resolution: last.resolution,
-    summary: last.summary,
-    rationale: last.rationale,
-    alternatives: last.alternatives,
-    noCodeReason: last.noCodeReason,
-    pr: last.pr,
-  });
+  return verify(env, mapId, { ...t, status: 'verifying' }, info, submissionOf(last));
 }

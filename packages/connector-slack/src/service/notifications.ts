@@ -1,8 +1,9 @@
-import { deriveStates, type AgentSessionDoc } from '@miloops-hq/core';
+import { deriveStates, type AgentSessionDoc, type MapSnapshot } from '@miloops-hq/core';
 import { readAgentDocs } from '@miloops-hq/core/bridge';
 import { escape } from '../blocks';
 import { briefMission, formatTokens } from '../status';
 import type { SlackConfig } from '../store';
+import { syncApprovals } from './approvals';
 import { syncAsks } from './asks';
 import { day } from './constants';
 import type { SlackContext } from './slackContext';
@@ -29,8 +30,10 @@ export async function runTick(ctx: SlackContext) {
 export async function syncMissions(ctx: SlackContext, docs: AgentSessionDoc[], c: SlackConfig) {
   const adapter = await ctx.o.active();
   const ev = new Set(c.notify.events);
+  const snaps: MapSnapshot[] = [];
   for (const m of await adapter.listMaps()) {
     const snap = await adapter.loadMap(m.id);
+    snaps.push(snap);
     const states = deriveStates(snap.tickets, snap.map.mode);
     const byId = new Map(snap.tickets.map((t) => [t.id, t]));
     const now: MissionNotes = {
@@ -79,6 +82,7 @@ export async function syncMissions(ctx: SlackContext, docs: AgentSessionDoc[], c
       );
     }
   }
+  await syncApprovals(ctx, snaps, c);
 }
 
 export function queue(ctx: SlackContext, mapId: string, line: string) {

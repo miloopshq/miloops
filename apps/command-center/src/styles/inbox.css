@@ -303,3 +303,6 @@
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
 }
+.inbox-list .who.held {
+  color: var(--st-held);
+}

@@ -6,6 +6,7 @@ export const TYPE_CODE: Record<TicketType, string> = {
   grilling: 'GRIL',
   task: 'TASK',
   execute: 'EXEC',
+  review: 'REVW',
 };
 
 /** Ticket phases as people read them (core lifecycle.ts); `blocked` and `parked` are both backlog. */

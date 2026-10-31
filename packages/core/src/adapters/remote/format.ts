@@ -2,7 +2,7 @@ import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label } from '../../mode
 import { levelOf, TICKET_STATUSES } from '../../model/lifecycle';
 import { serializeMapBody } from '../../model/mapBody';
 import {
-  TICKET_TYPES,
+  ALL_TICKET_TYPES,
   type Comment,
   type DecisionRecord,
   type MapDoc,
@@ -35,6 +35,7 @@ export interface BodyMeta {
   status?: string;
   verification?: string;
   checks?: string[];
+  reviewOf?: string;
 }
 
 /** The mission issue body: its sections, plus a meta marker only when the mission has a verification level. */
@@ -44,11 +45,14 @@ export const mapBody = (m: Pick<MapDoc, 'sections' | 'verification'>) =>
     : serializeMapBody(m.sections);
 
 /** Everything MILOOPS keeps in a ticket's meta marker, so one write never drops another's field. */
-export const ticketMeta = (t: Pick<Ticket, 'assignee' | 'status' | 'verification' | 'checks'>): BodyMeta => ({
+export const ticketMeta = (
+  t: Pick<Ticket, 'assignee' | 'status' | 'verification' | 'checks' | 'reviewOf'>,
+): BodyMeta => ({
   assignee: t.assignee,
   status: t.status,
   verification: t.verification,
   checks: t.checks,
+  reviewOf: t.reviewOf,
 });
 
 export function splitBody(raw: string | null | undefined): { text: string; meta: BodyMeta } {
@@ -133,7 +137,7 @@ export function parseDecisionComment(body: string): DecisionRecord | undefined {
   }
 }
 
-const TYPE_LABELS = new Map(TICKET_TYPES.map((t) => [label(t), t]));
+const TYPE_LABELS = new Map(ALL_TICKET_TYPES.map((t) => [label(t), t]));
 
 export const typeFromLabels = (labels: string[]): TicketType =>
   labels.map((l) => TYPE_LABELS.get(l)).find(Boolean) ?? 'task';
@@ -150,7 +154,7 @@ export const ALL_LABELS: { name: string; color: string }[] = [
   { name: MAP_LABEL, color: '5b6b7a' },
   { name: PLAN_ONLY_LABEL, color: '7a6f5b' },
   { name: HITL_LABEL, color: 'd97706' },
-  ...TICKET_TYPES.map((t) => ({ name: label(t), color: '4b5563' })),
+  ...ALL_TICKET_TYPES.map((t) => ({ name: label(t), color: '4b5563' })),
 ];
 
 export interface IssueParts {
@@ -189,6 +193,7 @@ export function ticketFromIssue(p: IssueParts): Ticket {
     ...(status ? { status } : {}),
     ...(verification ? { verification } : {}),
     ...(checks ? { checks } : {}),
+    ...(typeof meta.reviewOf === 'string' && meta.reviewOf ? { reviewOf: meta.reviewOf } : {}),
     blockedBy: p.blockedBy,
     comments: p.comments,
     createdAt: Date.parse(p.createdAt) || 0,
