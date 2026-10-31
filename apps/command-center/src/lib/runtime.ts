@@ -5,6 +5,7 @@ import {
   type AgentSessionDoc,
   type KeyValueStore,
   PREFS_KEY,
+  type TicketLease,
   type TrackerAdapter,
   Presence,
   BridgeAdapter,
@@ -22,6 +23,7 @@ import {
   runWork,
   callsign,
 } from '@miloops-hq/core';
+import { LeaseBoard } from './leaseBoard';
 import { type TrackerChoice, loadPrefs, currentPrefs } from './prefs';
 
 /** File API served by the Vite dev server (see plugins/trackerFs.ts). */
@@ -47,7 +49,7 @@ export const httpFs: MarkdownFs = {
 };
 
 /** Mirror agent sessions reported over MCP (see core agentLink.ts) and send operator answers back to them. */
-export function linkAgents(activity: ActivityStream) {
+export function linkAgents(activity: ActivityStream, leases: LeaseBoard) {
   activity.remoteAnswer = (q, text, author) => {
     void fetch(`${BRAND.apiPrefix}/agents/answer`, {
       method: 'POST',
@@ -71,6 +73,11 @@ export function linkAgents(activity: ActivityStream) {
   es.addEventListener('agent', (m) =>
     activity.syncRemote(JSON.parse((m as MessageEvent<string>).data) as AgentSessionDoc),
   );
+  es.addEventListener('leases', (m) => leases.set(JSON.parse((m as MessageEvent<string>).data).leases));
+  void fetch(`${BRAND.apiPrefix}/agents/leases`)
+    .then((r) => (r.ok ? (r.json() as Promise<{ leases: TicketLease[] }>) : { leases: [] }))
+    .then(({ leases: l }) => leases.set(l))
+    .catch(() => {});
   void fetch(`${BRAND.apiPrefix}/agents`)
     .then((r) => (r.ok ? (r.json() as Promise<{ sessions: AgentSessionDoc[] }>) : { sessions: [] }))
     .then(({ sessions }) => [...sessions].reverse().forEach((d) => activity.syncRemote(d)))
@@ -108,6 +115,7 @@ export function createRuntime(kind: TrackerKind) {
   let raw: TrackerAdapter;
   let ready: Promise<unknown>;
   const activity = new ActivityStream();
+  const leases = new LeaseBoard(activity);
   const store: { presence?: Presence } = {};
   if (kind === 'github' || kind === 'linear') {
     const remote = new BridgeAdapter(kind, BRAND.apiPrefix);
@@ -125,7 +133,7 @@ export function createRuntime(kind: TrackerKind) {
         const kv = localStore(`${kind}:${remote.location}`);
         store.presence = new Presence(kv);
         activity.ledger = new UsageLedger(kv);
-        linkAgents(activity);
+        linkAgents(activity, leases);
       });
   } else if (kind === 'markdown') {
     raw = new MarkdownAdapter(httpFs, `./${BRAND.dataDir}`);
@@ -136,7 +144,7 @@ export function createRuntime(kind: TrackerKind) {
         const kv = localStore(root);
         store.presence = new Presence(kv);
         activity.ledger = new UsageLedger(kv);
-        linkAgents(activity);
+        linkAgents(activity, leases);
       });
   } else {
     const mem = new MemoryAdapter({ label: 'Demo', location: 'in-memory · resets on reload' });
@@ -179,6 +187,7 @@ export function createRuntime(kind: TrackerKind) {
     adapter,
     monitor,
     activity,
+    leases,
     ctx,
     autopilot,
     setCurrentMap(id: string | undefined) {

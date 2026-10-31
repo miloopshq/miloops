@@ -1,4 +1,4 @@
-import { BRAND, MarkdownAdapter } from '@miloops-hq/core';
+import { BRAND, LEASE_MINUTES_ENV, leaseMs, MarkdownAdapter } from '@miloops-hq/core';
 import { activeTracker } from '@miloops-hq/core/bridge';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -23,7 +23,7 @@ export function createMcpServer(agent: MissionAgent, version: string) {
 }
 
 /** `miloops mcp`: serve the agent over stdio until the client disconnects. */
-export async function runMcpServer(opts: { root: string; agent?: string; version: string }) {
+export async function runMcpServer(opts: { root: string; agent?: string; leaseMinutes?: number; version: string }) {
   let server: McpServer | undefined;
   const client = () => {
     const v = server?.server.getClientVersion();
@@ -36,6 +36,7 @@ export async function runMcpServer(opts: { root: string; agent?: string; version
     client,
     tracker: activeTracker({ root: opts.root, markdown }),
     usage: new UsageMeter({ root: opts.root }),
+    leaseMs: leaseMs(opts.leaseMinutes ?? process.env[LEASE_MINUTES_ENV]),
   });
   server = createMcpServer(agent, opts.version);
   let closed = false;

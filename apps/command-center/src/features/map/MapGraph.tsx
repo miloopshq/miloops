@@ -1,6 +1,7 @@
-import { type MapSnapshot, type SessionInfo, layout } from '@miloops-hq/core';
+import { type MapSnapshot, type SessionInfo, type TicketLease, layout, leaseHealth } from '@miloops-hq/core';
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { type Selection, isRunning } from '../../lib';
+import { useNow } from '../../hooks';
+import { type Selection, heldLeases, isRunning } from '../../lib';
 import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
@@ -13,6 +14,7 @@ export type View = { k: number; x: number; y: number };
 export function MapGraph(props: {
   snap: MapSnapshot;
   sessions: SessionInfo[];
+  leases?: TicketLease[];
   selection: Selection;
   onSelect: (s: Selection) => void;
   /** Smallest zoom the initial fit may use; keeps text readable on phones. */
@@ -69,6 +71,8 @@ export function MapGraph(props: {
     return { k: nk, x: p.x - ((p.x - v.x) * nk) / v.k, y: p.y - ((p.y - v.y) * nk) / v.k };
   };
 
+  const now = useNow(5000);
+  const held = heldLeases(props.leases, snap.map.id);
   const live = new Map(props.sessions.filter((s) => isRunning(s) && s.ticketId).map((s) => [s.ticketId!, s]));
   const selId = selection?.kind === 'ticket' ? selection.id : undefined;
 
@@ -146,6 +150,7 @@ export function MapGraph(props: {
                 key={n.ticket.id}
                 n={n}
                 session={live.get(n.ticket.id)}
+                stalled={!!held.get(n.ticket.id) && leaseHealth(held.get(n.ticket.id)!, now) !== 'live'}
                 selected={selId === n.ticket.id}
                 onSelect={onSelect}
               />

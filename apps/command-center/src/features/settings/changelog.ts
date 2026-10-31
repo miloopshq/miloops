@@ -12,6 +12,18 @@ export const NEXT: { area: string; items: string[] }[] = [
 
 export const RELEASES: Release[] = [
   {
+    version: '0.13.0',
+    date: '2026-10-31',
+    items: [
+      'Crash recovery for claims: an agent’s claim is a lease (15 min by default) that every tool call renews, including waits on your answer',
+      'When an agent crashes or goes silent, its ticket goes back to the queue on its own, and the activity log says so; the next agent picks it up from next_ticket or claim_ticket',
+      'The returned ticket keeps a handoff comment with the previous agent’s progress notes and decisions, so the next agent resumes instead of starting over',
+      'Stalled state on the map, in sessions and in the ticket inspector when a lease is about to run out, with a Release to queue action',
+      'Works with GitHub and Linear: the return is an ordinary comment + unassign, queued in the offline outbox like any other write',
+      'Set the lease with `miloops mcp --lease-minutes <n>` or `MILOOPS_LEASE_MINUTES`',
+    ],
+  },
+  {
     version: '0.12.0',
     date: '2026-10-31',
     items: [

@@ -10,9 +10,14 @@ import { readStdin, recordClaudeSession } from './usage/hook';
 async function main() {
   const argv = process.argv.slice(2);
   if (argv[0] === 'mcp') {
-    const o = parseSubArgs(argv.slice(1), ['--dir', '--agent']);
+    const o = parseSubArgs(argv.slice(1), ['--dir', '--agent', '--lease-minutes']);
     if (o.rest.length) fail(`unexpected argument: ${o.rest[0]}`);
-    await runMcpServer({ root: path.resolve(process.cwd(), o.dir), agent: o.agent, version: __VERSION__ });
+    await runMcpServer({
+      root: path.resolve(process.cwd(), o.dir),
+      agent: o.agent,
+      leaseMinutes: o.leaseMinutes,
+      version: __VERSION__,
+    });
     return;
   }
   if (argv[0] === 'hook') {

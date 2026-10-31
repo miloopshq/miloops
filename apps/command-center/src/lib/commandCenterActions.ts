@@ -83,6 +83,9 @@ export function createActions({
     answer: (questionId: string, text: string) => rt.activity.answer(questionId, text, OPERATOR),
     claim: (ticketId: string) => guard('Claim', () => claim(rt.adapter, mapIdRef.current!, ticketId, OPERATOR)),
     release: (ticketId: string) => guard('Release claim', () => release(rt.adapter, mapIdRef.current!, ticketId)),
+    /** An agent's claim back to the queue, with a handoff comment of its notes. */
+    releaseLease: (ticketId: string) =>
+      guard('Release to queue', () => rt.leases.release(mapIdRef.current!, ticketId, OPERATOR)),
     resolve: (ticketId: string, answer: string, extra: { rationale?: string; alternatives?: string[] } = {}) =>
       guard('Resolve · record answer', async () => {
         const t = snapRef.current?.tickets.find((x) => x.id === ticketId);

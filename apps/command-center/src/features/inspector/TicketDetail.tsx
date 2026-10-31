@@ -2,7 +2,8 @@ import { type MapSnapshot, type SessionInfo, deriveStates, attention, label } fr
 import { useState, type FormEvent } from 'react';
 import { Empty, Pill, Button, Card, Field, Meta } from '../../components/ui';
 import { type CommandCenterApi } from '../../hooks';
-import { OPERATOR, STATE_TEXT, isRunning } from '../../lib';
+import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
+import { LeaseFacts } from './LeaseFacts';
 import type { Form } from './types';
 
 export function TicketDetail(props: {
@@ -29,6 +30,7 @@ export function TicketDetail(props: {
   const att = attention(t);
   const session = props.sessions.find((s) => s.ticketId === t.id && isRunning(s));
   const mine = t.assignee === OPERATOR;
+  const lease = t.state === 'open' ? heldLeases(api.leases, snap.map.id).get(t.id) : undefined;
   const resolution = [...t.comments].reverse().find((c) => /^\*\*(Resolution|Ruled out of scope)\*\*/.test(c.body));
   const others = t.comments.filter((c) => c !== resolution);
   const decisions = api.decisions.filter((d) => d.mapId === snap.map.id && d.ticketId === t.id);
@@ -58,6 +60,8 @@ export function TicketDetail(props: {
         <dt>Blocks</dt>
         <dd>{blocks.map((b) => b.key).join(', ') || '—'}</dd>
       </dl>
+
+      {lease && <LeaseFacts lease={lease} onRelease={() => actions.releaseLease(t.id)} />}
 
       <div className="actions">
         {session && (

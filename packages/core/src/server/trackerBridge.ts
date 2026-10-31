@@ -7,8 +7,10 @@ import { handleAgents } from './agentRoutes';
 import type { BridgeOptions, TrackerBridge } from './bridgeTypes';
 import { handleDecisions } from './decisionRoutes';
 import { BadRequest, openEventStream, readText, sendJson } from './http';
+import { handleLeases } from './leaseRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
+import { watchLeases } from './watchLeases';
 import { watchTrackerFolder } from './watchTrackerFolder';
 
 /**
@@ -16,7 +18,7 @@ import { watchTrackerFolder } from './watchTrackerFolder';
  * the `miloops` CLI so both serve the same contract.
  */
 export function createTrackerBridge(root: string, options: BridgeOptions = {}): TrackerBridge {
-  const { plugins: factories = [], url: publicUrl = () => undefined, ...trackers } = options;
+  const { plugins: factories = [], url: publicUrl = () => undefined, leases: leaseTiming, ...trackers } = options;
   const abs = path.resolve(root);
   const fs = nodeMarkdownFs(abs);
   const markdown = new MarkdownAdapter({ ...fs, watch: undefined }, abs);
@@ -27,6 +29,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
     for (const c of clients) c.write(text);
   };
   const unwatch = watchTrackerFolder(abs, fs, send);
+  const unwatchLeases = watchLeases(abs, () => routes.active(), send, leaseTiming);
 
   async function handle(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url ?? '/', 'http://x');
@@ -57,6 +60,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       for (const p of plugins) if (await p.handle(req, res, url)) return;
       if (url.pathname.startsWith('/decisions') && (await handleDecisions(await routes.active(), req, res, url)))
         return;
+      if (await handleLeases(abs, () => routes.active(), req, res, url)) return;
       if (await handleAgents(abs, req, res, url)) return;
       res.statusCode = 404;
       res.end('not found');
@@ -77,6 +81,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       for (const p of plugins) p.close();
       routes.close();
       unwatch();
+      unwatchLeases();
       for (const c of clients) c.end();
       clients.clear();
     },

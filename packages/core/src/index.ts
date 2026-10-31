@@ -15,6 +15,7 @@ export { Presence } from './activity/presence';
 export { UsageLedger } from './activity/usageLedger';
 export * from './planning/briefing';
 export * from './agents/agentLink';
+export * from './agents/ticketLease';
 export { Emitter, sleep, uid } from './lib/emitter';
 
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memoryAdapter';
