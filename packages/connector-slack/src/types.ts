@@ -12,6 +12,8 @@ export const DEFAULT_NOTIFY_EVENTS: SlackNotifyEvent[] = ['awaiting', 'blocked',
 export interface SlackUser {
   id: string;
   name?: string;
+  /** How the owner was identified: their git email matched a workspace member, or "This is me" on the Home tab. */
+  via?: 'git-email' | 'home';
 }
 
 export interface SlackNotify {

@@ -1,7 +1,7 @@
 import type { SlackSettingsPatch, SlackStatus, SlackTokenResult, SlackUser } from './types';
 
 export * from './types';
-export { BOT_SCOPES, DEFAULT_COMMAND, SAVE_DECISION_CALLBACK, appIdFromToken, slackLinks, slackManifest, tokenKind } from './manifest';
+export { BOT_SCOPES, OPTIONAL_SCOPES, DEFAULT_COMMAND, SAVE_DECISION_CALLBACK, appIdFromToken, slackLinks, slackManifest, tokenKind } from './manifest';
 
 async function req<T>(url: string, method = 'GET', body?: unknown): Promise<T> {
   const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });

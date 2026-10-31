@@ -1,4 +1,4 @@
-import { BOT_SCOPES } from '../../src/manifest';
+import { BOT_SCOPES, OPTIONAL_SCOPES } from '../../src/manifest';
 
 /**
  * In-memory stand-in for the slice of the Slack Web API the connector uses.
@@ -40,7 +40,7 @@ export function fakeSlack(opts: { start?: number } = {}) {
   const team = { id: 'T0EFIKA01', name: 'efika', domain: 'efika', url: 'https://efika.slack.com/' };
   const app = { id: 'A0MILO0001', botId: 'B0MILO0001', botUser: 'U0MILOBOT' };
   const tokens = { app: `xapp-1-${app.id}-1001-6d696c6f6170706c6576656c`, bot: 'xoxb-1001-2002-fakebottokenmilo', user: 'xoxp-1001-2002-fakeusertoken' };
-  const state = { scopes: [...BOT_SCOPES] as string[], socketMode: true, installed: true };
+  const state = { scopes: [...BOT_SCOPES, ...OPTIONAL_SCOPES] as string[], socketMode: true, installed: true };
   let clock = Math.floor((opts.start ?? Date.UTC(2026, 9, 31, 12, 0, 0)) / 1000);
   let seq = 0;
   let viewSeq = 0;
@@ -51,8 +51,8 @@ export function fakeSlack(opts: { start?: number } = {}) {
 
   const users = new Map(
     [
-      { id: 'U0ANA0001', name: 'ana', real_name: 'Ana Silva', display_name: 'ana' },
-      { id: 'U0RAJ0001', name: 'raj', real_name: 'Raj Patel', display_name: 'raj' },
+      { id: 'U0ANA0001', name: 'ana', real_name: 'Ana Silva', display_name: 'ana', email: 'ana@efika.test' },
+      { id: 'U0RAJ0001', name: 'raj', real_name: 'Raj Patel', display_name: 'raj', email: 'raj@efika.test' },
       { id: 'U0EVE0001', name: 'eve', real_name: 'Eve Moreau', display_name: '' },
       { id: app.botUser, name: 'milo', real_name: 'MILO', display_name: 'MILO', is_bot: true },
       { id: 'USLACKBOT', name: 'slackbot', real_name: 'Slackbot', display_name: 'Slackbot' },
@@ -107,6 +107,11 @@ export function fakeSlack(opts: { start?: number } = {}) {
       case 'users.info': {
         const u = users.get(args.user);
         return u ? ok({ user: userJson(u) }) : err('user_not_found');
+      }
+      case 'users.lookupByEmail': {
+        if (!state.scopes.includes('users:read.email')) return err('missing_scope', { needed: 'users:read.email', provided: state.scopes.join(',') });
+        const u = [...users.values()].find((x) => 'email' in x && x.email === String(args.email).toLowerCase());
+        return u ? ok({ user: { ...userJson(u), profile: { ...userJson(u).profile, email: u.email } } }) : err('users_not_found');
       }
       case 'users.list':
         return ok({ members: [...users.values()].map(userJson), response_metadata: { next_cursor: '' } });

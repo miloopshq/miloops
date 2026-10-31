@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import {
   BRAND,
   deriveStates,
@@ -64,6 +66,16 @@ export interface SlackServiceOptions {
   sleep?: (ms: number) => Promise<void>;
   /** Lock owner id; distinct per service so tests can run several in one process. */
   lockOwner?: string;
+  /** The local user's email, matched against the workspace to skip the Home-tab claim. Defaults to `git config user.email`. */
+  ownerEmail?: () => string | undefined;
+}
+
+function gitEmail(cwd: string) {
+  try {
+    return execFileSync('git', ['config', '--get', 'user.email'], { cwd: existsSync(cwd) ? cwd : undefined, encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch {
+    return undefined;
+  }
 }
 
 const AUTH_CODES = new Set(['invalid_auth', 'not_authed', 'account_inactive', 'token_revoked', 'token_expired', 'no_permission']);
@@ -261,6 +273,7 @@ export class SlackService {
       }
       if (save) this.store.saveToken('bot', token);
       this.store.update({ workspace: { id: who.team_id, name: who.team, url: who.url }, bot: { userId: who.user_id, name: who.user } });
+      if (!this.store.read().owners.length && api.scopes?.includes('users:read.email')) await this.ownerByEmail(api);
     }
     const t = this.store.tokens();
     if (t.app && t.bot) {
@@ -428,10 +441,28 @@ export class SlackService {
     await this.call('views.publish', { user_id: user, view: homeView({ claimed: !!c.owners.length, owner: c.owners[0]?.id, you: c.owners.some((o) => o.id === user), url: this.o.url(), command: c.command }) });
   }
 
+  /**
+   * Step 5 without leaving MILOOPS: the person running `miloops` is the owner, so when their git
+   * email belongs to exactly one workspace member, that member is claimed and DM'd right away.
+   * Anything else (no email, no match, missing scope) falls back to "This is me" on the Home tab.
+   */
+  private async ownerByEmail(api: SlackApi) {
+    const email = (this.o.ownerEmail ?? (() => gitEmail(this.o.root)))()?.trim();
+    if (!email) return;
+    const r = await api.call<{ user?: { id: string; deleted?: boolean; is_bot?: boolean; name?: string; real_name?: string; profile?: { display_name?: string } } }>('users.lookupByEmail', { email }).catch(() => undefined);
+    const u = r?.user;
+    if (!u || u.deleted || u.is_bot) return;
+    this.store.update({ owners: [{ id: u.id, name: u.profile?.display_name || u.name || u.real_name, via: 'git-email' }] });
+    await api
+      .call<{ channel: { id: string } }>('conversations.open', { users: u.id })
+      .then((o) => api.call('chat.postMessage', { channel: o.channel.id, text: 'Connected. Decisions and questions will reach you here.' }))
+      .catch(() => undefined);
+  }
+
   /** Step 5: the first person to click "This is me" on the Home tab becomes the owner; MILO confirms in their DM. */
   private async claim(user: string) {
     if (this.store.read().owners.length) return this.publishHome(user);
-    this.store.update({ owners: [{ id: user, name: await this.nameOf(user) }] });
+    this.store.update({ owners: [{ id: user, name: await this.nameOf(user), via: 'home' }] });
     await this.call('chat.postMessage', { channel: await this.dmOf(user), text: 'Connected. Decisions and questions will reach you here.' });
     await this.publishHome(user);
   }

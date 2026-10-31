@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { BRAND } from '@miloops-hq/core';
-import { SLACK_NOTIFY_EVENTS, slackSettingsApi, type SlackNotifyEvent, type SlackStatus, type SlackTokenResult, type SlackUser } from '@miloops-hq/connector-slack';
+import { SLACK_NOTIFY_EVENTS, appIdFromToken, slackLinks, slackSettingsApi, type SlackNotifyEvent, type SlackStatus, type SlackTokenResult, type SlackUser } from '@miloops-hq/connector-slack';
 import { Button, Card, Choice, Field, Label, Meta, Pill } from './ui';
 
 export const slackApi = slackSettingsApi(BRAND.apiPrefix);
@@ -60,19 +60,57 @@ const STEPS: { n: 1 | 2 | 3 | 4 | 5; title: string }[] = [
 const isCurrent = (step: SlackStatus['step'], n: number) => step === n || (step === 2 && n === 3);
 const isDone = (step: SlackStatus['step'], n: number) => step === 'done' || (typeof step === 'number' && n < step && !isCurrent(step, n));
 
-/** One button for either token: reads the clipboard on click and routes by prefix. A field is the fallback. */
-function PasteToken(props: { label: string; placeholder: string; onResult: (r: SlackTokenResult) => void }) {
+const TOKEN_RE = /^(xapp-|xoxb-|xoxp-|xoxe)/;
+const PASTE_KEY = typeof navigator !== 'undefined' && /Mac|iP(hone|ad)/.test(navigator.platform) ? '⌘V' : 'Ctrl+V';
+
+/**
+ * Picks up a copied token without a Paste click: the paste shortcut anywhere on the page, or — once
+ * the browser has granted clipboard access (Chrome remembers it after the first Paste) — just
+ * coming back to this tab. Only token-shaped clipboard text is ever acted on.
+ */
+function useTokenPickup(onToken: (token: string, gesture: boolean) => void) {
+  const cb = useRef(onToken);
+  cb.current = onToken;
+  const [auto, setAuto] = useState(false);
+  useEffect(() => {
+    let last = '';
+    const take = (text: string, gesture: boolean) => {
+      const t = text.trim();
+      if (!TOKEN_RE.test(t) || (!gesture && t === last)) return false;
+      last = t;
+      cb.current(t, gesture);
+      return true;
+    };
+    const onPaste = (e: ClipboardEvent) => {
+      if (take(e.clipboardData?.getData('text') ?? '', true)) e.preventDefault();
+    };
+    const onFocus = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const p = await navigator.permissions.query({ name: 'clipboard-read' as PermissionName });
+        setAuto(p.state === 'granted');
+        if (p.state === 'granted') take(await navigator.clipboard.readText(), false);
+      } catch {
+        // Clipboard reads without a click are Chromium-only; elsewhere the paste shortcut covers it.
+      }
+    };
+    void onFocus();
+    document.addEventListener('paste', onPaste);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onFocus);
+    return () => {
+      document.removeEventListener('paste', onPaste);
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onFocus);
+    };
+  }, []);
+  return auto;
+}
+
+/** Fallback for the paste shortcut: reads the clipboard on click, or takes the token in a field. */
+function PasteToken(props: { busy: boolean; placeholder: string; onToken: (token: string, gesture: boolean) => void }) {
   const [manual, setManual] = useState(false);
   const [value, setValue] = useState('');
-  const [busy, setBusy] = useState(false);
-  const send = async (token: string) => {
-    if (!token.trim()) return;
-    setBusy(true);
-    const r = await slackApi.token(token).catch((e: Error) => ({ ok: false, error: e.message }) as SlackTokenResult);
-    setBusy(false);
-    if (r.ok) setValue('');
-    props.onResult(r);
-  };
   const paste = async () => {
     let text = '';
     try {
@@ -82,23 +120,24 @@ function PasteToken(props: { label: string; placeholder: string; onResult: (r: S
       return;
     }
     if (!text.trim()) setManual(true);
-    else await send(text);
+    else props.onToken(text, true);
   };
   return (
     <div className="sl-paste">
-      <Button variant="primary" disabled={busy} onClick={() => void paste()}>
-        {busy ? 'Checking…' : props.label}
+      <Button variant="primary" disabled={props.busy} onClick={() => void paste()}>
+        {props.busy ? 'Checking…' : 'Paste'}
       </Button>
       {manual ? (
         <form
           className="sl-paste-field"
           onSubmit={(e) => {
             e.preventDefault();
-            void send(value);
+            props.onToken(value, true);
+            setValue('');
           }}
         >
           <input type="password" autoComplete="off" spellCheck={false} autoFocus value={value} placeholder={props.placeholder} aria-label="Token" onChange={(e) => setValue(e.target.value)} />
-          <Button type="submit" disabled={busy || !value.trim()}>
+          <Button type="submit" disabled={props.busy || !value.trim()}>
             Save
           </Button>
         </form>
@@ -126,10 +165,24 @@ function ExtLink(props: { href?: string; children: ReactNode; primary?: boolean;
 export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) => void }) {
   const { s, set } = props;
   const [result, setResult] = useState<SlackTokenResult>();
-  const onResult = (r: SlackTokenResult) => {
-    setResult(r);
-    set(r.status);
+  const [busy, setBusy] = useState(false);
+  const [installOpened, setInstallOpened] = useState(false);
+  const onToken = (token: string, gesture: boolean) => {
+    const appId = appIdFromToken(token);
+    // The install page is the next stop anyway; open it while the paste still counts as a click.
+    if (gesture && appId && !s.setup.botToken && window.open(slackLinks.install(appId), '_blank')) setInstallOpened(true);
+    setBusy(true);
+    void slackApi
+      .token(token)
+      .catch((e: Error) => ({ ok: false, error: e.message, status: s }) as SlackTokenResult)
+      .then((r) => {
+        setBusy(false);
+        setResult(r);
+        set(r.status);
+      });
   };
+  const auto = useTokenPickup(onToken);
+  const pickup = auto ? 'come back to this tab' : `press ${PASTE_KEY} here`;
   const step = s.step;
   const line = (n: number) =>
     result && (n === 4 ? result.kind === 'bot' || (!result.ok && step === 4) : result.kind === 'app' || (!result.ok && step !== 4)) ? (
@@ -154,10 +207,10 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
     3: (
       <>
         <p>
-          On the page Slack just opened: <b>App-Level Tokens</b> → <b>Generate Token and Scopes</b> → name it <code>miloops</code> → add <code>connections:write</code> → <b>Generate</b> → <b>Copy</b>.
+          On the page Slack just opened: <b>App-Level Tokens</b> → <b>Generate Token and Scopes</b> → name it <code>miloops</code> → add <code>connections:write</code> → <b>Generate</b> → <b>Copy</b>, then {pickup}.
         </p>
         <div className="sl-actions">
-          <PasteToken label="Paste" placeholder="xapp-…" onResult={onResult} />
+          <PasteToken busy={busy} placeholder="xapp-…" onToken={onToken} />
         </div>
         {line(3)}
         <Meta className="dim" parts={['Waiting for the app-level token', s.links.create && <a key="again" href={s.links.create} target="_blank" rel="noreferrer">Open the manifest again</a>]} />
@@ -166,11 +219,14 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
     4: (
       <>
         <p>
-          <b>Install to workspace</b> → <b>Allow</b>, then copy the <b>Bot User OAuth Token</b> that starts with <code>xoxb-</code> and paste it here.
+          {installOpened ? "Slack's install page is open in a new tab: " : <><b>Install to workspace</b> → </>}
+          <b>Allow</b> → copy the <b>Bot User OAuth Token</b> (starts with <code>xoxb-</code>), then {pickup}.
         </p>
         <div className="sl-actions">
-          <ExtLink href={s.links.install}>Install to workspace</ExtLink>
-          <PasteToken label="Paste" placeholder="xoxb-…" onResult={onResult} />
+          <ExtLink primary={!installOpened} href={s.links.install}>
+            {installOpened ? 'Open install page again' : 'Install to workspace'}
+          </ExtLink>
+          <PasteToken busy={busy} placeholder="xoxb-…" onToken={onToken} />
         </div>
         {line(4)}
       </>
@@ -178,7 +234,7 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
     5: (
       <>
         <p>
-          Open MILO's Home tab in Slack and click <b>This is me</b>. MILO sends you a DM, and questions from agents arrive there.
+          Your git email doesn't match a member of {s.workspace?.name ?? 'the workspace'}, so tell MILO who you are: open its Home tab in Slack and click <b>This is me</b>. MILO sends you a DM, and questions from agents arrive there.
         </p>
         <div className="sl-actions">
           <ExtLink primary href={s.links.home}>
@@ -222,8 +278,33 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
   );
 }
 
+function ReconnectPaste(props: { set: (s: SlackStatus) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  const onToken = (token: string) => {
+    setBusy(true);
+    void slackApi.token(token).then(
+      (r) => {
+        setBusy(false);
+        setError(r.ok ? undefined : r.error);
+        props.set(r.status);
+      },
+      (e: Error) => {
+        setBusy(false);
+        setError(e.message);
+      },
+    );
+  };
+  return (
+    <>
+      <PasteToken busy={busy} placeholder="xapp-… or xoxb-…" onToken={onToken} />
+      {error && <div className="test-line alert">✕ {error}</div>}
+    </>
+  );
+}
+
 function StepFact({ s, n }: { s: SlackStatus; n: number }) {
-  const fact = n === 3 ? s.setup.appId && `app ${s.setup.appId}` : n === 4 ? s.workspace && `${s.workspace.name} · @${s.bot?.name ?? 'milo'}` : n === 5 ? s.owners[0] && `owner ${s.owners[0].name ?? s.owners[0].id}` : undefined;
+  const fact = n === 3 ? s.setup.appId && `app ${s.setup.appId}` : n === 4 ? s.workspace && `${s.workspace.name} · @${s.bot?.name ?? 'milo'}` : n === 5 ? s.owners[0] && `owner ${s.owners[0].name ?? s.owners[0].id}${s.owners[0].via === 'git-email' ? ' · git email' : ''}` : undefined;
   return fact ? <span className="mono-label dim">{fact}</span> : null;
 }
 
@@ -335,7 +416,7 @@ export function SlackSettings(props: { focus?: boolean }) {
       {setup && connected && s.state === 'auth-error' && (
         <Card tone="inset" className="slack-setup">
           <p>Generate a new app-level token or reinstall the app, then paste the new token. Settings and the owner are kept.</p>
-          <PasteToken label="Paste" placeholder="xapp-… or xoxb-…" onResult={(r) => setS(r.status)} />
+          <ReconnectPaste set={setS} />
         </Card>
       )}
 
@@ -347,6 +428,7 @@ export function SlackSettings(props: { focus?: boolean }) {
             </Label>
             <div className="sl-owner">
               <b>@{s.owners[0]?.name ?? s.owners[0]?.id}</b>
+              {s.owners[0]?.via === 'git-email' && <span className="mono-label dim">Matched your git email</span>}
               <button type="button" className="link" onClick={() => void slackApi.resetOwner().then(setS, () => {})}>
                 Not you? Reset
               </button>

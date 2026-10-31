@@ -10,7 +10,7 @@ export class SlackApiError extends Error {
   }
 }
 
-const READS = new Set(['auth.test', 'bots.info', 'conversations.replies', 'chat.getPermalink', 'users.info', 'users.list']);
+const READS = new Set(['auth.test', 'bots.info', 'conversations.replies', 'chat.getPermalink', 'users.info', 'users.list', 'users.lookupByEmail']);
 
 export interface SlackApiOptions {
   token: string;

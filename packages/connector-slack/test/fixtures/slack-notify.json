@@ -1,6 +1,6 @@
 {
   "source": "fake",
-  "recordedAt": "2026-10-31T16:56:50.410Z",
+  "recordedAt": "2026-10-31T17:18:19.957Z",
   "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Blocked and mission-done notifications in the owner DM, threaded per mission per day.",
   "exchanges": [
     {
@@ -32,7 +32,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json; charset=utf-8",
-          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
         },
         "body": {
           "ok": true,
@@ -55,7 +55,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json; charset=utf-8",
-          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
         },
         "body": {
           "ok": true,
@@ -84,7 +84,7 @@
         "status": 200,
         "headers": {
           "content-type": "application/json; charset=utf-8",
-          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read,users:read.email"
         },
         "body": {
           "ok": true,

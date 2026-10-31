@@ -21,6 +21,7 @@ export const RELEASES: Release[] = [
       'Save as decision on any message, or `/milo decide`: the form is prefilled with a summary of the thread, and the decision is recorded with a permalink, resolving the related ticket by default',
       '`/milo status` and `/milo inbox` for the mission at a glance; DMs when a ticket is blocked or a mission is done',
       'Allowed users, notification target and events in Settings → Slack',
+      'Slack setup without Paste clicks: press ⌘V / Ctrl+V anywhere, or in Chrome just come back to the tab after copying; pasting the app token opens the install page; MILO recognises you by your git email, so there is nothing to claim in Slack',
     ],
   },
   {
