@@ -256,20 +256,24 @@ code {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   color: var(--accent);
 }
 
+/* 16×14 sprite drawn at an exact 2× so every pixel stays crisp. */
 .brand__mark {
-  width: 26px;
-  height: 26px;
+  flex: none;
+  width: 32px;
+  height: 28px;
 }
 
 .brand__name {
   font-family: var(--display);
-  font-size: 18px;
-  font-weight: 400;
-  letter-spacing: 0.38em;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  margin-right: -0.12em;
   color: var(--text-hi);
 }
 
@@ -385,7 +389,7 @@ code {
 .install {
   border: 1px solid var(--line-2);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  padding: 14px 14px 12px;
+  padding: 14px;
 }
 
 .install__head {
@@ -506,7 +510,7 @@ code {
 .install--inline {
   margin: 32px auto 0;
   max-width: 360px;
-  padding: 8px 10px;
+  padding: 10px;
 }
 
 .install--inline .install__line {
@@ -655,7 +659,7 @@ code {
 }
 
 .meet__avatar {
-  min-height: 388px;
+  padding-bottom: 88px;
 }
 
 .meet__avatar .milo {
@@ -665,9 +669,27 @@ code {
   --milo-panel: var(--panel);
 }
 
+/* The inner frame keeps the same inset on all four sides; the wave rides in the frame's bottom padding
+   and the spoken line sits under the panel, so no state changes the panel's height. */
+.meet__avatar .milo-feed {
+  position: relative;
+  padding: calc(var(--milo-u) * 5);
+}
+
+.meet__avatar .milo-wave {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--milo-u) * 0.75);
+  transform: translateX(-50%);
+}
+
 .meet__avatar .milo-caption {
-  max-width: 268px;
-  min-height: 4.8em;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  min-height: 0;
+  margin-top: 14px;
   font-size: 15px;
 }
 
@@ -1112,7 +1134,7 @@ code {
 }
 
 .feature {
-  padding: 28px 26px 32px;
+  padding: 28px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   transition: background-color 0.3s var(--ease);
@@ -1149,77 +1171,123 @@ code {
 
 /* ---------- agents ---------- */
 
-.agents__head {
-  margin-bottom: 32px;
+.agents {
+  --tile: 88px;
+  --tile-gap: 12px;
+  padding: clamp(24px, 3.5vw, 40px);
+  background: radial-gradient(70% 60% at 50% 35%, rgba(132, 182, 194, 0.07), transparent 70%), var(--panel);
+}
+
+/* Wider than the card on purpose: the edges fade out like a field that keeps going. */
+.agents__field {
+  display: grid;
+  justify-content: center;
+  overflow: hidden;
+  padding: 8px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent);
 }
 
 .agents__grid {
-  display: grid;
-  grid-template-columns: 2fr 3fr;
-  gap: 16px 24px;
-}
-
-.agents__group .label {
-  margin-bottom: 12px;
-}
-
-.agents__tiles {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(10, var(--tile));
+  grid-auto-rows: var(--tile);
+  gap: var(--tile-gap);
 }
 
-.agent {
+.tile {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  min-height: 72px;
-  padding: 0 18px;
-  border: 1px solid var(--line-2);
-  background: var(--panel);
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  text-align: center;
+}
+
+.tile__glyph {
+  font: 22px/1 var(--mono);
+  color: var(--accent);
+}
+
+.tile__name {
   font-family: var(--display);
-  font-size: 18px;
+  font-size: 13px;
+  line-height: 1.2;
   color: var(--text-hi);
 }
 
-.agent .ico {
-  color: var(--ok);
+.tile--on {
+  border-color: var(--line-2);
+  background: var(--panel-2);
+  box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.9);
 }
 
-.agent--slot {
-  border-style: dashed;
-  border-color: var(--line);
-  background: transparent;
+.tile--on::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(127, 174, 154, 0.16);
 }
 
-.agent--slot span {
-  width: 56%;
-  height: 8px;
-  background: var(--line);
+.tile--soon::before {
+  content: '?';
+  font: 22px/1 var(--mono);
+  color: var(--faint);
 }
 
-.agent--next {
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  padding: 10px 16px;
-  border-style: dashed;
-  background: transparent;
-  font-family: var(--sans);
-  font-size: 14px;
+.tile--soon {
+  opacity: 0.55;
+}
+
+.tile--next {
+  grid-column: span 2;
+  flex-direction: row;
+  gap: 12px;
+  border-color: var(--line-2);
+}
+
+.tile--next .tile__glyph {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line-2);
+  font-size: 20px;
+}
+
+.tile--next .tile__name {
+  font-size: 15px;
+  text-align: left;
+}
+
+.agents__copy {
+  margin-top: clamp(24px, 3vw, 36px);
+  max-width: 760px;
+}
+
+.agents__copy .eyebrow {
+  margin-bottom: 12px;
+}
+
+.agents__title {
+  font-size: var(--fs-h3);
+  line-height: 1.35;
+}
+
+.agents__title span {
   color: var(--dim);
-}
-
-.agent--next strong {
-  font-family: var(--display);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text);
 }
 
 /* ---------- showcase rows ---------- */
@@ -1232,14 +1300,19 @@ code {
 
 .row {
   display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   border: 1px solid var(--line);
   background: var(--bg-2);
   align-items: stretch;
 }
 
 .row--flip {
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+}
+
+/* Portrait shot: the media column hugs the phone so its padding stays even. */
+.row:has(.row__media--phone) {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .row--flip .row__copy {
@@ -1249,13 +1322,8 @@ code {
 .row__copy {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: clamp(28px, 4vw, 56px);
-}
-
-.row__copy .eyebrow {
-  margin-bottom: auto;
-  padding-bottom: 32px;
+  justify-content: center;
+  padding: clamp(24px, 3.5vw, 48px);
 }
 
 .row__copy h3 {
@@ -1273,7 +1341,7 @@ code {
   border: 0;
   border-left: 1px solid var(--line);
   background: radial-gradient(120% 90% at 70% 20%, rgba(132, 182, 194, 0.07), transparent 60%), var(--panel);
-  padding: clamp(16px, 3vw, 40px);
+  padding: clamp(12px, 1.6vw, 20px);
   height: 100%;
   display: grid;
   place-items: center;
@@ -1738,12 +1806,9 @@ code {
     border-top: 1px solid var(--line);
   }
 
-  .agents__grid {
-    grid-template-columns: 1fr;
-  }
-
   .row,
-  .row--flip {
+  .row--flip,
+  .row:has(.row__media--phone) {
     grid-template-columns: 1fr;
   }
 
@@ -1795,8 +1860,7 @@ code {
   }
 
   .brand__name {
-    letter-spacing: 0.28em;
-    font-size: 16px;
+    font-size: 18px;
   }
 
   .frame {
@@ -1851,13 +1915,45 @@ code {
     grid-template-columns: 1fr;
   }
 
-  .agents__group:last-child .agents__tiles {
-    grid-auto-flow: row;
-    grid-template-columns: 1fr 1fr;
+  .agents {
+    --tile: 64px;
+    --tile-gap: 8px;
   }
 
-  .agent--next {
-    grid-column: 1 / -1;
+  .agents__field {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .tile {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .tile__glyph,
+  .tile--soon::before {
+    font-size: 17px;
+  }
+
+  .tile__name {
+    font-size: 11px;
+  }
+
+  .tile--on::after {
+    top: 5px;
+    right: 5px;
+    width: 5px;
+    height: 5px;
+  }
+
+  .tile--next .tile__glyph {
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+  }
+
+  .tile--next .tile__name {
+    font-size: 12px;
   }
 
   .feature__ico {
@@ -1896,9 +1992,4 @@ code {
   }
 }
 
-@media (max-width: 860px) {
-  .meet__avatar {
-    min-height: 0;
-  }
-}
 
