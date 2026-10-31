@@ -8,6 +8,7 @@ import {
 import { Panel, MiloLogo, MiloMark, Wordmark, Label, Readout, Button } from '../../components/ui';
 import { useNow } from '../../hooks';
 import { hms } from '../../lib';
+import { PrSyncIndicator } from '../pr-sync';
 import { MissionSwitcher } from './MissionSwitcher';
 import { TrackerChip } from './TrackerChip';
 import { TrackerPulse } from './TrackerPulse';
@@ -83,6 +84,7 @@ export function Header(props: {
           </Button>
         )}
         <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
+        <PrSyncIndicator now={now} />
         <TrackerPulse health={props.health} now={now} />
         <Button
           variant="ghost"

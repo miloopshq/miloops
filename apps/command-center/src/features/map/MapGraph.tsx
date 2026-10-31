@@ -1,7 +1,7 @@
 import { type MapSnapshot, type SessionInfo, type TicketLease, layout, leaseHealth } from '@miloops-hq/core';
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { useNow } from '../../hooks';
-import { type Selection, heldLeases, isRunning } from '../../lib';
+import { useNow, usePrSync } from '../../hooks';
+import { type Selection, heldLeases, isRunning, prSync, worstFlag } from '../../lib';
 import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
@@ -73,6 +73,7 @@ export function MapGraph(props: {
 
   const now = useNow(5000);
   const held = heldLeases(props.leases, snap.map.id);
+  const sync = usePrSync();
   const live = new Map(props.sessions.filter((s) => isRunning(s) && s.ticketId).map((s) => [s.ticketId!, s]));
   const selId = selection?.kind === 'ticket' ? selection.id : undefined;
 
@@ -151,6 +152,7 @@ export function MapGraph(props: {
                 n={n}
                 session={live.get(n.ticket.id)}
                 stalled={!!held.get(n.ticket.id) && leaseHealth(held.get(n.ticket.id)!, now) !== 'live'}
+                flag={worstFlag(prSync.ticket(sync, snap.map.id, n.ticket.id))}
                 selected={selId === n.ticket.id}
                 onSelect={onSelect}
               />

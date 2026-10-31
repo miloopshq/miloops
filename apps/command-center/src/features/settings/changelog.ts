@@ -10,7 +10,7 @@ export const NEXT: { area: string; items: string[] }[] = [
   { area: 'Packaging', items: ['Publish to npm'] },
   {
     area: 'Verification',
-    items: ['Independent review by another agent session', 'Pull request and CI evidence'],
+    items: ['Independent review by another agent session'],
   },
 ];
 
@@ -25,6 +25,7 @@ export const RELEASES: Release[] = [
       'Completion is a claim: on missions started with `verification.json` present, an execute or task ticket is only done once its checks pass. A failed check sends it back for Rework with the failing output (agents see it in close_ticket, next_ticket and claim_ticket, and rework comes first in the queue); after 3 failed attempts, or when the checks cannot run, it waits on you as Blocked',
       'New MCP tools `report_completion` and `verification_status`; missions started before verification, and research, grilling and prototype tickets, close exactly as before',
       'Git evidence, no GitHub needed: each claim records HEAD and the uncommitted state, and each completion lists the files changed since then. It flags no changes, overlap with another active ticket, a branch switch or reset, and edits to `verification.json` (which send the ticket to you as Blocked). A pass on code that changed while its checks ran is re-run',
+      'Pull request and CI evidence: with `verification.json` and a GitHub token (Settings, `GITHUB_TOKEN` or `gh auth login`), the command center finds each ticket’s PR (its branch `miloops-<mission>-<ticket>`, a `miloops:<mission>#<ticket>` line in the PR body, or a link you set) and flags mismatches: done with the PR still open, PR merged while the ticket is in progress, PR closed unmerged, required checks failing or unknown, PR head not the verified commit. Flags never change a ticket. A CI chip in the header shows sync health and never shows synced after a failed sync',
     ],
   },
   {

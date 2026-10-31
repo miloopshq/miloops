@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { Empty, Pill, Button, Card, Field, Meta } from '../../components/ui';
 import { type CommandCenterApi } from '../../hooks';
 import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
+import { PrFlagBadges } from '../pr-sync';
 import { LeaseFacts } from './LeaseFacts';
 import type { Form } from './types';
 
@@ -60,6 +61,8 @@ export function TicketDetail(props: {
         <dt>Blocks</dt>
         <dd>{blocks.map((b) => b.key).join(', ') || '—'}</dd>
       </dl>
+
+      <PrFlagBadges mapId={snap.map.id} ticketId={t.id} />
 
       {lease && <LeaseFacts lease={lease} onRelease={() => actions.releaseLease(t.id)} />}
 
