@@ -1,5 +1,5 @@
 import { chartMap, claim, resolve, setMapMode, supersedeDecision } from '../src/planning/operations';
-import type { SyncedAdapter } from '../src/adapters/remote/synced';
+import type { SyncedAdapter } from '../src/adapters/remote/sync/syncedAdapter';
 import type { TrackerEvent } from '../src/model/types';
 
 /** Request bodies embed timestamps (decision records), so recordings and replays run at one fixed instant. */

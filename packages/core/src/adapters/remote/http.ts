@@ -17,7 +17,8 @@ export class TrackerError extends Error {
 }
 
 /** Offline and rate-limited failures clear up on their own; writes that hit them can be queued. */
-export const isTransient = (e: unknown): e is TrackerError => e instanceof TrackerError && (e.code === 'offline' || e.code === 'rate_limited');
+export const isTransient = (e: unknown): e is TrackerError =>
+  e instanceof TrackerError && (e.code === 'offline' || e.code === 'rate_limited');
 
 export interface RateInfo {
   limit?: number;
@@ -95,7 +96,12 @@ export class HttpClient {
           await this.wait(ms);
           continue;
         }
-        throw new TrackerError('rate_limited', `${name} rate limit reached; resumes at ${new Date(until).toISOString().slice(11, 16)} UTC`, res.status, until);
+        throw new TrackerError(
+          'rate_limited',
+          `${name} rate limit reached; resumes at ${new Date(until).toISOString().slice(11, 16)} UTC`,
+          res.status,
+          until,
+        );
       }
       if (res.status >= 500 && attempt < retries) {
         await this.wait(1000 * 2 ** attempt);
@@ -103,7 +109,14 @@ export class HttpClient {
       }
       if (res.status >= 400) {
         const detail = this.profile.message(body) ?? res.statusText;
-        const code: TrackerErrorCode = res.status === 401 || res.status === 403 ? 'auth' : res.status === 404 ? 'not_found' : res.status === 422 || res.status === 400 ? 'invalid' : 'http';
+        const code: TrackerErrorCode =
+          res.status === 401 || res.status === 403
+            ? 'auth'
+            : res.status === 404
+              ? 'not_found'
+              : res.status === 422 || res.status === 400
+                ? 'invalid'
+                : 'http';
         throw new TrackerError(code, `${name} ${res.status}: ${detail}`, res.status);
       }
       return { status: res.status, headers: res.headers, body: body as T };
@@ -115,20 +128,33 @@ export const github: HttpProfile = {
   name: 'GitHub',
   rateLimitedUntil(status, h, body, now) {
     const ra = num(h.get('retry-after'));
-    const graphqlLimited = status === 200 && Array.isArray((body as { errors?: { type?: string }[] })?.errors) && (body as { errors: { type?: string }[] }).errors.some((e) => e.type === 'RATE_LIMITED');
+    const graphqlLimited =
+      status === 200 &&
+      Array.isArray((body as { errors?: { type?: string }[] })?.errors) &&
+      (body as { errors: { type?: string }[] }).errors.some((e) => e.type === 'RATE_LIMITED');
     if (status !== 403 && status !== 429 && !graphqlLimited) return undefined;
     if (ra !== undefined) return now + ra * 1000;
     if (h.get('x-ratelimit-remaining') === '0') return (num(h.get('x-ratelimit-reset')) ?? now / 1000 + 60) * 1000;
-    if (graphqlLimited || /rate limit/i.test(String((body as { message?: string })?.message ?? ''))) return now + 60_000;
+    if (graphqlLimited || /rate limit/i.test(String((body as { message?: string })?.message ?? '')))
+      return now + 60_000;
     return undefined;
   },
   rate(h) {
     const limit = num(h.get('x-ratelimit-limit'));
     if (limit === undefined) return undefined;
     const reset = num(h.get('x-ratelimit-reset'));
-    return { limit, remaining: num(h.get('x-ratelimit-remaining')), resetAt: reset === undefined ? undefined : reset * 1000 };
+    return {
+      limit,
+      remaining: num(h.get('x-ratelimit-remaining')),
+      resetAt: reset === undefined ? undefined : reset * 1000,
+    };
   },
-  message: (b) => (typeof b === 'object' && b && 'message' in b ? String((b as { message: unknown }).message) : typeof b === 'string' && b ? b.slice(0, 200) : undefined),
+  message: (b) =>
+    typeof b === 'object' && b && 'message' in b
+      ? String((b as { message: unknown }).message)
+      : typeof b === 'string' && b
+        ? b.slice(0, 200)
+        : undefined,
 };
 
 interface GqlErrorBody {
@@ -138,16 +164,22 @@ interface GqlErrorBody {
 export const linear: HttpProfile = {
   name: 'Linear',
   rateLimitedUntil(status, h, body, now) {
-    const limited = status === 429 || !!(body as GqlErrorBody)?.errors?.some((e) => e.extensions?.code === 'RATELIMITED');
+    const limited =
+      status === 429 || !!(body as GqlErrorBody)?.errors?.some((e) => e.extensions?.code === 'RATELIMITED');
     if (!limited) return undefined;
     return num(h.get('x-ratelimit-requests-reset')) ?? now + 60_000;
   },
   rate(h) {
     const limit = num(h.get('x-ratelimit-requests-limit'));
     if (limit === undefined) return undefined;
-    return { limit, remaining: num(h.get('x-ratelimit-requests-remaining')), resetAt: num(h.get('x-ratelimit-requests-reset')) };
+    return {
+      limit,
+      remaining: num(h.get('x-ratelimit-requests-remaining')),
+      resetAt: num(h.get('x-ratelimit-requests-reset')),
+    };
   },
-  message: (b) => (b as GqlErrorBody)?.errors?.[0]?.message ?? (typeof b === 'string' && b ? b.slice(0, 200) : undefined),
+  message: (b) =>
+    (b as GqlErrorBody)?.errors?.[0]?.message ?? (typeof b === 'string' && b ? b.slice(0, 200) : undefined),
 };
 
 /** GraphQL `errors` on a 200 response, classified like HTTP errors. */
@@ -156,6 +188,12 @@ export function graphqlError(name: string, body: unknown): TrackerError | undefi
   if (!errs?.length) return undefined;
   const e = errs[0];
   const code = e.extensions?.code ?? e.extensions?.type ?? (e as { type?: string }).type ?? '';
-  const kind: TrackerErrorCode = /AUTH|FORBIDDEN/i.test(code) ? 'auth' : /NOT_FOUND|ENTITY_NOT_FOUND/i.test(code) ? 'not_found' : /INVALID|VALIDATION|BAD_USER_INPUT/i.test(code) ? 'invalid' : 'http';
+  const kind: TrackerErrorCode = /AUTH|FORBIDDEN/i.test(code)
+    ? 'auth'
+    : /NOT_FOUND|ENTITY_NOT_FOUND/i.test(code)
+      ? 'not_found'
+      : /INVALID|VALIDATION|BAD_USER_INPUT/i.test(code)
+        ? 'invalid'
+        : 'http';
   return new TrackerError(kind, `${name}: ${e.message ?? code}`);
 }

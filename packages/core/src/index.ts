@@ -18,7 +18,8 @@ export { MarkdownAdapter, type MarkdownFs } from './adapters/markdown/markdownAd
 export { demoSnapshot, seedDecisions, seedSnapshot, seedUsage } from './adapters/seed/seed';
 export { GitHubAdapter, testGitHub, type GitHubOptions } from './adapters/remote/github';
 export { LinearAdapter, testLinear, type LinearOptions } from './adapters/remote/linear';
-export { SyncedAdapter, type SyncState, type SyncStatus, type SyncOptions, type OutboxStore, type QueuedWrite, type QueuedChange } from './adapters/remote/synced';
+export { SyncedAdapter } from './adapters/remote/sync/syncedAdapter';
+export type { SyncState, SyncStatus, SyncOptions, OutboxStore, QueuedWrite, QueuedChange } from './adapters/remote/sync/types';
 export { TrackerError, isTransient, type RateInfo, type TrackerErrorCode } from './adapters/remote/http';
 export { BridgeAdapter, trackerSettingsApi } from './adapters/remote/bridgeClient';
 export type * from './adapters/remote/types';

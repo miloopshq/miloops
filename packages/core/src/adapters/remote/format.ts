@@ -1,6 +1,13 @@
 import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label } from '../../model/brand';
 import { DECISION_SOURCES } from '../../planning/decisions';
-import { TICKET_TYPES, type Comment, type DecisionRecord, type MapMode, type Ticket, type TicketType } from '../../model/types';
+import {
+  TICKET_TYPES,
+  type Comment,
+  type DecisionRecord,
+  type MapMode,
+  type Ticket,
+  type TicketType,
+} from '../../model/types';
 
 /*
  * How MILOOPS state rides on a plain issue tracker, shared by GitHub and Linear:
@@ -45,7 +52,12 @@ export const authoredBody = (author: string, body: string, writeId?: string) =>
   `<!-- ${P}:author ${author.replace(/-->/g, '')} -->\n${writeId ? `<!-- ${P}:write ${writeId.replace(/\s|-->/g, '')} -->\n` : ''}${body}`;
 
 /** A tracker comment as a ticket comment; `undefined` for decision-record comments, which are not conversation. */
-export function readComment(c: { id: string; body: string; author?: string; createdAt: string | number }): Comment | undefined {
+export function readComment(c: {
+  id: string;
+  body: string;
+  author?: string;
+  createdAt: string | number;
+}): Comment | undefined {
   let body = c.body.replace(/\r\n/g, '\n');
   if (DECISION_RE.test(body)) return undefined;
   const m = body.match(AUTHOR_RE);
@@ -54,7 +66,7 @@ export function readComment(c: { id: string; body: string; author?: string; crea
   if (w) body = body.slice(w[0].length);
   return {
     id: c.id,
-    author: m ? m[1] : c.author ?? 'unknown',
+    author: m ? m[1] : (c.author ?? 'unknown'),
     body: body.trim(),
     createdAt: typeof c.createdAt === 'number' ? c.createdAt : Date.parse(c.createdAt) || 0,
     ...(w ? { writeId: w[1] } : {}),
@@ -92,7 +104,9 @@ export function parseDecisionComment(body: string): DecisionRecord | undefined {
   if (!m) return undefined;
   try {
     const d = JSON.parse(m[1]) as DecisionRecord;
-    return d && typeof d.id === 'string' ? { ...d, alternatives: d.alternatives ?? [], participants: d.participants ?? [], transcript: d.transcript ?? [] } : undefined;
+    return d && typeof d.id === 'string'
+      ? { ...d, alternatives: d.alternatives ?? [], participants: d.participants ?? [], transcript: d.transcript ?? [] }
+      : undefined;
   } catch {
     return undefined;
   }
@@ -100,9 +114,13 @@ export function parseDecisionComment(body: string): DecisionRecord | undefined {
 
 const TYPE_LABELS = new Map(TICKET_TYPES.map((t) => [label(t), t]));
 
-export const typeFromLabels = (labels: string[]): TicketType => labels.map((l) => TYPE_LABELS.get(l)).find(Boolean) ?? 'task';
+export const typeFromLabels = (labels: string[]): TicketType =>
+  labels.map((l) => TYPE_LABELS.get(l)).find(Boolean) ?? 'task';
 
-export const ticketLabels = (type: TicketType, hitl?: boolean) => [label(type), ...(type === 'task' && hitl ? [HITL_LABEL] : [])];
+export const ticketLabels = (type: TicketType, hitl?: boolean) => [
+  label(type),
+  ...(type === 'task' && hitl ? [HITL_LABEL] : []),
+];
 
 export const mapLabels = (mode: MapMode) => [MAP_LABEL, ...(mode === 'plan-only' ? [PLAN_ONLY_LABEL] : [])];
 
@@ -142,7 +160,7 @@ export function ticketFromIssue(p: IssueParts): Ticket {
     hitl: (type === 'task' && p.labels.includes(HITL_LABEL)) || undefined,
     body: text,
     state: p.closed ? 'closed' : 'open',
-    closeReason: p.closed ? p.closeReason ?? 'completed' : undefined,
+    closeReason: p.closed ? (p.closeReason ?? 'completed') : undefined,
     assignee: meta.assignee ?? p.trackerAssignee,
     blockedBy: p.blockedBy,
     comments: p.comments,

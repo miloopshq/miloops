@@ -1,20 +1,46 @@
 import type { TrackerAdapter } from '../adapter';
 import { Emitter } from '../../lib/emitter';
-import type { DecisionInput, DecisionRecord, MapDoc, MapMode, MapSections, MapSnapshot, MapSummary, Ticket, TicketType, TrackerEvent } from '../../model/types';
+import type {
+  DecisionInput,
+  DecisionRecord,
+  MapDoc,
+  MapMode,
+  MapSections,
+  MapSnapshot,
+  MapSummary,
+  Ticket,
+  TicketType,
+  TrackerEvent,
+} from '../../model/types';
 import { TrackerError } from './http';
-import type { SyncStatus } from './synced';
-import type { RemoteKind, TrackerConnectRequest, TrackerSettings, TrackerTestRequest, TrackerTestResult } from './types';
+import type { SyncStatus } from './sync/types';
+import type {
+  RemoteKind,
+  TrackerConnectRequest,
+  TrackerSettings,
+  TrackerTestRequest,
+  TrackerTestResult,
+} from './types';
 
 const LABELS: Record<RemoteKind, string> = { github: 'GitHub Issues', linear: 'Linear' };
 
 async function post<T>(url: string, method: string, body?: unknown): Promise<T> {
   let r: Response;
   try {
-    r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) });
+    r = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
   } catch {
     throw new TrackerError('offline', 'Command center server unreachable; is `miloops` still running?');
   }
-  const j = (await r.json().catch(() => ({}))) as { result?: T; error?: string; code?: TrackerError['code']; resetAt?: number } & T;
+  const j = (await r.json().catch(() => ({}))) as {
+    result?: T;
+    error?: string;
+    code?: TrackerError['code'];
+    resetAt?: number;
+  } & T;
   if (!r.ok) throw new TrackerError(j.code ?? 'http', j.error ?? `request failed (${r.status})`, r.status, j.resetAt);
   return j as T;
 }
@@ -48,17 +74,25 @@ export class BridgeAdapter implements TrackerAdapter {
 
   listMaps = () => this.call<MapSummary[]>('listMaps');
   loadMap = (mapId: string) => this.call<MapSnapshot>('loadMap', mapId);
-  createMap = (input: { title: string; sections: MapSections; mode?: MapMode }) => this.call<MapDoc>('createMap', input);
+  createMap = (input: { title: string; sections: MapSections; mode?: MapMode }) =>
+    this.call<MapDoc>('createMap', input);
   setMapMode = (mapId: string, mode: MapMode) => this.call<void>('setMapMode', mapId, mode);
-  updateMapSections = (mapId: string, patch: Partial<MapSections>) => this.call<void>('updateMapSections', mapId, patch);
-  createTicket = (mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }) => this.call<Ticket>('createTicket', mapId, input);
-  addBlocking = (mapId: string, blockerId: string, blockedId: string) => this.call<void>('addBlocking', mapId, blockerId, blockedId);
-  assign = (mapId: string, ticketId: string, assignee: string | null) => this.call<void>('assign', mapId, ticketId, assignee);
-  comment = (mapId: string, ticketId: string, author: string, body: string) => this.call<void>('comment', mapId, ticketId, author, body);
-  close = (mapId: string, ticketId: string, reason: 'completed' | 'not_planned') => this.call<void>('close', mapId, ticketId, reason);
+  updateMapSections = (mapId: string, patch: Partial<MapSections>) =>
+    this.call<void>('updateMapSections', mapId, patch);
+  createTicket = (mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }) =>
+    this.call<Ticket>('createTicket', mapId, input);
+  addBlocking = (mapId: string, blockerId: string, blockedId: string) =>
+    this.call<void>('addBlocking', mapId, blockerId, blockedId);
+  assign = (mapId: string, ticketId: string, assignee: string | null) =>
+    this.call<void>('assign', mapId, ticketId, assignee);
+  comment = (mapId: string, ticketId: string, author: string, body: string) =>
+    this.call<void>('comment', mapId, ticketId, author, body);
+  close = (mapId: string, ticketId: string, reason: 'completed' | 'not_planned') =>
+    this.call<void>('close', mapId, ticketId, reason);
   listDecisions = (mapId: string) => this.call<DecisionRecord[]>('listDecisions', mapId);
   createDecision = (mapId: string, input: DecisionInput) => this.call<DecisionRecord>('createDecision', mapId, input);
-  markSuperseded = (mapId: string, decisionId: string, supersededBy: string) => this.call<void>('markSuperseded', mapId, decisionId, supersededBy);
+  markSuperseded = (mapId: string, decisionId: string, supersededBy: string) =>
+    this.call<void>('markSuperseded', mapId, decisionId, supersededBy);
 
   private open() {
     const es = new EventSource(`${this.base}/tracker/${this.kind}/events`);

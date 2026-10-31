@@ -4,7 +4,7 @@ import { GitHubAdapter, testGitHub } from '../adapters/remote/github';
 import { TrackerError } from '../adapters/remote/http';
 import { LinearAdapter, testLinear } from '../adapters/remote/linear';
 import { orphanedWrites, outboxFile, outboxKey } from '../adapters/remote/outboxFile';
-import type { SyncedAdapter } from '../adapters/remote/synced';
+import type { SyncedAdapter } from '../adapters/remote/sync/syncedAdapter';
 import type { RemoteKind, TrackerConnectRequest, TrackerSettings, TrackerTestRequest, TrackerTestResult } from '../adapters/remote/types';
 import { BRAND } from '../model/brand';
 import { OperationError } from '../planning/operations';
