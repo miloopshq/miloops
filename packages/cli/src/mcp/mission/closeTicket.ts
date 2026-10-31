@@ -23,6 +23,8 @@ export interface CloseInput {
   alternatives?: string[];
   outcome?: 'completed' | 'out_of_scope';
   postTranscript?: boolean;
+  /** Why no files changed is fine for this ticket (verified completions only). */
+  noCodeReason?: string;
   /** How long to wait for checks when the completion needs verification. */
   waitSeconds?: number;
 }
@@ -94,6 +96,7 @@ export async function closeTicket(ctx: AgentContext, input: CloseInput, wait: { 
           summary: input.summary,
           rationale: input.rationale,
           alternatives: input.alternatives,
+          noCodeReason: input.noCodeReason,
           decision: meta,
           transcript,
         },

@@ -20,7 +20,7 @@ import {
 } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import type { WaitControl } from './types';
-import { checksOf, feedbackOf, settledView } from './verificationView';
+import { checksOf, feedbackOf, gitView, settledView } from './verificationView';
 
 type Run = { attemptId: string; done: Promise<Settled> };
 const runs = new WeakMap<AgentContext, Map<string, Run>>();
@@ -154,6 +154,7 @@ export async function verificationStatus(
             result: last.result,
             checks: checksOf(last),
             feedback: feedbackOf(last),
+            ...(last.git ? { git: gitView(last.git) } : {}),
             ...(last.note ? { note: last.note } : {}),
           },
         }
