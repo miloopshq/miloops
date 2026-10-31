@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { TrackerAdapter } from '../adapters/adapter';
 import type { TrackerConnectRequest, TrackerTestRequest } from '../adapters/remote/types';
+import { githubCiAccess } from './githubCiAccess';
 import { BadRequest, readJson, sendJson } from './http';
 import { isKind, remoteAdapters } from './remoteAdapters';
 import { CALLS } from './trackerCalls';
@@ -83,6 +84,8 @@ export function createTrackerRoutes(o: TrackerRoutesOptions) {
       const a = ctx.project.read().active;
       return isKind(a) ? remotes.get(a) : o.markdown;
     },
+    /** GitHub PR and CI reads for the reconciler, with the same token resolution as the tracker. */
+    ciAccess: githubCiAccess(ctx),
     close() {
       remotes.close();
     },

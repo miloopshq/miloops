@@ -14,6 +14,9 @@ export interface TrackerBridge {
    *   POST /agents/answer                    body `{ sessionId, questionId, text, author? }` → AgentAnswer
    *   GET  /agents/leases                    `{ leases: TicketLease[] }` claim leases and recent tombstones; SSE `leases` on change
    *   POST /agents/leases/release            body `{ mapId, ticketId, by? }` → `{ returned }`: back to the queue with a handoff comment
+   *   GET  /verification/sync[?mapId=]       `{ status: PrSyncStatus, tickets: TicketSync[] }` PR/CI evidence and flags;
+   *                                          SSE `verification` (VerificationSyncEvent) after each reconciler tick
+   *   PUT  /verification/sync/link           body `{ mapId, ticketId, pr: number | null }` link or unlink a PR
    *   GET  /decisions[?mission=<id>]         `{ decisions: DecisionRecord[] }`
    *   POST /decisions                        body `{ mission, appendToMission?, ...DecisionInput }` → DecisionRecord (idempotent per source.kind + source.ref)
    *   POST /decisions/<id>/supersede         body `{ mission, ...DecisionInput }` → the new DecisionRecord
@@ -53,4 +56,6 @@ export interface BridgeOptions extends Omit<TrackerRoutesOptions, 'root' | 'mark
   url?: () => string | undefined;
   /** How often lease files are polled and expired leases returned to the queue. */
   leases?: { pollMs?: number; reapMs?: number };
+  /** PR/CI reconciler (watchVerification.ts): delay before the first tick. Later ticks follow `github.pollSec`. */
+  reconciler?: { firstMs?: number };
 }

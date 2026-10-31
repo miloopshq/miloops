@@ -43,3 +43,6 @@ export { baselineForClaim, captureBaseline, latestBaseline, readBaseline, type C
 export { collectEvidence, type EvidenceRequest } from './evidence/collectEvidence';
 export { evidenceFlags, flagEffect, type OtherWork } from './evidence/flags';
 export { staleAction, staleness } from './evidence/stale';
+export { GitHubCiProvider, type GitHubCiOptions } from './evidence/github/GitHubCiProvider';
+export { reconcile, type ReconcileEnv, type ReconcileResult } from './evidence/reconcile';
+export { readSyncStatus, readTicketSync, readTicketSyncs } from './evidence/syncStore';

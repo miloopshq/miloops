@@ -7,6 +7,7 @@ export function GraphNode({
   n,
   session: s,
   stalled,
+  flag,
   selected,
   onSelect,
 }: {
@@ -14,6 +15,8 @@ export function GraphNode({
   session?: SessionInfo;
   /** Claimed by an agent whose lease is about to run out or ran out. */
   stalled?: boolean;
+  /** Most serious open PR/CI mismatch flag. */
+  flag?: 'alert' | 'warn';
   selected: boolean;
   onSelect: (s: Selection) => void;
 }) {
@@ -64,6 +67,7 @@ export function GraphNode({
           {hitl ? 'HITL' : 'AFK'}
         </text>
       </g>
+      {flag && <circle className={`pr-flag-dot ${flag}`} cx={NODE_W - 2} cy={2} r={4} />}
       {s && !waiting && (
         <text className="live-tag" x={NODE_W} y={NODE_H + 13} textAnchor="end">
           {s.agent} · {s.mode.toUpperCase()} {s.step}/{s.total} {s.stepLabel.toUpperCase()}

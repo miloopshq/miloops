@@ -1,0 +1,60 @@
+/* PR/CI evidence: the header sync chip, the inspector PR line and flags, the map node flag dot. */
+.pr-sync.tone-ok .sync-glyph {
+  color: var(--st-decided);
+}
+.pr-sync.tone-stale .sync-glyph,
+.pr-sync.tone-stale .tl {
+  color: var(--amber);
+}
+.pr-sync.tone-failed .sync-glyph,
+.pr-sync.tone-failed .tl {
+  color: var(--urgent);
+}
+.pr-sync.tone-off .tl,
+.pr-sync.tone-unknown .tl {
+  color: var(--faint);
+}
+.pr-flags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-6);
+  margin: var(--sp-8) 0;
+}
+.pr-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.pr-chip a {
+  color: var(--text-hi);
+}
+.pr-chip .ci-passed {
+  color: var(--st-decided);
+}
+.pr-chip .ci-failing {
+  color: var(--urgent);
+}
+.pr-chip .ci-pending,
+.pr-chip .ci-unknown {
+  color: var(--amber);
+}
+.pr-flags .flag-alert {
+  color: var(--urgent);
+  border-color: var(--urgent);
+}
+.pr-flags .flag-warn {
+  color: var(--amber);
+  border-color: rgba(var(--amber-rgb), 0.5);
+}
+.pr-flag-dot.alert {
+  fill: var(--urgent);
+}
+.pr-flag-dot.warn {
+  fill: var(--amber);
+}

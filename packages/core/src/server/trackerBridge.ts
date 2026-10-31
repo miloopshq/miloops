@@ -12,15 +12,23 @@ import { handleLeases } from './leaseRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
 import { handleVerification } from './verificationRoutes';
+import { handleVerificationSync } from './verificationSyncRoutes';
 import { watchLeases } from './watchLeases';
 import { watchTrackerFolder } from './watchTrackerFolder';
+import { watchVerification } from './watchVerification';
 
 /**
  * HTTP API for the local-markdown tracker. Shared by the Vite dev plugin and
  * the `miloops` CLI so both serve the same contract.
  */
 export function createTrackerBridge(root: string, options: BridgeOptions = {}): TrackerBridge {
-  const { plugins: factories = [], url: publicUrl = () => undefined, leases: leaseTiming, ...trackers } = options;
+  const {
+    plugins: factories = [],
+    url: publicUrl = () => undefined,
+    leases: leaseTiming,
+    reconciler: reconcilerTiming,
+    ...trackers
+  } = options;
   const abs = path.resolve(root);
   const fs = nodeMarkdownFs(abs);
   const markdown = new MarkdownAdapter({ ...fs, watch: undefined }, abs);
@@ -32,6 +40,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
   };
   const unwatch = watchTrackerFolder(abs, fs, send);
   const unwatchLeases = watchLeases(abs, () => routes.active(), send, leaseTiming);
+  const reconciler = watchVerification(abs, () => routes.active(), routes.ciAccess, send, reconcilerTiming);
 
   async function handle(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url ?? '/', 'http://x');
@@ -65,6 +74,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       if (await handleLeases(abs, () => routes.active(), req, res, url)) return;
       if (await handleJournal(abs, req, res, url)) return;
       if (handleVerification(abs, req, res, url)) return;
+      if (await handleVerificationSync(abs, () => routes.active(), reconciler, req, res, url)) return;
       if (await handleAgents(abs, req, res, url)) return;
       res.statusCode = 404;
       res.end('not found');
@@ -86,6 +96,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       routes.close();
       unwatch();
       unwatchLeases();
+      reconciler.stop();
       for (const c of clients) c.end();
       clients.clear();
     },
