@@ -31,6 +31,7 @@ import {
 } from '@miloops-hq/core';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { AgentDocWriter, readAgentDocs, readCommandCenterLock, writeAgentAnswer } from '@miloops-hq/core/agents';
+import type { UsageMeter } from '../usage/meter';
 
 export { OperationError };
 
@@ -47,6 +48,10 @@ export interface AgentOptions {
   pollMs?: number;
   /** Tracker the missions live in (the project's active tracker). Default: local markdown in `root`. */
   tracker?: TrackerAdapter & { dispose?(): void };
+  /** Reads real usage from the agent's local logs; without one (or until it finds a log) the agent's reported numbers count. */
+  usage?: Pick<UsageMeter, 'noteCall' | 'measure'>;
+  /** How often usage of the running session is re-read. */
+  usagePollMs?: number;
 }
 
 export interface TicketPlanInput {
@@ -101,10 +106,25 @@ export class MissionAgent {
   private waits = new Map<string, Promise<{ text: string; author: string }>>();
   private tickets = new Map<string, Ticket>();
   private offTracker: () => void;
+  /**
+   * Usage window of each session of this process: from the model call that
+   * issued the tool call opening it (not before the previous session ended) to
+   * its own end. Ended sessions are re-measured too, because the agent may write
+   * its log after the call that ended the session.
+   */
+  private windows = new Map<string, { s: SessionHandle; from: number; to?: number; openedBy?: string; notBefore?: number }>();
+  private lastEnd?: number;
+  /** Agent's id for the tool call being handled. */
+  private currentCall?: string;
+  private usagePoll?: ReturnType<typeof setInterval>;
 
   constructor(private opts: AgentOptions) {
     this.adapter = opts.tracker ?? new MarkdownAdapter({ ...nodeMarkdownFs(opts.root), watch: undefined }, opts.root);
     this.writer = new AgentDocWriter(opts.root, this.activity, { client: opts.client, pollMs: opts.pollMs });
+    if (opts.usage) {
+      this.usagePoll = setInterval(() => this.measureAll(), opts.usagePollMs ?? 2000);
+      this.usagePoll.unref?.();
+    }
     this.offTracker = this.adapter.subscribe((e) => {
       const line = describeTrackerEvent(e, (id) => this.tickets.get(id) ?? ({ key: this.keyOf(id) } as Ticket));
       if (line && this.session) this.activity.push({ ...line, sessionId: this.session.id });
@@ -201,6 +221,7 @@ export class MissionAgent {
 
   async status(missionRef?: string) {
     const maps = await this.adapter.listMaps();
+    this.flush();
     const docs = await readAgentDocs(this.root);
     const missions = await Promise.all(
       maps.map(async (m) => {
@@ -237,6 +258,7 @@ export class MissionAgent {
           inputTokens: sum(usage.map((u) => u.inputTokens)),
           outputTokens: sum(usage.map((u) => u.outputTokens)),
           costUsd: round(sum(usage.map((u) => u.costUsd))),
+          sources: [...new Set(usage.map((u) => u.source ?? 'reported'))],
           note: 'Sessions of the last 24 hours',
         },
       },
@@ -250,6 +272,7 @@ export class MissionAgent {
     const agent = await this.agentId();
     this.session = this.activity.startSession({ id: `s_${process.pid.toString(36)}_${(this.seq++).toString(36)}`, agent, mode, mapId, ticketId });
     this.transcripts.set(this.session.id, []);
+    this.windows.set(this.session.id, { s: this.session, from: this.session.info.startedAt, openedBy: this.currentCall, notBefore: this.lastEnd });
     return this.session;
   }
 
@@ -257,10 +280,38 @@ export class MissionAgent {
     return this.session?.info.status === 'running' ? this.session : undefined;
   }
 
+  /** Set a session's usage from the agent's logs. False when no log is available. */
+  private measure(s: SessionHandle) {
+    const w = this.windows.get(s.id);
+    const u = w && this.opts.usage?.measure(w.from, w.to, { openedBy: w.openedBy, notBefore: w.notBefore });
+    if (u) s.setUsage(u);
+    return !!u;
+  }
+
+  /** Re-measure every session of this process ended in the last hour, and the running one. */
+  private measureAll() {
+    if (!this.opts.usage) return;
+    for (const [id, w] of this.windows) {
+      if (w.to && w.to < Date.now() - 3_600_000) this.windows.delete(id);
+      else this.measure(w.s);
+    }
+  }
+
   private endSession(ok: boolean, text?: string, signal?: boolean) {
     const s = this.running();
-    if (s) s.done(ok, text, { signal });
+    if (s) {
+      this.lastEnd = Date.now();
+      const w = this.windows.get(s.id);
+      if (w) w.to = this.lastEnd;
+      this.measure(s);
+      s.done(ok, text, { signal });
+    }
     this.session = undefined;
+  }
+
+  /** `_meta` of an incoming tool call: tells the usage meter which agent log this process belongs to. */
+  noteCall(meta: Record<string, unknown> | undefined) {
+    this.currentCall = this.opts.usage?.noteCall(meta);
   }
 
   /** The running session, or a new one: a work session on the current mission, else a chart session for a mission to come. */
@@ -524,8 +575,12 @@ export class MissionAgent {
       this.note(s, 'agent', s.info.agent, input.say);
     }
     const u = { inputTokens: Math.max(0, input.inputTokens ?? 0), outputTokens: Math.max(0, input.outputTokens ?? 0), costUsd: Math.max(0, input.costUsd ?? 0) };
-    if (u.inputTokens || u.outputTokens || u.costUsd) s.usage(u);
-    return { session: this.sessionView() };
+    const measured = this.measure(s);
+    if (!measured && (u.inputTokens || u.outputTokens || u.costUsd)) s.usage({ ...u, source: 'reported' });
+    return {
+      session: this.sessionView(),
+      usageSource: measured ? `${s.info.usage?.source} logs (reported numbers are ignored)` : s.info.usage ? 'reported' : 'none',
+    };
   }
 
   async recordDecision(input: { mission?: string; ticket?: string; question: string; answer: string; summary?: string; rationale?: string; alternatives?: string[]; decidedBy?: string; appendToMission?: boolean }) {
@@ -646,12 +701,15 @@ export class MissionAgent {
 
   /** Write pending session state now, so a tool result never runs ahead of the command center. */
   flush() {
+    this.measureAll();
     this.writer.flush();
   }
 
   /** End the running session (agent disconnected) and write final state. */
   close(text = 'Agent disconnected') {
+    clearInterval(this.usagePoll);
     this.endSession(true, text);
+    this.measureAll();
     this.offTracker();
     this.writer.close();
     this.adapter.dispose?.();

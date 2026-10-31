@@ -77,12 +77,21 @@ Any MCP client works: run `npx -y miloops mcp` over stdio in the repo. `--dir <p
 | `next_ticket` | The next ready ticket with its blockers' decisions (does not claim) |
 | `claim_ticket` / `release_ticket` | Assign a ticket to the agent (next ready by default) / give it back |
 | `add_ticket` | Add a ticket or promote a Not yet specified line |
-| `report_progress` | Step, log line, chat message, tokens and cost since the last report |
+| `report_progress` | Step, log line, chat message; tokens and cost only when no agent log is read (see Usage) |
 | `close_ticket` | Resolve (or rule out) a ticket: resolution comment, close, DecisionRecord, unblocked tickets |
 | `record_decision` | Keep any other decision as a DecisionRecord |
 | `ask_human` / `wait_for_answer` | Ask the human through the command center inbox and wait for the answer |
 | `list_inbox` / `answer_question` | Questions from every agent; answer one with the human's words from the chat |
 
 Sessions, questions and usage reach the command center through `.miloops/.agents/`, so the agent and the command center can start in any order.
+
+### Usage
+
+Tokens and cost per session are measured from the agent's own local logs, priced at list rates, and tagged `LOG` in the sessions area:
+
+- **Claude Code:** the session transcript (`~/.claude/projects/<project>/<session>.jsonl`). `connect claude` also adds a silent `SessionStart` hook to `.claude/settings.local.json` that records which transcript belongs to the repo.
+- **Codex:** the session rollout (`~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl`), found from the tool call's thread id. Nothing to install.
+
+Other agents report usage through `report_progress`; those numbers are tagged `SELF`. Nothing leaves your machine.
 
 Concepts derived from mattpocock/skills (MIT); see `THIRD_PARTY_NOTICES.md`.

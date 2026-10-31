@@ -30,7 +30,7 @@ Take the subcommand from the first word of the arguments. With no arguments, run
 1. Call `resume_mission` (pass the mission if one was named). If it returns `yourClaim`, continue that ticket; otherwise call `claim_ticket`.
 2. Work the ticket:
    - Follow its `howTo`. Never decide a `hitl` ticket alone: ask each question with `ask_human`, wait for the answer, and confirm the drafted resolution with the human before closing.
-   - Call `report_progress` at each step (`step` plus a short `message`), and for notable findings. Include `inputTokens`, `outputTokens` and `costUsd` only when you actually know them; never guess.
+   - Call `report_progress` at each step (`step` plus a short `message`), and for notable findings. Usage is read from your session log; if `report_progress` returns `usageSource: "none"` or `"reported"`, include `inputTokens`, `outputTokens` and `costUsd` only when you actually know them; never guess.
    - Use `record_decision` for any other decision worth keeping.
 3. Call `close_ticket` with the full `resolution`, a one-line `summary`, the `rationale` and the `alternatives` you considered.
 4. Claim the next ready ticket and repeat until none is ready, the mission is done, or the human asks you to stop. Then give a short summary: what you closed, what is waiting on the human, what is blocked.

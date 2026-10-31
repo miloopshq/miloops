@@ -1,0 +1,82 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { BRAND, agentPaths, type HostSessionLink } from '@miloops-hq/core';
+import { writeJsonAtomic } from '@miloops-hq/core/agents';
+import { writeIfChanged } from '../files';
+
+/** The SessionStart payload fields this hook reads. */
+interface SessionStartInput {
+  session_id?: string;
+  transcript_path?: string;
+  cwd?: string;
+  source?: string;
+}
+
+/**
+ * `miloops hook claude`: Claude Code SessionStart hook. Records where the new
+ * session's transcript is, so the MCP server reads usage from the right file
+ * (also after /clear or /resume). Never prints: SessionStart stdout would be
+ * added to the model's context.
+ */
+export function recordClaudeSession(input: string, opts: { dir: string; env?: NodeJS.ProcessEnv; cwd?: string }) {
+  let p: SessionStartInput;
+  try {
+    p = JSON.parse(input) as SessionStartInput;
+  } catch {
+    return undefined;
+  }
+  if (!p.session_id || !p.transcript_path) return undefined;
+  const env = opts.env ?? process.env;
+  const project = env.CLAUDE_PROJECT_DIR || p.cwd || opts.cwd || process.cwd();
+  const root = path.resolve(project, opts.dir);
+  const link: HostSessionLink = { agent: 'claude-code', hostSessionId: p.session_id, transcriptPath: p.transcript_path, cwd: p.cwd, source: p.source, at: Date.now() };
+  const file = path.join(root, agentPaths.host('claude-code', p.session_id));
+  writeJsonAtomic(file, link);
+  return file;
+}
+
+export async function readStdin(timeoutMs = 5000) {
+  if (process.stdin.isTTY) return '';
+  return new Promise<string>((resolve) => {
+    let s = '';
+    const t = setTimeout(() => resolve(s), timeoutMs);
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', (c) => (s += c));
+    process.stdin.on('end', () => {
+      clearTimeout(t);
+      resolve(s);
+    });
+  });
+}
+
+/** The SessionStart hook command; `--dir` only when the tracker folder is not the default. */
+export function hookCommand(dir?: string) {
+  return ['npx', '-y', BRAND.slug, 'hook', 'claude', ...(dir && dir !== BRAND.dataDir ? ['--dir', JSON.stringify(dir)] : [])].join(' ');
+}
+
+interface HookEntry {
+  matcher?: string;
+  hooks?: { type?: string; command?: string; timeout?: number }[];
+}
+
+/**
+ * Add the usage hook to `.claude/settings.local.json` (personal, like the local-scope
+ * MCP registration), keeping every other setting. Replaces an older miloops hook.
+ */
+export function installClaudeHook(file: string, dir?: string) {
+  let settings: { hooks?: Record<string, HookEntry[]> } & Record<string, unknown> = {};
+  if (fs.existsSync(file)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(file, 'utf8'));
+    } catch {
+      return 'skipped (settings file is not valid JSON)';
+    }
+  }
+  const command = hookCommand(dir);
+  const ours = (h: { command?: string }) => !!h.command && new RegExp(`\\b${BRAND.slug}\\b.*\\bhook claude\\b`).test(h.command);
+  const entries = settings.hooks?.SessionStart ?? [];
+  const kept = entries.map((e) => ({ ...e, hooks: (e.hooks ?? []).filter((h) => !ours(h)) })).filter((e) => e.hooks.length);
+  const next = { ...settings, hooks: { ...settings.hooks, SessionStart: [...kept, { hooks: [{ type: 'command', command, timeout: 30 }] }] } };
+  return writeIfChanged(file, `${JSON.stringify(next, null, 2)}\n`);
+}
+

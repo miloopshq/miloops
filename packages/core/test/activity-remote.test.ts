@@ -41,6 +41,33 @@ describe('ActivityStream.syncRemote', () => {
     expect(ledger.since('m1', 0)).toMatchObject({ inputTokens: 250, outputTokens: 30, sessions: 1 });
   });
 
+  it('counts a chart session mirrored before its mission existed once it is bound', () => {
+    const a = new ActivityStream();
+    const chart = (mapId: string, inputTokens: number) => {
+      const d = doc({ usage: { inputTokens, outputTokens: 0, costUsd: 0 } });
+      return { ...d, session: { ...d.session, mode: 'chart' as const, mapId, ticketId: undefined } };
+    };
+    a.syncRemote(chart('', 2000));
+    a.syncRemote(chart('m1', 4000));
+    expect(a.snapshot.usageByMap.m1).toMatchObject({ inputTokens: 4000 });
+  });
+
+  it('setUsage replaces a session total (measured from logs) and moves the mission total by the difference', () => {
+    const ledger = new UsageLedger(memoryStore());
+    const a = new ActivityStream(400, ledger);
+    const s = a.startSession({ agent: 'claude-01', mode: 'work', mapId: 'm1' });
+    s.usage({ inputTokens: 999, outputTokens: 1, costUsd: 9, source: 'reported' });
+    s.setUsage({ inputTokens: 300, outputTokens: 20, costUsd: 0.05, cachedInputTokens: 250, source: 'claude-code', models: ['claude-sonnet-4-5'] });
+    s.setUsage({ inputTokens: 500, outputTokens: 40, costUsd: 0.08, cachedInputTokens: 400, source: 'claude-code', models: ['claude-sonnet-4-5'] });
+    expect(s.info.usage).toEqual({ inputTokens: 500, outputTokens: 40, costUsd: 0.08, cachedInputTokens: 400, source: 'claude-code', models: ['claude-sonnet-4-5'] });
+    expect(a.snapshot.usageByMap.m1).toMatchObject({ inputTokens: 500, outputTokens: 40, cachedInputTokens: 400 });
+    expect(a.snapshot.usageByMap.m1.costUsd).toBeCloseTo(0.08, 9);
+    const mirror = new ActivityStream();
+    mirror.syncRemote(doc({ usage: s.info.usage }));
+    expect(mirror.snapshot.sessions[0].usage?.source).toBe('claude-code');
+    expect(mirror.snapshot.usageByMap.m1).toMatchObject({ inputTokens: 500, cachedInputTokens: 400 });
+  });
+
   it('does not double count usage in a persisted ledger after a reload', async () => {
     const store = memoryStore();
     const first = new UsageLedger(store);
