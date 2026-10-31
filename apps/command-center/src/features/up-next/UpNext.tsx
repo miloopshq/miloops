@@ -1,0 +1,65 @@
+import { type MapSnapshot, type ActivityState, deriveStates, type NodeState, attention } from '@miloops-hq/core';
+import { SectionHeader, Empty } from '../../components/ui';
+import type { Selection } from '../../hooks';
+import { STATE_TEXT } from '../../lib';
+
+/** Layer 3: the tickets that can move now (frontier) or are moving (claimed), as a compact list. */
+export function UpNext(props: {
+  snap?: MapSnapshot;
+  sessions: ActivityState['sessions'];
+  selection: Selection;
+  onSelect: (s: Selection) => void;
+  onWork?: () => void;
+}) {
+  const { snap } = props;
+  const states = snap ? deriveStates(snap.tickets, snap.map.mode) : new Map<string, NodeState>();
+  const rank: Partial<Record<NodeState, number>> = { claimed: 0, frontier: 1 };
+  const items = (snap?.tickets ?? [])
+    .filter((t) => rank[states.get(t.id)!] !== undefined)
+    .sort((a, b) => rank[states.get(a.id)!]! - rank[states.get(b.id)!]!);
+  const waiting = new Set(props.sessions.filter((s) => s.status === 'running' && s.waitingOn).map((s) => s.ticketId));
+  const selId = props.selection?.kind === 'ticket' ? props.selection.id : undefined;
+  return (
+    <div className="upnext">
+      <SectionHeader
+        title="Up next"
+        count={<span className="n mono-label">{items.length}</span>}
+        right={
+          props.onWork && (
+            <button
+              className="link"
+              onClick={props.onWork}
+              disabled={!items.some((t) => states.get(t.id) === 'frontier')}
+            >
+              Work next ›
+            </button>
+          )
+        }
+      />
+      {!snap ? (
+        <Empty>No mission</Empty>
+      ) : !items.length ? (
+        <Empty>Frontier empty</Empty>
+      ) : (
+        <ul className="ticket-list">
+          {items.map((t) => {
+            const st = states.get(t.id)!;
+            return (
+              <li key={t.id} className={`${selId === t.id ? 'sel' : ''} st-${waiting.has(t.id) ? 'waiting' : st}`}>
+                <button onClick={() => props.onSelect({ kind: 'ticket', id: t.id })}>
+                  <i className="dot" />
+                  <span className="key">{t.key}</span>
+                  <span className="ttl">{t.title}</span>
+                  <span className="human">{attention(t) === 'hitl' ? '●' : '○'}</span>
+                  <span className="st-text">
+                    {waiting.has(t.id) ? 'waiting' : st === 'claimed' ? t.assignee : STATE_TEXT[st].toLowerCase()}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}

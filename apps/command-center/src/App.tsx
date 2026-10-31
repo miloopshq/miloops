@@ -1,40 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
 import { BRAND } from '@miloops-hq/core';
-import { createRuntime, trackerKind } from './runtime';
-import { useCommandCenter, type CommandCenterApi, type Selection } from './useCommandCenter';
-import { usePrefs } from './prefs';
-import { Header } from './components/Header';
-import { InboxPane } from './components/Inbox';
-import { MapGraph } from './components/MapGraph';
-import { Inspector } from './components/Inspector';
-import { ActivityStack, LogZone, MapSections, StatusPanel, StepZone, UpNext } from './components/Zones';
-import { CommandBar, NewMissionDialog } from './components/CommandBar';
-import { Onboarding, SettingsPanel } from './components/Settings';
-import { useSlackStatus } from './components/SlackSetup';
-import { Tabs, useBreakpoint } from './components/Hud';
-import { DecisionsView } from './components/Decisions';
-import { BriefingDialog } from './components/Briefing';
-import { useBriefing } from './useBriefing';
-import { Badge, Button, Panel } from './components/ui';
-
-/** Repo name shown in the header: the folder that contains the tracker data. */
-function useRepoName(kind: string) {
-  const [name, setName] = useState(kind === 'demo' ? 'demo' : '…');
-  useEffect(() => {
-    if (kind === 'demo') return;
-    fetch(`${BRAND.apiPrefix}/list`)
-      .then((r) => r.json())
-      .then((j: { root: string }) => {
-        const parts = j.root.split('/').filter(Boolean);
-        setName(parts[parts.length - 1]?.startsWith('.') ? parts[parts.length - 2] ?? 'repo' : parts[parts.length - 1] ?? 'repo');
-      })
-      .catch(() => setName('repo'));
-  }, [kind]);
-  return name;
-}
-
-type SideTab = 'ticket' | 'activity' | 'plan';
-type PhoneTab = 'home' | 'map' | SideTab;
+import { useMemo, useState, useEffect } from 'react';
+import { type SideTab, type PhoneTab, useRepoName, MapZone } from './app';
+import { Panel, Tabs, Badge } from './components/ui';
+import { StepZone, LogZone, ActivityStack } from './features/activity';
+import { BriefingDialog } from './features/briefing';
+import { DecisionsView } from './features/decisions';
+import { Header } from './features/header';
+import { InboxPane } from './features/inbox';
+import { Inspector } from './features/inspector';
+import { NewMissionDialog } from './features/mission';
+import { MapSections } from './features/plan';
+import { SettingsPanel, Onboarding } from './features/settings';
+import { useSlackStatus } from './features/slack';
+import { UpNext } from './features/up-next';
+import { useBriefing, useBreakpoint, usePrefs, useCommandCenter, type Selection } from './hooks';
+import { createRuntime, trackerKind } from './lib';
 
 /**
  * Progressive disclosure. Layers by priority:
@@ -50,9 +30,12 @@ export function App() {
   const { snap, activity, selection, setSelection, actions } = api;
   const [prefs, updatePrefs] = usePrefs();
   /** `?settings=slack` (from `miloops connect slack`) opens Settings on the Slack setup. */
-  const [settingsOpen, setSettingsOpen] = useState<false | 'top' | 'slack'>(() => (new URLSearchParams(location.search).get('settings') === 'slack' ? 'slack' : false));
+  const [settingsOpen, setSettingsOpen] = useState<false | 'top' | 'slack'>(() =>
+    new URLSearchParams(location.search).get('settings') === 'slack' ? 'slack' : false,
+  );
   const [slack] = useSlackStatus(rt.kind === 'demo' ? 0 : 15000);
-  const slackAlert = slack?.enabled && slack.state === 'auth-error' ? slack.error ?? 'Slack rejected the tokens' : undefined;
+  const slackAlert =
+    slack?.enabled && slack.state === 'auth-error' ? (slack.error ?? 'Slack rejected the tokens') : undefined;
   const [newMission, setNewMission] = useState(false);
   const repo = useRepoName(rt.kind);
   const bp = useBreakpoint();
@@ -109,13 +92,45 @@ export function App() {
       convRequest={convRequest}
       onOpen={openChat}
       onAnswer={actions.answer}
-      below={<UpNext snap={snap} sessions={scoped.sessions} selection={selection} onSelect={select} onWork={() => actions.work()} />}
+      below={
+        <UpNext
+          snap={snap}
+          sessions={scoped.sessions}
+          selection={selection}
+          onSelect={select}
+          onWork={() => actions.work()}
+        />
+      }
     />
   );
-  const map = <MapZone api={api} sessions={scoped.sessions} onSelect={select} onNewMission={() => setNewMission(true)} compact={bp === 'mobile'} minFit={bp === 'mobile' ? 0.7 : 0} />;
-  const inspector = (bare: boolean) => <Inspector api={api} sessions={scoped.sessions} bare={bare} onOpenChat={(id) => openChat(id)} onOpenDecision={openDecisions} />;
-  const zoneProps = { activity: scoped, snap, onTicket: (id: string) => select({ kind: 'ticket', id }), onOpenChat: (id: string) => openChat(id) };
-  const plan = (bare: boolean) => <MapSections snap={snap} selection={selection} onSelect={select} bare={bare} onAudit={() => openDecisions()} />;
+  const map = (
+    <MapZone
+      api={api}
+      sessions={scoped.sessions}
+      onSelect={select}
+      onNewMission={() => setNewMission(true)}
+      compact={bp === 'mobile'}
+      minFit={bp === 'mobile' ? 0.7 : 0}
+    />
+  );
+  const inspector = (bare: boolean) => (
+    <Inspector
+      api={api}
+      sessions={scoped.sessions}
+      bare={bare}
+      onOpenChat={(id) => openChat(id)}
+      onOpenDecision={openDecisions}
+    />
+  );
+  const zoneProps = {
+    activity: scoped,
+    snap,
+    onTicket: (id: string) => select({ kind: 'ticket', id }),
+    onOpenChat: (id: string) => openChat(id),
+  };
+  const plan = (bare: boolean) => (
+    <MapSections snap={snap} selection={selection} onSelect={select} bare={bare} onAudit={() => openDecisions()} />
+  );
   const openTicket = (mapId: string, ticketId: string) => {
     if (mapId !== api.mapId) actions.selectMap(mapId);
     setSelection({ kind: 'ticket', id: ticketId });
@@ -123,7 +138,15 @@ export function App() {
     if (bp === 'laptop') setSideTab('ticket');
     if (bp === 'mobile') setPhoneTab('ticket');
   };
-  const decisions = decisionsView && <DecisionsView api={api} bp={bp} focus={decisionsView.focus} onClose={() => setDecisionsView(null)} onOpenTicket={openTicket} />;
+  const decisions = decisionsView && (
+    <DecisionsView
+      api={api}
+      bp={bp}
+      focus={decisionsView.focus}
+      onClose={() => setDecisionsView(null)}
+      onOpenTicket={openTicket}
+    />
+  );
   const briefing = brief.shown && (
     <BriefingDialog
       briefing={brief.briefing}
@@ -207,7 +230,13 @@ export function App() {
                 { id: 'plan', label: 'Plan', n: snap?.map.sections.unspecified.length },
               ]}
             />
-            {sideTab === 'ticket' ? inspector(true) : sideTab === 'activity' ? <ActivityStack {...zoneProps} /> : plan(true)}
+            {sideTab === 'ticket' ? (
+              inspector(true)
+            ) : sideTab === 'activity' ? (
+              <ActivityStack {...zoneProps} />
+            ) : (
+              plan(true)
+            )}
           </Panel>
           {decisions}
         </>
@@ -215,7 +244,21 @@ export function App() {
       {bp === 'mobile' && (
         <>
           <main className="phone-view">
-            {decisions ? decisions : phoneTab === 'home' ? inbox : phoneTab === 'map' ? map : phoneTab === 'ticket' ? <Panel className="zone">{inspector(true)}</Panel> : phoneTab === 'activity' ? <Panel className="zone"><ActivityStack {...zoneProps} /></Panel> : plan(true)}
+            {decisions ? (
+              decisions
+            ) : phoneTab === 'home' ? (
+              inbox
+            ) : phoneTab === 'map' ? (
+              map
+            ) : phoneTab === 'ticket' ? (
+              <Panel className="zone">{inspector(true)}</Panel>
+            ) : phoneTab === 'activity' ? (
+              <Panel className="zone">
+                <ActivityStack {...zoneProps} />
+              </Panel>
+            ) : (
+              plan(true)
+            )}
           </main>
           <nav className="tabbar">
             {(
@@ -236,9 +279,7 @@ export function App() {
                 }}
               >
                 {label}
-                {id === 'home' && pending > 0 && (
-                  <Badge key={pending} n={pending} urgent pop />
-                )}
+                {id === 'home' && pending > 0 && <Badge key={pending} n={pending} urgent pop />}
               </button>
             ))}
           </nav>
@@ -266,57 +307,10 @@ export function App() {
           }}
         />
       )}
-      {newMission && <NewMissionDialog onClose={() => setNewMission(false)} onSubmit={actions.chart} tracker={rt.adapter.label} />}
+      {newMission && (
+        <NewMissionDialog onClose={() => setNewMission(false)} onSubmit={actions.chart} tracker={rt.adapter.label} />
+      )}
       {!prefs.onboarded && <Onboarding prefs={prefs} update={updatePrefs} activeTracker={rt.kind} />}
-    </div>
-  );
-}
-
-function MapZone(props: { api: CommandCenterApi; sessions: CommandCenterApi['activity']['sessions']; onSelect: (s: Selection) => void; onNewMission: () => void; compact: boolean; minFit: number }) {
-  const { snap, selection, actions } = props.api;
-  return (
-    <Panel as="main" className="zone map-zone" style={{ gridArea: 'map' }}>
-      {snap && <CommandBar api={props.api} />}
-      <div className="map-area">
-        {snap && !props.compact && <StatusPanel snap={snap} sessions={props.sessions} />}
-        {snap ? (
-          <MapGraph snap={snap} sessions={props.sessions} selection={selection} onSelect={props.onSelect} minFit={props.minFit} />
-        ) : (
-          <div className="nomap">
-            <h2>No mission</h2>
-            <div className="actions">
-              <Button variant="primary" onClick={props.onNewMission}>
-                New mission
-              </Button>
-              <Button onClick={actions.loadSample}>Load sample mission</Button>
-            </div>
-          </div>
-        )}
-        {snap && props.compact && <Legend planOnly={snap.map.mode === 'plan-only'} />}
-      </div>
-    </Panel>
-  );
-}
-
-function Legend({ planOnly }: { planOnly: boolean }) {
-  const items: [string, string][] = [
-    ['frontier', 'Frontier'],
-    ['claimed', 'Claimed'],
-    ['blocked', 'Blocked'],
-    ['decided', 'Decided'],
-    ...(planOnly ? ([['parked', 'Parked']] as [string, string][]) : []),
-    ['out-of-scope', 'Out of scope'],
-    ['waiting', 'Waiting on you'],
-  ];
-  return (
-    <div className="legend">
-      {items.map(([k, v]) => (
-        <span key={k} className={`lg st-${k}`}>
-          <i />
-          {v}
-        </span>
-      ))}
-      <span className="lg hitl">● needs human</span>
     </div>
   );
 }
