@@ -1,6 +1,12 @@
 {
   "name": "@miloops-hq/core",
   "version": "0.1.0",
+  "private": true,
+  "author": "MILOOPS",
+  "homepage": "https://miloops.app",
+  "bugs": {
+    "url": "https://github.com/miloopshq/miloops/issues"
+  },
   "description": "UI-free planning engine: map/ticket model, frontier logic, operations, tracker adapters, event stream.",
   "type": "module",
   "exports": {
