@@ -1,8 +1,18 @@
 import { postResponse } from '../api';
-import { ACTIONS, VIEWS, helpText, replyModal, type AskRef, type SaveMode } from '../blocks';
+import {
+  ACTIONS,
+  VIEWS,
+  helpText,
+  replyModal,
+  reworkModal,
+  type ApprovalRef,
+  type AskRef,
+  type SaveMode,
+} from '../blocks';
 import { SAVE_DECISION_CALLBACK } from '../manifest';
 import type { Envelope, EnvelopeResult } from '../socket';
 import { plainText } from '../summary';
+import { decideApproval } from './approvals';
 import { answer, closeAsk, pendingAsk, writeAnswer } from './asks';
 import { inboxMessage, statusMessage } from './commands';
 import { REFUSED, ALREADY } from './constants';
@@ -77,6 +87,7 @@ export function onAction(ctx: SlackContext, p: Payload): EnvelopeResult | void {
   const user = p.user.id as string;
   if (id === ACTIONS.claim) return { after: () => claim(ctx, user) };
   if (id === ACTIONS.missionPick && p.view) return { after: () => changeMission(ctx, p.view, a.selected_option.value) };
+  if (id === ACTIONS.approve || id === ACTIONS.rework) return onApproval(ctx, p, id, String(a.value));
   if (id !== ACTIONS.reply && !id.startsWith(`${ACTIONS.option}:`)) return;
   const ephemeral = (text: string) =>
     postResponse(p.response_url, { response_type: 'ephemeral', replace_original: false, text }, ctx.o.fetch);
@@ -100,10 +111,42 @@ export function onAction(ctx: SlackContext, p: Payload): EnvelopeResult | void {
   };
 }
 
+function onApproval(ctx: SlackContext, p: Payload, id: string, value: string): EnvelopeResult {
+  const user = p.user.id as string;
+  if (!ctx.allowed(user))
+    return {
+      after: () =>
+        postResponse(
+          p.response_url,
+          { response_type: 'ephemeral', replace_original: false, text: REFUSED },
+          ctx.o.fetch,
+        ),
+    };
+  const ref = JSON.parse(value) as ApprovalRef;
+  if (id === ACTIONS.approve)
+    return { after: () => decideApproval(ctx, ref, user, { action: 'approve' }, p.response_url) };
+  const item = [...ctx.approvals.values()].find((x) => x.item.ticketId === ref.t && x.item.mapId === ref.m)?.item;
+  const meta = JSON.stringify({ ...ref, r: p.response_url });
+  return {
+    after: () =>
+      ctx.call('views.open', {
+        trigger_id: p.trigger_id,
+        view: reworkModal(item ? `${item.ticketKey} ${item.title}` : ref.t, meta),
+      }),
+  };
+}
+
 export function onSubmit(ctx: SlackContext, p: Payload): EnvelopeResult | void {
   const view = p.view as Payload;
   const values = (view.state?.values ?? {}) as Record<string, Record<string, Payload>>;
   const user = p.user.id as string;
+  if (view.callback_id === VIEWS.rework) {
+    const meta = JSON.parse(view.private_metadata) as ApprovalRef & { r?: string };
+    const reason = String(values.reason?.value?.value ?? '').trim();
+    if (!reason) return { ack: { response_action: 'errors', errors: { reason: 'Say what has to change' } } };
+    if (!ctx.allowed(user)) return { ack: { response_action: 'errors', errors: { reason: REFUSED } } };
+    return { after: () => decideApproval(ctx, meta, user, { action: 'rework', reason }, meta.r) };
+  }
   if (view.callback_id === VIEWS.reply) {
     const ref = JSON.parse(view.private_metadata) as AskRef;
     const text = String(values.answer?.value?.value ?? '').trim();

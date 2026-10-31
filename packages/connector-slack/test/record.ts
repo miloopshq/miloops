@@ -5,7 +5,7 @@
  * tokens) and the Socket Mode envelopes with the acks MILO sent back.
  */
 import { freezeTime, world } from './harness';
-import { askFlow, decisionFlow, notifyFlow, setupFlow, statusFlow } from './scenarios';
+import { approvalFlow, askFlow, decisionFlow, notifyFlow, setupFlow, statusFlow } from './scenarios';
 
 const NOTE =
   'Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads).';
@@ -31,6 +31,11 @@ const flows: [string, (w: ReturnType<typeof world>) => Promise<unknown>, string]
     'slack-notify.json',
     notifyFlow,
     'Blocked and mission-done notifications in the owner DM, threaded per mission per day.',
+  ],
+  [
+    'slack-approvals.json',
+    approvalFlow,
+    'A reviewed pass to approve and a held ticket in the owner DM: refused click, Approve, Rework… modal with a reason.',
   ],
 ];
 

@@ -5,6 +5,7 @@ import { verificationStatus } from './mission/completion';
 import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './mission/hitl';
 import { resumeMission, startMission, status, updateMission } from './mission/missionOps';
 import { recordDecision, report, sessionView } from './mission/reporting';
+import { submitReviewTool } from './mission/reviews';
 import { addTicket, claimTicket, nextTicket, releaseTicket } from './mission/ticketOps';
 import type { AgentOptions, WaitControl } from './mission/types';
 import { ticketView } from './mission/views';
@@ -101,6 +102,10 @@ export class MissionAgent {
 
   verificationStatus(input: Input<typeof verificationStatus>, ctl: WaitControl = {}) {
     return verificationStatus(this.ctx, input, defaultWaitSeconds(this.ctx), ctl);
+  }
+
+  submitReview(input: Input<typeof submitReviewTool>) {
+    return submitReviewTool(this.ctx, input);
   }
 
   sessionView() {

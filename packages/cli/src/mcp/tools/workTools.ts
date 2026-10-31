@@ -98,6 +98,34 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
   );
 
   tool(
+    'submit_review',
+    {
+      title: 'Submit a review',
+      description:
+        'Answer a review ticket (type review; default: the one you claimed) after reading the work it names. PASS finishes the reviewed ticket (or hands it to the human at checks+review+human), FAIL sends it back for rework with your findings, NEEDS_HUMAN asks the human. You cannot review a ticket you worked on.',
+    },
+    {
+      mission,
+      ticket: ticket.optional().describe('The review ticket.'),
+      verdict: z.enum(['PASS', 'FAIL', 'NEEDS_HUMAN']),
+      summary: z.string().min(1).describe('What you checked and what you found, in a few sentences.'),
+      findings: z
+        .array(
+          z.object({
+            path: z.string().optional(),
+            line: z.number().int().positive().optional(),
+            severity: z.enum(['info', 'warn', 'error']),
+            text: z.string().min(1),
+          }),
+        )
+        .max(50)
+        .optional()
+        .describe('Specific problems; with FAIL, what the author must fix.'),
+    },
+    (a) => agent.submitReview(a),
+  );
+
+  tool(
     'record_decision',
     {
       title: 'Record a decision',

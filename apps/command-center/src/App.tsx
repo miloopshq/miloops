@@ -58,6 +58,7 @@ export function App() {
       convRequest={nav.convRequest}
       onOpen={nav.openChat}
       onAnswer={actions.answer}
+      onOpenTicket={nav.openTicket}
       below={
         <UpNext
           snap={snap}

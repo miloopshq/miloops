@@ -1,9 +1,15 @@
 import type { TicketStatus, VerificationLevel } from './lifecycle';
 
-/** `execute` tickets carry out decided work (implementation) rather than decide something. */
-export type TicketType = 'research' | 'prototype' | 'grilling' | 'task' | 'execute';
+/**
+ * `execute` tickets carry out decided work (implementation) rather than decide something.
+ * `review` tickets are created by MILOOPS when a verified completion needs another agent's review.
+ */
+export type TicketType = 'research' | 'prototype' | 'grilling' | 'task' | 'execute' | 'review';
 
+/** The types a mission is planned with; `review` tickets are never planned or added by hand. */
 export const TICKET_TYPES: TicketType[] = ['research', 'prototype', 'grilling', 'task', 'execute'];
+
+export const ALL_TICKET_TYPES: TicketType[] = [...TICKET_TYPES, 'review'];
 
 export interface Comment {
   id: string;
@@ -37,6 +43,8 @@ export interface Ticket {
   verification?: VerificationLevel;
   /** Check names (verification.json) this ticket runs instead of the config's `run` list. */
   checks?: string[];
+  /** `review` tickets: id of the ticket under review. */
+  reviewOf?: string;
   /** Ids of tickets that block this one (native blocking edges). */
   blockedBy: string[];
   comments: Comment[];

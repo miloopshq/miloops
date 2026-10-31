@@ -13,6 +13,8 @@ import { readVerificationConfig, type ConfigRead } from './configFile';
 import { evidencePaths, nextAttemptId, readAttempts, writeAttempt } from './evidenceStore';
 import { attemptComment, outcomeOf } from './outcome';
 import { verificationFor, type LevelInfo } from './policy';
+import { submissionOf } from './resubmit';
+import { requestReview } from './reviewRequest';
 import { runChecks } from './runChecks';
 import { acquireRunLock, releaseRunLock } from './runLock';
 
@@ -200,6 +202,7 @@ async function settle(env: VerifyEnv, a: VerificationAttempt, sub: Submission, m
       { ...engine, event: o.event, to: o.to, expect: 'verifying' },
       { journal: env.journal },
     );
+  if (o.to === 'verifying') await requestReview(env, a);
   return { attempt: a, phase: o.to, failures, maxAttempts };
 }
 
@@ -208,14 +211,5 @@ export async function rerun(env: VerifyEnv, snap: MapSnapshot, interrupted: Veri
   const t = snap.tickets.find((x) => x.id === interrupted.ticketId);
   if (!t || t.state !== 'open' || t.status !== 'verifying') return undefined;
   const { info } = levelFor(env.root, snap, t);
-  return verify(env, snap.map.id, t, info, {
-    agent: interrupted.agent,
-    sessionId: interrupted.sessionId,
-    resolution: interrupted.resolution,
-    summary: interrupted.summary,
-    rationale: interrupted.rationale,
-    alternatives: interrupted.alternatives,
-    noCodeReason: interrupted.noCodeReason,
-    pr: interrupted.pr,
-  });
+  return verify(env, snap.map.id, t, info, submissionOf(interrupted));
 }

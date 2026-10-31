@@ -33,7 +33,8 @@ export const TRANSITIONS: TransitionRule[] = [
   { event: 'reject', from: ['verifying', 'blocked'], to: ['rework'], actors: ['operator'] },
   { event: 'accept', from: ['verifying', 'blocked'], to: ['done'], actors: ['operator'] },
   { event: 'unblock', from: ['blocked'], to: ['ready', 'rework', 'verifying'], actors: ['operator'] },
-  { event: 'cancel', from: OPEN, to: ['cancelled'], actors: PEOPLE },
+  /** The engine cancels review tickets whose review no longer applies. */
+  { event: 'cancel', from: OPEN, to: ['cancelled'], actors: [...PEOPLE, 'engine'] },
 ];
 
 export const ruleFor = (event: LifecycleEvent) => TRANSITIONS.find((r) => r.event === event)!;

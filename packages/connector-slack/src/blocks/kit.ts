@@ -18,9 +18,11 @@ export const ACTIONS = {
   reply: 'ask_reply',
   open: 'open_miloops',
   missionPick: 'mission_pick',
+  approve: 'verify_approve',
+  rework: 'verify_rework',
 } as const;
 
-export const VIEWS = { decision: 'decision_modal', reply: 'ask_reply_modal' } as const;
+export const VIEWS = { decision: 'decision_modal', reply: 'ask_reply_modal', rework: 'verify_rework_modal' } as const;
 
 export const openButton = (url: string | undefined): Block[] =>
   url ? [{ type: 'button', action_id: ACTIONS.open, text: plain(`Open in ${BRAND.name}`), url }] : [];

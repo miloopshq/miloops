@@ -1,4 +1,4 @@
-import type { TrackerAdapter } from '@miloops-hq/core';
+import type { ApprovalItem, TrackerAdapter } from '@miloops-hq/core';
 import type { WebSocketCtor } from '../socket';
 
 export type Env = Record<string, string | undefined>;
@@ -55,6 +55,14 @@ export interface MissionNotes {
   blocked: Set<string>;
   closed: Set<string>;
   done: boolean;
+}
+
+/** An approval message whose buttons are live. */
+export interface PostedApproval {
+  channel: string;
+  ts: string;
+  item: ApprovalItem;
+  mission: string;
 }
 
 export interface Batch {

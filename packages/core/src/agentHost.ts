@@ -40,7 +40,11 @@ export {
   type VerifyEnv,
 } from './verification/verifyCompletion';
 export { operatorAction, type OperatorAction, type OperatorRequest } from './verification/operatorActions';
+export { approvalItems, type ApprovalItem } from './verification/approvals';
 export { rerunChecks } from './verification/operatorRerun';
+export { reviewConflict, type Reviewer } from './verification/reviewIndependence';
+export { reviewBody, requestReview } from './verification/reviewRequest';
+export { submitReview, type ReviewResult, type ReviewSubmission } from './verification/submitReview';
 export { LOG_VIEW_BYTES, readEvidenceLog, ticketEvidence } from './verification/ticketEvidence';
 export { baselineForClaim, captureBaseline, latestBaseline, readBaseline, type ClaimInfo } from './evidence/baseline';
 export { collectEvidence, type EvidenceRequest } from './evidence/collectEvidence';

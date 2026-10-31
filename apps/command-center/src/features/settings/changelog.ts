@@ -8,10 +8,6 @@ export interface Release {
 export const NEXT: { area: string; items: string[] }[] = [
   { area: 'Agents', items: ['Start agent sessions from the command center', 'Cursor'] },
   { area: 'Packaging', items: ['Publish to npm'] },
-  {
-    area: 'Verification',
-    items: ['Independent review by another agent session'],
-  },
 ];
 
 export const RELEASES: Release[] = [
@@ -24,6 +20,8 @@ export const RELEASES: Release[] = [
       'Operator calls on a verifying or blocked ticket: Approve, Re-run checks, Send to rework with a note, Accept anyway and Unblock. Overrides need a reason, and each call is kept as a verdict next to the attempts and in the mission history. Approve asks for a re-run when the code changed since the checks passed',
       'Set the verification level of a mission (Settings → Verification) or of one ticket (inspector). Only you can change it; agents cannot',
       'The inspector updates live while checks run',
+      'Independent review: at Checks + review, a passing completion gets a review ticket that another agent takes and answers with PASS, FAIL (with findings) or NEEDS_HUMAN. The agent that did the work is never given its own review',
+      'Waiting on you lists reviewed work to approve (Checks + review + you) and held tickets, and Slack posts them with Approve and Rework… buttons',
       'Agents can name their pull request in `report_completion` (`pr`); PR and CI tracking then follows that PR first',
     ],
   },

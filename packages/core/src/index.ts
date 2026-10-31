@@ -12,6 +12,7 @@ export * from './planning/operations';
 export * from './planning/lifecycle';
 export { httpJournal } from './history/httpJournal';
 export { DEFAULT_CHECK_TIMEOUT_SEC, DEFAULT_CONFIG, parseVerificationConfig } from './verification/config';
+export type { ApprovalItem } from './verification/approvals';
 export { verificationFor, type LevelInfo } from './verification/policy';
 export { prSyncView, type PrSyncView } from './evidence/prSyncView';
 export * from './activity/activityStream';

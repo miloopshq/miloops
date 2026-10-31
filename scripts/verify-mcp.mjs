@@ -316,6 +316,64 @@ log(
   `${route.ticket.key} ${verifiedOk ? 'verified' : 'NOT verified'}: ${passed.attempt} ${passed.status}, rework shown in the command center`,
 );
 
+// Independent review: at checks+review+human a passing completion gets a review ticket. The worker is never given its
+// own review; a second agent passes it, and the operator approves from the command center inbox.
+const api = new URL('/__miloops/verification/action', url);
+await fetch(api, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ action: 'level', mapId: started.mission.id, level: 'checks+review+human' }),
+});
+const footer = await call('add_ticket', { title: 'Link the changelog from the footer', type: 'execute' });
+await call('claim_ticket', { ticket: footer.ticket.key });
+const submitted = await call('report_completion', {
+  ticket: footer.ticket.key,
+  resolution: 'Linked the changelog from the footer',
+});
+const ownNext = await call('next_ticket');
+const reviewTransport = new StdioClientTransport({
+  command: process.execPath,
+  args: [cli, 'mcp', '--agent', 'claude-02'],
+  cwd: repo,
+  stderr: 'pipe',
+  env: { ...process.env, CLAUDE_CONFIG_DIR: path.join(repo, '.claude-review'), CLAUDE_PROJECT_DIR: repo },
+});
+const reviewClient = new Client({ name: 'claude-code', version: '2.1.0' });
+await reviewClient.connect(reviewTransport);
+const reviewCall = async (name, args = {}) => {
+  const r = await reviewClient.callTool({ name, arguments: args });
+  if (r.isError) throw new Error(`${name}: ${r.content[0].text}`);
+  return JSON.parse(r.content[0].text);
+};
+const offered = (await reviewCall('next_ticket')).ticket;
+const ownClaim = await call('claim_ticket', { ticket: offered.key }).then(
+  () => 'allowed',
+  (e) => e.message,
+);
+await reviewCall('claim_ticket', { ticket: offered.key });
+const reviewed = await reviewCall('submit_review', {
+  verdict: 'PASS',
+  summary: 'The footer links to /changelog and the check passes.',
+});
+await reviewClient.close().catch(() => {});
+const approval = page.locator('.inbox-list.approvals li', { hasText: 'Link the changelog' });
+await approval.waitFor({ timeout: 15_000 });
+await shot('09-approval-waiting-on-you');
+await approval.locator('button').first().click();
+await page.getByRole('button', { name: 'Approve', exact: true }).click();
+await page.locator('.node.st-decided', { hasText: /Link the changelog/ }).waitFor({ timeout: 15_000 });
+await shot('10-approved');
+const reviewOk =
+  submitted.status === 'verifying' &&
+  ownNext.ticket?.type !== 'review' &&
+  /worked on/.test(ownClaim) &&
+  offered.type === 'review' &&
+  reviewed.phase === 'verifying' &&
+  (await page.locator('.inbox-list.approvals li').count()) === 0;
+log(
+  `${footer.ticket.key} ${reviewOk ? 'reviewed and approved' : 'NOT reviewed and approved'}: own review refused (${ownClaim.replace(/^claim_ticket: /, '')}), ${offered.key} ${reviewed.verdict} by claude-02, approved in the command center`,
+);
+
 await client.close();
 await page.waitForTimeout(1500);
 const after = await page.locator('.sessions-list li:not(.claim)').count();
@@ -338,7 +396,8 @@ if (
   after !== 0 ||
   !handoffOk ||
   !releaseOk ||
-  !verifiedOk
+  !verifiedOk ||
+  !reviewOk
 )
   process.exit(1);
 console.log('\nOK');

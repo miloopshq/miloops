@@ -37,6 +37,8 @@ export class AgentContext {
   /** The mission this agent works on. */
   mission?: string;
   decisionSeq = 0;
+  /** Every session this connection opened: a reviewer must not be one of the sessions that did the work. */
+  readonly sessionIds: string[] = [];
   /** Answers being waited for, by question id. */
   readonly waits = new Map<string, Promise<{ text: string; author: string }>>();
   private callsign?: string;
@@ -128,7 +130,9 @@ export class AgentContext {
   async open(mode: SessionMode, mapId: string, ticketId?: string) {
     this.sessions.end(true);
     const agent = await this.agentId();
-    return this.sessions.start(agent, mode, mapId, ticketId);
+    const s = this.sessions.start(agent, mode, mapId, ticketId);
+    this.sessionIds.push(s.id);
+    return s;
   }
 
   /** The running chart session of a mission not created yet, or a new one. */

@@ -1,6 +1,6 @@
 {
   "source": "fake",
-  "recordedAt": "2026-10-31T16:45:40.273Z",
+  "recordedAt": "2026-10-31T23:06:27.077Z",
   "notes": "Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema).",
   "exchanges": [
     {
@@ -376,6 +376,39 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
+        "operation": "Label",
+        "variables": {
+          "input": {
+            "name": "miloops:review",
+            "color": "#4b5563",
+            "teamId": "team-eng"
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-requests-limit": "1500",
+          "x-ratelimit-requests-remaining": "1490",
+          "x-ratelimit-requests-reset": "1793451600000"
+        },
+        "body": {
+          "data": {
+            "issueLabelCreate": {
+              "issueLabel": {
+                "id": "lbl-0009-fake",
+                "name": "miloops:review"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/graphql",
         "operation": "Create",
         "variables": {
           "input": {
@@ -400,7 +433,7 @@
           "data": {
             "issueCreate": {
               "issue": {
-                "id": "iss-0009-fake",
+                "id": "iss-0010-fake",
                 "identifier": "ENG-1",
                 "title": "Ship offline sync",
                 "description": "## Destination\n\nEdits made offline sync without data loss.\n\n## Notes\n\n_None yet._\n\n## Decisions so far\n\n_None yet._\n\n## Not yet specified\n\n- Conflict policy for deletes\n\n## Out of scope\n\n_None yet._\n",
@@ -439,7 +472,7 @@
             "teamId": "team-eng",
             "title": "Survey CRDT libraries",
             "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.",
-            "parentId": "iss-0009-fake",
+            "parentId": "iss-0010-fake",
             "labelIds": [
               "lbl-0004-fake"
             ]
@@ -458,7 +491,7 @@
           "data": {
             "issueCreate": {
               "issue": {
-                "id": "iss-0010-fake",
+                "id": "iss-0011-fake",
                 "identifier": "ENG-2",
                 "title": "Survey CRDT libraries",
                 "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.",
@@ -497,7 +530,7 @@
             "teamId": "team-eng",
             "title": "Pick a conflict policy",
             "description": "Last-writer-wins or merge?\n\nPart of mission ENG-1.",
-            "parentId": "iss-0009-fake",
+            "parentId": "iss-0010-fake",
             "labelIds": [
               "lbl-0006-fake"
             ]
@@ -516,7 +549,7 @@
           "data": {
             "issueCreate": {
               "issue": {
-                "id": "iss-0011-fake",
+                "id": "iss-0012-fake",
                 "identifier": "ENG-3",
                 "title": "Pick a conflict policy",
                 "description": "Last-writer-wins or merge?\n\nPart of mission ENG-1.",
@@ -552,8 +585,8 @@
         "operation": "Block",
         "variables": {
           "input": {
-            "issueId": "iss-0010-fake",
-            "relatedIssueId": "iss-0011-fake",
+            "issueId": "iss-0011-fake",
+            "relatedIssueId": "iss-0012-fake",
             "type": "blocks"
           }
         }
@@ -581,7 +614,7 @@
         "url": "/graphql",
         "operation": "Update",
         "variables": {
-          "id": "iss-0010-fake",
+          "id": "iss-0011-fake",
           "input": {
             "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->"
           }
@@ -611,8 +644,8 @@
         "operation": "Comment",
         "variables": {
           "input": {
-            "issueId": "iss-0010-fake",
-            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0ghild8 -->\nYjs has the smaller bundle."
+            "issueId": "iss-0011-fake",
+            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0dxwaoj -->\nYjs has the smaller bundle."
           }
         }
       },
@@ -623,37 +656,6 @@
           "x-ratelimit-requests-limit": "1500",
           "x-ratelimit-requests-remaining": "1490",
           "x-ratelimit-requests-reset": "1793451604000"
-        },
-        "body": {
-          "data": {
-            "commentCreate": {
-              "comment": {
-                "id": "cmt-0012-fake"
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "req": {
-        "method": "POST",
-        "url": "/graphql",
-        "operation": "Comment",
-        "variables": {
-          "input": {
-            "issueId": "iss-0010-fake",
-            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0xmm60i -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support."
-          }
-        }
-      },
-      "res": {
-        "status": 200,
-        "headers": {
-          "content-type": "application/json",
-          "x-ratelimit-requests-limit": "1500",
-          "x-ratelimit-requests-remaining": "1490",
-          "x-ratelimit-requests-reset": "1793451605000"
         },
         "body": {
           "data": {
@@ -670,9 +672,40 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
+        "operation": "Comment",
+        "variables": {
+          "input": {
+            "issueId": "iss-0011-fake",
+            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01f3b0if -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support."
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json",
+          "x-ratelimit-requests-limit": "1500",
+          "x-ratelimit-requests-remaining": "1490",
+          "x-ratelimit-requests-reset": "1793451605000"
+        },
+        "body": {
+          "data": {
+            "commentCreate": {
+              "comment": {
+                "id": "cmt-0014-fake"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/graphql",
         "operation": "Update",
         "variables": {
-          "id": "iss-0010-fake",
+          "id": "iss-0011-fake",
           "input": {
             "stateId": "st-done"
           }
@@ -702,8 +735,8 @@
         "operation": "Comment",
         "variables": {
           "input": {
-            "issueId": "iss-0010-fake",
-            "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0010-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0009-fake\",\"decidedAt\":1793448000000} -->"
+            "issueId": "iss-0011-fake",
+            "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000} -->"
           }
         }
       },
@@ -719,7 +752,7 @@
           "data": {
             "commentCreate": {
               "comment": {
-                "id": "cmt-0014-fake"
+                "id": "cmt-0015-fake"
               }
             }
           }
@@ -732,7 +765,7 @@
         "url": "/graphql",
         "operation": "Update",
         "variables": {
-          "id": "iss-0009-fake",
+          "id": "iss-0010-fake",
           "input": {
             "description": "## Destination\n\nEdits made offline sync without data loss.\n\n## Notes\n\n_None yet._\n\n## Decisions so far\n\n- ENG-2: Use Yjs. It has the smaller bundle and mature offline support.\n\n## Not yet specified\n\n- Conflict policy for deletes\n\n## Out of scope\n\n_None yet._\n"
           }
@@ -762,8 +795,8 @@
         "operation": "Comment",
         "variables": {
           "input": {
-            "issueId": "iss-0010-fake",
-            "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"iss-0010-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0009-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->"
+            "issueId": "iss-0011-fake",
+            "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->"
           }
         }
       },
@@ -779,7 +812,7 @@
           "data": {
             "commentCreate": {
               "comment": {
-                "id": "cmt-0015-fake"
+                "id": "cmt-0016-fake"
               }
             }
           }
@@ -792,9 +825,9 @@
         "url": "/graphql",
         "operation": "EditComment",
         "variables": {
-          "id": "cmt-0014-fake",
+          "id": "cmt-0015-fake",
           "input": {
-            "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0010-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0009-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
+            "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
           }
         }
       },
@@ -821,7 +854,7 @@
         "url": "/graphql",
         "operation": "Update",
         "variables": {
-          "id": "iss-0009-fake",
+          "id": "iss-0010-fake",
           "input": {
             "description": "## Destination\n\nEdits made offline sync without data loss.\n\n## Notes\n\n_None yet._\n\n## Decisions so far\n\n- ENG-2: Use Automerge. Its history model fits the audit trail.\n\n## Not yet specified\n\n- Conflict policy for deletes\n\n## Out of scope\n\n_None yet._\n"
           }
@@ -850,7 +883,7 @@
         "url": "/graphql",
         "operation": "Update",
         "variables": {
-          "id": "iss-0009-fake",
+          "id": "iss-0010-fake",
           "input": {
             "addedLabelIds": [
               "lbl-0002-fake"
@@ -910,7 +943,7 @@
             "issues": {
               "nodes": [
                 {
-                  "id": "iss-0009-fake",
+                  "id": "iss-0010-fake",
                   "identifier": "ENG-1",
                   "title": "Ship offline sync"
                 }
@@ -926,7 +959,7 @@
         "url": "/graphql",
         "operation": "Mission",
         "variables": {
-          "id": "iss-0009-fake"
+          "id": "iss-0010-fake"
         }
       },
       "res": {
@@ -940,7 +973,7 @@
         "body": {
           "data": {
             "issue": {
-              "id": "iss-0009-fake",
+              "id": "iss-0010-fake",
               "identifier": "ENG-1",
               "title": "Ship offline sync",
               "description": "## Destination\n\nEdits made offline sync without data loss.\n\n## Notes\n\n_None yet._\n\n## Decisions so far\n\n- ENG-2: Use Automerge. Its history model fits the audit trail.\n\n## Not yet specified\n\n- Conflict policy for deletes\n\n## Out of scope\n\n_None yet._\n",
@@ -970,7 +1003,7 @@
               "children": {
                 "nodes": [
                   {
-                    "id": "iss-0010-fake",
+                    "id": "iss-0011-fake",
                     "identifier": "ENG-2",
                     "title": "Survey CRDT libraries",
                     "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->",
@@ -993,32 +1026,32 @@
                     "comments": {
                       "nodes": [
                         {
-                          "id": "cmt-0012-fake",
-                          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0ghild8 -->\nYjs has the smaller bundle.",
+                          "id": "cmt-0013-fake",
+                          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0dxwaoj -->\nYjs has the smaller bundle.",
                           "createdAt": "2026-10-31T12:00:05.000Z",
                           "user": {
                             "displayName": "Ada Ops"
                           }
                         },
                         {
-                          "id": "cmt-0013-fake",
-                          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0xmm60i -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
+                          "id": "cmt-0014-fake",
+                          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01f3b0if -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
                           "createdAt": "2026-10-31T12:00:06.000Z",
                           "user": {
                             "displayName": "Ada Ops"
                           }
                         },
                         {
-                          "id": "cmt-0014-fake",
-                          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0010-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0009-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->",
+                          "id": "cmt-0015-fake",
+                          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->",
                           "createdAt": "2026-10-31T12:00:09.000Z",
                           "user": {
                             "displayName": "Ada Ops"
                           }
                         },
                         {
-                          "id": "cmt-0015-fake",
-                          "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"iss-0010-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0009-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->",
+                          "id": "cmt-0016-fake",
+                          "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->",
                           "createdAt": "2026-10-31T12:00:11.000Z",
                           "user": {
                             "displayName": "Ada Ops"
@@ -1031,7 +1064,7 @@
                     }
                   },
                   {
-                    "id": "iss-0011-fake",
+                    "id": "iss-0012-fake",
                     "identifier": "ENG-3",
                     "title": "Pick a conflict policy",
                     "description": "Last-writer-wins or merge?\n\nPart of mission ENG-1.",
@@ -1059,7 +1092,7 @@
                         {
                           "type": "blocks",
                           "issue": {
-                            "id": "iss-0010-fake"
+                            "id": "iss-0011-fake"
                           }
                         }
                       ]

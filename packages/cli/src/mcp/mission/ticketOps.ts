@@ -17,6 +17,7 @@ import { baselineForClaim, repoRootOf } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { recoverRuns } from './completion';
 import { sessionView } from './reporting';
+import { assertMayReview, ownReviews } from './reviews';
 import { ticketInfo } from './ticketInfo';
 import { baselineView } from './verificationView';
 
@@ -34,7 +35,7 @@ async function recoverStalled(ctx: AgentContext) {
 export async function nextTicket(ctx: AgentContext, input: { mission?: string; types?: TicketType[] } = {}) {
   const recovered = await recoverStalled(ctx);
   const snap = await ctx.resolveMission(input.mission);
-  const t = chooseNext(snap, { types: input.types });
+  const t = chooseNext(snap, { types: input.types, exclude: ownReviews(ctx, snap, await ctx.agentId()) });
   const extra = recovered.length ? { recovered } : {};
   if (t) return { ticket: ticketInfo(ctx.root, snap, t, await ctx.decisions(snap.map.id)), ...extra };
   const states = deriveStates(snap.tickets, snap.map.mode);
@@ -57,7 +58,10 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
   const snap = await ctx.resolveMission(input.mission);
   ctx.mission = snap.map.id;
   const agent = await ctx.agentId();
-  const target = input.ticket ? ctx.findTicket(snap, input.ticket) : chooseNext(snap);
+  const target = input.ticket
+    ? ctx.findTicket(snap, input.ticket)
+    : chooseNext(snap, { exclude: ownReviews(ctx, snap, agent) });
+  if (target) assertMayReview(ctx, snap, target, agent);
   if (!target) {
     const r = await nextTicket(ctx, { mission: snap.map.id });
     throw new OperationError(('reason' in r ? r.reason : undefined) ?? 'No ready ticket');
