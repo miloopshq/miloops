@@ -1,5 +1,5 @@
 import type { Ticket } from '../../../model/types';
-import { OperationError } from '../../../planning/operations';
+import { OperationError } from '../../../planning/operations/operationError';
 import type { CacheEntry, QueuedChange, QueuedWrite } from './types';
 
 /** Changes that would duplicate if sent twice; the rest set state, so sending them again is harmless. */

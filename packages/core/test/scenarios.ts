@@ -1,6 +1,10 @@
-import { chartMap, claim, resolve, setMapMode, supersedeDecision } from '../src/planning/operations';
 import type { SyncedAdapter } from '../src/adapters/remote/sync/syncedAdapter';
 import type { TrackerEvent } from '../src/model/types';
+import { chartMap } from '../src/planning/operations/chart';
+import { claim } from '../src/planning/operations/claims';
+import { supersedeDecision } from '../src/planning/operations/decisionOps';
+import { setMapMode } from '../src/planning/operations/mapMode';
+import { resolve } from '../src/planning/operations/resolve';
 
 /** Request bodies embed timestamps (decision records), so recordings and replays run at one fixed instant. */
 export const FROZEN = Date.UTC(2026, 9, 31, 12, 0, 0);

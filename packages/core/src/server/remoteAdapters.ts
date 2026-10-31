@@ -4,8 +4,8 @@ import { LinearAdapter } from '../adapters/remote/linear';
 import { orphanedWrites, outboxFile, outboxKey } from '../adapters/remote/outboxFile';
 import type { SyncedAdapter } from '../adapters/remote/sync/syncedAdapter';
 import type { RemoteKind } from '../adapters/remote/types';
-import type { TrackerContext } from './trackerContext';
 import { resolveLinearKey, type ProjectTrackerConfig } from './trackerConfig';
+import type { TrackerContext } from './trackerContext';
 
 export const isKind = (k: string | undefined): k is RemoteKind => k === 'github' || k === 'linear';
 

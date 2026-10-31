@@ -1,4 +1,3 @@
-import type { TrackerAdapter } from '../adapter';
 import { Emitter } from '../../lib/emitter';
 import type {
   DecisionInput,
@@ -12,6 +11,7 @@ import type {
   TicketType,
   TrackerEvent,
 } from '../../model/types';
+import type { TrackerAdapter } from '../adapter';
 import { TrackerError } from './http';
 import type { SyncStatus } from './sync/types';
 import type {

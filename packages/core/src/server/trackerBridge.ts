@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 import { MarkdownAdapter } from '../adapters/markdown/markdownAdapter';
+import { nodeMarkdownFs } from '../adapters/markdown/nodeMarkdownFs';
 import { AnswerError } from '../agents/agentDocs';
-import { nodeMarkdownFs } from '../node';
 import { handleAgents } from './agentRoutes';
 import type { BridgeOptions, TrackerBridge } from './bridgeTypes';
 import { handleDecisions } from './decisionRoutes';

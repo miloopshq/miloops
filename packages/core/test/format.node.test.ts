@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { authoredBody, decisionComment, joinBody, parseDecisionComment, readComment, splitBody, typeFromLabels } from '../src/adapters/remote/format';
-import { buildDecision } from '../src/planning/decisions';
+import { buildDecision } from '../src/planning/decisions/decisionRecord';
 
 test('claim marker round-trips and disappears when released', () => {
   const body = joinBody('Compare libraries.', { assignee: 'claude-07' });

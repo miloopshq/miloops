@@ -1,5 +1,4 @@
 import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label } from '../../model/brand';
-import { DECISION_SOURCES } from '../../planning/decisions';
 import {
   TICKET_TYPES,
   type Comment,
@@ -8,6 +7,7 @@ import {
   type Ticket,
   type TicketType,
 } from '../../model/types';
+import { DECISION_SOURCES } from '../../planning/decisions/decisionRecord';
 
 /*
  * How MILOOPS state rides on a plain issue tracker, shared by GitHub and Linear:

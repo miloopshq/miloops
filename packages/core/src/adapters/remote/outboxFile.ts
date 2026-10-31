@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import type { RemoteKind } from './types';
 import type { OutboxStore, QueuedWrite } from './sync/types';
+import type { RemoteKind } from './types';
 
 /*
  * Queued tracker writes on disk, so they survive an exit or crash:

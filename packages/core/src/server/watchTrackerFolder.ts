@@ -1,11 +1,11 @@
 import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import type { MarkdownFs } from '../adapters/markdown/markdownAdapter';
+import type { MarkdownFs } from '../adapters/markdown/markdownFs';
 import { DECISION_PATH } from '../adapters/markdown/paths';
 import { isOutboxPath } from '../adapters/remote/outboxFile';
 import { readAgentDoc } from '../agents/agentDocs';
 import { SESSION_DOC_PATH, agentPaths, isAgentPath } from '../agents/agentLink';
-import { parseDecision } from '../planning/decisions';
+import { parseDecision } from '../planning/decisions/decisionFile';
 import type { DecisionEvent } from './bridgeTypes';
 
 /**

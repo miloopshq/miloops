@@ -1,0 +1,12 @@
+/**
+ * Map operations, composed from tracker primitives. Every front end
+ * (command center, CLI, MCP server) should call these rather than the adapter
+ * directly so the rules live in one place.
+ */
+export { chartMap, type ChartHooks, type ChartPlan, type ChartPlanTicket } from './chart';
+export { chooseNext, claim, release } from './claims';
+export { recordDecision, supersedeDecision } from './decisionOps';
+export { allowedTypes, setMapMode } from './mapMode';
+export { OperationError } from './operationError';
+export { resolve, type DecisionMeta } from './resolve';
+export { promoteToTicket, ruleOutOfScope, type ScopeTarget } from './scope';

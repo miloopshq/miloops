@@ -1,23 +1,10 @@
-import { BRAND, MAP_LABEL } from '../model/brand';
 import { Emitter, uid } from '../lib/emitter';
-import { STEPS, stepTag } from '../model/steps';
-import { SECTION_LABEL } from '../model/mapBody';
-import type { UsageLedger } from './presence';
-import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo, SessionMode, SessionUsage, Ticket, TrackerEvent } from '../model/types';
-
-const addUsage = (a: SessionUsage | undefined, b: SessionUsage): SessionUsage => ({
-  inputTokens: (a?.inputTokens ?? 0) + b.inputTokens,
-  outputTokens: (a?.outputTokens ?? 0) + b.outputTokens,
-  costUsd: (a?.costUsd ?? 0) + b.costUsd,
-  ...(a?.cachedInputTokens || b.cachedInputTokens ? { cachedInputTokens: (a?.cachedInputTokens ?? 0) + (b.cachedInputTokens ?? 0) } : {}),
-});
-
-const subUsage = (a: SessionUsage, b: SessionUsage | undefined): SessionUsage => ({
-  inputTokens: a.inputTokens - (b?.inputTokens ?? 0),
-  outputTokens: a.outputTokens - (b?.outputTokens ?? 0),
-  costUsd: a.costUsd - (b?.costUsd ?? 0),
-  ...(a.cachedInputTokens || b?.cachedInputTokens ? { cachedInputTokens: (a.cachedInputTokens ?? 0) - (b?.cachedInputTokens ?? 0) } : {}),
-});
+import { BRAND } from '../model/brand';
+import { STEPS } from '../model/steps';
+import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo, SessionMode, SessionUsage } from '../model/types';
+import { createSessionHandle, type SessionHandle, type SessionHost } from './sessionHandle';
+import { addUsage, subUsage } from './usage';
+import type { UsageLedger } from './usageLedger';
 
 export interface ActivityState {
   sessions: SessionInfo[];
@@ -29,24 +16,6 @@ export interface ActivityState {
   answered: AnsweredQuestion[];
   /** Cumulative model usage per map, kept after sessions scroll out of `sessions`. */
   usageByMap: Record<string, SessionUsage>;
-}
-
-export interface SessionHandle {
-  readonly id: string;
-  readonly info: SessionInfo;
-  step(n: number, detail?: string, ticketId?: string): void;
-  log(text: string, level?: FeedEntry['level']): void;
-  /** Post an agent message into the session's conversation. */
-  say(text: string): void;
-  /** Ask the human a question and wait for the answer. */
-  ask(text: string, suggestions?: string[]): Promise<string>;
-  done(ok?: boolean, text?: string, opts?: { signal?: boolean }): void;
-  /** Attach the session to a map created mid-session (chart). */
-  bindMap(mapId: string): void;
-  /** Add model usage reported by the agent. */
-  usage(delta: SessionUsage): void;
-  /** Replace the session's cumulative usage (measured from the agent's logs); the mission total moves by the difference. */
-  setUsage(total: SessionUsage): void;
 }
 
 /**
@@ -68,6 +37,23 @@ export class ActivityStream {
     /** Receives every usage report with its time, for spend-since readouts. Settable once storage is known. */
     public ledger?: UsageLedger,
   ) {}
+
+  private readonly host: SessionHost = {
+    find: (id) => this.state.sessions.find((s) => s.id === id),
+    patchSession: (id, patch) => this.patchSession(id, patch),
+    push: (e) => void this.push(e),
+    chat: (m) => this.chat(m),
+    addPending: (q) => this.set({ pending: [...this.state.pending, q] }),
+    dropPending: (sessionId) => {
+      const stale = this.state.pending.filter((p) => p.sessionId === sessionId);
+      if (stale.length) this.set({ pending: this.state.pending.filter((p) => p.sessionId !== sessionId) });
+    },
+    awaitAnswer: (questionId) => new Promise<string>((r) => this.resolvers.set(questionId, r)),
+    addMapUsage: (mapId, delta) => {
+      this.state = { ...this.state, usageByMap: { ...this.state.usageByMap, [mapId]: addUsage(this.state.usageByMap[mapId], delta) } };
+    },
+    ledger: () => this.ledger,
+  };
 
   get snapshot() {
     return this.state;
@@ -164,120 +150,8 @@ export class ActivityStream {
       startedAt: Date.now(),
     };
     this.set({ sessions: [...this.state.sessions, info].slice(-24) });
-    const self = this;
-    const current = () => self.state.sessions.find((s) => s.id === info.id) ?? info;
+    const handle = createSessionHandle(this.host, info, input.mode);
     this.push({ source: 'session', sessionId: info.id, agent: info.agent, level: 'info', text: `Session opened · ${input.mode}` });
-    return {
-      id: info.id,
-      get info() {
-        return current();
-      },
-      step(n, detail, ticketId) {
-        const label = STEPS[input.mode][n - 1];
-        self.patchSession(info.id, { step: n, stepLabel: label, ...(ticketId ? { ticketId } : {}) });
-        self.push({
-          source: 'session',
-          sessionId: info.id,
-          agent: info.agent,
-          tag: stepTag(input.mode, n),
-          level: 'step',
-          text: detail ? `${label}: ${detail}` : label,
-          ticketId: ticketId ?? current().ticketId,
-        });
-      },
-      log(text, level = 'info') {
-        self.push({ source: 'session', sessionId: info.id, agent: info.agent, level, text, ticketId: current().ticketId });
-      },
-      say(text) {
-        self.chat({ sessionId: info.id, ticketId: current().ticketId, from: 'agent', author: info.agent, text });
-      },
-      ask(text, suggestions) {
-        const q: PendingQuestion = { id: uid('q'), sessionId: info.id, mapId: info.mapId, ticketId: current().ticketId, agent: info.agent, text, suggestions, at: Date.now() };
-        self.chat({ sessionId: info.id, ticketId: q.ticketId, from: 'agent', author: info.agent, text, questionId: q.id });
-        self.set({ pending: [...self.state.pending, q] });
-        self.patchSession(info.id, { waitingOn: q.id });
-        self.push({ source: 'session', sessionId: info.id, agent: info.agent, level: 'alert', ticketId: q.ticketId, text: 'Decision request · waiting on you', signal: true });
-        return new Promise<string>((r) => self.resolvers.set(q.id, r));
-      },
-      done(ok = true, text, opts) {
-        self.patchSession(info.id, { status: ok ? 'done' : 'failed', endedAt: Date.now(), waitingOn: undefined });
-        const stale = self.state.pending.filter((p) => p.sessionId === info.id);
-        if (stale.length) self.set({ pending: self.state.pending.filter((p) => p.sessionId !== info.id) });
-        self.push({
-          source: 'session',
-          sessionId: info.id,
-          agent: info.agent,
-          level: ok ? 'ok' : 'alert',
-          text: text ?? (ok ? 'Session closed' : 'Session aborted'),
-          signal: opts?.signal,
-        });
-      },
-      bindMap(mapId) {
-        const used = current().usage;
-        if (used) {
-          self.state = { ...self.state, usageByMap: { ...self.state.usageByMap, [mapId]: addUsage(self.state.usageByMap[mapId], used) } };
-          self.ledger?.add(mapId, used, info.id);
-        }
-        self.patchSession(info.id, { mapId });
-      },
-      usage(delta) {
-        const mapId = current().mapId;
-        self.ledger?.add(mapId, delta, info.id);
-        self.state = {
-          ...self.state,
-          usageByMap: { ...self.state.usageByMap, [mapId]: addUsage(self.state.usageByMap[mapId], delta) },
-        };
-        const prev = current().usage;
-        self.patchSession(info.id, { usage: { ...addUsage(prev, delta), source: delta.source ?? prev?.source } });
-      },
-      setUsage(total) {
-        const prev = current().usage;
-        const d = subUsage(total, prev);
-        const same = !d.inputTokens && !d.outputTokens && !d.costUsd && !d.cachedInputTokens && prev?.source === total.source && `${prev?.models}` === `${total.models}`;
-        if (same) return;
-        const mapId = current().mapId;
-        if (d.inputTokens > 0 || d.outputTokens > 0 || d.costUsd > 0) self.ledger?.add(mapId, d, info.id);
-        self.state = { ...self.state, usageByMap: { ...self.state.usageByMap, [mapId]: addUsage(self.state.usageByMap[mapId], d) } };
-        self.patchSession(info.id, { usage: total });
-      },
-    };
-  }
-}
-
-/** Human line for a tracker event; `lookup` resolves ticket ids to keys/titles. */
-export function describeTrackerEvent(e: TrackerEvent, lookup: (id: string) => Ticket | undefined): Omit<FeedEntry, 'id' | 'at'> | null {
-  const k = (id: string) => lookup(id)?.key ?? id;
-  switch (e.kind) {
-    case 'map.created':
-      return { source: 'tracker', level: 'ok', text: `Mission created · label ${MAP_LABEL}` };
-    case 'map.updated':
-      return { source: 'tracker', level: 'info', text: `Mission updated${e.section ? ` · ${SECTION_LABEL[e.section].toLowerCase()}` : ''}` };
-    case 'map.mode':
-      return { source: 'tracker', level: 'warn', text: `Mission mode · ${e.mode}` };
-    case 'ticket.created':
-      return { source: 'tracker', level: 'info', ticketId: e.ticketId, text: `Opened ${k(e.ticketId)}` };
-    case 'ticket.claimed':
-      return { source: 'tracker', level: 'warn', ticketId: e.ticketId, text: `Assigned ${k(e.ticketId)} to ${e.assignee}` };
-    case 'ticket.released':
-      return { source: 'tracker', level: 'info', ticketId: e.ticketId, text: `Unassigned ${k(e.ticketId)}` };
-    case 'ticket.closed':
-      return {
-        source: 'tracker',
-        level: e.reason === 'completed' ? 'ok' : 'alert',
-        ticketId: e.ticketId,
-        text: `Closed ${k(e.ticketId)} · ${e.reason === 'completed' ? 'completed' : 'not planned'}`,
-      };
-    case 'ticket.commented':
-      return { source: 'tracker', level: 'info', ticketId: e.ticketId, text: `Comment on ${k(e.ticketId)}` };
-    case 'edge.added':
-      return { source: 'tracker', level: 'info', ticketId: e.blockedId, text: `${k(e.blockerId)} blocks ${k(e.blockedId)}` };
-    case 'decision.recorded':
-      return { source: 'tracker', level: 'ok', ticketId: e.ticketId, text: `Decision ${e.decisionId} recorded${e.ticketId ? ` · ${k(e.ticketId)}` : ''}` };
-    case 'decision.superseded':
-      return { source: 'tracker', level: 'warn', text: `Decision ${e.decisionId} superseded by ${e.supersededBy}` };
-    case 'external.changed':
-      return { source: 'tracker', level: 'warn', text: 'External change detected · resynced' };
-    default:
-      return null;
+    return handle;
   }
 }

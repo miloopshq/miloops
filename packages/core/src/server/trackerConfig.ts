@@ -2,8 +2,8 @@ import { execFile } from 'node:child_process';
 import { chmodSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { BRAND } from '../model/brand';
 import type { ActiveTracker, CredentialSource, LinearTarget } from '../adapters/remote/types';
+import { BRAND } from '../model/brand';
 
 /*
  * Two files, both on the user's machine only:

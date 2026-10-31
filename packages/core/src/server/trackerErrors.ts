@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { TrackerError } from '../adapters/remote/http';
-import { OperationError } from '../planning/operations';
+import { OperationError } from '../planning/operations/operationError';
 
 const STATUS: Record<TrackerError['code'], number> = {
   offline: 503,

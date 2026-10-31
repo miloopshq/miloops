@@ -1,8 +1,8 @@
 import type { ActivityState } from '../activity/activityStream';
 import type { TrackerAdapter } from '../adapters/adapter';
-import { deriveStates } from './derive';
 import { Emitter } from '../lib/emitter';
 import { TICKET_TYPES, type MapSnapshot, type NodeState, type SessionInfo, type SessionUsage, type Ticket, type TicketType, type TrackerEvent, type UsageSource } from '../model/types';
+import { deriveStates } from './derive';
 
 /*
  * Named metrics behind every HUD widget. Each one is a pure function of

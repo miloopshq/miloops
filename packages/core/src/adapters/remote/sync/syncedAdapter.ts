@@ -1,4 +1,3 @@
-import type { TrackerAdapter } from '../../adapter';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -8,8 +7,9 @@ import type {
   Ticket,
   TicketType,
 } from '../../../model/types';
-import { buildDecision, decisionNumber } from '../../../planning/decisions';
-import { OperationError } from '../../../planning/operations';
+import { buildDecision, decisionNumber } from '../../../planning/decisions/decisionRecord';
+import { OperationError } from '../../../planning/operations/operationError';
+import type { TrackerAdapter } from '../../adapter';
 import { isTransient } from '../http';
 import { roundtrip } from './fingerprint';
 import { applyWrite, ticketOf, writeId } from './queuedWrites';

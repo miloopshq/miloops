@@ -8,8 +8,8 @@ import type {
 } from '../adapters/remote/types';
 import { BadRequest } from './http';
 import type { RemoteAdapters } from './remoteAdapters';
-import type { TrackerContext } from './trackerContext';
 import { resolveLinearKey } from './trackerConfig';
+import type { TrackerContext } from './trackerContext';
 
 /** Reading, testing and switching the project's tracker connection. */
 export function trackerSettings(ctx: TrackerContext, remotes: RemoteAdapters) {
