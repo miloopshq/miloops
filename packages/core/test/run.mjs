@@ -1,5 +1,5 @@
 // Bundles the TypeScript tests with esbuild and runs them with `node --test`.
-//   node test/run.mjs                 run every *.test.ts
+//   node test/run.mjs                 run every *.node.test.ts (the *.test.ts files are vitest's)
 //   node test/run.mjs record [fake|live]   re-record fixtures (see record.ts)
 //   node test/run.mjs serve [port]         fake GitHub + Linear over HTTP (see serve-fakes.ts)
 import { build } from 'esbuild';
@@ -12,7 +12,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const out = path.resolve(here, '../../../node_modules/.cache/miloops-core-tests');
 const [cmd, ...rest] = process.argv.slice(2);
 const script = { record: 'record.ts', serve: 'serve-fakes.ts' }[cmd];
-const entries = script ? [script] : readdirSync(here).filter((f) => f.endsWith('.test.ts') && (!cmd || f.includes(cmd)));
+const entries = script ? [script] : readdirSync(here).filter((f) => f.endsWith('.node.test.ts') && (!cmd || f.includes(cmd)));
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
