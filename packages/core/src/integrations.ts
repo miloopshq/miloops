@@ -25,7 +25,7 @@ export interface AgentIntegration {
 
 export const AGENT_INTEGRATIONS: AgentIntegration[] = [
   { id: 'claude-code', name: 'Claude Code', status: 'primary', callsign: 'claude' },
-  { id: 'codex', name: 'Codex', status: 'planned', callsign: 'codex' },
+  { id: 'codex', name: 'Codex', status: 'primary', callsign: 'codex' },
   { id: 'cursor', name: 'Cursor', status: 'planned', callsign: 'cursor' },
 ];
 

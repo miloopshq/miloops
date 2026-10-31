@@ -81,11 +81,27 @@ export class UsageLedger {
   private buckets: Record<string, Bucket[]>;
   private dirty = false;
   private timer: ReturnType<typeof setTimeout> | undefined;
+  /** Last cumulative total per session for `addTotal`, persisted so a reload does not count the same usage twice. */
+  private totals: Record<string, SessionUsage & { at: number }>;
   constructor(
     private store: KeyValueStore,
     private key = 'usage',
   ) {
     this.buckets = readJson(store, key, {});
+    this.totals = readJson(store, `${key}.totals`, {});
+  }
+
+  /** Record a session's cumulative usage (as reported by another process); only the growth since its last total is added. */
+  addTotal(mapId: string, sessionId: string, total: SessionUsage, at = Date.now()) {
+    const prev = this.totals[sessionId];
+    const delta = {
+      inputTokens: total.inputTokens - (prev?.inputTokens ?? 0),
+      outputTokens: total.outputTokens - (prev?.outputTokens ?? 0),
+      costUsd: total.costUsd - (prev?.costUsd ?? 0),
+    };
+    this.totals[sessionId] = { ...total, at };
+    if (delta.inputTokens > 0 || delta.outputTokens > 0 || delta.costUsd > 0) this.add(mapId, delta, sessionId, at);
+    else this.save();
   }
 
   add(mapId: string, delta: SessionUsage, sessionId: string, at = Date.now()) {
@@ -129,7 +145,9 @@ export class UsageLedger {
       this.dirty = false;
       const cutoff = Date.now() - KEEP_MS;
       for (const k of Object.keys(this.buckets)) this.buckets[k] = this.buckets[k].filter((b) => b.at >= cutoff);
+      for (const [k, v] of Object.entries(this.totals)) if (v.at < cutoff) delete this.totals[k];
       this.store.set(this.key, JSON.stringify(this.buckets));
+      this.store.set(`${this.key}.totals`, JSON.stringify(this.totals));
     }, 2000);
   }
 }
