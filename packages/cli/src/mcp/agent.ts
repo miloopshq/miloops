@@ -29,8 +29,8 @@ import {
   type TrackerAdapter,
   type TranscriptEntry,
 } from '@miloops-hq/core';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { AgentDocWriter, readAgentDocs, readCommandCenterLock, writeAgentAnswer } from '@miloops-hq/core/agents';
+import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import type { UsageMeter } from '../usage/meter';
 
 export { OperationError };
@@ -85,7 +85,12 @@ export function callsignFamily(client?: string) {
   const name = (client ?? '').toLowerCase();
   const known = AGENT_INTEGRATIONS.find((a) => name.includes(a.callsign) || name.includes(a.id));
   if (known) return known.callsign;
-  return name.split(/[^a-z0-9]+/).find(Boolean)?.slice(0, 12) || 'agent';
+  return (
+    name
+      .split(/[^a-z0-9]+/)
+      .find(Boolean)
+      ?.slice(0, 12) || 'agent'
+  );
 }
 
 /**
@@ -112,7 +117,10 @@ export class MissionAgent {
    * its own end. Ended sessions are re-measured too, because the agent may write
    * its log after the call that ended the session.
    */
-  private windows = new Map<string, { s: SessionHandle; from: number; to?: number; openedBy?: string; notBefore?: number }>();
+  private windows = new Map<
+    string,
+    { s: SessionHandle; from: number; to?: number; openedBy?: string; notBefore?: number }
+  >();
   private lastEnd?: number;
   /** Agent's id for the tool call being handled. */
   private currentCall?: string;
@@ -145,7 +153,9 @@ export class MissionAgent {
     if (this.callsign) return this.callsign;
     if (this.opts.agent) return (this.callsign = this.opts.agent);
     const family = callsignFamily(this.opts.client?.());
-    const taken = new Set((await readAgentDocs(this.root)).filter((d) => d.session.status === 'running').map((d) => d.session.agent));
+    const taken = new Set(
+      (await readAgentDocs(this.root)).filter((d) => d.session.status === 'running').map((d) => d.session.agent),
+    );
     let n = 1;
     while (taken.has(`${family}-${String(n).padStart(2, '0')}`)) n++;
     return (this.callsign = `${family}-${String(n).padStart(2, '0')}`);
@@ -153,7 +163,12 @@ export class MissionAgent {
 
   commandCenter() {
     const lock = readCommandCenterLock(this.root);
-    return lock ? { running: true, url: lock.url } : { running: false, hint: `Run \`npx miloops --dir ${path.relative(process.cwd(), this.root) || '.'}\` in this folder to watch live.` };
+    return lock
+      ? { running: true, url: lock.url }
+      : {
+          running: false,
+          hint: `Run \`npx miloops --dir ${path.relative(process.cwd(), this.root) || '.'}\` in this folder to watch live.`,
+        };
   }
 
   // ---------- missions ----------
@@ -171,8 +186,13 @@ export class MissionAgent {
     const want = ref?.trim();
     if (want) {
       const norm = want.replace(/^#/, '').toLowerCase();
-      const m = maps.find((x) => x.id === want || x.key.replace(/^#/, '') === norm || x.title.toLowerCase() === want.toLowerCase());
-      if (!m) throw new OperationError(`Unknown mission "${want}". Missions: ${maps.map((x) => `${x.key} ${x.title}`).join('; ')}`);
+      const m = maps.find(
+        (x) => x.id === want || x.key.replace(/^#/, '') === norm || x.title.toLowerCase() === want.toLowerCase(),
+      );
+      if (!m)
+        throw new OperationError(
+          `Unknown mission "${want}". Missions: ${maps.map((x) => `${x.key} ${x.title}`).join('; ')}`,
+        );
       return this.load(m.id);
     }
     if (this.mission && maps.some((m) => m.id === this.mission)) return this.load(this.mission);
@@ -205,7 +225,11 @@ export class MissionAgent {
       state: states.get(t.id),
       assignee: t.assignee,
       body: t.body,
-      blockedBy: t.blockedBy.map((b) => ({ key: byId.get(b)?.key ?? b, title: byId.get(b)?.title, state: states.get(b) })),
+      blockedBy: t.blockedBy.map((b) => ({
+        key: byId.get(b)?.key ?? b,
+        title: byId.get(b)?.title,
+        state: states.get(b),
+      })),
       decisionsFromBlockers: records
         .filter((d) => d.ticketId && t.blockedBy.includes(d.ticketId) && !d.supersededBy)
         .map((d) => ({ id: d.id, ticket: d.ticketKey, decision: d.answer })),
@@ -226,7 +250,13 @@ export class MissionAgent {
     const missions = await Promise.all(
       maps.map(async (m) => {
         const s = await this.load(m.id);
-        return { id: m.id, key: m.key, title: m.title, decided: s.tickets.filter((t) => t.state === 'closed' && t.closeReason === 'completed').length, tickets: s.tickets.length };
+        return {
+          id: m.id,
+          key: m.key,
+          title: m.title,
+          decided: s.tickets.filter((t) => t.state === 'closed' && t.closeReason === 'completed').length,
+          tickets: s.tickets.length,
+        };
       }),
     );
     const base = { agent: await this.agentId(), commandCenter: this.commandCenter(), missions };
@@ -246,13 +276,35 @@ export class MissionAgent {
         mode: snap.map.mode,
         destination: snap.map.sections.destination,
         progress: `${count('decided')}/${snap.tickets.filter((t) => states.get(t.id) !== 'out-of-scope').length} decided`,
-        counts: { decided: count('decided'), claimed: count('claimed'), ready: count('frontier'), blocked: count('blocked'), parked: count('parked'), outOfScope: count('out-of-scope') },
-        ready: snap.tickets.filter((t) => states.get(t.id) === 'frontier').map((t) => ({ key: t.key, title: t.title, type: t.type, attention: attention(t) })),
-        claimed: snap.tickets.filter((t) => states.get(t.id) === 'claimed').map((t) => ({ key: t.key, title: t.title, assignee: t.assignee })),
-        blocked: snap.tickets.filter((t) => states.get(t.id) === 'blocked').map((t) => ({ key: t.key, title: t.title })),
-        runningSessions: mine.filter((d) => d.session.status === 'running').map((d) => ({ agent: d.session.agent, step: d.session.stepLabel, ticket: d.session.ticketId && this.keyOf(d.session.ticketId) })),
+        counts: {
+          decided: count('decided'),
+          claimed: count('claimed'),
+          ready: count('frontier'),
+          blocked: count('blocked'),
+          parked: count('parked'),
+          outOfScope: count('out-of-scope'),
+        },
+        ready: snap.tickets
+          .filter((t) => states.get(t.id) === 'frontier')
+          .map((t) => ({ key: t.key, title: t.title, type: t.type, attention: attention(t) })),
+        claimed: snap.tickets
+          .filter((t) => states.get(t.id) === 'claimed')
+          .map((t) => ({ key: t.key, title: t.title, assignee: t.assignee })),
+        blocked: snap.tickets
+          .filter((t) => states.get(t.id) === 'blocked')
+          .map((t) => ({ key: t.key, title: t.title })),
+        runningSessions: mine
+          .filter((d) => d.session.status === 'running')
+          .map((d) => ({
+            agent: d.session.agent,
+            step: d.session.stepLabel,
+            ticket: d.session.ticketId && this.keyOf(d.session.ticketId),
+          })),
         waitingOnYou: docs.flatMap((d) => d.pending).filter((q) => q.mapId === snap.map.id).length,
-        decisions: records.filter((d) => !d.supersededBy).slice(-10).map((d) => ({ id: d.id, ticket: d.ticketKey, summary: d.summary })),
+        decisions: records
+          .filter((d) => !d.supersededBy)
+          .slice(-10)
+          .map((d) => ({ id: d.id, ticket: d.ticketKey, summary: d.summary })),
         notYetSpecified: snap.map.sections.unspecified,
         spend: {
           inputTokens: sum(usage.map((u) => u.inputTokens)),
@@ -270,9 +322,20 @@ export class MissionAgent {
   private async open(mode: SessionMode, mapId: string, ticketId?: string) {
     this.endSession(true);
     const agent = await this.agentId();
-    this.session = this.activity.startSession({ id: `s_${process.pid.toString(36)}_${(this.seq++).toString(36)}`, agent, mode, mapId, ticketId });
+    this.session = this.activity.startSession({
+      id: `s_${process.pid.toString(36)}_${(this.seq++).toString(36)}`,
+      agent,
+      mode,
+      mapId,
+      ticketId,
+    });
     this.transcripts.set(this.session.id, []);
-    this.windows.set(this.session.id, { s: this.session, from: this.session.info.startedAt, openedBy: this.currentCall, notBefore: this.lastEnd });
+    this.windows.set(this.session.id, {
+      s: this.session,
+      from: this.session.info.startedAt,
+      openedBy: this.currentCall,
+      notBefore: this.lastEnd,
+    });
     return this.session;
   }
 
@@ -347,7 +410,9 @@ export class MissionAgent {
     s.step(2, `${input.tickets?.length ?? 0} tickets proposed`);
     for (const t of input.tickets ?? []) s.log(`proposed ${t.type} · ${t.title}`);
     const refs = new Set((input.tickets ?? []).map((t) => t.ref));
-    for (const t of input.tickets ?? []) for (const b of t.blockedBy ?? []) if (!refs.has(b)) throw new OperationError(`ticket "${t.ref}" is blocked by unknown ref "${b}"`);
+    for (const t of input.tickets ?? [])
+      for (const b of t.blockedBy ?? [])
+        if (!refs.has(b)) throw new OperationError(`ticket "${t.ref}" is blocked by unknown ref "${b}"`);
     s.step(3, input.title);
     const { map, tickets } = await chartMap(
       this.adapter,
@@ -379,7 +444,12 @@ export class MissionAgent {
     const next = chooseNext(snap);
     return {
       mission: { id: map.id, key: map.key, title: map.title, mode: map.mode },
-      tickets: tickets.map((t) => ({ ref: (input.tickets ?? []).find((p) => p.title === t.title)?.ref, key: t.key, title: t.title, type: t.type })),
+      tickets: tickets.map((t) => ({
+        ref: (input.tickets ?? []).find((p) => p.title === t.title)?.ref,
+        key: t.key,
+        title: t.title,
+        type: t.type,
+      })),
       framingQuestionsAnswered: framing.filter((e) => e.from === 'human').length,
       next: next ? this.ticketView(snap, next) : null,
       commandCenter: this.commandCenter(),
@@ -390,7 +460,8 @@ export class MissionAgent {
     const snap = await this.resolveMission(missionRef);
     this.mission = snap.map.id;
     const cur = this.running();
-    if (!cur || cur.info.mapId !== snap.map.id) (await this.open('work', snap.map.id)).step(1, 'reading mission + tickets');
+    if (!cur || cur.info.mapId !== snap.map.id)
+      (await this.open('work', snap.map.id)).step(1, 'reading mission + tickets');
     const status = await this.status(snap.map.id);
     const agent = await this.agentId();
     const mine = snap.tickets.find((t) => t.state === 'open' && t.assignee === agent);
@@ -402,14 +473,23 @@ export class MissionAgent {
     };
   }
 
-  async updateMission(input: { mission?: string; destination?: string; notes?: string; addUnspecified?: string[]; addOutOfScope?: string[]; mode?: MapMode }) {
+  async updateMission(input: {
+    mission?: string;
+    destination?: string;
+    notes?: string;
+    addUnspecified?: string[];
+    addOutOfScope?: string[];
+    mode?: MapMode;
+  }) {
     const snap = await this.resolveMission(input.mission);
     const s = await this.ensureSession();
     const sec = snap.map.sections;
     const patch = {
       ...(input.destination !== undefined ? { destination: input.destination } : {}),
       ...(input.notes !== undefined ? { notes: input.notes } : {}),
-      ...(input.addUnspecified?.length ? { unspecified: [...sec.unspecified, ...input.addUnspecified.filter((x) => !sec.unspecified.includes(x))] } : {}),
+      ...(input.addUnspecified?.length
+        ? { unspecified: [...sec.unspecified, ...input.addUnspecified.filter((x) => !sec.unspecified.includes(x))] }
+        : {}),
       ...(input.addOutOfScope?.length ? { outOfScope: [...sec.outOfScope, ...input.addOutOfScope] } : {}),
     };
     if (Object.keys(patch).length) await this.adapter.updateMapSections(snap.map.id, patch);
@@ -437,8 +517,12 @@ export class MissionAgent {
     this.mission = snap.map.id;
     const agent = await this.agentId();
     const target = input.ticket ? this.findTicket(snap, input.ticket) : chooseNext(snap);
-    if (!target) throw new OperationError((await this.nextTicket({ mission: snap.map.id })).reason ?? 'No ready ticket');
-    const t = target.assignee === agent && target.state === 'open' ? target : await claim(this.adapter, snap.map.id, target.id, agent);
+    if (!target)
+      throw new OperationError((await this.nextTicket({ mission: snap.map.id })).reason ?? 'No ready ticket');
+    const t =
+      target.assignee === agent && target.state === 'open'
+        ? target
+        : await claim(this.adapter, snap.map.id, target.id, agent);
     const mode: SessionMode = t.type === 'research' ? 'research' : 'work';
     const cur = this.running();
     let s: SessionHandle;
@@ -456,7 +540,14 @@ export class MissionAgent {
       s.step(3, `${t.key} ${t.type} · ${hitl ? 'with you' : 'agent only'}`);
     }
     const fresh = await this.load(snap.map.id);
-    return { claimed: this.ticketView(fresh, fresh.tickets.find((x) => x.id === t.id)!, await this.decisions(snap.map.id)), session: this.sessionView() };
+    return {
+      claimed: this.ticketView(
+        fresh,
+        fresh.tickets.find((x) => x.id === t.id)!,
+        await this.decisions(snap.map.id),
+      ),
+      session: this.sessionView(),
+    };
   }
 
   async releaseTicket(input: { ticket?: string; mission?: string; reason?: string }) {
@@ -464,27 +555,54 @@ export class MissionAgent {
     const ref = input.ticket ?? this.running()?.info.ticketId;
     if (!ref) throw new OperationError('Which ticket? Pass `ticket`.');
     const t = this.findTicket(snap, ref);
-    if (t.assignee !== (await this.agentId())) throw new OperationError(`${t.key} is not claimed by you${t.assignee ? ` (assignee: ${t.assignee})` : ''}`);
+    if (t.assignee !== (await this.agentId()))
+      throw new OperationError(`${t.key} is not claimed by you${t.assignee ? ` (assignee: ${t.assignee})` : ''}`);
     await release(this.adapter, snap.map.id, t.id);
-    if (this.running()?.info.ticketId === t.id) this.endSession(true, `Released ${t.key}${input.reason ? ` · ${input.reason}` : ''}`);
+    if (this.running()?.info.ticketId === t.id)
+      this.endSession(true, `Released ${t.key}${input.reason ? ` · ${input.reason}` : ''}`);
     return { released: t.key };
   }
 
-  async addTicket(input: { mission?: string; title: string; type: TicketType; body?: string; hitl?: boolean; blockedBy?: string[]; fromUnspecified?: string }) {
+  async addTicket(input: {
+    mission?: string;
+    title: string;
+    type: TicketType;
+    body?: string;
+    hitl?: boolean;
+    blockedBy?: string[];
+    fromUnspecified?: string;
+  }) {
     const snap = await this.resolveMission(input.mission);
-    if (!allowedTypes(snap.map.mode).includes(input.type)) throw new OperationError(`${input.type} tickets are disabled on plan-only missions`);
+    if (!allowedTypes(snap.map.mode).includes(input.type))
+      throw new OperationError(`${input.type} tickets are disabled on plan-only missions`);
     const s = await this.ensureSession();
     const blockers = (input.blockedBy ?? []).map((b) => this.findTicket(snap, b).id);
     let t: Ticket;
     if (input.fromUnspecified) {
-      t = await promoteToTicket(this.adapter, snap.map.id, input.fromUnspecified, { type: input.type, hitl: input.hitl, title: input.title, body: input.body, blockedBy: blockers });
+      t = await promoteToTicket(this.adapter, snap.map.id, input.fromUnspecified, {
+        type: input.type,
+        hitl: input.hitl,
+        title: input.title,
+        body: input.body,
+        blockedBy: blockers,
+      });
       s.log(`promoted to ${t.key} · ${input.fromUnspecified}`, 'ok');
     } else {
-      t = await this.adapter.createTicket(snap.map.id, { title: input.title, type: input.type, hitl: input.hitl, body: `${input.body ?? ''}\n\nPart of mission ${snap.map.key}.`.trim() });
+      t = await this.adapter.createTicket(snap.map.id, {
+        title: input.title,
+        type: input.type,
+        hitl: input.hitl,
+        body: `${input.body ?? ''}\n\nPart of mission ${snap.map.key}.`.trim(),
+      });
       for (const b of blockers) await this.adapter.addBlocking(snap.map.id, b, t.id);
     }
     const fresh = await this.load(snap.map.id);
-    return { ticket: this.ticketView(fresh, fresh.tickets.find((x) => x.id === t.id)!) };
+    return {
+      ticket: this.ticketView(
+        fresh,
+        fresh.tickets.find((x) => x.id === t.id)!,
+      ),
+    };
   }
 
   async closeTicket(input: {
@@ -510,11 +628,18 @@ export class MissionAgent {
       t = (await this.load(snap.map.id)).tickets.find((x) => x.id === t.id)!;
     }
     const s = this.running()?.info.ticketId === t.id ? this.running()! : await this.ensureSession();
-    const before = new Set([...deriveStates(snap.tickets, snap.map.mode)].filter(([, v]) => v === 'frontier').map(([k]) => k));
+    const before = new Set(
+      [...deriveStates(snap.tickets, snap.map.mode)].filter(([, v]) => v === 'frontier').map(([k]) => k),
+    );
     const source = { kind: 'agent' as const, ref: `${s.id}/${t.id}`, label: `${agent} session` };
     let decision: DecisionRecord | undefined;
     if (input.outcome === 'out_of_scope') {
-      await ruleOutOfScope(this.adapter, snap.map.id, { ticketId: t.id }, { reason: input.resolution, author: agent, source });
+      await ruleOutOfScope(
+        this.adapter,
+        snap.map.id,
+        { ticketId: t.id },
+        { reason: input.resolution, author: agent, source },
+      );
       decision = (await this.decisions(snap.map.id)).find((d) => d.ticketId === t.id && d.source.ref === source.ref);
     } else {
       const log = this.transcripts.get(s.id) ?? [];
@@ -525,7 +650,8 @@ export class MissionAgent {
         answer: input.resolution,
         summary: input.summary,
         author: agent,
-        transcript: input.postTranscript && log.length ? log.map((e) => `**${e.author}:** ${e.text}`).join('\n\n') : undefined,
+        transcript:
+          input.postTranscript && log.length ? log.map((e) => `**${e.author}:** ${e.text}`).join('\n\n') : undefined,
         decision: {
           rationale: input.rationale,
           alternatives: input.alternatives,
@@ -541,7 +667,8 @@ export class MissionAgent {
     const after = await this.load(snap.map.id);
     const states = deriveStates(after.tickets, after.map.mode);
     const unblocked = after.tickets.filter((x) => states.get(x.id) === 'frontier' && !before.has(x.id));
-    if (s.info.ticketId === t.id) this.endSession(true, `${t.key} ${input.outcome === 'out_of_scope' ? 'ruled out' : 'decided'} · session closed`);
+    if (s.info.ticketId === t.id)
+      this.endSession(true, `${t.key} ${input.outcome === 'out_of_scope' ? 'ruled out' : 'decided'} · session closed`);
     const next = chooseNext(after);
     const open = after.tickets.filter((x) => x.state === 'open').length;
     return {
@@ -559,31 +686,70 @@ export class MissionAgent {
   sessionView() {
     const s = this.session?.info;
     if (!s) return null;
-    return { id: s.id, agent: s.agent, mode: s.mode, step: s.step ? stepTag(s.mode, s.step) : 'BOOT', stepLabel: s.stepLabel, ticket: s.ticketId && this.keyOf(s.ticketId), status: s.status, usage: s.usage };
+    return {
+      id: s.id,
+      agent: s.agent,
+      mode: s.mode,
+      step: s.step ? stepTag(s.mode, s.step) : 'BOOT',
+      stepLabel: s.stepLabel,
+      ticket: s.ticketId && this.keyOf(s.ticketId),
+      status: s.status,
+      usage: s.usage,
+    };
   }
 
-  async report(input: { message?: string; level?: 'info' | 'ok' | 'warn' | 'alert'; step?: string | number; say?: string; inputTokens?: number; outputTokens?: number; costUsd?: number }) {
+  async report(input: {
+    message?: string;
+    level?: 'info' | 'ok' | 'warn' | 'alert';
+    step?: string | number;
+    say?: string;
+    inputTokens?: number;
+    outputTokens?: number;
+    costUsd?: number;
+  }) {
     const s = await this.ensureSession();
     if (input.step !== undefined) {
       const steps = STEPS[s.info.mode];
-      const n = typeof input.step === 'number' ? input.step : steps.findIndex((x) => x.toLowerCase() === String(input.step).toLowerCase()) + 1 || Number(input.step);
-      if (!Number.isInteger(n) || n < 1 || n > steps.length) throw new OperationError(`step must be 1-${steps.length} or one of: ${steps.join(', ')}`);
+      const n =
+        typeof input.step === 'number'
+          ? input.step
+          : steps.findIndex((x) => x.toLowerCase() === String(input.step).toLowerCase()) + 1 || Number(input.step);
+      if (!Number.isInteger(n) || n < 1 || n > steps.length)
+        throw new OperationError(`step must be 1-${steps.length} or one of: ${steps.join(', ')}`);
       s.step(n, input.message);
     } else if (input.message) s.log(input.message, input.level ?? 'info');
     if (input.say) {
       s.say(input.say);
       this.note(s, 'agent', s.info.agent, input.say);
     }
-    const u = { inputTokens: Math.max(0, input.inputTokens ?? 0), outputTokens: Math.max(0, input.outputTokens ?? 0), costUsd: Math.max(0, input.costUsd ?? 0) };
+    const u = {
+      inputTokens: Math.max(0, input.inputTokens ?? 0),
+      outputTokens: Math.max(0, input.outputTokens ?? 0),
+      costUsd: Math.max(0, input.costUsd ?? 0),
+    };
     const measured = this.measure(s);
     if (!measured && (u.inputTokens || u.outputTokens || u.costUsd)) s.usage({ ...u, source: 'reported' });
     return {
       session: this.sessionView(),
-      usageSource: measured ? `${s.info.usage?.source} logs (reported numbers are ignored)` : s.info.usage ? 'reported' : 'none',
+      usageSource: measured
+        ? `${s.info.usage?.source} logs (reported numbers are ignored)`
+        : s.info.usage
+          ? 'reported'
+          : 'none',
     };
   }
 
-  async recordDecision(input: { mission?: string; ticket?: string; question: string; answer: string; summary?: string; rationale?: string; alternatives?: string[]; decidedBy?: string; appendToMission?: boolean }) {
+  async recordDecision(input: {
+    mission?: string;
+    ticket?: string;
+    question: string;
+    answer: string;
+    summary?: string;
+    rationale?: string;
+    alternatives?: string[];
+    decidedBy?: string;
+    appendToMission?: boolean;
+  }) {
     const s = this.running();
     const snap = await this.resolveMission(input.mission ?? (s?.info.mapId || undefined));
     const agent = await this.agentId();
@@ -601,7 +767,11 @@ export class MissionAgent {
         rationale: input.rationale,
         decidedBy: input.decidedBy ?? agent,
         participants: [...new Set([agent, input.decidedBy ?? agent])].map((id) => ({ id })),
-        source: { kind: 'agent', ref: `${s?.id ?? `${agent}@${process.pid}`}/d${this.decisionSeq++}`, label: `${agent} session` },
+        source: {
+          kind: 'agent',
+          ref: `${s?.id ?? `${agent}@${process.pid}`}/d${this.decisionSeq++}`,
+          label: `${agent} session`,
+        },
       },
       { appendToMission: input.appendToMission },
     );
@@ -611,9 +781,16 @@ export class MissionAgent {
   // ---------- HITL ----------
 
   /** `framing`: the question frames a mission that does not exist yet (`/milo new`), so it belongs to a chart session. */
-  async ask(input: { question: string; suggestions?: string[]; waitSeconds?: number; framing?: boolean }, ctl: WaitControl = {}): Promise<AskResult> {
+  async ask(
+    input: { question: string; suggestions?: string[]; waitSeconds?: number; framing?: boolean },
+    ctl: WaitControl = {},
+  ): Promise<AskResult> {
     const cur = this.running();
-    const s = input.framing ? (cur && cur.info.mode === 'chart' && !cur.info.mapId ? cur : await this.open('chart', '')) : await this.ensureSession();
+    const s = input.framing
+      ? cur && cur.info.mode === 'chart' && !cur.info.mapId
+        ? cur
+        : await this.open('chart', '')
+      : await this.ensureSession();
     if (input.framing && s.info.step === 0) s.step(1, 'framing interview');
     this.note(s, 'agent', s.info.agent, input.question);
     const answer = s.ask(input.question, input.suggestions?.length ? input.suggestions : undefined);
@@ -623,7 +800,9 @@ export class MissionAgent {
     this.waits.set(
       q.id,
       answer.then((text) => {
-        const author = [...this.activity.snapshot.chats].reverse().find((c) => c.sessionId === sid && c.from === 'human')?.author ?? OPERATOR;
+        const author =
+          [...this.activity.snapshot.chats].reverse().find((c) => c.sessionId === sid && c.from === 'human')?.author ??
+          OPERATOR;
         this.transcripts.get(sid)?.push({ from: 'human', author, text, at: Date.now() });
         return { text, author };
       }),
@@ -633,7 +812,10 @@ export class MissionAgent {
 
   async waitForAnswer(input: { questionId: string; waitSeconds?: number }, ctl: WaitControl = {}): Promise<AskResult> {
     const p = this.waits.get(input.questionId);
-    if (!p) throw new OperationError(`Unknown question ${input.questionId} (questions only live as long as the session that asked them)`);
+    if (!p)
+      throw new OperationError(
+        `Unknown question ${input.questionId} (questions only live as long as the session that asked them)`,
+      );
     const started = Date.now();
     const waited = () => Math.round((Date.now() - started) / 1000);
     const limit = Math.max(0, input.waitSeconds ?? this.defaultWaitSeconds()) * 1000;
@@ -655,7 +837,13 @@ export class MissionAgent {
     });
     if (!res.answered) return { answered: false, questionId: input.questionId, waitedSeconds: waited() };
     this.waits.delete(input.questionId);
-    return { answered: true, questionId: input.questionId, answer: res.a.text, answeredBy: res.a.author, waitedSeconds: waited() };
+    return {
+      answered: true,
+      questionId: input.questionId,
+      answer: res.a.text,
+      answeredBy: res.a.author,
+      waitedSeconds: waited(),
+    };
   }
 
   /** Codex cancels MCP calls after 60 s unless `tool_timeout_sec` is raised, so its waits return before that. */
@@ -695,7 +883,12 @@ export class MissionAgent {
     }
     const doc = (await readAgentDocs(this.root)).find((d) => d.pending.some((q) => q.id === input.questionId));
     if (!doc) throw new OperationError(`No open question ${input.questionId}. Call list_inbox for the current ones.`);
-    writeAgentAnswer(this.root, { sessionId: doc.session.id, questionId: input.questionId, text: input.answer, author: OPERATOR });
+    writeAgentAnswer(this.root, {
+      sessionId: doc.session.id,
+      questionId: input.questionId,
+      text: input.answer,
+      author: OPERATOR,
+    });
     return { delivered: true, to: doc.session.agent };
   }
 

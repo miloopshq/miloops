@@ -8,7 +8,8 @@ import { installClaudeHook } from './usage/hook';
 
 export type ConnectTarget = 'claude' | 'codex';
 
-const has = (bin: string) => spawnSync(process.platform === 'win32' ? 'where' : 'which', [bin], { stdio: 'ignore' }).status === 0;
+const has = (bin: string) =>
+  spawnSync(process.platform === 'win32' ? 'where' : 'which', [bin], { stdio: 'ignore' }).status === 0;
 
 /** The command an agent runs to start the server; `--dir` only when the tracker folder is not the default. */
 export function serverArgs(dir?: string) {
@@ -29,10 +30,15 @@ export function runConnect(target: ConnectTarget, opts: { cwd: string; dir?: str
       const out = `${r.stdout ?? ''}${r.stderr ?? ''}`.trim();
       if (r.status === 0) print(`  MCP server      registered · claude mcp add ${BRAND.slug} -- ${quoted}`);
       else if (/already exists/i.test(out)) print(`  MCP server      already registered`);
-      else print(`  MCP server      not registered (${out || `exit ${r.status}`}). Run: claude mcp add ${BRAND.slug} -- ${quoted}`);
+      else
+        print(
+          `  MCP server      not registered (${out || `exit ${r.status}`}). Run: claude mcp add ${BRAND.slug} -- ${quoted}`,
+        );
     } else print(`  MCP server      Claude Code not found on PATH. Run: claude mcp add ${BRAND.slug} -- ${quoted}`);
     const settings = path.join(opts.cwd, '.claude', 'settings.local.json');
-    print(`  Usage hook      ${installClaudeHook(settings, opts.dir)} · ${path.relative(opts.cwd, settings)} (SessionStart: tokens and cost come from the session transcript)`);
+    print(
+      `  Usage hook      ${installClaudeHook(settings, opts.dir)} · ${path.relative(opts.cwd, settings)} (SessionStart: tokens and cost come from the session transcript)`,
+    );
     print(`\n  In Claude Code: /milo new "<idea>", /milo resume, /milo status, /milo inbox`);
     return;
   }
@@ -42,8 +48,15 @@ export function runConnect(target: ConnectTarget, opts: { cwd: string; dir?: str
   // Codex passes MCP servers only a few env vars; a custom CODEX_HOME must be forwarded for the rollout logs to be found.
   const env = process.env.CODEX_HOME ? ['--env', `CODEX_HOME=${process.env.CODEX_HOME}`] : [];
   if (has('codex')) {
-    const r = spawnSync('codex', ['mcp', 'add', BRAND.slug, ...env, '--', 'npx', ...args], { cwd: opts.cwd, encoding: 'utf8' });
-    print(r.status === 0 ? `  MCP server      registered · codex mcp add ${BRAND.slug} -- ${quoted}` : `  MCP server      not registered. Add it to ${path.join(home, 'config.toml')} (below).`);
+    const r = spawnSync('codex', ['mcp', 'add', BRAND.slug, ...env, '--', 'npx', ...args], {
+      cwd: opts.cwd,
+      encoding: 'utf8',
+    });
+    print(
+      r.status === 0
+        ? `  MCP server      registered · codex mcp add ${BRAND.slug} -- ${quoted}`
+        : `  MCP server      not registered. Add it to ${path.join(home, 'config.toml')} (below).`,
+    );
   } else print(`  MCP server      Codex not found on PATH. Add this to ${path.join(home, 'config.toml')}:`);
   print(`  Usage           read from Codex session logs in ${path.join(home, 'sessions')} (nothing to install)`);
   print(

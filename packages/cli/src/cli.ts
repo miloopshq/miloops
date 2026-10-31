@@ -4,10 +4,10 @@ import fs from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { slackPlugin } from '@miloops-hq/connector-slack/node';
 import { BRAND } from '@miloops-hq/core';
 import { writeCommandCenterLock } from '@miloops-hq/core/agents';
 import { createTrackerBridge, type TrackerBridge } from '@miloops-hq/core/bridge';
-import { slackPlugin } from '@miloops-hq/connector-slack/node';
 import { runConnect } from './connect';
 import { runMcpServer } from './mcp/server';
 import { readStdin, recordClaudeSession } from './usage/hook';
@@ -63,7 +63,8 @@ function parseArgs(argv: string[]): Options {
     open: true,
   };
   for (let i = 0; i < argv.length; i++) {
-    const [flag, inline] = argv[i].startsWith('--') && argv[i].includes('=') ? argv[i].split(/=(.*)/s, 2) : [argv[i], undefined];
+    const [flag, inline] =
+      argv[i].startsWith('--') && argv[i].includes('=') ? argv[i].split(/=(.*)/s, 2) : [argv[i], undefined];
     const value = () => inline ?? argv[++i] ?? fail(`${flag} needs a value`);
     switch (flag) {
       case '-h':
@@ -140,7 +141,11 @@ function listen(server: http.Server, port: number, host: string, retries: number
 
 function openBrowser(url: string) {
   const [cmd, args] =
-    process.platform === 'darwin' ? ['open', [url]] : process.platform === 'win32' ? ['cmd', ['/c', 'start', '""', url]] : ['xdg-open', [url]];
+    process.platform === 'darwin'
+      ? ['open', [url]]
+      : process.platform === 'win32'
+        ? ['cmd', ['/c', 'start', '""', url]]
+        : ['xdg-open', [url]];
   try {
     const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
     child.on('error', () => process.stdout.write(`  Open ${url} in your browser.\n`));
@@ -152,9 +157,13 @@ function openBrowser(url: string) {
 
 /** Options of the `mcp` and `connect` subcommands. */
 function parseSubArgs(argv: string[], allowed: string[]) {
-  const o: { dir: string; agent?: string; rest: string[] } = { dir: process.env[BRAND.dataDirEnv] || BRAND.dataDir, rest: [] };
+  const o: { dir: string; agent?: string; rest: string[] } = {
+    dir: process.env[BRAND.dataDirEnv] || BRAND.dataDir,
+    rest: [],
+  };
   for (let i = 0; i < argv.length; i++) {
-    const [flag, inline] = argv[i].startsWith('--') && argv[i].includes('=') ? argv[i].split(/=(.*)/s, 2) : [argv[i], undefined];
+    const [flag, inline] =
+      argv[i].startsWith('--') && argv[i].includes('=') ? argv[i].split(/=(.*)/s, 2) : [argv[i], undefined];
     const value = () => inline ?? argv[++i] ?? fail(`${flag} needs a value`);
     if (flag === '-h' || flag === '--help') {
       process.stdout.write(HELP);
@@ -197,7 +206,8 @@ async function main() {
   }
   const opts = parseArgs(slackSetup ? argv.slice(2) : argv);
   const appDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app');
-  if (!existsSync(path.join(appDir, 'index.html'))) fail(`command center bundle missing at ${appDir}; reinstall the package`);
+  if (!existsSync(path.join(appDir, 'index.html')))
+    fail(`command center bundle missing at ${appDir}; reinstall the package`);
 
   let bridge: TrackerBridge | undefined;
   const server = http.createServer((req, res) => {

@@ -1,9 +1,9 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { z } from 'zod';
 import { BRAND, MarkdownAdapter, TICKET_TYPES, type TicketType } from '@miloops-hq/core';
 import { activeTracker } from '@miloops-hq/core/bridge';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 import { UsageMeter } from '../usage/meter';
 import { MissionAgent, OperationError, type WaitControl } from './agent';
 
@@ -14,10 +14,20 @@ Use record_decision for any other call worth keeping. Never decide HITL tickets 
 If ask_human returns answered=false, call wait_for_answer with the questionId, or tell the user the question is waiting in the command center.`;
 
 const ticketType = z.enum(TICKET_TYPES as [TicketType, ...TicketType[]]);
-const mission = z.string().optional().describe('Mission id, key (#3) or title. Default: the current mission, else the most recently active one.');
+const mission = z
+  .string()
+  .optional()
+  .describe('Mission id, key (#3) or title. Default: the current mission, else the most recently active one.');
 const ticket = z.string().describe('Ticket key (#12) or id (12).');
 
-type Extra = { signal: AbortSignal; _meta?: { progressToken?: string | number }; sendNotification: (n: { method: 'notifications/progress'; params: { progressToken: string | number; progress: number; message?: string } }) => Promise<void> };
+type Extra = {
+  signal: AbortSignal;
+  _meta?: { progressToken?: string | number };
+  sendNotification: (n: {
+    method: 'notifications/progress';
+    params: { progressToken: string | number; progress: number; message?: string };
+  }) => Promise<void>;
+};
 
 function result(v: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(v, null, 2) }] };
@@ -32,7 +42,16 @@ function waitControl(extra: Extra): WaitControl {
   const token = extra._meta?.progressToken;
   return {
     signal: extra.signal,
-    onProgress: token === undefined ? undefined : (s) => void extra.sendNotification({ method: 'notifications/progress', params: { progressToken: token, progress: s, message: 'Waiting on the human in the command center' } }).catch(() => {}),
+    onProgress:
+      token === undefined
+        ? undefined
+        : (s) =>
+            void extra
+              .sendNotification({
+                method: 'notifications/progress',
+                params: { progressToken: token, progress: s, message: 'Waiting on the human in the command center' },
+              })
+              .catch(() => {}),
   };
 }
 
@@ -46,7 +65,12 @@ export function createMcpServer(agent: MissionAgent, version: string) {
   ) =>
     server.registerTool(
       name,
-      { title: meta.title, description: meta.description, inputSchema: shape, annotations: { readOnlyHint: !!meta.readOnly, openWorldHint: false } },
+      {
+        title: meta.title,
+        description: meta.description,
+        inputSchema: shape,
+        annotations: { readOnlyHint: !!meta.readOnly, openWorldHint: false },
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (async (args: any, extra: any) => {
         try {
@@ -60,8 +84,16 @@ export function createMcpServer(agent: MissionAgent, version: string) {
       }) as never,
     );
 
-  tool('status', { title: 'Mission status', description: 'Progress, ready/claimed/blocked tickets, running sessions, questions waiting on the human, recent decisions and spend. Also lists every mission.', readOnly: true }, { mission }, (a) =>
-    agent.status(a.mission),
+  tool(
+    'status',
+    {
+      title: 'Mission status',
+      description:
+        'Progress, ready/claimed/blocked tickets, running sessions, questions waiting on the human, recent decisions and spend. Also lists every mission.',
+      readOnly: true,
+    },
+    { mission },
+    (a) => agent.status(a.mission),
   );
 
   tool(
@@ -95,13 +127,23 @@ export function createMcpServer(agent: MissionAgent, version: string) {
     (a) => agent.startMission(a),
   );
 
-  tool('resume_mission', { title: 'Resume a mission', description: 'Pick up a mission: opens a session, returns status, any ticket you still hold and the next ready ticket.' }, { mission }, (a) =>
-    agent.resumeMission(a.mission),
+  tool(
+    'resume_mission',
+    {
+      title: 'Resume a mission',
+      description:
+        'Pick up a mission: opens a session, returns status, any ticket you still hold and the next ready ticket.',
+    },
+    { mission },
+    (a) => agent.resumeMission(a.mission),
   );
 
   tool(
     'update_mission',
-    { title: 'Update mission', description: 'Edit the destination or notes, add Not yet specified or Out of scope lines, or switch mode.' },
+    {
+      title: 'Update mission',
+      description: 'Edit the destination or notes, add Not yet specified or Out of scope lines, or switch mode.',
+    },
     {
       mission,
       destination: z.string().optional(),
@@ -115,23 +157,50 @@ export function createMcpServer(agent: MissionAgent, version: string) {
 
   tool(
     'next_ticket',
-    { title: 'Next ready ticket', description: 'The oldest open, unblocked, unclaimed ticket, with its body, blockers and the decisions they produced. Does not claim it.', readOnly: true },
+    {
+      title: 'Next ready ticket',
+      description:
+        'The oldest open, unblocked, unclaimed ticket, with its body, blockers and the decisions they produced. Does not claim it.',
+      readOnly: true,
+    },
     { mission, types: z.array(ticketType).optional() },
     (a) => agent.nextTicket(a),
   );
 
-  tool('claim_ticket', { title: 'Claim a ticket', description: 'Assign a ticket to you (default: the next ready one) and start working it. Fails if another agent got it first.' }, { mission, ticket: ticket.optional() }, (a) =>
-    agent.claimTicket(a),
+  tool(
+    'claim_ticket',
+    {
+      title: 'Claim a ticket',
+      description:
+        'Assign a ticket to you (default: the next ready one) and start working it. Fails if another agent got it first.',
+    },
+    { mission, ticket: ticket.optional() },
+    (a) => agent.claimTicket(a),
   );
 
-  tool('release_ticket', { title: 'Release a ticket', description: 'Give a claimed ticket back to the frontier without closing it.' }, { mission, ticket: ticket.optional(), reason: z.string().optional() }, (a) =>
-    agent.releaseTicket(a),
+  tool(
+    'release_ticket',
+    { title: 'Release a ticket', description: 'Give a claimed ticket back to the frontier without closing it.' },
+    { mission, ticket: ticket.optional(), reason: z.string().optional() },
+    (a) => agent.releaseTicket(a),
   );
 
   tool(
     'add_ticket',
-    { title: 'Add a ticket', description: 'Add a ticket to the mission, optionally blocked by existing tickets, or promote a Not yet specified line (fromUnspecified).' },
-    { mission, title: z.string().min(1), type: ticketType, body: z.string().optional(), hitl: z.boolean().optional(), blockedBy: z.array(z.string()).optional(), fromUnspecified: z.string().optional() },
+    {
+      title: 'Add a ticket',
+      description:
+        'Add a ticket to the mission, optionally blocked by existing tickets, or promote a Not yet specified line (fromUnspecified).',
+    },
+    {
+      mission,
+      title: z.string().min(1),
+      type: ticketType,
+      body: z.string().optional(),
+      hitl: z.boolean().optional(),
+      blockedBy: z.array(z.string()).optional(),
+      fromUnspecified: z.string().optional(),
+    },
     (a) => agent.addTicket(a),
   );
 
@@ -165,7 +234,10 @@ export function createMcpServer(agent: MissionAgent, version: string) {
       mission,
       ticket: ticket.optional(),
       resolution: z.string().min(1).describe('The decision or what was done, in full.'),
-      summary: z.string().optional().describe('One line for the Decisions list. Default: first sentence of the resolution.'),
+      summary: z
+        .string()
+        .optional()
+        .describe('One line for the Decisions list. Default: first sentence of the resolution.'),
       rationale: z.string().optional(),
       alternatives: z.array(z.string()).optional(),
       outcome: z.enum(['completed', 'out_of_scope']).optional(),
@@ -176,7 +248,11 @@ export function createMcpServer(agent: MissionAgent, version: string) {
 
   tool(
     'record_decision',
-    { title: 'Record a decision', description: 'Keep a DecisionRecord (question, answer, rationale, alternatives, who decided) and add it to the mission Decisions, without closing a ticket.' },
+    {
+      title: 'Record a decision',
+      description:
+        'Keep a DecisionRecord (question, answer, rationale, alternatives, who decided) and add it to the mission Decisions, without closing a ticket.',
+    },
     {
       mission,
       ticket: ticket.optional(),
@@ -209,16 +285,33 @@ export function createMcpServer(agent: MissionAgent, version: string) {
 
   tool(
     'wait_for_answer',
-    { title: 'Wait for an answer', description: 'Keep waiting for the answer to a question asked with ask_human.', readOnly: true },
+    {
+      title: 'Wait for an answer',
+      description: 'Keep waiting for the answer to a question asked with ask_human.',
+      readOnly: true,
+    },
     { questionId: z.string(), waitSeconds: z.number().int().min(0).max(86_400).optional() },
     (a, extra) => agent.waitForAnswer(a, waitControl(extra)),
   );
 
-  tool('list_inbox', { title: 'Inbox', description: 'Questions from every connected agent that are waiting on the human, oldest first.', readOnly: true }, {}, () => agent.inbox());
+  tool(
+    'list_inbox',
+    {
+      title: 'Inbox',
+      description: 'Questions from every connected agent that are waiting on the human, oldest first.',
+      readOnly: true,
+    },
+    {},
+    () => agent.inbox(),
+  );
 
   tool(
     'answer_question',
-    { title: 'Answer a question', description: "Answer a waiting question on the human's behalf, with the human's own words from this chat. Only use text the human gave you." },
+    {
+      title: 'Answer a question',
+      description:
+        "Answer a waiting question on the human's behalf, with the human's own words from this chat. Only use text the human gave you.",
+    },
     { questionId: z.string(), answer: z.string().min(1) },
     (a) => agent.answerQuestion(a),
   );
@@ -234,7 +327,13 @@ export async function runMcpServer(opts: { root: string; agent?: string; version
     return v ? `${v.name} ${v.version}` : undefined;
   };
   const markdown = new MarkdownAdapter({ ...nodeMarkdownFs(opts.root), watch: undefined }, opts.root);
-  const agent = new MissionAgent({ root: opts.root, agent: opts.agent, client, tracker: activeTracker({ root: opts.root, markdown }), usage: new UsageMeter({ root: opts.root }) });
+  const agent = new MissionAgent({
+    root: opts.root,
+    agent: opts.agent,
+    client,
+    tracker: activeTracker({ root: opts.root, markdown }),
+    usage: new UsageMeter({ root: opts.root }),
+  });
   server = createMcpServer(agent, opts.version);
   let closed = false;
   const shutdown = (code = 0) => {

@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { MarkdownAdapter } from '@miloops-hq/core';
+import { readAgentDocs } from '@miloops-hq/core/agents';
+import { activeTracker } from '@miloops-hq/core/bridge';
+import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MarkdownAdapter } from '@miloops-hq/core';
-import { activeTracker } from '@miloops-hq/core/bridge';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
-import { readAgentDocs } from '@miloops-hq/core/agents';
 import { fakeGitHub } from '../../core/test/fakes/github';
 import { MissionAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
@@ -36,7 +36,11 @@ async function connect(env: Record<string, string | undefined>, fetch: typeof gl
   };
 }
 
-const useGitHub = () => fs.writeFileSync(path.join(root, 'trackers.json'), JSON.stringify({ active: 'github', github: { repo: 'octo-org/launchpad' } }));
+const useGitHub = () =>
+  fs.writeFileSync(
+    path.join(root, 'trackers.json'),
+    JSON.stringify({ active: 'github', github: { repo: 'octo-org/launchpad' } }),
+  );
 
 beforeEach(() => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-mcp-gh-'));
@@ -54,14 +58,17 @@ describe('MCP agent on the active tracker', () => {
     const gh = fakeGitHub();
     const call = await connect({ GITHUB_TOKEN: 'gho_test' }, gh.fetch);
 
-    const started = await call<{ mission: { id: string; key: string }; tickets: { ref: string; key: string }[] }>('start_mission', {
-      title: 'Changelog page',
-      destination: 'A public changelog page generated from releases',
-      tickets: [
-        { ref: 'src', title: 'Where do release notes live?', type: 'research' },
-        { ref: 'build', title: 'Build the page', type: 'task', blockedBy: ['src'] },
-      ],
-    });
+    const started = await call<{ mission: { id: string; key: string }; tickets: { ref: string; key: string }[] }>(
+      'start_mission',
+      {
+        title: 'Changelog page',
+        destination: 'A public changelog page generated from releases',
+        tickets: [
+          { ref: 'src', title: 'Where do release notes live?', type: 'research' },
+          { ref: 'build', title: 'Build the page', type: 'task', blockedBy: ['src'] },
+        ],
+      },
+    );
     const key = (ref: string) => started.tickets.find((t) => t.ref === ref)!.key;
     const issue = (k: string) => gh.issues.get(Number(k.replace('#', '')))!;
     const mission = gh.issues.get(Number(started.mission.id))!;
@@ -72,7 +79,9 @@ describe('MCP agent on the active tracker', () => {
     const claimed = await call<{ claimed: { key: string; assignee: string } }>('claim_ticket');
     expect(claimed.claimed).toMatchObject({ key: key('src'), assignee: 'claude-01' });
     expect(issue(key('src')).body).toContain('"assignee":"claude-01"');
-    expect((await readAgentDocs(root)).find((d) => d.session.status === 'running')?.session.ticketId).toBe(String(issue(key('src')).number));
+    expect((await readAgentDocs(root)).find((d) => d.session.status === 'running')?.session.ticketId).toBe(
+      String(issue(key('src')).number),
+    );
 
     const closed = await call<{ decision: { id: string }; unblocked: { key: string }[] }>('close_ticket', {
       resolution: 'Release notes live in the in-app changelog module. Reuse it.',

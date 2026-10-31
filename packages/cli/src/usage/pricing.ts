@@ -41,5 +41,11 @@ export function priceUsage(model: string, u: { input: number; cacheRead: number;
   const r = rateFor(model);
   if (!r) return 0;
   const fresh = Math.max(0, u.input - u.cacheRead - (r.cacheWrite === undefined ? 0 : u.cacheWrite));
-  return (fresh * r.input + u.cacheRead * r.cacheRead + (r.cacheWrite === undefined ? 0 : u.cacheWrite * r.cacheWrite) + u.output * r.output) / 1e6;
+  return (
+    (fresh * r.input +
+      u.cacheRead * r.cacheRead +
+      (r.cacheWrite === undefined ? 0 : u.cacheWrite * r.cacheWrite) +
+      u.output * r.output) /
+    1e6
+  );
 }

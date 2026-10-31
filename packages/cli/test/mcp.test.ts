@@ -1,12 +1,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { MarkdownAdapter } from '@miloops-hq/core';
+import { readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/agents';
+import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MarkdownAdapter } from '@miloops-hq/core';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
-import { readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/agents';
 import { MissionAgent, callsignFamily } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
@@ -60,7 +60,23 @@ describe('miloops MCP server', () => {
     const { client } = await connect();
     const names = (await client.listTools()).tools.map((t) => t.name).sort();
     expect(names).toEqual(
-      ['add_ticket', 'answer_question', 'ask_human', 'claim_ticket', 'close_ticket', 'list_inbox', 'next_ticket', 'record_decision', 'release_ticket', 'report_progress', 'resume_mission', 'start_mission', 'status', 'update_mission', 'wait_for_answer'].sort(),
+      [
+        'add_ticket',
+        'answer_question',
+        'ask_human',
+        'claim_ticket',
+        'close_ticket',
+        'list_inbox',
+        'next_ticket',
+        'record_decision',
+        'release_ticket',
+        'report_progress',
+        'resume_mission',
+        'start_mission',
+        'status',
+        'update_mission',
+        'wait_for_answer',
+      ].sort(),
     );
     expect(client.getInstructions()).toMatch(/claim_ticket/);
   });
@@ -68,11 +84,20 @@ describe('miloops MCP server', () => {
   it('drives a mission end to end: framing, chart, claim, HITL question, close, decisions', async () => {
     const { call } = await connect();
 
-    const framing = call<{ answered: boolean; answer: string; answeredBy: string }>('ask_human', { question: 'Who is it for?', suggestions: ['Solo devs', 'Teams'], framing: true });
+    const framing = call<{ answered: boolean; answer: string; answeredBy: string }>('ask_human', {
+      question: 'Who is it for?',
+      suggestions: ['Solo devs', 'Teams'],
+      framing: true,
+    });
     await answerNext('Solo devs first');
     expect(await framing).toMatchObject({ answered: true, answer: 'Solo devs first', answeredBy: 'operator' });
 
-    const started = await call<{ mission: { id: string; key: string }; tickets: { ref: string; key: string }[]; next: { key: string }; framingQuestionsAnswered: number }>('start_mission', {
+    const started = await call<{
+      mission: { id: string; key: string };
+      tickets: { ref: string; key: string }[];
+      next: { key: string };
+      framingQuestionsAnswered: number;
+    }>('start_mission', {
       title: 'Changelog page',
       destination: 'A public changelog page generated from releases',
       decided: ['Static page, no backend'],
@@ -94,7 +119,13 @@ describe('miloops MCP server', () => {
 
     const claimed = await call<{ claimed: { key: string; attention: string; assignee: string } }>('claim_ticket');
     expect(claimed.claimed).toMatchObject({ key: key('src'), attention: 'afk', assignee: 'claude-01' });
-    await call('report_progress', { step: 'Investigate', message: 'reading CHANGELOG.md', inputTokens: 1200, outputTokens: 300, costUsd: 0.0081 });
+    await call('report_progress', {
+      step: 'Investigate',
+      message: 'reading CHANGELOG.md',
+      inputTokens: 1200,
+      outputTokens: 300,
+      costUsd: 0.0081,
+    });
     const closed1 = await call<{ decision: { id: string }; unblocked: { key: string }[] }>('close_ticket', {
       resolution: 'Release notes live in the in-app changelog module. Reuse it.',
       rationale: 'Single source',
@@ -103,24 +134,47 @@ describe('miloops MCP server', () => {
     expect(closed1.decision.id).toMatch(/^D-\d+$/);
     expect(closed1.unblocked.map((t) => t.key)).toEqual([key('look')]);
 
-    const c2 = await call<{ claimed: { key: string; attention: string; decisionsFromBlockers: { id: string }[] } }>('claim_ticket');
+    const c2 = await call<{ claimed: { key: string; attention: string; decisionsFromBlockers: { id: string }[] } }>(
+      'claim_ticket',
+    );
     expect(c2.claimed).toMatchObject({ key: key('look'), attention: 'hitl' });
     expect(c2.claimed.decisionsFromBlockers.map((d) => d.id)).toEqual([closed1.decision.id]);
-    const asked = call<{ answered: boolean; answer: string }>('ask_human', { question: 'Timeline or grouped by version?', suggestions: ['Timeline', 'By version'] });
+    const asked = call<{ answered: boolean; answer: string }>('ask_human', {
+      question: 'Timeline or grouped by version?',
+      suggestions: ['Timeline', 'By version'],
+    });
     const pendingDoc = async () => (await readAgentDocs(root)).find((d) => d.pending.length);
     await answerNext('By version');
     expect((await asked).answer).toBe('By version');
     expect(await pendingDoc()).toBeUndefined();
-    const closed2 = await call<{ decision: { decidedBy: string }; unblocked: { key: string }[] }>('close_ticket', { resolution: 'Group entries by version, newest first.', postTranscript: true });
+    const closed2 = await call<{ decision: { decidedBy: string }; unblocked: { key: string }[] }>('close_ticket', {
+      resolution: 'Group entries by version, newest first.',
+      postTranscript: true,
+    });
     expect(closed2.decision.decidedBy).toBe('operator');
     expect(closed2.unblocked.map((t) => t.key)).toEqual([key('build')]);
 
-    await call('record_decision', { question: 'Host it where?', answer: 'Same static host as the landing page.', decidedBy: 'operator' });
+    await call('record_decision', {
+      question: 'Host it where?',
+      answer: 'Same static host as the landing page.',
+      decidedBy: 'operator',
+    });
 
-    const status = await call<{ mission: { progress: string; decisions: { summary: string }[]; ready: { key: string }[]; spend: { inputTokens: number; costUsd: number } } }>('status');
+    const status = await call<{
+      mission: {
+        progress: string;
+        decisions: { summary: string }[];
+        ready: { key: string }[];
+        spend: { inputTokens: number; costUsd: number };
+      };
+    }>('status');
     expect(status.mission.progress).toBe('2/3 decided');
     expect(status.mission.ready.map((t) => t.key)).toEqual([key('build')]);
-    expect(status.mission.decisions.map((d) => d.summary)).toEqual(['Release notes live in the in-app changelog module.', 'Group entries by version, newest first.', 'Same static host as the landing page.']);
+    expect(status.mission.decisions.map((d) => d.summary)).toEqual([
+      'Release notes live in the in-app changelog module.',
+      'Group entries by version, newest first.',
+      'Same static host as the landing page.',
+    ]);
     expect(status.mission.spend).toMatchObject({ inputTokens: 1200, costUsd: 0.0081 });
 
     const adapter = new MarkdownAdapter(nodeMarkdownFs(root));
@@ -135,13 +189,23 @@ describe('miloops MCP server', () => {
 
   it('returns answered=false when the wait runs out and picks the answer up later', async () => {
     const { call } = await connect();
-    await call('start_mission', { title: 'M', destination: 'D', tickets: [{ ref: 'a', title: 'Decide', type: 'grilling' }] });
+    await call('start_mission', {
+      title: 'M',
+      destination: 'D',
+      tickets: [{ ref: 'a', title: 'Decide', type: 'grilling' }],
+    });
     await call('claim_ticket');
-    const first = await call<{ answered: boolean; questionId: string }>('ask_human', { question: 'Now or later?', waitSeconds: 0 });
+    const first = await call<{ answered: boolean; questionId: string }>('ask_human', {
+      question: 'Now or later?',
+      waitSeconds: 0,
+    });
     expect(first.answered).toBe(false);
     const inbox = await call<{ questions: { questionId: string; question: string }[] }>('list_inbox');
     expect(inbox.questions.map((q) => q.question)).toEqual(['Now or later?']);
-    const waiting = call<{ answered: boolean; answer: string }>('wait_for_answer', { questionId: first.questionId, waitSeconds: 5 });
+    const waiting = call<{ answered: boolean; answer: string }>('wait_for_answer', {
+      questionId: first.questionId,
+      waitSeconds: 5,
+    });
     await answerNext('Later');
     expect(await waiting).toMatchObject({ answered: true, answer: 'Later' });
   });
@@ -149,17 +213,29 @@ describe('miloops MCP server', () => {
   it("answers another agent's question from chat and refuses tickets another agent holds", async () => {
     const one = await connect('claude-01');
     const two = await connect('codex-01', 'codex-mcp-client');
-    await one.call('start_mission', { title: 'Shared', destination: 'D', tickets: [{ ref: 'a', title: 'Pick a name', type: 'grilling' }, { ref: 'b', title: 'Survey', type: 'research' }] });
+    await one.call('start_mission', {
+      title: 'Shared',
+      destination: 'D',
+      tickets: [
+        { ref: 'a', title: 'Pick a name', type: 'grilling' },
+        { ref: 'b', title: 'Survey', type: 'research' },
+      ],
+    });
     const c = await one.call<{ claimed: { key: string } }>('claim_ticket');
     await expect(two.call('claim_ticket', { ticket: c.claimed.key })).rejects.toThrow(/not on the frontier/);
-    await expect(two.call('close_ticket', { ticket: c.claimed.key, resolution: 'x' })).rejects.toThrow(/claimed by claude-01/);
+    await expect(two.call('close_ticket', { ticket: c.claimed.key, resolution: 'x' })).rejects.toThrow(
+      /claimed by claude-01/,
+    );
     const asked = one.call<{ answer: string }>('ask_human', { question: 'Name?' });
     let qid: string | undefined;
     for (let i = 0; i < 100 && !qid; i++) {
       qid = (await two.call<{ questions: { questionId: string }[] }>('list_inbox')).questions[0]?.questionId;
       if (!qid) await new Promise((r) => setTimeout(r, 20));
     }
-    await expect(two.call('answer_question', { questionId: qid, answer: 'Milo' })).resolves.toMatchObject({ delivered: true, to: 'claude-01' });
+    await expect(two.call('answer_question', { questionId: qid, answer: 'Milo' })).resolves.toMatchObject({
+      delivered: true,
+      to: 'claude-01',
+    });
     expect((await asked).answer).toBe('Milo');
     expect(two.agent.defaultWaitSeconds()).toBe(50);
   });
@@ -167,7 +243,13 @@ describe('miloops MCP server', () => {
   it('rejects bad input with clear errors', async () => {
     const { call } = await connect();
     await expect(call('resume_mission')).rejects.toThrow(/No missions yet/);
-    await expect(call('start_mission', { title: 'M', destination: 'D', tickets: [{ ref: 'a', title: 'A', type: 'task', blockedBy: ['zz'] }] })).rejects.toThrow(/unknown ref "zz"/);
+    await expect(
+      call('start_mission', {
+        title: 'M',
+        destination: 'D',
+        tickets: [{ ref: 'a', title: 'A', type: 'task', blockedBy: ['zz'] }],
+      }),
+    ).rejects.toThrow(/unknown ref "zz"/);
     await call('start_mission', { title: 'Plan', destination: 'D', mode: 'plan-only' });
     await expect(call('add_ticket', { title: 'Do it', type: 'execute' })).rejects.toThrow(/plan-only/);
     await expect(call('report_progress', { step: 'Fly' })).rejects.toThrow(/step must be/);

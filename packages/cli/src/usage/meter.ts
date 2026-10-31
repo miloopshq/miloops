@@ -138,7 +138,15 @@ export class UsageMeter {
         const prev = this.events.get(e.key);
         this.events.set(
           e.key,
-          prev ? { ...e, at: prev.at, input: Math.max(prev.input, e.input), output: Math.max(prev.output, e.output), costUsd: Math.max(prev.costUsd, e.costUsd) } : e,
+          prev
+            ? {
+                ...e,
+                at: prev.at,
+                input: Math.max(prev.input, e.input),
+                output: Math.max(prev.output, e.output),
+                costUsd: Math.max(prev.costUsd, e.costUsd),
+              }
+            : e,
         );
       }
     }
@@ -224,7 +232,11 @@ export class UsageMeter {
    * the window starts when the model call that issued it began, but not before
    * `notBefore`; `from` applies until that call's record is read.
    */
-  measure(from: number, to = Date.now(), opts: { openedBy?: string; notBefore?: number } = {}): SessionUsage | undefined {
+  measure(
+    from: number,
+    to = Date.now(),
+    opts: { openedBy?: string; notBefore?: number } = {},
+  ): SessionUsage | undefined {
     this.resolveClaude();
     if (!this.files.size || !this.source) return undefined;
     this.poll();
