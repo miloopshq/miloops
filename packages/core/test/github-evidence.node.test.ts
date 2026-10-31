@@ -14,8 +14,8 @@ import { bodyMarkers, branchRef, untrusted } from '../src/evidence/github/prText
 import { prSyncView } from '../src/evidence/prSyncView';
 import { reconcile } from '../src/evidence/reconcile';
 import { readTicketSync, readTicketSyncs, writeTicketSync } from '../src/evidence/syncStore';
-import type { CiCheck, FlagEntry, PrSyncStatus, VerificationSyncEvent } from '../src/model/prEvidence';
 import type { GitEvidence } from '../src/model/evidence';
+import type { CiCheck, FlagEntry, PrSyncStatus, VerificationSyncEvent } from '../src/model/prEvidence';
 import type { VerificationAttempt } from '../src/model/verification';
 import { chartMap } from '../src/planning/operations/chart';
 import { watchVerification } from '../src/server/watchVerification';
