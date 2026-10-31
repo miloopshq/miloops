@@ -1,5 +1,5 @@
 import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label } from '../../model/brand';
-import { TICKET_STATUSES } from '../../model/lifecycle';
+import { levelOf, TICKET_STATUSES } from '../../model/lifecycle';
 import {
   TICKET_TYPES,
   type Comment,
@@ -13,8 +13,9 @@ import { DECISION_SOURCES } from '../../planning/decisions/decisionRecord';
 /*
  * How MILOOPS state rides on a plain issue tracker, shared by GitHub and Linear:
  *   ticket type, HITL, plan-only    labels (brand.ts)
- *   claim, status                   `<!-- miloops:meta {"assignee":…,"status":…} -->` at the end of the issue body;
- *                                   a human assignee in the tracker counts as a claim too
+ *   claim, status, verification     `<!-- miloops:meta {"assignee":…,"status":…} -->` at the end of the issue body;
+ *                                   a human assignee in the tracker counts as a claim too; on the mission issue,
+ *                                   the mission's verification level
  *   comment author                  `<!-- miloops:author <id> -->` first line (the API user posts every comment)
  *   comment write id                `<!-- miloops:write <id> -->` next line, so a replayed queued write can tell it already landed
  *   decision record                 a comment on its ticket (or the mission) ending in `<!-- miloops:decision {json} -->`
@@ -30,12 +31,16 @@ const MAX_COMMENT = 60_000;
 export interface BodyMeta {
   assignee?: string;
   status?: string;
+  verification?: string;
+  checks?: string[];
 }
 
 /** Everything MILOOPS keeps in a ticket's meta marker, so one write never drops another's field. */
-export const ticketMeta = (t: Pick<Ticket, 'assignee' | 'status'>): BodyMeta => ({
+export const ticketMeta = (t: Pick<Ticket, 'assignee' | 'status' | 'verification' | 'checks'>): BodyMeta => ({
   assignee: t.assignee,
   status: t.status,
+  verification: t.verification,
+  checks: t.checks,
 });
 
 export function splitBody(raw: string | null | undefined): { text: string; meta: BodyMeta } {
@@ -161,6 +166,8 @@ export function ticketFromIssue(p: IssueParts): Ticket {
   const { text, meta } = splitBody(p.body);
   const type = typeFromLabels(p.labels);
   const status = TICKET_STATUSES.find((s) => s === meta.status);
+  const verification = levelOf(meta.verification);
+  const checks = Array.isArray(meta.checks) ? meta.checks.filter((c) => typeof c === 'string') : undefined;
   return {
     id: p.id,
     key: p.key,
@@ -172,6 +179,8 @@ export function ticketFromIssue(p: IssueParts): Ticket {
     closeReason: p.closed ? (p.closeReason ?? 'completed') : undefined,
     assignee: meta.assignee ?? p.trackerAssignee,
     ...(status ? { status } : {}),
+    ...(verification ? { verification } : {}),
+    ...(checks ? { checks } : {}),
     blockedBy: p.blockedBy,
     comments: p.comments,
     createdAt: Date.parse(p.createdAt) || 0,
