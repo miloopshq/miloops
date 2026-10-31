@@ -20,6 +20,8 @@ export interface AgentOptions {
   usage?: Pick<UsageMeter, 'noteCall' | 'measure'>;
   /** How often usage of the running session is re-read. */
   usagePollMs?: number;
+  /** Lease length of a claim; renewed by every tool call. Default: $MILOOPS_LEASE_MINUTES, else 15 min. */
+  leaseMs?: number;
 }
 
 export interface TicketPlanInput {
