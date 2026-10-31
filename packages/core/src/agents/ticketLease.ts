@@ -19,6 +19,10 @@ export const TOMBSTONE_MS = 3_600_000;
 
 const safe = (s: string) => s.replace(/[^\w.-]/g, '_');
 
+/** `15 min`, or `3 s` for leases shorter than a minute. */
+export const leaseSpan = (ms: number) =>
+  ms < 60_000 ? `${Math.round(ms / 1000)} s` : `${Math.round(ms / 60_000)} min`;
+
 export const leasePaths = {
   dir: `${AGENTS_DIR}/leases`,
   lease: (mapId: string, ticketId: string) => `${AGENTS_DIR}/leases/${safe(mapId)}--${safe(ticketId)}.json`,
@@ -65,11 +69,11 @@ export const HANDOFF_PREFIX = '**Returned to queue**';
 
 /** The comment left on a ticket when its claim is returned: what the previous agent did, so the next one resumes. */
 export function handoffComment(l: TicketLease, reason: LeaseReturnReason, by: string) {
-  const silentMin = Math.max(1, Math.round((Date.now() - l.renewedAt) / 60_000));
+  const silent = leaseSpan(Date.now() - l.renewedAt);
   const why =
     reason === 'expired'
-      ? `${l.agent} went silent (no activity for ${silentMin} min, lease ${Math.round(l.ttlMs / 60_000)} min).`
-      : `released by ${by}; ${l.agent} last active ${silentMin} min ago.`;
+      ? `${l.agent} went silent (no activity for ${silent}, lease ${leaseSpan(l.ttlMs)}).`
+      : `released by ${by}; ${l.agent} last active ${silent} ago.`;
   const parts = [`${HANDOFF_PREFIX} · ${why} Resume from these notes.`];
   if (l.notes.length) parts.push(`Progress notes from ${l.agent}:\n${l.notes.map((n) => `- ${n}`).join('\n')}`);
   if (l.decisions.length) parts.push(`Decisions recorded:\n${l.decisions.map((d) => `- ${d}`).join('\n')}`);

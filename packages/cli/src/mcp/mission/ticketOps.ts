@@ -4,6 +4,7 @@ import {
   chooseNext,
   claim,
   deriveStates,
+  leaseSpan,
   OperationError,
   promoteToTicket,
   release,
@@ -79,7 +80,11 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
       await ctx.decisions(snap.map.id),
     ),
     session: sessionView(ctx),
-    lease: { expiresAt: new Date(lease.expiresAt).toISOString(), minutes: Math.round(lease.ttlMs / 60_000) },
+    lease: {
+      expiresAt: new Date(lease.expiresAt).toISOString(),
+      length: leaseSpan(lease.ttlMs),
+      renewedBy: 'every tool call of yours; report_progress notes are kept for whoever resumes if you go silent',
+    },
     ...(recovered.length ? { recovered } : {}),
   };
 }

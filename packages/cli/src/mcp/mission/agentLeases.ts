@@ -44,16 +44,17 @@ export class AgentLeases {
     return lease;
   }
 
-  /** Renew every held lease; `note`/`decision` are added to the lease of `ticketId`. */
+  /** Renew every held lease; `note`/`decision` are added to the lease of `ticketId`. Returns the ones lost. */
   renew(agent: string, extra: { ticketId?: string; note?: string; decision?: string; sessionId?: string } = {}) {
+    const lost: Held[] = [];
     for (const [k, h] of this.held) {
       const mine = h.ticketId === extra.ticketId;
-      const ok = renewLease(this.root, h.mapId, h.ticketId, agent, mine ? extra : {});
-      if (!ok) {
-        this.held.delete(k);
-        this.lost.push(h.key);
-      }
+      if (renewLease(this.root, h.mapId, h.ticketId, agent, mine ? extra : {})) continue;
+      this.held.delete(k);
+      this.lost.push(h.key);
+      lost.push(h);
     }
+    return lost;
   }
 
   /** Tickets whose lease ran out (or the operator released) since the last call. */

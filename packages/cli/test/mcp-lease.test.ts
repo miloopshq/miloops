@@ -53,7 +53,7 @@ describe('claim leases', () => {
   it('returns a silent agent’s ticket to the queue and hands its notes to the next agent', async () => {
     const a = await connect('claude-01', 150);
     await mission(a);
-    const first = await a<Claimed & { lease: { minutes: number } }>('claim_ticket');
+    const first = await a<Claimed & { lease: { length: string } }>('claim_ticket');
     await a('report_progress', { step: 'Investigate', message: 'Yjs and Automerge both fit' });
     await a('record_decision', {
       question: 'Which CRDT?',
