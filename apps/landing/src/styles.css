@@ -397,6 +397,7 @@ code {
 }
 
 .install__line code {
+  min-width: 0;
   font-size: clamp(17px, 1.8vw, 21px);
   color: var(--text-hi);
   overflow-x: auto;
@@ -1563,6 +1564,12 @@ code {
 @media (max-width: 560px) {
   body {
     font-size: 16px;
+  }
+
+  .install__line code {
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .hide-sm {
