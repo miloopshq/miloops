@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type { TrackerAdapter } from '../adapters/adapter';
+import { completionEvidence, flagIfStale, gateOutcome, reverifies } from '../evidence/completionEvidence';
 import { BRAND } from '../model/brand';
 import type { Journal, TicketPhase } from '../model/lifecycle';
 import type { MapSnapshot, Ticket } from '../model/types';
@@ -28,6 +29,9 @@ export interface VerifyEnv {
   signal?: AbortSignal;
 }
 
+/** The repo a tracker's checks and git evidence use. */
+export const repoRootOf = (env: Pick<VerifyEnv, 'root' | 'repoRoot'>) => env.repoRoot ?? path.dirname(env.root);
+
 /** What the agent claimed, kept on the attempt and used to resolve the ticket when it passes. */
 export interface Submission {
   agent: string;
@@ -39,6 +43,10 @@ export interface Submission {
   /** In-process only: the decision record's audit fields and the HITL transcript to post. */
   decision?: DecisionMeta;
   transcript?: string;
+  /** Why no files changed is fine for this ticket; the no-changes flag then stays informational. */
+  noCodeReason?: string;
+  /** In-process only: this run already re-runs a pass that went stale. */
+  reverified?: boolean;
 }
 
 export interface Settled {
@@ -83,6 +91,7 @@ export async function verify(
     ...(sub.summary ? { summary: sub.summary } : {}),
     ...(sub.rationale ? { rationale: sub.rationale } : {}),
     ...(sub.alternatives?.length ? { alternatives: sub.alternatives } : {}),
+    ...(sub.noCodeReason ? { noCodeReason: sub.noCodeReason } : {}),
   };
   const id = nextAttemptId(env.root, mapId, t.id);
   const lock = acquireRunLock(env.root, { ...base, id });
@@ -96,30 +105,68 @@ export async function verify(
   const done = (async (): Promise<Settled> => {
     let attempt: VerificationAttempt;
     try {
-      const repoRoot = env.repoRoot ?? path.dirname(env.root);
+      const repoRoot = repoRootOf(env);
       const rel = evidencePaths.logs(mapId, t.id, id);
-      const outcome = config.config
-        ? await runChecks(config.config, info.checks, {
-            repoRoot,
-            logDir: path.join(env.root, rel),
-            logRel: rel,
-            signal: env.signal,
-          })
-        : {
-            checks: [],
-            result: 'error' as const,
-            note: config.exists
-              ? `verification.json has errors: ${config.errors.join('; ')}`
-              : 'verification.json is missing, so the checks this ticket needs cannot run',
-          };
-      attempt = { ...base, id, finishedAt: Date.now(), ...outcome };
+      const git = await completionEvidence({
+        ...env,
+        repoRoot,
+        mapId,
+        ticket: t,
+        config,
+        noCodeReason: sub.noCodeReason,
+      });
+      const outcome =
+        gateOutcome(git) ??
+        (config.config
+          ? await runChecks(config.config, info.checks, {
+              repoRoot,
+              logDir: path.join(env.root, rel),
+              logRel: rel,
+              signal: env.signal,
+            })
+          : {
+              checks: [],
+              result: 'error' as const,
+              note: config.exists
+                ? `verification.json has errors: ${config.errors.join('; ')}`
+                : 'verification.json is missing, so the checks this ticket needs cannot run',
+            });
+      if (outcome.checks.length) await flagIfStale(env.root, git);
+      attempt = { ...base, id, finishedAt: Date.now(), ...outcome, git };
       writeAttempt(env.root, attempt);
     } finally {
       releaseRunLock(env.root, mapId, t.id);
     }
+    if (reverifies(attempt, config.config, !!sub.reverified)) return reverify(env, mapId, t, info, sub, attempt);
     return settle(env, attempt, sub, (config.config ?? DEFAULT_CONFIG).maxAttempts);
   })();
   return { attemptId: id, done };
+}
+
+/** Records that a pass went stale while its checks ran, and runs the checks again on the code as it is now. */
+async function reverify(
+  env: VerifyEnv,
+  mapId: string,
+  t: Ticket,
+  info: LevelInfo,
+  sub: Submission,
+  a: VerificationAttempt,
+) {
+  await transition(
+    env.adapter,
+    mapId,
+    t.id,
+    {
+      event: 'reverify',
+      actor: CHECK_RUNNER,
+      actorKind: 'engine',
+      expect: 'verifying',
+      reason: `${a.id} passed on code that changed while it ran`,
+      sessionId: sub.sessionId,
+    },
+    { journal: env.journal },
+  );
+  return (await verify(env, mapId, t, info, { ...sub, reverified: true })).done;
 }
 
 async function settle(env: VerifyEnv, a: VerificationAttempt, sub: Submission, maxAttempts: number): Promise<Settled> {
@@ -165,5 +212,6 @@ export async function rerun(env: VerifyEnv, snap: MapSnapshot, interrupted: Veri
     summary: interrupted.summary,
     rationale: interrupted.rationale,
     alternatives: interrupted.alternatives,
+    noCodeReason: interrupted.noCodeReason,
   });
 }

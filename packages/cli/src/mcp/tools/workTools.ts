@@ -14,6 +14,10 @@ const completion = {
   rationale: z.string().optional(),
   alternatives: z.array(z.string()).optional(),
   postTranscript: z.boolean().optional().describe('Also post the question/answer transcript as a ticket comment.'),
+  noCodeReason: z
+    .string()
+    .optional()
+    .describe('When verified and no files changed: why none had to (otherwise no changes is flagged).'),
   waitSeconds: z
     .number()
     .int()

@@ -1,3 +1,4 @@
+import { evidenceLines } from '../evidence/evidenceSummary';
 import type { LifecycleEvent, TicketPhase } from '../model/lifecycle';
 import type { CheckResult, VerificationAttempt } from '../model/verification';
 
@@ -54,6 +55,7 @@ export function attemptComment(a: VerificationAttempt, o: Outcome) {
     '',
     ...a.checks.map((c) => `- ${checkLine(c)} · ${(c.durationMs / 1000).toFixed(1)} s`),
     ...(a.note ? ['', a.note] : []),
+    ...(a.git ? ['', ...evidenceLines(a.git)] : []),
     ...(failed && tail
       ? ['', `\`${failed.name}\` output (last lines):`, '', '```', tail.replace(/```/g, "'''"), '```']
       : []),

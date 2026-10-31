@@ -1,0 +1,125 @@
+import type { ChangedFile, EvidenceFlag, GitBaseline, GitTreeState } from '../model/evidence';
+import type { TicketType } from '../model/types';
+import type { VerificationConfig } from '../model/verification';
+
+/** Files another working or verifying ticket changed. */
+export interface OtherWork {
+  ticketKey: string;
+  worktree: string | null;
+  files: string[];
+}
+
+export interface FlagInput {
+  base?: GitBaseline;
+  now?: GitTreeState;
+  /** Why there is no `now`. */
+  noGit?: string;
+  changed: ChangedFile[];
+  ticketType: TicketType;
+  noChanges: VerificationConfig['noChanges'];
+  /** The agent says the ticket needed no code change; it still shows, as info. */
+  noCodeReason?: string;
+  configHash?: string;
+  /** Whether the base head is an ancestor of the current head (`undefined`: not known). */
+  descends?: boolean;
+  others: OtherWork[];
+}
+
+const short = (sha?: string | null) => sha?.slice(0, 8) ?? 'none';
+
+function noChanges(i: FlagInput): EvidenceFlag {
+  const allowed = i.noChanges.allow.includes(i.ticketType);
+  if (allowed || i.noCodeReason)
+    return {
+      kind: 'no-changes',
+      level: 'info',
+      message: `no files changed${i.noCodeReason ? `: ${i.noCodeReason}` : ` (allowed for ${i.ticketType} tickets)`}`,
+    };
+  const effect = i.noChanges.else === 'flag' ? undefined : i.noChanges.else;
+  return {
+    kind: 'no-changes',
+    level: effect ? 'alert' : 'warn',
+    message: `no files changed since the claim${effect === 'fail' ? '; completing needs a change' : effect === 'human' ? '; a human decides' : ''}`,
+    ...(effect ? { effect } : {}),
+  };
+}
+
+function overlap(i: FlagInput): EvidenceFlag[] {
+  const mine = new Set(i.changed.map((c) => c.path));
+  const out: EvidenceFlag[] = [];
+  const hit = i.others.map((o) => ({ ...o, files: o.files.filter((f) => mine.has(f)) })).filter((o) => o.files.length);
+  const shared = hit.filter((o) => o.worktree && o.worktree === i.now?.toplevel);
+  const apart = hit.filter((o) => !shared.includes(o));
+  const files = (os: OtherWork[]) => [...new Set(os.flatMap((o) => o.files))].sort();
+  if (apart.length)
+    out.push({
+      kind: 'overlap',
+      level: 'warn',
+      message: `changed files also changed by ${apart.map((o) => o.ticketKey).join(', ')}`,
+      files: files(apart),
+      tickets: apart.map((o) => o.ticketKey),
+    });
+  if (shared.length)
+    out.push({
+      kind: 'shared-worktree',
+      level: 'info',
+      message: `shared worktree with ${shared.map((o) => o.ticketKey).join(', ')} · attribution approximate`,
+      files: files(shared),
+      tickets: shared.map((o) => o.ticketKey),
+    });
+  return out;
+}
+
+function history(base: GitTreeState, now: GitTreeState, descends?: boolean): EvidenceFlag[] {
+  if (base.branch !== now.branch)
+    return [
+      {
+        kind: 'branch-switch',
+        level: descends === false ? 'alert' : 'info',
+        message: `branch ${base.branch ?? 'detached'} → ${now.branch ?? 'detached'}${descends === false ? ` · ${short(now.head)} does not descend from ${short(base.head)}` : ''}`,
+      },
+    ];
+  if (descends === false)
+    return [
+      {
+        kind: 'history-rewritten',
+        level: 'alert',
+        message: `${now.branch ?? 'HEAD'} was reset or rewritten: ${short(now.head)} does not descend from ${short(base.head)}`,
+      },
+    ];
+  return [];
+}
+
+/** What a human should know about a completion's git evidence; `effect` flags change the attempt's result. */
+export function evidenceFlags(i: FlagInput): EvidenceFlag[] {
+  const out: EvidenceFlag[] = [];
+  if (i.base && (i.base.configHash ?? null) !== (i.configHash ?? null))
+    out.push({
+      kind: 'config-changed',
+      level: 'alert',
+      message: 'verification.json changed since the claim; a human has to confirm the checks',
+      effect: 'human',
+    });
+  if (!i.now) {
+    out.push({ kind: 'no-git', level: 'info', message: `${i.noGit ?? 'no git'}: stale detection is off` });
+    return out;
+  }
+  if (!i.base?.git) {
+    out.push({
+      kind: 'no-baseline',
+      level: 'warn',
+      message: 'no git baseline from the claim: changes cannot be told apart from earlier work',
+    });
+    return out;
+  }
+  out.push(...history(i.base.git, i.now, i.descends));
+  if (!i.changed.length) out.push(noChanges(i));
+  out.push(...overlap(i));
+  return out;
+}
+
+/** The strongest effect among the flags: what the attempt must do before (or instead of) running checks. */
+export function flagEffect(flags: EvidenceFlag[]) {
+  const f = flags.find((x) => x.effect === 'human') ?? flags.find((x) => x.effect === 'fail');
+  return f ? { effect: f.effect!, reason: f.message } : undefined;
+}

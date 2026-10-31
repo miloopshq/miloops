@@ -1,4 +1,4 @@
-import type { MapSnapshot, Ticket, VerificationAttempt } from '@miloops-hq/core';
+import type { GitBaseline, GitEvidence, MapSnapshot, Ticket, VerificationAttempt } from '@miloops-hq/core';
 import { checkPassed, levelFor, readAttempts, type Settled } from '@miloops-hq/core/agents';
 
 /** Failing checks of an attempt, as an agent needs them to fix the work. */
@@ -53,7 +53,7 @@ export function verificationView(root: string, snap: MapSnapshot, t: Ticket) {
 /** The result of a finished verification run, for the agent. */
 export function settledView(s: Settled) {
   const { attempt: a } = s;
-  const base = { status: s.phase, attempt: a.id, checks: checksOf(a) };
+  const base = { status: s.phase, attempt: a.id, checks: checksOf(a), ...(a.git ? { git: gitView(a.git) } : {}) };
   if (s.phase === 'rework')
     return {
       ...base,
@@ -73,3 +73,23 @@ export function settledView(s: Settled) {
   if (s.phase === 'verifying') return { ...base, note: 'Checks passed; the ticket waits for review.' };
   return base;
 }
+
+const short = (sha?: string | null) => sha?.slice(0, 12) ?? null;
+
+/** The worktree a claim starts from, as the claiming agent sees it. */
+export const baselineView = (b: GitBaseline) =>
+  b.git
+    ? { head: short(b.git.head), branch: b.git.branch, dirtyAtClaim: Object.keys(b.git.dirty).length }
+    : { note: `${b.note ?? 'no git'}: changes are not tracked` };
+
+/** Git facts of an attempt: what changed since the claim and the flags raised. */
+export const gitView = (g?: GitEvidence) =>
+  g && {
+    ...(g.base ? { base: short(g.base.head) } : {}),
+    ...(g.tree ? { head: short(g.tree.head), branch: g.tree.branch } : {}),
+    files: g.stats.files,
+    added: g.stats.add,
+    removed: g.stats.del,
+    changed: g.changed.slice(0, 30).map((c) => c.path),
+    flags: g.flags.map((f) => ({ kind: f.kind, level: f.level, message: f.message })),
+  };

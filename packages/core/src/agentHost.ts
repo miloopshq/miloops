@@ -32,9 +32,14 @@ export { attemptComment, checkLine, outcomeOf, type Outcome } from './verificati
 export {
   CHECK_RUNNER,
   levelFor,
+  repoRootOf,
   rerun,
   verify,
   type Settled,
   type Submission,
   type VerifyEnv,
 } from './verification/verifyCompletion';
+export { baselineForClaim, captureBaseline, latestBaseline, readBaseline, type ClaimInfo } from './evidence/baseline';
+export { collectEvidence, type EvidenceRequest } from './evidence/collectEvidence';
+export { evidenceFlags, flagEffect, type OtherWork } from './evidence/flags';
+export { staleAction, staleness } from './evidence/stale';

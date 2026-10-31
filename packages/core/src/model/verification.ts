@@ -1,3 +1,4 @@
+import type { GitEvidence } from './evidence';
 import type { VerificationLevel } from './lifecycle';
 import type { TicketType } from './types';
 
@@ -65,10 +66,14 @@ export interface VerificationAttempt {
   summary?: string;
   rationale?: string;
   alternatives?: string[];
+  /** The agent's reason no files needed to change. */
+  noCodeReason?: string;
   checks: CheckResult[];
   result: AttemptResult;
   /** Why the result is `error` or `interrupted`. */
   note?: string;
+  /** The worktree the checks ran on, the changes since the claim and their flags. */
+  git?: GitEvidence;
 }
 
 export type VerdictKind = 'PASS' | 'FAIL' | 'NEEDS_HUMAN';

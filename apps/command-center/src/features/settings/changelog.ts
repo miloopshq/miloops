@@ -10,11 +10,7 @@ export const NEXT: { area: string; items: string[] }[] = [
   { area: 'Packaging', items: ['Publish to npm'] },
   {
     area: 'Verification',
-    items: [
-      'Git evidence and stale results',
-      'Independent review by another agent session',
-      'Pull request and CI evidence',
-    ],
+    items: ['Independent review by another agent session', 'Pull request and CI evidence'],
   },
 ];
 
@@ -28,6 +24,7 @@ export const RELEASES: Release[] = [
       'Settings → Verification shows the checks in `.miloops/verification.json`: argv commands with timeouts, run without a shell, secrets kept out of their environment. Read-only',
       'Completion is a claim: on missions started with `verification.json` present, an execute or task ticket is only done once its checks pass. A failed check sends it back for Rework with the failing output (agents see it in close_ticket, next_ticket and claim_ticket, and rework comes first in the queue); after 3 failed attempts, or when the checks cannot run, it waits on you as Blocked',
       'New MCP tools `report_completion` and `verification_status`; missions started before verification, and research, grilling and prototype tickets, close exactly as before',
+      'Git evidence, no GitHub needed: each claim records HEAD and the uncommitted state, and each completion lists the files changed since then. It flags no changes, overlap with another active ticket, a branch switch or reset, and edits to `verification.json` (which send the ticket to you as Blocked). A pass on code that changed while its checks ran is re-run',
     ],
   },
   {

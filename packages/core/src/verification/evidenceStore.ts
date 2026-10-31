@@ -38,7 +38,7 @@ function numbered(root: string, mapId: string, ticketId: string, prefix: 'A' | '
 }
 
 /** Creates `file` and fails if it exists: evidence is never rewritten. */
-function writeOnce(root: string, rel: string, value: unknown) {
+export function writeOnce(root: string, rel: string, value: unknown) {
   const ignore = path.join(root, EVIDENCE_DIR, '.gitignore');
   mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
   if (!existsSync(ignore)) writeFileSync(ignore, '*\n');

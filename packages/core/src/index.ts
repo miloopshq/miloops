@@ -2,6 +2,7 @@ export * from './model/brand';
 export * from './model/types';
 export * from './model/lifecycle';
 export type * from './model/verification';
+export type * from './model/evidence';
 export * from './adapters/adapter';
 export * from './planning/derive';
 export * from './model/mapBody';

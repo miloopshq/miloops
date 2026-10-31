@@ -13,10 +13,12 @@ import {
   type Ticket,
   type TicketType,
 } from '@miloops-hq/core';
+import { baselineForClaim, repoRootOf } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { recoverRuns } from './completion';
 import { sessionView } from './reporting';
 import { ticketInfo } from './ticketInfo';
+import { baselineView } from './verificationView';
 
 /** Expired claims of silent agents go back to the queue before work is picked. */
 async function recoverStalled(ctx: AgentContext) {
@@ -81,6 +83,15 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
     s.step(3, `${t.key} ${t.type} · ${hitl ? 'with you' : 'agent only'}`);
   }
   const lease = ctx.leases.hold(agent, snap.map.id, t, s.id);
+  const baseline = await baselineForClaim({
+    root: ctx.root,
+    cwd: repoRootOf(ctx.verifyEnv()),
+    mapId: snap.map.id,
+    ticket: t,
+    agent,
+    sessionId: s.id,
+    resume: t === target || target.status === 'rework',
+  });
   const fresh = await ctx.load(snap.map.id);
   return {
     claimed: ticketInfo(
@@ -90,6 +101,7 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
       await ctx.decisions(snap.map.id),
     ),
     session: sessionView(ctx),
+    git: baselineView(baseline),
     lease: {
       expiresAt: new Date(lease.expiresAt).toISOString(),
       length: leaseSpan(lease.ttlMs),
