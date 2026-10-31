@@ -68,7 +68,7 @@ Layers by priority. Smaller screens show fewer layers by default; larger screens
 
 The phone tab bar is fixed at the bottom. Breakpoints live in `useBreakpoint()` (`src/hooks/useBreakpoint.ts`); the grids are the `.bp-*` rules in `src/styles/layout.css`. Motion is limited to state changes (a new inbox item, a node changing state) and respects `prefers-reduced-motion`.
 
-The Changelog tab reads `apps/command-center/src/features/settings/changelog.ts` (`RELEASES` for what shipped, `NEXT` for what's coming).
+The Changelog tab reads `apps/command-center/src/features/settings/releases.ts` (`RELEASES` for what shipped, `NEXT` for what's coming).
 
 ## Type, colour and the MILO mark
 

@@ -1,6 +1,6 @@
 import { BRAND } from '@miloops-hq/core';
 import { Meta, Wordmark } from '../../components/ui';
-import { NEXT, RELEASES } from './changelog';
+import { NEXT, RELEASES } from './releases';
 import { SettingsSection } from './SettingsSection';
 
 export function Changelog() {
