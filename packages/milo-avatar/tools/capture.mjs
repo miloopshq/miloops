@@ -1,8 +1,8 @@
-// Builds nothing; run `npm run build` first. Serves dist/ and writes PNG captures + an MP4 demo loop.
+// Builds nothing; run `npm run build` first. Serves dist/ and writes PNG captures, the animated banner GIF and an MP4 demo loop.
 // Usage: OUT_DIR=captures CHROME=/path/to/chrome [WORDMARK='MILO|OPS'] node tools/capture.mjs
 // WORDMARK overrides the wordmark (text after `|` renders in the brand copper); the default is WORDMARK in preview/content.ts.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright-core';
@@ -43,7 +43,7 @@ mkdirSync(BRAND, { recursive: true });
 const KIT = [
   ['github-org-avatar.png', 'GitHub org avatar', 1000, 1000, 'square', '&n=1000'],
   ['github-social-preview.png', 'GitHub repo social preview', 1280, 640, 'banner', '&w=1280&h=640'],
-  ['og-image-1200x630.png', 'Open Graph · miloops.app', 1200, 630, 'banner', '&w=1200&h=630&url=miloops.app'],
+  ['og-image-1200x630.png', 'Open Graph · miloops.app', 1200, 630, 'banner', '&w=1200&h=630'],
   ['x-header-1500x500.png', 'X header', 1500, 500, 'banner', '&w=1500&h=500&layout=header'],
   ['wordmark-lockup.png', 'Logo lockup', 960, 240, 'lockup', '&w=960&h=240'],
   ['x-avatar-400.png', 'X avatar', 400, 400, 'square', '&n=400'],
@@ -117,6 +117,67 @@ for (const [file, , w, h, view, extra] of KIT) {
   await page.locator('#s').screenshot({ path: join(BRAND, 'social-kit-overview.png') });
   await page.close();
   console.log('wrote', join(BRAND, 'social-kit-overview.png'));
+}
+
+// Animated README banner: BANNER_LOOP rendered frame by frame at the speech step (frozen clock, so timing is exact),
+// identical neighbours merged, then one shared palette with no dithering so the sprite stays hard-edged.
+{
+  const STEP = 40;
+  const gifTmp = join(OUT, '.gif-tmp');
+  rmSync(gifTmp, { recursive: true, force: true });
+  mkdirSync(gifTmp, { recursive: true });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
+  await page.goto(`${base}?view=banner&loop=1&w=1280&h=640${wm}`);
+  await page.addStyleTag({
+    content: '*, *::before, *::after { animation: none !important; transition: none !important; }',
+  });
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForFunction(() => window.__bannerSteps);
+  const steps = await page.evaluate(() => window.__bannerSteps);
+  const banner = page.locator('[data-capture="banner"]');
+  const frames = [];
+  for (const [i, ms] of steps.entries()) {
+    for (let at = 0; at < ms; at += STEP) {
+      await page.evaluate(([i, at]) => window.__bannerFrame(i, at), [i, at]);
+      await page.waitForSelector(`[data-frame="${i}:${at}"]`);
+      const png = await banner.screenshot();
+      const last = frames.at(-1);
+      if (last && last.png.equals(png)) last.ms += STEP;
+      else frames.push({ png, ms: STEP });
+    }
+  }
+  await page.close();
+  const list = frames.map((f, k) => {
+    const file = join(gifTmp, `f${String(k).padStart(4, '0')}.png`);
+    writeFileSync(file, f.png);
+    return `file '${file}'\nduration ${f.ms / 1000}`;
+  });
+  // The concat demuxer ignores the last entry's duration unless the file is listed once more.
+  writeFileSync(
+    join(gifTmp, 'list.txt'),
+    `${list.join('\n')}\nfile '${join(gifTmp, `f${String(frames.length - 1).padStart(4, '0')}.png`)}'\n`,
+  );
+  const gif = join(BRAND, 'miloops-banner.gif');
+  execFileSync('ffmpeg', [
+    '-y',
+    '-loglevel',
+    'error',
+    '-f',
+    'concat',
+    '-safe',
+    '0',
+    '-i',
+    join(gifTmp, 'list.txt'),
+    '-filter_complex',
+    'split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=none:diff_mode=rectangle',
+    '-fps_mode',
+    'vfr',
+    '-loop',
+    '0',
+    gif,
+  ]);
+  rmSync(gifTmp, { recursive: true, force: true });
+  console.log('wrote', gif, `(${frames.length} frames, ${steps.reduce((a, b) => a + b, 0) / 1000}s)`);
 }
 
 // Demo: record one full script loop, then trim the page-load lead-in.

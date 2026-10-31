@@ -1,4 +1,4 @@
-<img src="brand/github-social-preview.png" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="100%" />
+<img src="brand/miloops-banner.gif" alt="MILO, the MILOOPS operator, cycling through watching, processing, transmitting and decision waiting next to the MILOOPS wordmark." width="100%" />
 
 # MILOOPS
 
