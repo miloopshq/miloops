@@ -32,14 +32,19 @@ Take the subcommand from the first word of the arguments. With no arguments, run
    - Follow its `howTo`. Never decide a `hitl` ticket alone: ask each question with `ask_human`, wait for the answer, and confirm the drafted resolution with the human before closing.
    - Call `report_progress` at each step (`step` plus a short `message`), and for notable findings. Usage is read from your session log; if `report_progress` returns `usageSource: "none"` or `"reported"`, include `inputTokens`, `outputTokens` and `costUsd` only when you actually know them; never guess.
    - Use `record_decision` for any other decision worth keeping.
-3. Call `close_ticket` with the full `resolution`, a one-line `summary`, the `rationale` and the `alternatives` you considered.
+   - If the ticket lists `verification.checks`, run those commands yourself before completing. If it has `rework`, a previous completion failed: fix what `rework.failures` shows first.
+3. Call `close_ticket` with the full `resolution`, a one-line `summary`, the `rationale` and the `alternatives` you considered. When the ticket needs verification, its checks run first and the result has a `status`:
+   - `done`: closed, carry on.
+   - `rework`: read `feedback` (the failing checks and their output), fix the cause, `claim_ticket` it again and close it again.
+   - `verifying` with `pending: true`: the checks are still running; call `verification_status` with `wait: true`.
+   - `blocked`: the human decides in the command center; move on to another ticket.
 4. Claim the next ready ticket and repeat until none is ready, the mission is done, or the human asks you to stop. Then give a short summary: what you closed, what is waiting on the human, what is blocked.
 
 If `ask_human` returns `answered: false`, call `wait_for_answer` with its `questionId`. If you have other useful work in the meantime, tell the human the question is waiting in the command center.
 
 ## status
 
-Call `status` and summarize it in a few lines: progress, running sessions, what is waiting on the human, what is blocked, and spend.
+Call `status` and summarize it in a few lines: progress, running sessions, what is waiting on the human, what is blocked, what is verifying or back for rework, and spend.
 
 ## inbox
 

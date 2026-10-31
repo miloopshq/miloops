@@ -5,14 +5,18 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { parseMapFile, serializeMapFile } from '../src/adapters/markdown/mapFile';
+import { MarkdownAdapter } from '../src/adapters/markdown/markdownAdapter';
+import { nodeMarkdownFs } from '../src/adapters/markdown/nodeMarkdownFs';
 import { parseTicket, serializeTicket } from '../src/adapters/markdown/ticketFile';
 import { MemoryAdapter } from '../src/adapters/memoryAdapter';
-import { joinBody, ticketFromIssue, ticketMeta } from '../src/adapters/remote/format';
+import { joinBody, mapBody, ticketFromIssue, ticketMeta } from '../src/adapters/remote/format';
 import { mapFromIssue } from '../src/adapters/remote/issueMapping';
 import { createTrackerBridge } from '../src/bridge';
+import { serializeMapBody } from '../src/model/mapBody';
 import type { MapDoc, Ticket } from '../src/model/types';
 import type { VerificationAttempt } from '../src/model/verification';
 import { chartMap } from '../src/planning/operations/chart';
+import { chooseNext } from '../src/planning/operations/claims';
 import { DEFAULT_CONFIG, parseVerificationConfig } from '../src/verification/config';
 import { readVerificationConfig } from '../src/verification/configFile';
 import {
@@ -23,6 +27,7 @@ import {
   writeAttempt,
   writeVerdict,
 } from '../src/verification/evidenceStore';
+import { outcomeOf } from '../src/verification/outcome';
 import { verificationFor } from '../src/verification/policy';
 import { acquireRunLock, readRunLock, recoverInterrupted, releaseRunLock, RUNS_DIR } from '../src/verification/runLock';
 
@@ -259,9 +264,12 @@ test('GET /verification/config serves the parsed file read-only', async () => {
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   const url = `http://127.0.0.1:${(server.address() as { port: number }).port}/verification/config`;
   try {
-    const none = (await (await fetch(url)).json()) as { exists: boolean; config: { default: string } };
+    const none = (await (await fetch(url)).json()) as { exists: boolean; config?: unknown };
     assert.equal(none.exists, false);
-    assert.equal(none.config.default, 'off');
+    assert.equal(none.config, undefined);
+    writeFileSync(path.join(root, 'verification.json'), '{"v":1}');
+    const bare = (await (await fetch(url)).json()) as { config: { default: string } };
+    assert.equal(bare.config.default, 'checks');
     writeFileSync(path.join(root, 'verification.json'), '{"v":1,"run":"npm test"}');
     const bad = (await (await fetch(url)).json()) as { errors: string[]; config?: unknown };
     assert.ok(bad.errors.length);
@@ -271,4 +279,65 @@ test('GET /verification/config serves the parsed file read-only', async () => {
     server.close();
     bridge.close();
   }
+});
+
+test('outcome: pass is done at checks and waits for review above; fails rework until maxAttempts; errors need a human', () => {
+  const check = {
+    name: 'test',
+    argv: ['npm', 'test'],
+    cwd: '.',
+    timedOut: false,
+    durationMs: 5,
+    log: 'x',
+    tail: '',
+    truncated: false,
+  };
+  const pass = attempt('A-1', { checks: [{ ...check, exitCode: 0 }] });
+  assert.equal(outcomeOf(pass, 0, 3).to, 'done');
+  assert.equal(outcomeOf({ ...pass, level: 'checks+review' }, 0, 3).to, 'verifying');
+  const fail = attempt('A-2', { result: 'fail', checks: [{ ...check, exitCode: 1 }] });
+  assert.deepEqual([outcomeOf(fail, 2, 3).to, outcomeOf(fail, 3, 3).to], ['rework', 'blocked']);
+  assert.match(outcomeOf(fail, 2, 3).reason, /A-2 failed \(2 of 3 attempts\): test exited 1/);
+  const error = attempt('A-3', { result: 'error', note: 'test: spawn npm ENOENT' });
+  assert.deepEqual(outcomeOf(error, 0, 3), {
+    event: 'checks.error',
+    to: 'blocked',
+    reason: 'A-3 could not verify: test: spawn npm ENOENT',
+  });
+});
+
+test('missions keep their level from creation; issue bodies without one are unchanged', async () => {
+  const root = tmp();
+  const a = new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
+  const { map } = await chartMap(a, { title: 'V', sections: SECTIONS, verification: 'checks', tickets: [] });
+  await a.updateMapSections(map.id, { notes: 'more' });
+  assert.equal((await a.loadMap(map.id)).map.verification, 'checks');
+  const { map: plain } = await chartMap(a, { title: 'P', sections: SECTIONS, tickets: [] });
+  assert.equal((await a.loadMap(plain.id)).map.verification, undefined);
+  assert.equal(mapBody(mapDoc()), serializeMapBody(SECTIONS));
+  assert.equal(
+    mapFromIssue({
+      ...mapDoc({ verification: 'checks' }),
+      labels: [],
+      body: mapBody(mapDoc({ verification: 'checks' })),
+      createdAt: '',
+      updatedAt: '',
+    }).verification,
+    'checks',
+  );
+});
+
+test('chooseNext: rework before ready, oldest first', async () => {
+  const a = new MemoryAdapter({ latency: [0, 0] });
+  const { map, tickets } = await chartMap(a, {
+    title: 'N',
+    sections: SECTIONS,
+    tickets: [
+      { ref: 'a', title: 'A', type: 'execute', body: '' },
+      { ref: 'b', title: 'B', type: 'execute', body: '' },
+    ],
+  });
+  assert.equal(chooseNext(await a.loadMap(map.id))?.id, tickets[0].id);
+  await a.setMeta(map.id, tickets[1].id, { status: 'rework' });
+  assert.equal(chooseNext(await a.loadMap(map.id))?.id, tickets[1].id);
 });

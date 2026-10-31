@@ -1,6 +1,27 @@
 import { z } from 'zod';
 import type { MissionAgent } from '../agent';
-import { type DefineTool, mission, ticket } from '../toolKit';
+import { type DefineTool, mission, ticket, waitControl } from '../toolKit';
+
+const CHECKS_WAIT = 'Waiting for the verification checks';
+const completion = {
+  mission,
+  ticket: ticket.optional(),
+  resolution: z.string().min(1).describe('The decision or what was done, in full.'),
+  summary: z
+    .string()
+    .optional()
+    .describe('One line for the Decisions list. Default: first sentence of the resolution.'),
+  rationale: z.string().optional(),
+  alternatives: z.array(z.string()).optional(),
+  postTranscript: z.boolean().optional().describe('Also post the question/answer transcript as a ticket comment.'),
+  waitSeconds: z
+    .number()
+    .int()
+    .min(0)
+    .max(3600)
+    .optional()
+    .describe('When checks run: how long to wait for them (default 600; 50 for Codex).'),
+};
 
 /** Tools used while working a ticket: progress, closing it, decisions. */
 export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
@@ -28,22 +49,38 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
     {
       title: 'Close a ticket',
       description:
-        'Resolve a ticket (default: the one you claimed): posts the resolution, closes it, records a DecisionRecord (with the HITL transcript of this session) and unblocks dependants. outcome "out_of_scope" rules it out instead.',
+        'Resolve a ticket (default: the one you claimed): posts the resolution, closes it, records a DecisionRecord (with the HITL transcript of this session) and unblocks dependants. When the ticket lists `verification` checks, completing is a claim: the checks run first, and the result says done, rework (with the failing output to fix) or verifying (still running). outcome "out_of_scope" rules it out instead.',
+    },
+    { ...completion, outcome: z.enum(['completed', 'out_of_scope']).optional() },
+    (a, extra) => agent.closeTicket(a, waitControl(extra, CHECKS_WAIT)),
+  );
+
+  tool(
+    'report_completion',
+    {
+      title: 'Report completion',
+      description:
+        "Claim a ticket is done (default: the one you claimed). Without verification it closes like close_ticket. With verification, the repo's checks run and the result is done, rework (fix the `feedback`, then claim and complete again), blocked (a human decides) or verifying with pending=true (call verification_status with wait=true).",
+    },
+    completion,
+    (a, extra) => agent.reportCompletion(a, waitControl(extra, CHECKS_WAIT)),
+  );
+
+  tool(
+    'verification_status',
+    {
+      title: 'Verification status',
+      description:
+        "A ticket's verification attempts, check results and verdicts (default: your current ticket). wait=true waits for running checks to finish, up to waitSeconds.",
+      readOnly: true,
     },
     {
       mission,
       ticket: ticket.optional(),
-      resolution: z.string().min(1).describe('The decision or what was done, in full.'),
-      summary: z
-        .string()
-        .optional()
-        .describe('One line for the Decisions list. Default: first sentence of the resolution.'),
-      rationale: z.string().optional(),
-      alternatives: z.array(z.string()).optional(),
-      outcome: z.enum(['completed', 'out_of_scope']).optional(),
-      postTranscript: z.boolean().optional().describe('Also post the question/answer transcript as a ticket comment.'),
+      wait: z.boolean().optional(),
+      waitSeconds: z.number().int().min(0).max(3600).optional(),
     },
-    (a) => agent.closeTicket(a),
+    (a, extra) => agent.verificationStatus(a, waitControl(extra, CHECKS_WAIT)),
   );
 
   tool(

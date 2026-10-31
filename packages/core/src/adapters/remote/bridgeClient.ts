@@ -12,7 +12,7 @@ import type {
   TicketType,
   TrackerEvent,
 } from '../../model/types';
-import type { TrackerAdapter } from '../adapter';
+import type { MapInput, TrackerAdapter } from '../adapter';
 import { TrackerError } from './http';
 import type { SyncStatus } from './sync/types';
 import type {
@@ -75,8 +75,7 @@ export class BridgeAdapter implements TrackerAdapter {
 
   listMaps = () => this.call<MapSummary[]>('listMaps');
   loadMap = (mapId: string) => this.call<MapSnapshot>('loadMap', mapId);
-  createMap = (input: { title: string; sections: MapSections; mode?: MapMode }) =>
-    this.call<MapDoc>('createMap', input);
+  createMap = (input: MapInput) => this.call<MapDoc>('createMap', input);
   setMapMode = (mapId: string, mode: MapMode) => this.call<void>('setMapMode', mapId, mode);
   updateMapSections = (mapId: string, patch: Partial<MapSections>) =>
     this.call<void>('updateMapSections', mapId, patch);

@@ -19,6 +19,24 @@ if (shots) fs.mkdirSync(shots, { recursive: true });
 const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-e2e-'));
 const log = (...a) => console.log('·', ...a);
 
+// The repo's own check, which passes once fixed.txt exists. With verification.json present, new missions
+// verify execute and task completions with it; research and grilling tickets close as before.
+const CHECK = "if (!require('fs').existsSync('fixed.txt')) { console.error('fixed.txt is missing'); process.exit(1) }";
+fs.writeFileSync(
+  path.join(repo, 'package.json'),
+  JSON.stringify({ private: true, scripts: { check: `node -e "${CHECK}"` } }),
+);
+fs.mkdirSync(path.join(repo, '.miloops'));
+fs.writeFileSync(
+  path.join(repo, '.miloops', 'verification.json'),
+  JSON.stringify({
+    v: 1,
+    default: 'checks',
+    checks: { check: { run: ['npm', 'run', '--silent', 'check'], timeoutSec: 60 } },
+    run: ['check'],
+  }),
+);
+
 // 1. The command center, as the user starts it.
 const server = spawn(process.execPath, [cli, '--no-open', '--port', '0'], { cwd: repo });
 const url = await new Promise((resolve, reject) => {
@@ -269,6 +287,35 @@ log(`released in the command center; the agent ${releaseOk ? 'was told' : 'WAS N
 await shot('06-released-to-queue');
 await crashClient.close().catch(() => {});
 
+// Verified completion: the completion fails the repo's check and comes back for rework with the failing output;
+// once the agent fixes the cause, the check passes and the ticket is done.
+const route = await call('add_ticket', { title: 'Add the /changelog route', type: 'execute' });
+const vc = await call('claim_ticket', { ticket: route.ticket.key });
+const failed = await call('close_ticket', { ticket: route.ticket.key, resolution: 'Added the /changelog route' });
+const reworkOk =
+  vc.claimed.verification?.checks?.[0]?.name === 'check' &&
+  failed.status === 'rework' &&
+  /fixed.txt is missing/.test(failed.feedback?.[0]?.tail ?? '');
+log(
+  `${route.ticket.key} completion ${failed.status}: ${failed.feedback?.[0]?.check} exited ${failed.feedback?.[0]?.exitCode}`,
+);
+const reworkNode = page.locator('.node.st-rework', { hasText: /Add the \/changelog/ });
+await reworkNode.waitFor({ timeout: 15_000 });
+await reworkNode.click();
+const reworkPill = await page
+  .locator('.pill.st-rework, .st-rework .pill, [class*="st-rework"]', { hasText: 'Rework' })
+  .count();
+await shot('07-rework');
+fs.writeFileSync(path.join(repo, 'fixed.txt'), 'ok');
+await call('claim_ticket', { ticket: route.ticket.key });
+const passed = await call('close_ticket', { ticket: route.ticket.key, resolution: 'Added the /changelog route' });
+await page.locator('.node.st-decided', { hasText: /Add the \/changelog/ }).waitFor({ timeout: 15_000 });
+await shot('08-verified');
+const verifiedOk = reworkOk && reworkPill > 0 && passed.status === 'done' && passed.closed === route.ticket.key;
+log(
+  `${route.ticket.key} ${verifiedOk ? 'verified' : 'NOT verified'}: ${passed.attempt} ${passed.status}, rework shown in the command center`,
+);
+
 await client.close();
 await page.waitForTimeout(1500);
 const after = await page.locator('.sessions-list li:not(.claim)').count();
@@ -290,7 +337,8 @@ if (
   status.mission.progress !== '2/4 decided' ||
   after !== 0 ||
   !handoffOk ||
-  !releaseOk
+  !releaseOk ||
+  !verifiedOk
 )
   process.exit(1);
 console.log('\nOK');

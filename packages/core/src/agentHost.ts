@@ -28,3 +28,13 @@ export {
   RUNS_DIR,
   type RunLock,
 } from './verification/runLock';
+export { attemptComment, checkLine, outcomeOf, type Outcome } from './verification/outcome';
+export {
+  CHECK_RUNNER,
+  levelFor,
+  rerun,
+  verify,
+  type Settled,
+  type Submission,
+  type VerifyEnv,
+} from './verification/verifyCompletion';

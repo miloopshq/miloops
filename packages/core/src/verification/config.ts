@@ -4,9 +4,10 @@ import type { CheckSpec, VerificationConfig } from '../model/verification';
 
 export const DEFAULT_CHECK_TIMEOUT_SEC = 600;
 
+/** Values for keys the file leaves out. Without the file there is no config, and nothing is verified. */
 export const DEFAULT_CONFIG: VerificationConfig = {
   v: 1,
-  default: 'off',
+  default: 'checks',
   appliesTo: ['execute', 'task'],
   checks: {},
   run: [],

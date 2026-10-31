@@ -1,9 +1,11 @@
 import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label } from '../../model/brand';
 import { levelOf, TICKET_STATUSES } from '../../model/lifecycle';
+import { serializeMapBody } from '../../model/mapBody';
 import {
   TICKET_TYPES,
   type Comment,
   type DecisionRecord,
+  type MapDoc,
   type MapMode,
   type Ticket,
   type TicketType,
@@ -34,6 +36,12 @@ export interface BodyMeta {
   verification?: string;
   checks?: string[];
 }
+
+/** The mission issue body: its sections, plus a meta marker only when the mission has a verification level. */
+export const mapBody = (m: Pick<MapDoc, 'sections' | 'verification'>) =>
+  m.verification
+    ? joinBody(serializeMapBody(m.sections), { verification: m.verification })
+    : serializeMapBody(m.sections);
 
 /** Everything MILOOPS keeps in a ticket's meta marker, so one write never drops another's field. */
 export const ticketMeta = (t: Pick<Ticket, 'assignee' | 'status' | 'verification' | 'checks'>): BodyMeta => ({

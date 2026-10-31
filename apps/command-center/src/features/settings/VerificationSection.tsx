@@ -10,7 +10,7 @@ export function VerificationSection(props: { map?: MapDoc }) {
   const c = view.config;
   const file = `${BRAND.dataDir}/${view.file}`;
   const [cls, text] = view.errors.length
-    ? ['alert', `${file} has errors · verification stays off`]
+    ? ['alert', `${file} has errors · completions that need checks wait on you`]
     : view.exists
       ? ['ok', `${file} · ${c?.run.length ?? 0} checks on every completion`]
       : ['', `No ${file} · completing a ticket closes it`];

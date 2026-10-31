@@ -10,7 +10,7 @@ import type {
 } from '../../../model/types';
 import { buildDecision, decisionNumber } from '../../../planning/decisions/decisionRecord';
 import { OperationError } from '../../../planning/operations/operationError';
-import type { TrackerAdapter } from '../../adapter';
+import type { MapInput, TrackerAdapter } from '../../adapter';
 import { roundtrip } from './fingerprint';
 import { ticketOf } from './queuedWrites';
 import { SyncedWriter } from './syncedWriter';
@@ -37,13 +37,14 @@ export abstract class SyncedAdapter extends SyncedWriter implements TrackerAdapt
   abstract readonly location: string;
 
   private lastDecision = 0;
-  async createMap(input: { title: string; sections: MapSections; mode?: MapMode }): Promise<MapDoc> {
+  async createMap(input: MapInput): Promise<MapDoc> {
     let map: MapDoc;
     try {
       map = await this.remoteCreateMap({
         title: input.title,
         sections: input.sections,
         mode: input.mode ?? 'plan+execute',
+        ...(input.verification ? { verification: input.verification } : {}),
       });
       this.health.online();
     } catch (err) {

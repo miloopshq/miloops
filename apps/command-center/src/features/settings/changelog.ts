@@ -11,7 +11,6 @@ export const NEXT: { area: string; items: string[] }[] = [
   {
     area: 'Verification',
     items: [
-      'Completion checked by your repo’s own commands before a ticket is done',
       'Git evidence and stale results',
       'Independent review by another agent session',
       'Pull request and CI evidence',
@@ -26,7 +25,9 @@ export const RELEASES: Release[] = [
     items: [
       'Ticket lifecycle in plain words: Ready, Backlog, Working, Done and Cancelled (with Verifying, Rework and Blocked to come with verification)',
       'Every claim, release, return to queue, resolution and rule-out goes through one lifecycle engine that records who, why and when in `.miloops/.events/<mission>.jsonl` (local history, never committed)',
-      'Settings → Verification shows the checks in `.miloops/verification.json`: argv commands with timeouts, run without a shell, secrets kept out of their environment. Read-only; agents still complete tickets as before',
+      'Settings → Verification shows the checks in `.miloops/verification.json`: argv commands with timeouts, run without a shell, secrets kept out of their environment. Read-only',
+      'Completion is a claim: on missions started with `verification.json` present, an execute or task ticket is only done once its checks pass. A failed check sends it back for Rework with the failing output (agents see it in close_ticket, next_ticket and claim_ticket, and rework comes first in the queue); after 3 failed attempts, or when the checks cannot run, it waits on you as Blocked',
+      'New MCP tools `report_completion` and `verification_status`; missions started before verification, and research, grilling and prototype tickets, close exactly as before',
     ],
   },
   {

@@ -1,22 +1,22 @@
 import { cachedUntilFailure } from '../../../lib/cachedUntilFailure';
 import { BRAND, MAP_LABEL, PLAN_ONLY_LABEL } from '../../../model/brand';
-import { serializeMapBody } from '../../../model/mapBody';
 import type {
   DecisionRecord,
   MapDoc,
   MapMode,
-  MapSections,
   MapSnapshot,
   MapSummary,
   Ticket,
   TicketType,
 } from '../../../model/types';
+import type { MapInput } from '../../adapter';
 import {
   ALL_LABELS,
   authoredBody,
   decisionComment,
   joinBody,
   mapLabels,
+  mapBody,
   ticketFromIssue,
   ticketLabels,
   ticketMeta,
@@ -137,11 +137,11 @@ export class GitHubAdapter extends SyncedAdapter {
     return id;
   }
 
-  protected async remoteCreateMap(input: { title: string; sections: MapSections; mode: MapMode }): Promise<MapDoc> {
+  protected async remoteCreateMap(input: MapInput & { mode: MapMode }): Promise<MapDoc> {
     await this.ensureLabels();
     const { body: i } = await this.gh.repo<RestIssue>('POST', '/issues', {
       title: input.title,
-      body: serializeMapBody(input.sections),
+      body: mapBody(input),
       labels: mapLabels(input.mode),
     });
     this.issueIds.set(String(i.number), i.id);
@@ -150,6 +150,7 @@ export class GitHubAdapter extends SyncedAdapter {
       key: `#${i.number}`,
       title: i.title,
       mode: input.mode,
+      ...(input.verification ? { verification: input.verification } : {}),
       sections: input.sections,
       createdAt: Date.parse(i.created_at),
       updatedAt: Date.parse(i.updated_at),
@@ -201,7 +202,7 @@ export class GitHubAdapter extends SyncedAdapter {
   }
 
   protected async remoteUpdateMap(map: MapDoc) {
-    await this.gh.repo('PATCH', `/issues/${map.id}`, { body: serializeMapBody(map.sections) });
+    await this.gh.repo('PATCH', `/issues/${map.id}`, { body: mapBody(map) });
   }
 
   protected async remoteSetMode(map: MapDoc, mode: MapMode) {

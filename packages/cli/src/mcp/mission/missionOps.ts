@@ -1,8 +1,9 @@
-import { chooseNext, chartMap, OperationError, type MapMode } from '@miloops-hq/core';
-import { readAgentDocs } from '@miloops-hq/core/agents';
+import { chooseNext, chartMap, deriveStates, OperationError, type MapMode } from '@miloops-hq/core';
+import { readAgentDocs, readVerificationConfig } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { ticketInfo } from './ticketInfo';
 import type { TicketPlanInput } from './types';
-import { missionView, ticketView } from './views';
+import { missionView } from './views';
 
 export async function status(ctx: AgentContext, missionRef?: string) {
   const maps = await ctx.adapter.listMaps();
@@ -49,11 +50,13 @@ export async function startMission(
     for (const b of t.blockedBy ?? [])
       if (!refs.has(b)) throw new OperationError(`ticket "${t.ref}" is blocked by unknown ref "${b}"`);
   s.step(3, input.title);
+  const level = readVerificationConfig(ctx.root).config?.default;
   const { map, tickets } = await chartMap(
     ctx.adapter,
     {
       title: input.title,
       mode: input.mode,
+      ...(level && level !== 'off' ? { verification: level } : {}),
       sections: {
         destination: input.destination,
         notes: input.notes ?? '',
@@ -78,7 +81,13 @@ export async function startMission(
   const snap = await ctx.load(map.id);
   const next = chooseNext(snap);
   return {
-    mission: { id: map.id, key: map.key, title: map.title, mode: map.mode },
+    mission: {
+      id: map.id,
+      key: map.key,
+      title: map.title,
+      mode: map.mode,
+      ...(map.verification ? { verification: map.verification } : {}),
+    },
     tickets: tickets.map((t) => ({
       ref: (input.tickets ?? []).find((p) => p.title === t.title)?.ref,
       key: t.key,
@@ -86,7 +95,7 @@ export async function startMission(
       type: t.type,
     })),
     framingQuestionsAnswered: framing.filter((e) => e.from === 'human').length,
-    next: next ? ticketView(snap, next) : null,
+    next: next ? ticketInfo(ctx.root, snap, next) : null,
     commandCenter: ctx.commandCenter(),
   };
 }
@@ -99,12 +108,13 @@ export async function resumeMission(ctx: AgentContext, missionRef?: string) {
     (await ctx.open('work', snap.map.id)).step(1, 'reading mission + tickets');
   const current = await status(ctx, snap.map.id);
   const agent = await ctx.agentId();
-  const mine = snap.tickets.find((t) => t.state === 'open' && t.assignee === agent);
+  const states = deriveStates(snap.tickets, snap.map.mode);
+  const mine = snap.tickets.find((t) => states.get(t.id) === 'claimed' && t.assignee === agent);
   const next = chooseNext(snap);
   return {
     ...current,
-    yourClaim: mine ? ticketView(snap, mine, await ctx.decisions(snap.map.id)) : null,
-    next: next ? ticketView(snap, next, await ctx.decisions(snap.map.id)) : null,
+    yourClaim: mine ? ticketInfo(ctx.root, snap, mine, await ctx.decisions(snap.map.id)) : null,
+    next: next ? ticketInfo(ctx.root, snap, next, await ctx.decisions(snap.map.id)) : null,
   };
 }
 

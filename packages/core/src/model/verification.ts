@@ -13,7 +13,7 @@ export interface CheckSpec {
 /** `.miloops/verification.json`: the only source of commands MILOOPS runs. */
 export interface VerificationConfig {
   v: 1;
-  /** Level for new missions. Existing missions keep their own level (none means off). */
+  /** Level for new missions (`checks` when the file leaves it out). Existing missions keep their own level (none means off). */
   default: VerificationLevel;
   /** Ticket types the mission level applies to; decision tickets stay off unless listed. */
   appliesTo: TicketType[];
@@ -63,6 +63,8 @@ export interface VerificationAttempt {
   finishedAt: number;
   resolution: string;
   summary?: string;
+  rationale?: string;
+  alternatives?: string[];
   checks: CheckResult[];
   result: AttemptResult;
   /** Why the result is `error` or `interrupted`. */
