@@ -54,6 +54,13 @@ export function sendTrackerError(res: ServerResponse, err: unknown): boolean {
 
 class BadRequest extends Error {}
 
+/** Routes that reach credentials must not be drivable by other sites from a browser. */
+export function crossSite(req: IncomingMessage) {
+  const origin = req.headers.origin;
+  if (origin && new URL(origin).host !== req.headers.host) return true;
+  return req.method !== 'GET' && !String(req.headers['content-type'] ?? '').startsWith('application/json');
+}
+
 const isKind = (k: string | undefined): k is RemoteKind => k === 'github' || k === 'linear';
 
 /**
@@ -186,13 +193,6 @@ export function createTrackerRoutes(o: TrackerRoutesOptions) {
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(v));
   };
-
-  /** Credentials are reachable through these routes, so other sites must not be able to drive them from a browser. */
-  function crossSite(req: IncomingMessage) {
-    const origin = req.headers.origin;
-    if (origin && new URL(origin).host !== req.headers.host) return true;
-    return req.method !== 'GET' && !String(req.headers['content-type'] ?? '').startsWith('application/json');
-  }
 
   function events(kind: RemoteKind, req: IncomingMessage, res: ServerResponse) {
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
