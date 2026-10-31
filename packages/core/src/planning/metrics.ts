@@ -1,8 +1,17 @@
 import type { ActivityState } from '../activity/activityStream';
-import type { TrackerAdapter } from '../adapters/adapter';
-import { Emitter } from '../lib/emitter';
-import { TICKET_TYPES, type MapSnapshot, type NodeState, type SessionInfo, type SessionUsage, type Ticket, type TicketType, type TrackerEvent, type UsageSource } from '../model/types';
+import {
+  TICKET_TYPES,
+  type MapSnapshot,
+  type NodeState,
+  type SessionInfo,
+  type SessionUsage,
+  type Ticket,
+  type TicketType,
+  type UsageSource,
+} from '../model/types';
 import { deriveStates } from './derive';
+
+export { eventPulse, monitorTracker, type TrackerHealth, type TrackerMonitor } from './trackerHealth';
 
 /*
  * Named metrics behind every HUD widget. Each one is a pure function of
@@ -18,7 +27,16 @@ export type StateCounts = Record<NodeState, number> & { total: number; resolvedP
 
 /** `metrics.stateCounts`: tickets per derived state, plus % resolved (decided or ruled out). */
 export function stateCounts(snap: MapSnapshot): StateCounts {
-  const c: StateCounts = { decided: 0, claimed: 0, frontier: 0, blocked: 0, parked: 0, 'out-of-scope': 0, total: snap.tickets.length, resolvedPct: 0 };
+  const c: StateCounts = {
+    decided: 0,
+    claimed: 0,
+    frontier: 0,
+    blocked: 0,
+    parked: 0,
+    'out-of-scope': 0,
+    total: snap.tickets.length,
+    resolvedPct: 0,
+  };
   for (const s of deriveStates(snap.tickets, snap.map.mode).values()) c[s]++;
   c.resolvedPct = c.total ? Math.round(((c.decided + c['out-of-scope']) / c.total) * 100) : 0;
   return c;
@@ -41,10 +59,11 @@ export function criticalPath(snap: MapSnapshot): Ticket[] {
     visiting.add(id);
     const t = open.get(id)!;
     let best: Ticket[] = [];
-    for (const b of t.blockedBy) if (open.has(b)) {
-      const c = chain(b);
-      if (c.length > best.length) best = c;
-    }
+    for (const b of t.blockedBy)
+      if (open.has(b)) {
+        const c = chain(b);
+        if (c.length > best.length) best = c;
+      }
     visiting.delete(id);
     const out = [...best, t];
     memo.set(id, out);
@@ -89,7 +108,11 @@ export function throughput(snap: MapSnapshot, now = Date.now(), buckets = 16): T
 export function typeMix(snap: MapSnapshot): { type: TicketType; open: number; closed: number }[] {
   return TICKET_TYPES.map((type) => {
     const ts = snap.tickets.filter((t) => t.type === type);
-    return { type, open: ts.filter((t) => t.state === 'open').length, closed: ts.filter((t) => t.state === 'closed').length };
+    return {
+      type,
+      open: ts.filter((t) => t.state === 'open').length,
+      closed: ts.filter((t) => t.state === 'closed').length,
+    };
   }).filter((r) => r.open + r.closed > 0);
 }
 
@@ -97,7 +120,9 @@ export function typeMix(snap: MapSnapshot): { type: TicketType; open: number; cl
 export function claimsByAgent(snap: MapSnapshot): { agent: string; count: number }[] {
   const m = new Map<string, number>();
   for (const t of snap.tickets) if (t.state === 'open' && t.assignee) m.set(t.assignee, (m.get(t.assignee) ?? 0) + 1);
-  return [...m].map(([agent, count]) => ({ agent, count })).sort((a, b) => b.count - a.count || a.agent.localeCompare(b.agent));
+  return [...m]
+    .map(([agent, count]) => ({ agent, count }))
+    .sort((a, b) => b.count - a.count || a.agent.localeCompare(b.agent));
 }
 
 export interface HitlStats {
@@ -117,7 +142,9 @@ export function hitlStats(activity: ActivityState, mapId?: string): HitlStats {
     open: pending.length,
     oldestAt: pending.length ? Math.min(...pending.map((q) => q.at)) : undefined,
     answered: answered.length,
-    avgWaitMs: answered.length ? answered.reduce((s, q) => s + (q.answeredAt - q.askedAt), 0) / answered.length : undefined,
+    avgWaitMs: answered.length
+      ? answered.reduce((s, q) => s + (q.answeredAt - q.askedAt), 0) / answered.length
+      : undefined,
   };
 }
 
@@ -126,7 +153,8 @@ export function missionUsage(activity: ActivityState, mapId: string | undefined)
   return (mapId && activity.usageByMap[mapId]) || { inputTokens: 0, outputTokens: 0, costUsd: 0 };
 }
 
-export const sessionTokens = (s: Pick<SessionInfo, 'usage'>) => (s.usage ? s.usage.inputTokens + s.usage.outputTokens : 0);
+export const sessionTokens = (s: Pick<SessionInfo, 'usage'>) =>
+  s.usage ? s.usage.inputTokens + s.usage.outputTokens : 0;
 
 /** Short tag and explanation per usage source: `LOG` is measured from the agent's own log, `SELF` is the agent's report. */
 export const USAGE_SOURCE: Record<UsageSource, { tag: string; text: string }> = {
@@ -144,85 +172,10 @@ export function missionUsageSources(activity: ActivityState, mapId: string | und
 
 /** Tooltip for a session's usage: tokens in/out, cached input, models and where the numbers come from. */
 export function usageDetail(u: SessionUsage) {
-  const parts = [`${u.inputTokens.toLocaleString()} in${u.cachedInputTokens ? ` (${u.cachedInputTokens.toLocaleString()} cached)` : ''} · ${u.outputTokens.toLocaleString()} out`];
+  const parts = [
+    `${u.inputTokens.toLocaleString()} in${u.cachedInputTokens ? ` (${u.cachedInputTokens.toLocaleString()} cached)` : ''} · ${u.outputTokens.toLocaleString()} out`,
+  ];
   if (u.models?.length) parts.push(u.models.join(', '));
   if (u.source) parts.push(USAGE_SOURCE[u.source].text);
   return parts.join('\n');
-}
-
-export interface TrackerHealth {
-  /** `syncing` while a write is in flight. */
-  status: 'idle' | 'syncing' | 'ok' | 'error';
-  inflight: number;
-  writes: number;
-  errors: number;
-  lastWriteMs?: number;
-  lastWriteAt?: number;
-  lastError?: string;
-  /** Recent tracker events; `external` = picked up by the file watcher / webhook, not written by this app. */
-  events: { at: number; external: boolean }[];
-}
-
-const WRITES = new Set<keyof TrackerAdapter>(['createMap', 'setMapMode', 'updateMapSections', 'createTicket', 'addBlocking', 'assign', 'comment', 'close', 'createDecision', 'markSuperseded']);
-const EVENT_WINDOW = 5 * 60_000;
-
-/**
- * `metrics.trackerHealth`: wraps an adapter to time every write (sync status,
- * last-write latency, errors) and record its event stream (pulse).
- */
-export function monitorTracker(inner: TrackerAdapter) {
-  let health: TrackerHealth = { status: 'idle', inflight: 0, writes: 0, errors: 0, events: [] };
-  const changes = new Emitter<TrackerHealth>();
-  const set = (patch: Partial<TrackerHealth>) => {
-    health = { ...health, ...patch };
-    changes.emit(health);
-  };
-  inner.subscribe((e: TrackerEvent) => {
-    const cutoff = e.at - EVENT_WINDOW;
-    set({ events: [...health.events.filter((x) => x.at >= cutoff), { at: e.at, external: e.kind === 'external.changed' || ('external' in e && !!e.external) }] });
-  });
-  const adapter = new Proxy(inner, {
-    get(target, prop, receiver) {
-      const v = Reflect.get(target, prop, receiver);
-      if (typeof v !== 'function') return v;
-      if (!WRITES.has(prop as keyof TrackerAdapter)) return v.bind(target);
-      return async (...args: unknown[]) => {
-        const t0 = Date.now();
-        set({ inflight: health.inflight + 1, status: 'syncing' });
-        try {
-          const out = await v.apply(target, args);
-          const inflight = health.inflight - 1;
-          set({ inflight, writes: health.writes + 1, lastWriteMs: Date.now() - t0, lastWriteAt: Date.now(), status: inflight ? 'syncing' : 'ok', lastError: undefined });
-          return out;
-        } catch (err) {
-          const inflight = health.inflight - 1;
-          set({ inflight, errors: health.errors + 1, status: 'error', lastError: String((err as Error).message ?? err) });
-          throw err;
-        }
-      };
-    },
-  });
-  return {
-    adapter,
-    get health() {
-      return health;
-    },
-    subscribe: (fn: (h: TrackerHealth) => void) => changes.on(fn),
-  };
-}
-
-export type TrackerMonitor = ReturnType<typeof monitorTracker>;
-
-/** `metrics.eventPulse`: tracker events per bucket over the last `windowMs`. */
-export function eventPulse(h: TrackerHealth, now = Date.now(), windowMs = 60_000, buckets = 20) {
-  const size = windowMs / buckets;
-  const all = new Array<number>(buckets).fill(0);
-  const external = new Array<number>(buckets).fill(0);
-  for (const e of h.events) {
-    const i = buckets - 1 - Math.floor((now - e.at) / size);
-    if (i < 0 || i >= buckets) continue;
-    all[i]++;
-    if (e.external) external[i]++;
-  }
-  return { all, external, total: all.reduce((a, b) => a + b, 0) };
 }

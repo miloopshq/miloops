@@ -36,9 +36,14 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', origin);
   const body = await read(req);
   if (url.pathname.startsWith('/api/')) {
-    const r = await fake.fetch(`https://slack.com${url.pathname}${url.search}`, { method: req.method, headers: { authorization: req.headers.authorization ?? '' }, body: body || undefined });
+    const r = await fake.fetch(`https://slack.com${url.pathname}${url.search}`, {
+      method: req.method,
+      headers: { authorization: req.headers.authorization ?? '' },
+      body: body || undefined,
+    });
     let text = await r.text();
-    if (url.pathname === '/api/apps.connections.open') text = text.replace('wss://wss-primary.slack.test', `ws://localhost:${port}`);
+    if (url.pathname === '/api/apps.connections.open')
+      text = text.replace('wss://wss-primary.slack.test', `ws://localhost:${port}`);
     res.writeHead(r.status, Object.fromEntries(r.headers));
     res.end(text);
     return;
@@ -69,7 +74,14 @@ const server = http.createServer(async (req, res) => {
     const raw = JSON.stringify(e.payload).replaceAll('https://hooks.slack.test', `${origin}/hooks`);
     const envelope_id = `env-${++seq}`;
     const ack = new Promise((r) => acks.set(envelope_id, r));
-    ws.send(JSON.stringify({ envelope_id, type: e.type, payload: JSON.parse(raw), accepts_response_payload: e.type !== 'events_api' }));
+    ws.send(
+      JSON.stringify({
+        envelope_id,
+        type: e.type,
+        payload: JSON.parse(raw),
+        accepts_response_payload: e.type !== 'events_api',
+      }),
+    );
     return json(res, 200, { ack: (await ack) ?? null });
   }
   json(res, 404, { error: 'not_found' });
@@ -87,5 +99,7 @@ new WebSocketServer({ server }).on('connection', (ws) => {
 });
 
 server.listen(port, () => {
-  process.stdout.write(`fake Slack on ${origin}\n  MILOOPS_SLACK_API=${origin}/api\n  app token  ${fake.tokens.app}\n  bot token  ${fake.tokens.bot}\n`);
+  process.stdout.write(
+    `fake Slack on ${origin}\n  MILOOPS_SLACK_API=${origin}/api\n  app token  ${fake.tokens.app}\n  bot token  ${fake.tokens.bot}\n`,
+  );
 });

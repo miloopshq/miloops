@@ -1,6 +1,7 @@
 import {
   attention,
   deriveStates,
+  isHandoff,
   type AgentSessionDoc,
   type DecisionRecord,
   type MapSnapshot,
@@ -15,6 +16,7 @@ export function ticketView(snap: MapSnapshot, t: Ticket, records: DecisionRecord
   const states = deriveStates(snap.tickets, snap.map.mode);
   const byId = new Map(snap.tickets.map((x) => [x.id, x]));
   const att = attention(t);
+  const handoff = [...t.comments].reverse().find((c) => isHandoff(c.body));
   return {
     id: t.id,
     key: t.key,
@@ -32,7 +34,18 @@ export function ticketView(snap: MapSnapshot, t: Ticket, records: DecisionRecord
     decisionsFromBlockers: records
       .filter((d) => d.ticketId && t.blockedBy.includes(d.ticketId) && !d.supersededBy)
       .map((d) => ({ id: d.id, ticket: d.ticketKey, decision: d.answer })),
+    decisionsSoFar: records
+      .filter((d) => d.ticketId === t.id && !d.supersededBy)
+      .map((d) => ({ id: d.id, summary: d.summary })),
     comments: t.comments.slice(-5).map((c) => ({ author: c.author, body: c.body })),
+    ...(handoff && t.state === 'open'
+      ? {
+          resume: {
+            note: 'A previous agent went silent on this ticket. Continue from its notes and decisions instead of starting over.',
+            handoff: handoff.body,
+          },
+        }
+      : {}),
     howTo:
       att === 'hitl'
         ? 'Needs the human: ask each question with ask_human (it waits for the answer), then close_ticket with the agreed resolution.'

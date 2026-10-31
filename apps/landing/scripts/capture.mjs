@@ -40,7 +40,9 @@ async function open(viewport) {
 }
 
 async function revealAll(page) {
-  await page.addStyleTag({ content: '.reveal,.hero__title span{opacity:1!important;transform:none!important;transition:none!important}' });
+  await page.addStyleTag({
+    content: '.reveal,.hero__title span{opacity:1!important;transform:none!important;transition:none!important}',
+  });
   await page.evaluate(async () => {
     const imgs = [...document.images];
     imgs.forEach((img) => (img.loading = 'eager'));
@@ -91,7 +93,13 @@ if (want('video')) {
     frames.push({ file, ts: metadata.timestamp });
     cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
   });
-  await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: 1440, maxHeight: 900, everyNthFrame: 1 });
+  await cdp.send('Page.startScreencast', {
+    format: 'jpeg',
+    quality: 88,
+    maxWidth: 1440,
+    maxHeight: 900,
+    everyNthFrame: 1,
+  });
   await sleep(3500);
 
   const scrollTo = (selector, ms) =>
@@ -107,7 +115,8 @@ if (want('video')) {
           const step = (now) => {
             const t = Math.min(1, (now - t0) / duration);
             window.scrollTo(0, startY + (target - startY) * ease(t));
-            t < 1 ? requestAnimationFrame(step) : done();
+            if (t < 1) requestAnimationFrame(step);
+            else done();
           };
           requestAnimationFrame(step);
         }),
@@ -154,9 +163,25 @@ if (want('video')) {
   const listFile = join(framesDir, 'list.txt');
   writeFileSync(listFile, `${list}\nfile '${frames.at(-1).file}'\n`);
   execFileSync('ffmpeg', [
-    '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', listFile,
-    '-vf', 'fps=30,scale=1440:900:force_original_aspect_ratio=decrease,pad=1440:900:(ow-iw)/2:(oh-ih)/2,format=yuv420p',
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '22', '-movflags', '+faststart',
+    '-v',
+    'error',
+    '-y',
+    '-f',
+    'concat',
+    '-safe',
+    '0',
+    '-i',
+    listFile,
+    '-vf',
+    'fps=30,scale=1440:900:force_original_aspect_ratio=decrease,pad=1440:900:(ow-iw)/2:(oh-ih)/2,format=yuv420p',
+    '-c:v',
+    'libx264',
+    '-preset',
+    'slow',
+    '-crf',
+    '22',
+    '-movflags',
+    '+faststart',
     join(out, 'landing-demo.mp4'),
   ]);
   rmSync(framesDir, { recursive: true, force: true });

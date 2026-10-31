@@ -10,7 +10,15 @@ export class SlackApiError extends Error {
   }
 }
 
-const READS = new Set(['auth.test', 'bots.info', 'conversations.replies', 'chat.getPermalink', 'users.info', 'users.list', 'users.lookupByEmail']);
+const READS = new Set([
+  'auth.test',
+  'bots.info',
+  'conversations.replies',
+  'chat.getPermalink',
+  'users.info',
+  'users.list',
+  'users.lookupByEmail',
+]);
 
 export interface SlackApiOptions {
   token: string;
@@ -38,12 +46,20 @@ export class SlackApi {
   async call<T = SlackResponse>(method: string, args: Record<string, unknown> = {}): Promise<T> {
     const read = READS.has(method);
     const qs = read
-      ? new URLSearchParams(Object.entries(args).filter(([, v]) => v !== undefined).map(([k, v]): [string, string] => [k, String(v)])).toString()
+      ? new URLSearchParams(
+          Object.entries(args)
+            .filter(([, v]) => v !== undefined)
+            .map(([k, v]): [string, string] => [k, String(v)]),
+        ).toString()
       : '';
     const url = `${this.base}/${method}${qs ? `?${qs}` : ''}`;
     const init: RequestInit = read
       ? { method: 'GET', headers: { Authorization: `Bearer ${this.o.token}` } }
-      : { method: 'POST', headers: { Authorization: `Bearer ${this.o.token}`, 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify(args) };
+      : {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${this.o.token}`, 'Content-Type': 'application/json; charset=utf-8' },
+          body: JSON.stringify(args),
+        };
     for (let attempt = 0; ; attempt++) {
       let res: Response;
       try {
@@ -56,7 +72,11 @@ export class SlackApi {
         continue;
       }
       const scopes = res.headers.get('x-oauth-scopes');
-      if (scopes !== null) this.scopes = scopes.split(',').map((s) => s.trim()).filter(Boolean);
+      if (scopes !== null)
+        this.scopes = scopes
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
       const body = (await res.json().catch(() => ({ ok: false, error: `http_${res.status}` }))) as SlackResponse;
       if (!body.ok) throw new SlackApiError(body.error ?? `http_${res.status}`, method, res.status);
       return body as T;
@@ -66,5 +86,9 @@ export class SlackApi {
 
 /** POST to a `response_url` (ephemeral replies to commands, shortcuts and button clicks). */
 export async function postResponse(url: string, body: unknown, f: typeof fetch = fetch) {
-  await f(url, { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8' }, body: JSON.stringify(body) }).catch(() => {});
+  await f(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(body),
+  }).catch(() => {});
 }

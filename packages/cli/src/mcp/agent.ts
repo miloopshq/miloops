@@ -129,6 +129,16 @@ export class MissionAgent {
     return answerQuestion(this.ctx, input);
   }
 
+  /** Renew this agent's claim leases (every tool call is a heartbeat). */
+  heartbeat() {
+    this.ctx.heartbeat();
+  }
+
+  /** Keys of tickets whose lease ran out since the last call. */
+  takeLostLeases() {
+    return this.ctx.leases.takeLost();
+  }
+
   /** Write pending session state now, so a tool result never runs ahead of the command center. */
   flush() {
     this.ctx.flush();

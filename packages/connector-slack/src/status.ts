@@ -27,18 +27,37 @@ export function briefMission(snap: MapSnapshot, docs: AgentSessionDoc[]): Missio
     mode: snap.map.mode,
     resolved: snap.tickets.filter((t) => t.state === 'closed').length,
     total: snap.tickets.length,
-    awaiting: mine.flatMap((d) => d.pending).map((q) => ({ key: q.ticketId ? byId.get(q.ticketId)?.key : undefined, agent: q.agent, text: q.text, at: q.at })),
+    awaiting: mine
+      .flatMap((d) => d.pending)
+      .map((q) => ({
+        key: q.ticketId ? byId.get(q.ticketId)?.key : undefined,
+        agent: q.agent,
+        text: q.text,
+        at: q.at,
+      })),
     blocked: snap.tickets
       .filter((t) => states.get(t.id) === 'blocked')
-      .map((t) => ({ key: t.key, by: t.blockedBy.map((b) => byId.get(b)).filter((b) => b && b.state === 'open').map((b) => b!.key) })),
+      .map((t) => ({
+        key: t.key,
+        by: t.blockedBy
+          .map((b) => byId.get(b))
+          .filter((b) => b && b.state === 'open')
+          .map((b) => b!.key),
+      })),
     frontier: frontier(snap.tickets, snap.map.mode).map((t) => ({ key: t.key, title: t.title })),
-    sessions: mine.filter((d) => d.session.status === 'running').map((d) => ({ agent: d.session.agent, status: d.pending.length || d.session.waitingOn ? 'waiting' : 'active' })),
+    sessions: mine
+      .filter((d) => d.session.status === 'running')
+      .map((d) => ({ agent: d.session.agent, status: d.pending.length || d.session.waitingOn ? 'waiting' : 'active' })),
     costUsd: mine.reduce((n, d) => n + (d.session.usage?.costUsd ?? 0), 0),
-    tokens: mine.reduce((n, d) => n + (d.session.usage ? d.session.usage.inputTokens + d.session.usage.outputTokens : 0), 0),
+    tokens: mine.reduce(
+      (n, d) => n + (d.session.usage ? d.session.usage.inputTokens + d.session.usage.outputTokens : 0),
+      0,
+    ),
   };
 }
 
-export const formatTokens = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(n));
+export const formatTokens = (n: number) =>
+  n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(n);
 const since = (at: number, now: number) => {
   const m = Math.max(0, Math.round((now - at) / 60_000));
   return m < 60 ? `${m}m` : `${Math.round(m / 60)}h`;
@@ -59,14 +78,30 @@ export function statusBlocks(b: MissionBrief, o: { now: number; url?: string }) 
     text: `${b.title}: ${b.resolved}/${b.total} resolved, ${b.awaiting.length} awaiting you, ${b.blocked.length} blocked`,
     blocks: [
       { type: 'section', text: md(rows.join('\n')) },
-      ...(o.url ? [{ type: 'actions', elements: [{ type: 'button', action_id: 'open_miloops', text: plain(`Open in ${BRAND.name}`), url: o.url }] }] : []),
+      ...(o.url
+        ? [
+            {
+              type: 'actions',
+              elements: [
+                { type: 'button', action_id: 'open_miloops', text: plain(`Open in ${BRAND.name}`), url: o.url },
+              ],
+            },
+          ]
+        : []),
     ],
   };
 }
 
 export function missionListBlocks(briefs: MissionBrief[], command: string) {
-  if (!briefs.length) return { text: 'No missions yet.', blocks: [{ type: 'section', text: md(`No missions yet. Start one in ${BRAND.name}.`) }] };
-  const lines = briefs.map((b) => `*${escape(b.key)}* ${escape(b.title)} · ${b.resolved}/${b.total} · ${b.awaiting.length} awaiting · ${b.blocked.length} blocked`);
+  if (!briefs.length)
+    return {
+      text: 'No missions yet.',
+      blocks: [{ type: 'section', text: md(`No missions yet. Start one in ${BRAND.name}.`) }],
+    };
+  const lines = briefs.map(
+    (b) =>
+      `*${escape(b.key)}* ${escape(b.title)} · ${b.resolved}/${b.total} · ${b.awaiting.length} awaiting · ${b.blocked.length} blocked`,
+  );
   return {
     text: `${briefs.length} missions`,
     blocks: [

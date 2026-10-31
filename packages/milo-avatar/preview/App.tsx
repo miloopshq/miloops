@@ -19,7 +19,9 @@ export function App() {
   if (view === 'square') return <BrandSquare n={Number(q.get('n') || 512)} />;
   if (view === 'favicon') return <Favicon px={Number(q.get('px') || 64)} />;
   if (view === 'lockup')
-    return <Lockup w={Number(q.get('w') || 960)} h={Number(q.get('h') || 240)} wordmark={q.get('wordmark') || WORDMARK} />;
+    return (
+      <Lockup w={Number(q.get('w') || 960)} h={Number(q.get('h') || 240)} wordmark={q.get('wordmark') || WORDMARK} />
+    );
   if (view === 'banner')
     return (
       <Banner

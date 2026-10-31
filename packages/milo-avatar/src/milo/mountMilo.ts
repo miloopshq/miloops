@@ -17,7 +17,8 @@ import {
 import type { MiloSize, MiloState, MiloStyleId } from './types';
 import './MiloAvatar.css';
 
-export type { MiloSize } from './types';
+export { TIMING } from './frames';
+export type { MiloSize, MiloState } from './types';
 
 export interface MountMiloOptions {
   state?: MiloState;

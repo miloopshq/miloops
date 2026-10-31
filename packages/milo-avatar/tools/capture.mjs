@@ -11,7 +11,9 @@ import { preview } from 'vite';
 const font = (f) => createRequire(import.meta.url).resolve(`@fontsource/${f}`);
 const WORDMARK =
   process.env.WORDMARK ||
-  readFileSync(new URL('../preview/content.ts', import.meta.url), 'utf8').match(/^export const WORDMARK = '(.+)';$/m)[1];
+  readFileSync(new URL('../preview/content.ts', import.meta.url), 'utf8').match(
+    /^export const WORDMARK = '(.+)';$/m,
+  )[1];
 const wm = `&wordmark=${encodeURIComponent(WORDMARK)}`;
 const [wmLead, wmOps = ''] = WORDMARK.split('|');
 const OUT = resolve(process.env.OUT_DIR || 'captures');

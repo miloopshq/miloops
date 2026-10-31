@@ -1,9 +1,9 @@
 // Scripted demo run: drives the UI, saves screenshots and a screen recording.
 // Usage: node scripts/capture.mjs [outDir] [url]
-import { chromium } from 'playwright-core';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { chromium } from 'playwright-core';
 
 const outDir = path.resolve(process.argv[2] ?? 'capture');
 const url = process.argv[3] ?? 'http://localhost:5173/';
@@ -52,19 +52,39 @@ const annotate = (zones) =>
   page.evaluate((zones) => {
     const layer = document.createElement('div');
     layer.id = 'zone-annotations';
-    Object.assign(layer.style, { position: 'fixed', inset: '0', zIndex: '100', pointerEvents: 'none', background: 'rgba(3,6,7,0.5)' });
+    Object.assign(layer.style, {
+      position: 'fixed',
+      inset: '0',
+      zIndex: '100',
+      pointerEvents: 'none',
+      background: 'rgba(3,6,7,0.5)',
+    });
     for (const [sel, name] of zones) {
       const r = document.querySelector(sel)?.getBoundingClientRect();
       if (!r) continue;
       const box = document.createElement('div');
       Object.assign(box.style, {
-        position: 'absolute', left: `${r.left + 2}px`, top: `${r.top + 2}px`, width: `${r.width - 4}px`, height: `${r.height - 4}px`,
-        border: '1.5px solid #4fd8e8', borderRadius: '6px', boxSizing: 'border-box',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'absolute',
+        left: `${r.left + 2}px`,
+        top: `${r.top + 2}px`,
+        width: `${r.width - 4}px`,
+        height: `${r.height - 4}px`,
+        border: '1.5px solid #4fd8e8',
+        borderRadius: '6px',
+        boxSizing: 'border-box',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       });
       const tag = document.createElement('span');
       tag.textContent = name;
-      Object.assign(tag.style, { background: '#4fd8e8', color: '#031417', font: '600 14px Inter, sans-serif', padding: '5px 12px', borderRadius: '4px' });
+      Object.assign(tag.style, {
+        background: '#4fd8e8',
+        color: '#031417',
+        font: '600 14px Inter, sans-serif',
+        padding: '5px 12px',
+        borderRadius: '4px',
+      });
       box.appendChild(tag);
       layer.appendChild(box);
     }
@@ -134,7 +154,10 @@ await page.locator('.mission-item', { hasText: 'Offline-first' }).click();
 await wait(1200);
 await page.locator('.node', { hasText: 'silent auto-merge' }).click();
 await wait(1000);
-await page.locator('.inspector details.comments summary').click().catch(() => {});
+await page
+  .locator('.inspector details.comments summary')
+  .click()
+  .catch(() => {});
 await wait(2500);
 
 // Promote a not-yet-specified item into an execute ticket.
@@ -165,7 +188,22 @@ await context.close();
 
 const webm = fs.readdirSync(videoTmp).find((f) => f.endsWith('.webm'));
 const mp4 = path.join(outDir, 'command-center-demo.mp4');
-execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-i', path.join(videoTmp, webm), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '22', '-movflags', '+faststart', mp4]);
+execFileSync('ffmpeg', [
+  '-loglevel',
+  'error',
+  '-y',
+  '-i',
+  path.join(videoTmp, webm),
+  '-c:v',
+  'libx264',
+  '-pix_fmt',
+  'yuv420p',
+  '-crf',
+  '22',
+  '-movflags',
+  '+faststart',
+  mp4,
+]);
 console.log('video', mp4);
 
 // Responsive shots: demo tracker, two missions, one question waiting from the other mission.
@@ -176,7 +214,10 @@ demoUrl.searchParams.set('pace', '0.5');
 const sizes = [
   ['command-center-wide', { viewport: { width: 1680, height: 945 } }],
   ['command-center-laptop', { viewport: { width: 1280, height: 800 } }],
-  ['command-center-phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }],
+  [
+    'command-center-phone',
+    { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+  ],
 ];
 await Promise.all(
   sizes.map(async ([name, opts]) => {

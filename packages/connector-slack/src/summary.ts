@@ -29,7 +29,9 @@ export function plainText(text: string, names: Record<string, string> = {}) {
  */
 export function deterministicSummary(messages: ThreadMessage[], clickedTs?: string): string {
   if (!messages.length) return '';
-  const picked = [messages[0], messages.find((m) => m.ts === clickedTs), ...messages.slice(-2)].filter((m): m is ThreadMessage => !!m);
+  const picked = [messages[0], messages.find((m) => m.ts === clickedTs), ...messages.slice(-2)].filter(
+    (m): m is ThreadMessage => !!m,
+  );
   const seen = new Set<string>();
   return picked
     .filter((m) => !seen.has(m.ts) && seen.add(m.ts))

@@ -51,7 +51,10 @@ export async function waitForAnswer(
       timer = setTimeout(() => r({ answered: false }), limit);
       onAbort = () => r({ answered: false });
       ctl.signal?.addEventListener('abort', onAbort, { once: true });
-      if (ctl.onProgress) tick = setInterval(() => ctl.onProgress!(waited()), 15_000);
+      tick = setInterval(() => {
+        ctx.heartbeat();
+        ctl.onProgress?.(waited());
+      }, 15_000);
     }),
   ]).finally(() => {
     clearTimeout(timer);

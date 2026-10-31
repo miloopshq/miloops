@@ -54,7 +54,10 @@ export function recorder(inner: typeof fetch, trim: (req: Exchange['req'], body:
     const headers = Object.fromEntries([...res.headers].filter(([k]) => KEEP_HEADERS.test(k)));
     const body = text ? trim(req, JSON.parse(text)) : undefined;
     exchanges.push({ req, res: { status: res.status, headers, ...(body === undefined ? {} : { body }) } });
-    return new Response(res.status === 304 || !text ? null : JSON.stringify(body), { status: res.status, headers: res.headers });
+    return new Response(res.status === 304 || !text ? null : JSON.stringify(body), {
+      status: res.status,
+      headers: res.headers,
+    });
   };
   return {
     fetch: fetchFn as typeof fetch,
@@ -77,7 +80,10 @@ export function replay(name: string) {
     assert.ok(ex, `${name}: unexpected request #${i}: ${got.method} ${got.url} ${got.operation ?? ''}`);
     assert.deepEqual(got, ex.req, `${name}: request #${i} differs from the fixture`);
     if (ex.res.status === 0) throw new TypeError('fetch failed');
-    return new Response(ex.res.status === 304 || ex.res.body === undefined ? null : JSON.stringify(ex.res.body), { status: ex.res.status, headers: ex.res.headers });
+    return new Response(ex.res.status === 304 || ex.res.body === undefined ? null : JSON.stringify(ex.res.body), {
+      status: ex.res.status,
+      headers: ex.res.headers,
+    });
   };
   return {
     fixture: fx,
@@ -86,7 +92,11 @@ export function replay(name: string) {
       return i;
     },
     done() {
-      assert.equal(i, fx.exchanges.length, `${name}: ${fx.exchanges.length - i} recorded exchanges were never requested`);
+      assert.equal(
+        i,
+        fx.exchanges.length,
+        `${name}: ${fx.exchanges.length - i} recorded exchanges were never requested`,
+      );
     },
   };
 }

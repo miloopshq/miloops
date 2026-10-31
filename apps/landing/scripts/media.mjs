@@ -45,12 +45,24 @@ const shot = async (name) => {
 /** Overlay boxes for the landing's "Fixed zones" figure, as % of the viewport. */
 const zoneBoxes = () =>
   page.evaluate(() => {
-    const sel = { inbox: '.inbox', mission: '.h-title', map: '.map-zone', ticket: '.inspector', activity: '.log-zone', sessions: '.step-zone', plan: '.sections' };
+    const sel = {
+      inbox: '.inbox',
+      mission: '.h-title',
+      map: '.map-zone',
+      ticket: '.inspector',
+      activity: '.log-zone',
+      sessions: '.step-zone',
+      plan: '.sections',
+    };
     const pct = (v, d) => +((v / d) * 100).toFixed(1);
     return Object.fromEntries(
       Object.entries(sel).map(([k, s]) => {
         const r = document.querySelector(s)?.getBoundingClientRect();
-        return [k, r && `--x:${pct(r.left, innerWidth)};--y:${pct(r.top, innerHeight)};--w:${pct(r.width, innerWidth)};--h:${pct(r.height, innerHeight)}`];
+        return [
+          k,
+          r &&
+            `--x:${pct(r.left, innerWidth)};--y:${pct(r.top, innerHeight)};--w:${pct(r.width, innerWidth)};--h:${pct(r.height, innerHeight)}`,
+        ];
       }),
     );
   });
@@ -78,8 +90,12 @@ await page.getByRole('menuitem', { name: '+ New mission' }).click();
 await page.locator('.dialog').waitFor();
 const fields = page.locator('.dialog input[type="text"], .dialog input:not([type]), .dialog textarea');
 await fields.nth(0).fill('Ship team workspaces');
-await fields.nth(1).fill('Teams can share notebooks with role-based access, and admins can manage members without contacting support.');
-await fields.nth(2).pressSequentially('Admins asked for this in the Q3 survey. Must work with existing SSO.', { delay: 18 });
+await fields
+  .nth(1)
+  .fill('Teams can share notebooks with role-based access, and admins can manage members without contacting support.');
+await fields
+  .nth(2)
+  .pressSequentially('Admins asked for this in the Q3 survey. Must work with existing SSO.', { delay: 18 });
 await wait(600);
 await shot('flow-05-new-mission');
 await page.locator('.dialog footer .btn.primary').click();

@@ -15,6 +15,7 @@ export { Presence } from './activity/presence';
 export { UsageLedger } from './activity/usageLedger';
 export * from './planning/briefing';
 export * from './agents/agentLink';
+export * from './agents/ticketLease';
 export { Emitter, sleep, uid } from './lib/emitter';
 
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memoryAdapter';
@@ -24,7 +25,14 @@ export { demoSnapshot, seedDecisions, seedSnapshot, seedUsage } from './adapters
 export { GitHubAdapter, testGitHub, type GitHubOptions } from './adapters/remote/github';
 export { LinearAdapter, testLinear, type LinearOptions } from './adapters/remote/linear';
 export { SyncedAdapter } from './adapters/remote/sync/syncedAdapter';
-export type { SyncState, SyncStatus, SyncOptions, OutboxStore, QueuedWrite, QueuedChange } from './adapters/remote/sync/types';
+export type {
+  SyncState,
+  SyncStatus,
+  SyncOptions,
+  OutboxStore,
+  QueuedWrite,
+  QueuedChange,
+} from './adapters/remote/sync/types';
 export { TrackerError, isTransient, type RateInfo, type TrackerErrorCode } from './adapters/remote/http';
 export { BridgeAdapter, trackerSettingsApi } from './adapters/remote/bridgeClient';
 export type * from './adapters/remote/types';

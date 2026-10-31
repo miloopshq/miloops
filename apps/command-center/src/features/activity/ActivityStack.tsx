@@ -19,6 +19,7 @@ export function ActivityStack(props: ZoneProps) {
       <Sessions
         snap={props.snap}
         activity={props.activity}
+        leases={props.leases}
         onSelect={(s) => s?.kind === 'ticket' && props.onTicket(s.id)}
         onOpenChat={props.onOpenChat}
       />

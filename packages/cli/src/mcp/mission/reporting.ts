@@ -48,6 +48,8 @@ export async function report(
     outputTokens: Math.max(0, input.outputTokens ?? 0),
     costUsd: Math.max(0, input.costUsd ?? 0),
   };
+  const note = input.message ?? input.say;
+  if (note) ctx.heartbeat({ ticketId: s.info.ticketId, note });
   const measured = ctx.sessions.measure(s);
   if (!measured && (u.inputTokens || u.outputTokens || u.costUsd)) s.usage({ ...u, source: 'reported' });
   return {
@@ -99,5 +101,6 @@ export async function recordDecision(
     },
     { appendToMission: input.appendToMission },
   );
+  ctx.heartbeat({ ticketId: t?.id ?? s?.info.ticketId, decision: `${rec.id} · ${rec.summary}` });
   return { decision: rec };
 }

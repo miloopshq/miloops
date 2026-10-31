@@ -91,6 +91,7 @@ export function App() {
   const zoneProps = {
     activity: scoped,
     snap,
+    leases: api.leases,
     onTicket: (id: string) => nav.select({ kind: 'ticket', id }),
     onOpenChat: (id: string) => nav.openChat(id),
   };

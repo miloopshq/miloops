@@ -1,8 +1,8 @@
 // Screenshots for the end-to-end user flow doc (flow-NN-*.png). Needs a dev server on an empty tracker.
 // Usage: node scripts/flow.mjs [outDir] [url] [terminalTranscript.txt]
-import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
+import { chromium } from 'playwright-core';
 
 const outDir = path.resolve(process.argv[2] ?? 'capture');
 const url = process.argv[3] ?? 'http://localhost:5173/';
@@ -52,7 +52,10 @@ await shot('empty-tracker');
 // 5. New mission dialog, filled in.
 await page.getByRole('button', { name: 'New mission' }).click();
 await page.locator('.dialog').waitFor();
-await page.locator('.dialog textarea').nth(1).fill('Admins asked for this in the Q3 survey. Must work with existing SSO.');
+await page
+  .locator('.dialog textarea')
+  .nth(1)
+  .fill('Admins asked for this in the Q3 survey. Must work with existing SSO.');
 await wait(600);
 await shot('new-mission');
 await page.locator('.dialog footer .btn.primary').click();

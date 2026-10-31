@@ -1,5 +1,12 @@
 import type { TrackerAdapter } from '../../adapters/adapter';
-import { type TicketType, type MapMode, type MapSections, type MapDoc, type Ticket, DEFAULT_MAP_MODE } from '../../model/types';
+import {
+  type TicketType,
+  type MapMode,
+  type MapSections,
+  type MapDoc,
+  type Ticket,
+  DEFAULT_MAP_MODE,
+} from '../../model/types';
 
 export interface ChartPlanTicket {
   /** Local reference used to wire blocking before real ids exist. */
@@ -60,6 +67,8 @@ function withMode(plan: ChartPlan, mode: MapMode): ChartPlan & { mode: MapMode }
   return {
     ...plan,
     mode,
-    tickets: plan.tickets.filter((t) => !dropped.has(t.ref)).map((t) => ({ ...t, blockedBy: [...new Set(expand(t.blockedBy ?? []))] })),
+    tickets: plan.tickets
+      .filter((t) => !dropped.has(t.ref))
+      .map((t) => ({ ...t, blockedBy: [...new Set(expand(t.blockedBy ?? []))] })),
   };
 }

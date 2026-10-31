@@ -70,10 +70,17 @@ export function buildBriefing(input: BriefingInput): Briefing {
     const needsHuman = (t: Ticket) => t.state === 'open' && (waitingTickets.has(t.id) || attention(t) === 'hitl');
     const blocked = snap.tickets
       .filter((t) => states.get(t.id) === 'blocked')
-      .map((t) => ({ ticket: t, on: t.blockedBy.map((b) => byId.get(b)).filter((b): b is Ticket => !!b && needsHuman(b)) }))
+      .map((t) => ({
+        ticket: t,
+        on: t.blockedBy.map((b) => byId.get(b)).filter((b): b is Ticket => !!b && needsHuman(b)),
+      }))
       .filter((b) => b.on.length);
-    const decisions = input.decisions.filter((d) => d.mapId === mapId && after(d.decidedAt)).sort((a, b) => b.decidedAt - a.decidedAt);
-    const closed = snap.tickets.filter((t) => t.state === 'closed' && after(t.closedAt)).sort((a, b) => (a.closedAt ?? 0) - (b.closedAt ?? 0));
+    const decisions = input.decisions
+      .filter((d) => d.mapId === mapId && after(d.decidedAt))
+      .sort((a, b) => b.decidedAt - a.decidedAt);
+    const closed = snap.tickets
+      .filter((t) => t.state === 'closed' && after(t.closedAt))
+      .sort((a, b) => (a.closedAt ?? 0) - (b.closedAt ?? 0));
     const done = closed.filter((t) => t.closeReason === 'completed');
     const ruledOut = closed.filter((t) => t.closeReason === 'not_planned');
     const opened = snap.tickets.filter((t) => after(t.createdAt));
@@ -93,12 +100,23 @@ export function buildBriefing(input: BriefingInput): Briefing {
       agentDecisions: decisions.filter((d) => d.source.kind === 'agent'),
       usage,
       active,
-      changed: !!(closed.length || opened.length || decisions.length || waiting.some((q) => after(q.at)) || usage.costUsd > 0),
+      changed: !!(
+        closed.length ||
+        opened.length ||
+        decisions.length ||
+        waiting.some((q) => after(q.at)) ||
+        usage.costUsd > 0
+      ),
     };
   });
-  const shown = missions.filter((m) => m.changed || m.waiting.length).sort((a, b) => (a.mapId === input.currentMapId ? -1 : b.mapId === input.currentMapId ? 1 : 0));
-  const sum = <K extends 'done' | 'ruledOut' | 'blocked' | 'waiting' | 'agentDecisions' | 'active'>(k: K) => shown.reduce((n, m) => n + m[k].length, 0);
-  const oldest = shown.flatMap((m) => m.waiting).reduce<number | undefined>((o, q) => (o === undefined || q.at < o ? q.at : o), undefined);
+  const shown = missions
+    .filter((m) => m.changed || m.waiting.length)
+    .sort((a, b) => (a.mapId === input.currentMapId ? -1 : b.mapId === input.currentMapId ? 1 : 0));
+  const sum = <K extends 'done' | 'ruledOut' | 'blocked' | 'waiting' | 'agentDecisions' | 'active'>(k: K) =>
+    shown.reduce((n, m) => n + m[k].length, 0);
+  const oldest = shown
+    .flatMap((m) => m.waiting)
+    .reduce<number | undefined>((o, q) => (o === undefined || q.at < o ? q.at : o), undefined);
   return {
     since: shown.length ? Math.min(...shown.map((m) => m.since)) : now,
     now,
@@ -111,7 +129,12 @@ export function buildBriefing(input: BriefingInput): Briefing {
       oldestWaitMs: oldest === undefined ? undefined : now - oldest,
       agentDecisions: sum('agentDecisions'),
       usage: shown.reduce(
-        (u, m) => ({ inputTokens: u.inputTokens + m.usage.inputTokens, outputTokens: u.outputTokens + m.usage.outputTokens, costUsd: u.costUsd + m.usage.costUsd, sessions: u.sessions + m.usage.sessions }),
+        (u, m) => ({
+          inputTokens: u.inputTokens + m.usage.inputTokens,
+          outputTokens: u.outputTokens + m.usage.outputTokens,
+          costUsd: u.costUsd + m.usage.costUsd,
+          sessions: u.sessions + m.usage.sessions,
+        }),
         { inputTokens: 0, outputTokens: 0, costUsd: 0, sessions: 0 },
       ),
       active: sum('active'),
@@ -131,8 +154,15 @@ export function briefingLine(b: Briefing, hour = new Date(b.now).getHours()): st
   if (t.done) parts.push(`${plural(t.done, 'ticket')} ${t.done === 1 ? 'is' : 'are'} done.`);
   if (t.agentDecisions) parts.push(`Agents made ${plural(t.agentDecisions, 'decision')}.`);
   if (t.waiting) {
-    const held = b.missions.flatMap((m) => m.blocked.filter((x) => x.on.some((o) => m.waiting.some((q) => q.ticketId === o.id))));
-    const hold = held.length === 1 ? `, and it holds up ${held[0].ticket.title.replace(/^./, (c) => c.toLowerCase())}` : held.length > 1 ? `, holding up ${plural(held.length, 'ticket')}` : '';
+    const held = b.missions.flatMap((m) =>
+      m.blocked.filter((x) => x.on.some((o) => m.waiting.some((q) => q.ticketId === o.id))),
+    );
+    const hold =
+      held.length === 1
+        ? `, and it holds up ${held[0].ticket.title.replace(/^./, (c) => c.toLowerCase())}`
+        : held.length > 1
+          ? `, holding up ${plural(held.length, 'ticket')}`
+          : '';
     parts.push(`${plural(t.waiting, 'decision')} ${t.waiting === 1 ? 'is' : 'are'} waiting on you${hold}.`);
   } else parts.push('Nothing is waiting on you.');
   if (!t.done && !t.agentDecisions && t.ruledOut) parts.unshift(`${plural(t.ruledOut, 'ticket')} ruled out of scope.`);

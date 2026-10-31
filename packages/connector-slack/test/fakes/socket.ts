@@ -25,7 +25,12 @@ export function socketHub(o: { appId?: string } = {}) {
         this.emit('open');
         const msg = state.linkDisabled
           ? { type: 'disconnect', reason: 'link_disabled', debug_info: { host: 'wss-primary.slack.test' } }
-          : { type: 'hello', num_connections: sockets.filter((s) => s.readyState === 1).length, debug_info: { host: 'wss-primary.slack.test', approximate_connection_time: 18060 }, connection_info: { app_id: o.appId ?? 'A0MILO0001' } };
+          : {
+              type: 'hello',
+              num_connections: sockets.filter((s) => s.readyState === 1).length,
+              debug_info: { host: 'wss-primary.slack.test', approximate_connection_time: 18060 },
+              connection_info: { app_id: o.appId ?? 'A0MILO0001' },
+            };
         this.emit('message', { data: JSON.stringify(msg) });
       });
     }
@@ -67,7 +72,14 @@ export function socketHub(o: { appId?: string } = {}) {
       if (!ws) throw new Error('no open Socket Mode connection');
       const envelope_id = `env-${String(++seq).padStart(4, '0')}`;
       const p = new Promise<unknown>((r) => acks.set(envelope_id, r));
-      ws.emit('message', { data: JSON.stringify({ envelope_id, type: e.type, payload: e.payload, accepts_response_payload: e.type !== 'events_api' }) });
+      ws.emit('message', {
+        data: JSON.stringify({
+          envelope_id,
+          type: e.type,
+          payload: e.payload,
+          accepts_response_payload: e.type !== 'events_api',
+        }),
+      });
       return p;
     },
     /** Slack asks for a reconnect (sent before rotating a connection). */

@@ -1,4 +1,11 @@
-import { DEFAULT_MAP_MODE, type Attention, type MapMode, type NodeState, type Ticket, type TicketType } from '../model/types';
+import {
+  DEFAULT_MAP_MODE,
+  type Attention,
+  type MapMode,
+  type NodeState,
+  type Ticket,
+  type TicketType,
+} from '../model/types';
 
 export function attention(t: Pick<Ticket, 'type' | 'hitl'>): Attention {
   if (t.type === 'grilling' || t.type === 'prototype') return 'hitl';
@@ -90,7 +97,13 @@ export function layout(tickets: Ticket[], direction: LayoutDirection = 'LR', mod
     layer.forEach((t, i) => {
       const along = li * LAYER;
       const across = offset + i * LANE;
-      nodes.push({ ticket: t, state: states.get(t.id)!, layer: li, x: direction === 'LR' ? along : across, y: direction === 'LR' ? across : along });
+      nodes.push({
+        ticket: t,
+        state: states.get(t.id)!,
+        layer: li,
+        x: direction === 'LR' ? along : across,
+        y: direction === 'LR' ? across : along,
+      });
     });
   });
 
