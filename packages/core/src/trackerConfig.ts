@@ -21,6 +21,8 @@ export interface ProjectTrackerConfig {
 export interface Credentials {
   github?: { token: string };
   linear?: { apiKey: string };
+  /** Socket Mode app-level token (`xapp-…`) and bot token (`xoxb-…`) of the user's own Slack app. */
+  slack?: { appToken?: string; botToken?: string };
 }
 
 type Env = Record<string, string | undefined>;

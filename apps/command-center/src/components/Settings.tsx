@@ -7,6 +7,7 @@ import type { Prefs, TrackerChoice } from '../prefs';
 import { MiloMark } from './MiloMark';
 import { Button, Choice, Label, Meta, Panel } from './ui';
 import { TrackerConnectors, switchTracker, trackerApi, useTrackerSettings } from './TrackerSetup';
+import { SlackSettings, useSlackStatus } from './SlackSetup';
 
 function TranscriptChoice(props: { value: HitlTranscriptMode; onChange: (v: HitlTranscriptMode) => void }) {
   const opts: { v: HitlTranscriptMode; title: string }[] = [
@@ -54,6 +55,7 @@ export function SettingsPanel(props: {
   onMapMode: (m: MapMode) => void;
   onClose: () => void;
   initialTab?: 'settings' | 'changelog';
+  focus?: 'slack';
 }) {
   const { prefs, update } = props;
   const [tab, setTab] = useState(props.initialTab ?? 'settings');
@@ -93,6 +95,8 @@ export function SettingsPanel(props: {
               <TrackerConnectors activeTracker={props.activeTracker} location={props.location} update={update} />
             </Section>
 
+            <SlackSection focus={props.focus === 'slack'} />
+
             <Section title="Labels">
               <div className="label-codes">
                 <code>{MAP_LABEL}</code>
@@ -121,6 +125,17 @@ export function SettingsPanel(props: {
         )}
       </Panel>
     </div>
+  );
+}
+
+/** No local server (the static demo): no Slack section. */
+function SlackSection(props: { focus: boolean }) {
+  const [s] = useSlackStatus();
+  if (!s) return null;
+  return (
+    <Section title="Slack">
+      <SlackSettings focus={props.focus} />
+    </Section>
   );
 }
 

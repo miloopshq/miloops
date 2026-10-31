@@ -1,0 +1,104 @@
+{
+  "source": "fake",
+  "recordedAt": "2026-10-31T16:56:50.410Z",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Blocked and mission-done notifications in the owner DM, threaded per mission per day.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/conversations.open",
+        "body": {
+          "users": "U0ANA0001"
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": {
+            "id": "D00ANA0001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "⛔ *BLOCKED* · Event store · #2 Bench write paths is blocked by #4 Retention policy"
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "⛔ *BLOCKED* · Event store · #2 Bench write paths is blocked by #4 Retention policy",
+            "ts": "1793448000.000001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "✓ *RESOLVED* · Event store · #2 Bench write paths\n✓ *RESOLVED* · Event store · #3 Pick DB\n✓ *RESOLVED* · Event store · #4 Retention policy\n✓ *RESOLVED* · Event store · #5 Migrate schema\n◉ *MISSION DONE* · Event store · 4 tickets · $0.00 · 0 tokens",
+          "thread_ts": "1793448000.000001"
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "✓ *RESOLVED* · Event store · #2 Bench write paths\n✓ *RESOLVED* · Event store · #3 Pick DB\n✓ *RESOLVED* · Event store · #4 Retention policy\n✓ *RESOLVED* · Event store · #5 Migrate schema\n◉ *MISSION DONE* · Event store · 4 tickets · $0.00 · 0 tokens",
+            "ts": "1793448001.000002"
+          }
+        }
+      }
+    }
+  ],
+  "envelopes": []
+}

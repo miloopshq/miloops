@@ -12,7 +12,9 @@ import { createTrackerRoutes, sendTrackerError, type TrackerRoutesOptions } from
 import type { TrackerAdapter } from './adapter';
 import type { DecisionInput, DecisionRecord } from './types';
 
-export { activeTracker } from './trackerRoutes';
+export { activeTracker, crossSite } from './trackerRoutes';
+export { configDir, credentialStore, type Credentials } from './trackerConfig';
+export { AnswerError, readAgentDocs, readCommandCenterLock, writeAgentAnswer, writeJsonAtomic } from './agentHost';
 export { outboxFile, outboxKey } from './adapters/remote/outboxFile';
 
 export interface TrackerBridge {
@@ -41,6 +43,28 @@ export interface DecisionEvent {
   decision: DecisionRecord;
 }
 
+/** What an optional server module (e.g. the Slack connector) gets from the bridge. */
+export interface BridgeContext {
+  root: string;
+  /** The project's active tracker (local markdown, GitHub or Linear). */
+  active(): Promise<TrackerAdapter>;
+  /** The command center's URL, once it is serving. */
+  url(): string | undefined;
+}
+
+export interface BridgePlugin {
+  /** Return true when the request was handled. The URL has the API prefix stripped. */
+  handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean>;
+  close(): void;
+}
+
+export type BridgePluginFactory = (ctx: BridgeContext) => BridgePlugin;
+
+export interface BridgeOptions extends Omit<TrackerRoutesOptions, 'root' | 'markdown'> {
+  plugins?: BridgePluginFactory[];
+  url?: () => string | undefined;
+}
+
 const DECISION_PATH = /^([^/]+)\/decisions\/([^/]+)\.md$/;
 
 class BadRequest extends Error {}
@@ -49,11 +73,13 @@ class BadRequest extends Error {}
  * HTTP API for the local-markdown tracker. Shared by the Vite dev plugin and
  * the `miloops` CLI so both serve the same contract.
  */
-export function createTrackerBridge(root: string, trackers: Omit<TrackerRoutesOptions, 'root' | 'markdown'> = {}): TrackerBridge {
+export function createTrackerBridge(root: string, options: BridgeOptions = {}): TrackerBridge {
+  const { plugins: factories = [], url: publicUrl = () => undefined, ...trackers } = options;
   const abs = path.resolve(root);
   const fs = nodeMarkdownFs(abs);
   const markdown = new MarkdownAdapter({ ...fs, watch: undefined }, abs);
   const routes = createTrackerRoutes({ ...trackers, root: abs, markdown });
+  const plugins = factories.map((f) => f({ root: abs, active: () => routes.active(), url: publicUrl }));
   const clients = new Set<ServerResponse>();
   const seen = new Map<string, { text: string; supersededBy?: string }>();
   const send = (text: string) => {
@@ -182,6 +208,7 @@ export function createTrackerBridge(root: string, trackers: Omit<TrackerRoutesOp
         return;
       }
       if (await routes.handle(req, res, url)) return;
+      for (const p of plugins) if (await p.handle(req, res, url)) return;
       const adapter = url.pathname.startsWith('/decisions') ? await routes.active() : markdown;
       if (url.pathname === '/decisions' && req.method === 'GET') {
         const only = url.searchParams.get('mission');
@@ -233,6 +260,7 @@ export function createTrackerBridge(root: string, trackers: Omit<TrackerRoutesOp
     root: abs,
     handle,
     close() {
+      for (const p of plugins) p.close();
       routes.close();
       unwatch();
       clearInterval(liveness);
