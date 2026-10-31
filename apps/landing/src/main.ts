@@ -4,7 +4,8 @@ import '@fontsource/share-tech-mono/400.css';
 import '@fontsource/barlow/400.css';
 import '@fontsource/barlow/500.css';
 import './styles.css';
-import { mountMilo } from './milo/mountMilo';
+import { mountAgentPicker } from './agentPicker';
+import { mountMiloStates } from './miloStates';
 import { mountTerminal } from './terminal';
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -214,28 +215,14 @@ function initVideo() {
 
 function initMilo() {
   const host = $('[data-milo]');
-  if (!host) return;
-  const line = host.dataset.miloLine ?? '';
-  const size = window.matchMedia('(max-width: 400px)').matches ? 'md' : 'lg';
-  const milo = mountMilo(host, { size, caption: true });
-  if (!('IntersectionObserver' in window)) {
-    milo.update({ speaking: line });
-    return;
-  }
-  const io = new IntersectionObserver(
-    ([entry]) => {
-      if (!entry.isIntersecting) return;
-      io.disconnect();
-      milo.update({ speaking: line });
-    },
-    { threshold: 0.6 },
-  );
-  io.observe(host);
+  const list = $('[data-milo-states]');
+  if (host && list) mountMiloStates(host, list, reducedMotion);
 }
 
 initNav();
 initReveal();
 initCopy();
+mountAgentPicker();
 initSteps();
 initZones();
 initVideo();
