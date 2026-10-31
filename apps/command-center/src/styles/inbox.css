@@ -167,9 +167,8 @@
   background: var(--urgent-bg);
   color: var(--text-hi);
 }
-/* Open question: 32px MILO beside the text column; suggestions and the answer row share that column. */
+/* Open question: 32px MILO beside the text column; suggestions and the answer row use the full width below. */
 .comms {
-  --q-col: 46px;
   container-type: inline-size;
 }
 .comms-ticket .meta > span {
@@ -221,11 +220,12 @@
 }
 .suggest {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--sp-6);
   padding: 0 var(--gutter) var(--sp-8);
 }
 .suggest .chip {
+  width: 100%;
   border-color: rgba(var(--amber-rgb), 0.4);
 }
 .suggest .chip:hover {
@@ -235,11 +235,6 @@
 .comms-input {
   padding: var(--sp-8) var(--gutter) var(--sp-12);
 }
-.comms.asking .suggest,
-.comms.asking .comms-input {
-  padding-left: calc(var(--gutter) + var(--q-col));
-}
-
 .upnext {
   display: flex;
   flex-direction: column;
