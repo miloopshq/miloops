@@ -169,8 +169,9 @@ textarea:disabled, input:disabled { opacity: 0.5; }
 /* Field: mono caps caption over a control. */
 .field { display: flex; flex-direction: column; gap: 5px; font-family: var(--mono); font-size: var(--fs-label); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--dim); }
 
-/* Input + Send row (the compact HITL answer row is the reference): one row, control and action share a 36px height. */
-.input-row { display: flex; gap: var(--sp-8); align-items: flex-end; container-type: inline-size; }
+/* Input + Send row (the compact HITL answer row is the reference): one row, control and action share a 36px height.
+ * It stacks when the nearest inline-size container (e.g. .comms) is narrower than 300px. */
+.input-row { display: flex; gap: var(--sp-8); align-items: flex-end; }
 .input-row > textarea, .input-row > input { flex: 1; min-width: 0; height: var(--h-lg); min-height: var(--h-lg); }
 .input-row > textarea { max-height: 120px; field-sizing: content; padding-top: 7px; padding-bottom: 7px; line-height: 20px; }
 .input-row > .btn { flex: 0 0 auto; height: var(--h-lg); min-width: 76px; }
