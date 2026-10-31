@@ -5,7 +5,10 @@ import {
   criticalPath,
   deriveStates,
   missionUsage,
+  missionUsageSources,
   sessionTokens,
+  usageDetail,
+  USAGE_SOURCE,
   stateCounts,
   STEPS,
   throughput,
@@ -159,8 +162,9 @@ export function Sessions({ snap, activity, onSelect, onOpenChat }: { snap?: MapS
                 <span className="callsign">{s.agent}</span>
                 {att && <Pill tone={att === 'hitl' ? 'fill' : undefined}>{att === 'hitl' ? 'HITL' : 'AFK'}</Pill>}
                 {s.usage && (
-                  <span className="usage" title={`${s.usage.inputTokens.toLocaleString()} in · ${s.usage.outputTokens.toLocaleString()} out`}>
+                  <span className="usage" title={usageDetail(s.usage)}>
                     {tokens(sessionTokens(s))} tok · {usd(s.usage.costUsd)}
+                    {s.usage.source && <span className={`usage-src tag-${USAGE_SOURCE[s.usage.source].tag.toLowerCase()}`}>{USAGE_SOURCE[s.usage.source].tag}</span>}
                   </span>
                 )}
                 <span className="timer">{hms(now - s.startedAt)}</span>
@@ -224,6 +228,7 @@ export function ActivityLog({ activity, onTicket }: { activity: ActivityState; o
 /** Sessions header: mission usage (`metrics.usage`) and claims per agent (`metrics.claimsByAgent`). */
 function SessionsHead({ activity, snap, running }: { activity: ActivityState; snap?: MapSnapshot; running: number }) {
   const u = missionUsage(activity, snap?.map.id);
+  const sources = missionUsageSources(activity, snap?.map.id);
   const claims = snap ? claimsByAgent(snap) : [];
   return (
     <>
@@ -236,8 +241,13 @@ function SessionsHead({ activity, snap, running }: { activity: ActivityState; sn
           </>
         }
         right={
-          <span className="usage" title="Model usage for this mission, all sessions">
+          <span className="usage" title={['Model usage for this mission, all sessions', ...sources.map((x) => USAGE_SOURCE[x].text)].join('\n')}>
             <span className="mono-label">Mission</span> {tokens(u.inputTokens + u.outputTokens)} tok · {usd(u.costUsd)}
+            {[...new Set(sources.map((x) => USAGE_SOURCE[x].tag))].map((tag) => (
+              <span key={tag} className={`usage-src tag-${tag.toLowerCase()}`}>
+                {tag}
+              </span>
+            ))}
           </span>
         }
       />

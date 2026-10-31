@@ -1,0 +1,35 @@
+{
+  "name": "@miloops-hq/connector-slack",
+  "version": "0.1.0",
+  "private": true,
+  "author": "MILOOPS",
+  "homepage": "https://miloops.app",
+  "bugs": {
+    "url": "https://github.com/miloopshq/miloops/issues"
+  },
+  "description": "Slack for MILOOPS over Socket Mode: decisions from threads, agent questions as DMs. Runs inside the local server; tokens stay on the machine.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
+  },
+  "sideEffects": false,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miloopshq/miloops.git",
+    "directory": "packages/connector-slack"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "test": "node test/run.mjs",
+    "record": "node test/run.mjs record"
+  },
+  "dependencies": {
+    "@miloops-hq/core": "*"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.12",
+    "ws": "^8.18.0"
+  }
+}

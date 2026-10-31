@@ -1,0 +1,324 @@
+{
+  "source": "fake",
+  "recordedAt": "2026-10-31T16:56:50.407Z",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). /milo help, status (all and one mission), inbox, unknown subcommand, refusal.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/3/fakeresponse3",
+        "body": {
+          "response_type": "ephemeral",
+          "text": "2 missions",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*#1* Event store · 0/4 · 1 awaiting · 1 blocked\n*#6* Mobile sync · 0/1 · 0 awaiting · 0 blocked"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "`/milo status <mission>` for one mission"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/4/fakeresponse4",
+        "body": {
+          "response_type": "ephemeral",
+          "text": "Event store: 0/4 resolved, 1 awaiting you, 1 blocked",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "*EVENT STORE* · plan+execute · 0/4 resolved\n```\nAwaiting you  1  (#3, 12m)\nBlocked       1  (#5 by #3)\nFrontier      2  (#2 Bench write paths, #4 Retention policy)\nSessions      claude-07 waiting · $4.12 · 1.8M tok\n```"
+              }
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/5/fakeresponse5",
+        "body": {
+          "response_type": "ephemeral",
+          "text": "No mission matches “nope”."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/6/fakeresponse6",
+        "body": {
+          "response_type": "ephemeral",
+          "text": "1 waiting on you",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◆ *AWAITING YOU* · Event store · #3 Pick DB · claude-07\n>Postgres or SQLite?"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "ask:q1",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "ask_reply",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Reply…",
+                    "emoji": true
+                  },
+                  "value": "{\"s\":\"s1\",\"q\":\"q1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    }
+  ],
+  "envelopes": [
+    {
+      "label": "/milo help",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "C0INFRA01",
+        "channel_name": "infra",
+        "user_id": "U0ANA0001",
+        "user_name": "ana",
+        "command": "/milo",
+        "text": "help",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/1/fakeresponse1",
+        "trigger_id": "1793448000.1.fake1"
+      },
+      "ack": {
+        "response_type": "ephemeral",
+        "text": "*/milo decide [text]*  record a decision (or use *Save as decision* on a message)\n*/milo status [mission]*  mission briefing\n*/milo inbox*  questions waiting on you\n*/milo help*  this list"
+      }
+    },
+    {
+      "label": "eve runs /milo status",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "C0INFRA01",
+        "channel_name": "infra",
+        "user_id": "U0EVE0001",
+        "user_name": "eve",
+        "command": "/milo",
+        "text": "status",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/2/fakeresponse2",
+        "trigger_id": "1793448000.2.fake2"
+      },
+      "ack": {
+        "response_type": "ephemeral",
+        "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+      }
+    },
+    {
+      "label": "/milo status",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "C0INFRA01",
+        "channel_name": "infra",
+        "user_id": "U0ANA0001",
+        "user_name": "ana",
+        "command": "/milo",
+        "text": "status",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3",
+        "trigger_id": "1793448000.3.fake3"
+      }
+    },
+    {
+      "label": "/milo status event",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "C0INFRA01",
+        "channel_name": "infra",
+        "user_id": "U0ANA0001",
+        "user_name": "ana",
+        "command": "/milo",
+        "text": "status event",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4",
+        "trigger_id": "1793448000.4.fake4"
+      }
+    },
+    {
+      "label": "/milo status nope",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "C0INFRA01",
+        "channel_name": "infra",
+        "user_id": "U0ANA0001",
+        "user_name": "ana",
+        "command": "/milo",
+        "text": "status nope",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/5/fakeresponse5",
+        "trigger_id": "1793448000.5.fake5"
+      }
+    },
+    {
+      "label": "/milo inbox",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "C0INFRA01",
+        "channel_name": "infra",
+        "user_id": "U0ANA0001",
+        "user_name": "ana",
+        "command": "/milo",
+        "text": "inbox",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/6/fakeresponse6",
+        "trigger_id": "1793448000.6.fake6"
+      }
+    },
+    {
+      "label": "/milo dance",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "C0INFRA01",
+        "channel_name": "infra",
+        "user_id": "U0ANA0001",
+        "user_name": "ana",
+        "command": "/milo",
+        "text": "dance",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/7/fakeresponse7",
+        "trigger_id": "1793448000.7.fake7"
+      },
+      "ack": {
+        "response_type": "ephemeral",
+        "text": "Unknown command `dance`.\n*/milo decide [text]*  record a decision (or use *Save as decision* on a message)\n*/milo status [mission]*  mission briefing\n*/milo inbox*  questions waiting on you\n*/milo help*  this list"
+      }
+    }
+  ]
+}

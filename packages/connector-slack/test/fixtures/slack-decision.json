@@ -1,0 +1,2673 @@
+{
+  "source": "fake",
+  "recordedAt": "2026-10-31T16:56:50.402Z",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Save as decision on a thread (refused, modal, mission switch, validation, save), bot not in channel, /milo decide as mission only.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/1/fakeresponse1",
+        "body": {
+          "response_type": "ephemeral",
+          "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.open",
+        "body": {
+          "trigger_id": "1793448005.2.fake2",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "_Reading the thread…_"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000001",
+            "hash": "1793448005.h1",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "_Reading the thread…_"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/conversations.replies?channel=C0INFRA01&ts=1793448000.000001&limit=200"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "messages": [
+            {
+              "type": "message",
+              "ts": "1793448000.000001",
+              "user": "U0ANA0001",
+              "text": "Event store: Postgres or SQLite? <@U0RAJ0001> any numbers?"
+            },
+            {
+              "type": "message",
+              "ts": "1793448001.000002",
+              "user": "U0RAJ0001",
+              "text": "Postgres handled 40k writes/s in the bench; SQLite topped at 6k.",
+              "thread_ts": "1793448000.000001"
+            },
+            {
+              "type": "message",
+              "ts": "1793448002.000003",
+              "user": "U0ANA0001",
+              "text": "CI needs a container for Postgres though.",
+              "thread_ts": "1793448000.000001"
+            },
+            {
+              "type": "message",
+              "ts": "1793448003.000004",
+              "user": "U0RAJ0001",
+              "text": "Use Postgres; SQLite for tests. See <https://example.com/bench|the bench>.",
+              "thread_ts": "1793448000.000001"
+            }
+          ],
+          "has_more": false
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/users.info?user=U0ANA0001"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "user": {
+            "id": "U0ANA0001",
+            "team_id": "T0EFIKA01",
+            "name": "ana",
+            "deleted": false,
+            "real_name": "Ana Silva",
+            "is_bot": false,
+            "profile": {
+              "display_name": "ana",
+              "real_name": "Ana Silva"
+            }
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/users.info?user=U0RAJ0001"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "user": {
+            "id": "U0RAJ0001",
+            "team_id": "T0EFIKA01",
+            "name": "raj",
+            "deleted": false,
+            "real_name": "Raj Patel",
+            "is_bot": false,
+            "profile": {
+              "display_name": "raj",
+              "real_name": "Raj Patel"
+            }
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/chat.getPermalink?channel=C0INFRA01&message_ts=1793448003.000004"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "C0INFRA01",
+          "permalink": "https://efika.slack.com/archives/C0INFRA01/p1793448003000004"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.update",
+        "body": {
+          "view_id": "V000000001",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Resolve ticket",
+                      "emoji": true
+                    },
+                    "value": "resolve"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#3 Pick DB",
+                        "emoji": true
+                      },
+                      "value": "t-3"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#4 Retention policy",
+                        "emoji": true
+                      },
+                      "value": "t-4"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#3 Pick DB",
+                      "emoji": true
+                    },
+                    "value": "t-3"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#infra · 4 msgs · @ana @raj · <https://efika.slack.com/archives/C0INFRA01/p1793448003000004|thread>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000001",
+            "hash": "1793448005.h2",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Resolve ticket",
+                      "emoji": true
+                    },
+                    "value": "resolve"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#3 Pick DB",
+                        "emoji": true
+                      },
+                      "value": "t-3"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#4 Retention policy",
+                        "emoji": true
+                      },
+                      "value": "t-4"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#3 Pick DB",
+                      "emoji": true
+                    },
+                    "value": "t-3"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#infra · 4 msgs · @ana @raj · <https://efika.slack.com/archives/C0INFRA01/p1793448003000004|thread>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.update",
+        "body": {
+          "view_id": "V000000001",
+          "hash": "1793448005.h2",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-6\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#6 Mobile sync",
+                      "emoji": true
+                    },
+                    "value": "map-6"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "New decision ticket",
+                      "emoji": true
+                    },
+                    "value": "new"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#7 Conflict policy",
+                        "emoji": true
+                      },
+                      "value": "t-7"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#infra · @ana @raj · <https://efika.slack.com/archives/C0INFRA01/p1793448003000004|thread>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #6"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000001",
+            "hash": "1793448005.h3",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-6\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#6 Mobile sync",
+                      "emoji": true
+                    },
+                    "value": "map-6"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "New decision ticket",
+                      "emoji": true
+                    },
+                    "value": "new"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#7 Conflict policy",
+                        "emoji": true
+                      },
+                      "value": "t-7"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#infra · @ana @raj · <https://efika.slack.com/archives/C0INFRA01/p1793448003000004|thread>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #6"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.update",
+        "body": {
+          "view_id": "V000000001",
+          "hash": "1793448005.h3",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Resolve ticket",
+                      "emoji": true
+                    },
+                    "value": "resolve"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#3 Pick DB",
+                        "emoji": true
+                      },
+                      "value": "t-3"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#4 Retention policy",
+                        "emoji": true
+                      },
+                      "value": "t-4"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#3 Pick DB",
+                      "emoji": true
+                    },
+                    "value": "t-3"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#infra · @ana @raj · <https://efika.slack.com/archives/C0INFRA01/p1793448003000004|thread>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000001",
+            "hash": "1793448005.h4",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Resolve ticket",
+                      "emoji": true
+                    },
+                    "value": "resolve"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#3 Pick DB",
+                        "emoji": true
+                      },
+                      "value": "t-3"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#4 Retention policy",
+                        "emoji": true
+                      },
+                      "value": "t-4"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#3 Pick DB",
+                      "emoji": true
+                    },
+                    "value": "t-3"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "#infra · @ana @raj · <https://efika.slack.com/archives/C0INFRA01/p1793448003000004|thread>"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "C0INFRA01",
+          "thread_ts": "1793448000.000001",
+          "text": "Saved to *Event store*, resolved #3 Pick DB",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "Saved to *Event store*, resolved #3 Pick DB"
+              }
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS"
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "C0INFRA01",
+          "ts": "1793448005.000006",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Saved to *Event store*, resolved #3 Pick DB",
+            "ts": "1793448005.000006"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.open",
+        "body": {
+          "trigger_id": "1793448006.7.fake7",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0RANDOM1\",\"cn\":\"random\",\"t\":\"1793448004.000005\",\"m\":\"1793448004.000005\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "_Reading the thread…_"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000005",
+            "hash": "1793448006.h5",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0RANDOM1\",\"cn\":\"random\",\"t\":\"1793448004.000005\",\"m\":\"1793448004.000005\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "_Reading the thread…_"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/conversations.replies?channel=C0RANDOM1&ts=1793448004.000005&limit=200"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "text/plain;charset=UTF-8"
+        },
+        "body": {
+          "ok": false,
+          "error": "not_in_channel"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.update",
+        "body": {
+          "view_id": "V000000005",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0RANDOM1\",\"cn\":\"random\",\"t\":\"1793448004.000005\",\"m\":\"1793448004.000005\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Close",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Invite @MILO to #random to save threads here: `/invite @MILO`"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000005",
+            "hash": "1793448006.h6",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"C0RANDOM1\",\"cn\":\"random\",\"t\":\"1793448004.000005\",\"m\":\"1793448004.000005\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Close",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Invite @MILO to #random to save threads here: `/invite @MILO`"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.open",
+        "body": {
+          "trigger_id": "1793448006.8.fake8",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "_Reading the thread…_"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000007",
+            "hash": "1793448006.h7",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "_Reading the thread…_"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.update",
+        "body": {
+          "view_id": "V000000007",
+          "view": {
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0MILOTST\",\"mid\":\"map-1\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "New decision ticket",
+                      "emoji": true
+                    },
+                    "value": "new"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#4 Retention policy",
+                        "emoji": true
+                      },
+                      "value": "t-4"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "SQLite for tests, Postgres in CI"
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #1"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000007",
+            "hash": "1793448006.h8",
+            "type": "modal",
+            "callback_id": "decision_modal",
+            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0MILOTST\",\"mid\":\"map-1\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Save as decision",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Save",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "section",
+                "block_id": "mission",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Mission*"
+                },
+                "accessory": {
+                  "type": "static_select",
+                  "action_id": "mission_pick",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#1 Event store",
+                        "emoji": true
+                      },
+                      "value": "map-1"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#6 Mobile sync",
+                        "emoji": true
+                      },
+                      "value": "map-6"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "mode",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Save as",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "radio_buttons",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Resolve ticket",
+                        "emoji": true
+                      },
+                      "value": "resolve"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Mission only",
+                        "emoji": true
+                      },
+                      "value": "mission"
+                    },
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "New decision ticket",
+                        "emoji": true
+                      },
+                      "value": "new"
+                    }
+                  ],
+                  "initial_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "New decision ticket",
+                      "emoji": true
+                    },
+                    "value": "new"
+                  }
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "ticket",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Ticket to resolve",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "static_select",
+                  "action_id": "value",
+                  "options": [
+                    {
+                      "text": {
+                        "type": "plain_text",
+                        "text": "#4 Retention policy",
+                        "emoji": true
+                      },
+                      "value": "t-4"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "decision",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Decision",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000,
+                  "initial_value": "SQLite for tests, Postgres in CI"
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "summary",
+                "optional": true,
+                "label": {
+                  "type": "plain_text",
+                  "text": "Summary",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true,
+                  "max_length": 3000
+                }
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Posts to GitHub Issues · mission #1"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/4/fakeresponse4",
+        "body": {
+          "response_type": "ephemeral",
+          "text": "Saved to *Event store*",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "Saved to *Event store*"
+              }
+            },
+            {
+              "type": "actions",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS"
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    }
+  ],
+  "envelopes": [
+    {
+      "label": "eve (not allowed) runs Save as decision",
+      "type": "interactive",
+      "payload": {
+        "type": "message_action",
+        "token": "legacy",
+        "action_ts": "1793448005.000001",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0EVE0001",
+          "username": "eve",
+          "name": "eve",
+          "team_id": "T0EFIKA01"
+        },
+        "channel": {
+          "id": "C0INFRA01",
+          "name": "infra"
+        },
+        "is_enterprise_install": false,
+        "callback_id": "save_decision",
+        "trigger_id": "1793448005.1.fake1",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/1/fakeresponse1",
+        "message_ts": "1793448003.000004",
+        "message": {
+          "type": "message",
+          "ts": "1793448003.000004",
+          "user": "U0RAJ0001",
+          "text": "Use Postgres; SQLite for tests. See <https://example.com/bench|the bench>.",
+          "thread_ts": "1793448000.000001"
+        }
+      }
+    },
+    {
+      "label": "ana runs Save as decision on the last reply",
+      "type": "interactive",
+      "payload": {
+        "type": "message_action",
+        "token": "legacy",
+        "action_ts": "1793448005.000001",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "channel": {
+          "id": "C0INFRA01",
+          "name": "infra"
+        },
+        "is_enterprise_install": false,
+        "callback_id": "save_decision",
+        "trigger_id": "1793448005.2.fake2",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/2/fakeresponse2",
+        "message_ts": "1793448003.000004",
+        "message": {
+          "type": "message",
+          "ts": "1793448003.000004",
+          "user": "U0RAJ0001",
+          "text": "Use Postgres; SQLite for tests. See <https://example.com/bench|the bench>.",
+          "thread_ts": "1793448000.000001"
+        }
+      }
+    },
+    {
+      "label": "ana switches the mission",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "view",
+          "view_id": "V000000001"
+        },
+        "trigger_id": "1793448005.3.fake3",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448005.h2",
+          "callback_id": "decision_modal",
+          "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
+          "state": {
+            "values": {
+              "mission": {
+                "mission_pick": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#6 Mobile sync",
+                      "emoji": true
+                    },
+                    "value": "map-6"
+                  }
+                }
+              },
+              "mode": {
+                "value": {
+                  "type": "radio_buttons",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Resolve ticket",
+                      "emoji": true
+                    },
+                    "value": "resolve"
+                  }
+                }
+              },
+              "ticket": {
+                "value": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#3 Pick DB",
+                      "emoji": true
+                    },
+                    "value": "t-3"
+                  }
+                }
+              },
+              "decision": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              "summary": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              }
+            }
+          }
+        },
+        "actions": [
+          {
+            "type": "static_select",
+            "action_id": "mission_pick",
+            "block_id": "mission",
+            "selected_option": {
+              "text": {
+                "type": "plain_text",
+                "text": "#6 Mobile sync",
+                "emoji": true
+              },
+              "value": "map-6"
+            },
+            "action_ts": "1793448005.000004"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana switches back",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "view",
+          "view_id": "V000000001"
+        },
+        "trigger_id": "1793448005.4.fake4",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448005.h3",
+          "callback_id": "decision_modal",
+          "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-6\"}",
+          "state": {
+            "values": {
+              "mission": {
+                "mission_pick": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              "mode": {
+                "value": {
+                  "type": "radio_buttons",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "New decision ticket",
+                      "emoji": true
+                    },
+                    "value": "new"
+                  }
+                }
+              },
+              "ticket": {
+                "value": {
+                  "type": "static_select",
+                  "selected_option": null
+                }
+              },
+              "decision": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              "summary": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              }
+            }
+          }
+        },
+        "actions": [
+          {
+            "type": "static_select",
+            "action_id": "mission_pick",
+            "block_id": "mission",
+            "selected_option": {
+              "text": {
+                "type": "plain_text",
+                "text": "#1 Event store",
+                "emoji": true
+              },
+              "value": "map-1"
+            },
+            "action_ts": "1793448005.000004"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana saves with the decision emptied",
+      "type": "interactive",
+      "payload": {
+        "type": "view_submission",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "trigger_id": "1793448005.5.fake5",
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448005.h4",
+          "type": "modal",
+          "callback_id": "decision_modal",
+          "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
+          "state": {
+            "values": {
+              "mission": {
+                "mission_pick": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              "mode": {
+                "value": {
+                  "type": "radio_buttons",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Resolve ticket",
+                      "emoji": true
+                    },
+                    "value": "resolve"
+                  }
+                }
+              },
+              "ticket": {
+                "value": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#3 Pick DB",
+                      "emoji": true
+                    },
+                    "value": "t-3"
+                  }
+                }
+              },
+              "decision": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": ""
+                }
+              },
+              "summary": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              }
+            }
+          }
+        },
+        "response_urls": []
+      },
+      "ack": {
+        "response_action": "errors",
+        "errors": {
+          "decision": "Enter the decision"
+        }
+      }
+    },
+    {
+      "label": "ana saves",
+      "type": "interactive",
+      "payload": {
+        "type": "view_submission",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "trigger_id": "1793448005.6.fake6",
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448005.h4",
+          "type": "modal",
+          "callback_id": "decision_modal",
+          "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
+          "state": {
+            "values": {
+              "mission": {
+                "mission_pick": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              "mode": {
+                "value": {
+                  "type": "radio_buttons",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Resolve ticket",
+                      "emoji": true
+                    },
+                    "value": "resolve"
+                  }
+                }
+              },
+              "ticket": {
+                "value": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#3 Pick DB",
+                      "emoji": true
+                    },
+                    "value": "t-3"
+                  }
+                }
+              },
+              "decision": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "Use Postgres; SQLite for tests. See the bench."
+                }
+              },
+              "summary": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "ana: Event store: Postgres or SQLite? @raj any numbers?\nana: CI needs a container for Postgres though.\nraj: Use Postgres; SQLite for tests. See the bench."
+                }
+              }
+            }
+          }
+        },
+        "response_urls": []
+      }
+    },
+    {
+      "label": "raj runs Save as decision where MILO is not invited",
+      "type": "interactive",
+      "payload": {
+        "type": "message_action",
+        "token": "legacy",
+        "action_ts": "1793448006.000001",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0RAJ0001",
+          "username": "raj",
+          "name": "raj",
+          "team_id": "T0EFIKA01"
+        },
+        "channel": {
+          "id": "C0RANDOM1",
+          "name": "random"
+        },
+        "is_enterprise_install": false,
+        "callback_id": "save_decision",
+        "trigger_id": "1793448006.7.fake7",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3",
+        "message_ts": "1793448004.000005",
+        "message": {
+          "type": "message",
+          "ts": "1793448004.000005",
+          "user": "U0ANA0001",
+          "text": "Lunch?"
+        }
+      }
+    },
+    {
+      "label": "raj runs /milo decide in #milo-test",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "G0MILOTST",
+        "channel_name": "milo-test",
+        "user_id": "U0RAJ0001",
+        "user_name": "raj",
+        "command": "/milo",
+        "text": "decide SQLite for tests, Postgres in CI",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4",
+        "trigger_id": "1793448006.8.fake8"
+      }
+    },
+    {
+      "label": "raj saves it as mission only",
+      "type": "interactive",
+      "payload": {
+        "type": "view_submission",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0RAJ0001",
+          "username": "raj",
+          "name": "raj",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "trigger_id": "1793448006.9.fake9",
+        "view": {
+          "id": "V000000007",
+          "hash": "1793448006.h8",
+          "type": "modal",
+          "callback_id": "decision_modal",
+          "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0MILOTST\",\"mid\":\"map-1\"}",
+          "state": {
+            "values": {
+              "mission": {
+                "mission_pick": {
+                  "type": "static_select",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "#1 Event store",
+                      "emoji": true
+                    },
+                    "value": "map-1"
+                  }
+                }
+              },
+              "mode": {
+                "value": {
+                  "type": "radio_buttons",
+                  "selected_option": {
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Mission only",
+                      "emoji": true
+                    },
+                    "value": "mission"
+                  }
+                }
+              },
+              "ticket": {
+                "value": {
+                  "type": "static_select",
+                  "selected_option": null
+                }
+              },
+              "decision": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "SQLite for tests, Postgres in CI"
+                }
+              },
+              "summary": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": null
+                }
+              }
+            }
+          }
+        },
+        "response_urls": []
+      }
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import type { ActivityState } from './activity';
 import type { TrackerAdapter } from './adapter';
 import { deriveStates } from './derive';
 import { Emitter } from './emitter';
-import { TICKET_TYPES, type MapSnapshot, type NodeState, type SessionInfo, type SessionUsage, type Ticket, type TicketType, type TrackerEvent } from './types';
+import { TICKET_TYPES, type MapSnapshot, type NodeState, type SessionInfo, type SessionUsage, type Ticket, type TicketType, type TrackerEvent, type UsageSource } from './types';
 
 /*
  * Named metrics behind every HUD widget. Each one is a pure function of
@@ -127,6 +127,28 @@ export function missionUsage(activity: ActivityState, mapId: string | undefined)
 }
 
 export const sessionTokens = (s: Pick<SessionInfo, 'usage'>) => (s.usage ? s.usage.inputTokens + s.usage.outputTokens : 0);
+
+/** Short tag and explanation per usage source: `LOG` is measured from the agent's own log, `SELF` is the agent's report. */
+export const USAGE_SOURCE: Record<UsageSource, { tag: string; text: string }> = {
+  'claude-code': { tag: 'LOG', text: 'Measured from the Claude Code session transcript; cost at list price' },
+  codex: { tag: 'LOG', text: 'Measured from the Codex session log; cost at list price' },
+  reported: { tag: 'SELF', text: 'Self-reported by the agent (report_progress)' },
+};
+
+/** Sources behind a mission's usage, from the sessions still in view. */
+export function missionUsageSources(activity: ActivityState, mapId: string | undefined): UsageSource[] {
+  const seen = new Set<UsageSource>();
+  for (const s of activity.sessions) if (mapId && s.mapId === mapId && s.usage?.source) seen.add(s.usage.source);
+  return [...seen].sort();
+}
+
+/** Tooltip for a session's usage: tokens in/out, cached input, models and where the numbers come from. */
+export function usageDetail(u: SessionUsage) {
+  const parts = [`${u.inputTokens.toLocaleString()} in${u.cachedInputTokens ? ` (${u.cachedInputTokens.toLocaleString()} cached)` : ''} · ${u.outputTokens.toLocaleString()} out`];
+  if (u.models?.length) parts.push(u.models.join(', '));
+  if (u.source) parts.push(USAGE_SOURCE[u.source].text);
+  return parts.join('\n');
+}
 
 export interface TrackerHealth {
   /** `syncing` while a write is in flight. */

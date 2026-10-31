@@ -9,6 +9,14 @@ const addUsage = (a: SessionUsage | undefined, b: SessionUsage): SessionUsage =>
   inputTokens: (a?.inputTokens ?? 0) + b.inputTokens,
   outputTokens: (a?.outputTokens ?? 0) + b.outputTokens,
   costUsd: (a?.costUsd ?? 0) + b.costUsd,
+  ...(a?.cachedInputTokens || b.cachedInputTokens ? { cachedInputTokens: (a?.cachedInputTokens ?? 0) + (b.cachedInputTokens ?? 0) } : {}),
+});
+
+const subUsage = (a: SessionUsage, b: SessionUsage | undefined): SessionUsage => ({
+  inputTokens: a.inputTokens - (b?.inputTokens ?? 0),
+  outputTokens: a.outputTokens - (b?.outputTokens ?? 0),
+  costUsd: a.costUsd - (b?.costUsd ?? 0),
+  ...(a.cachedInputTokens || b?.cachedInputTokens ? { cachedInputTokens: (a.cachedInputTokens ?? 0) - (b?.cachedInputTokens ?? 0) } : {}),
 });
 
 export interface ActivityState {
@@ -37,6 +45,8 @@ export interface SessionHandle {
   bindMap(mapId: string): void;
   /** Add model usage reported by the agent. */
   usage(delta: SessionUsage): void;
+  /** Replace the session's cumulative usage (measured from the agent's logs); the mission total moves by the difference. */
+  setUsage(total: SessionUsage): void;
 }
 
 /**
@@ -115,14 +125,11 @@ export class ActivityStream {
     const sid = session.id;
     if (!this.remote.has(sid) && this.state.sessions.some((s) => s.id === sid)) return;
     const prevUsage = this.remote.get(sid);
-    this.remote.set(sid, session.usage);
+    // Usage of a chart session counts once it is bound to its mission, so keep the baseline until then.
+    this.remote.set(sid, session.mapId ? session.usage : prevUsage);
     let usageByMap = this.state.usageByMap;
     if (session.usage && session.mapId) {
-      const d = {
-        inputTokens: session.usage.inputTokens - (prevUsage?.inputTokens ?? 0),
-        outputTokens: session.usage.outputTokens - (prevUsage?.outputTokens ?? 0),
-        costUsd: session.usage.costUsd - (prevUsage?.costUsd ?? 0),
-      };
+      const d = subUsage(session.usage, prevUsage);
       if (d.inputTokens || d.outputTokens || d.costUsd) usageByMap = { ...usageByMap, [session.mapId]: addUsage(usageByMap[session.mapId], d) };
       this.ledger?.addTotal(session.mapId, sid, session.usage);
     }
@@ -220,7 +227,18 @@ export class ActivityStream {
           ...self.state,
           usageByMap: { ...self.state.usageByMap, [mapId]: addUsage(self.state.usageByMap[mapId], delta) },
         };
-        self.patchSession(info.id, { usage: addUsage(current().usage, delta) });
+        const prev = current().usage;
+        self.patchSession(info.id, { usage: { ...addUsage(prev, delta), source: delta.source ?? prev?.source } });
+      },
+      setUsage(total) {
+        const prev = current().usage;
+        const d = subUsage(total, prev);
+        const same = !d.inputTokens && !d.outputTokens && !d.costUsd && !d.cachedInputTokens && prev?.source === total.source && `${prev?.models}` === `${total.models}`;
+        if (same) return;
+        const mapId = current().mapId;
+        if (d.inputTokens > 0 || d.outputTokens > 0 || d.costUsd > 0) self.ledger?.add(mapId, d, info.id);
+        self.state = { ...self.state, usageByMap: { ...self.state.usageByMap, [mapId]: addUsage(self.state.usageByMap[mapId], d) } };
+        self.patchSession(info.id, { usage: total });
       },
     };
   }

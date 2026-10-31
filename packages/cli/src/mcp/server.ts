@@ -4,11 +4,12 @@ import { z } from 'zod';
 import { BRAND, MarkdownAdapter, TICKET_TYPES, type TicketType } from '@miloops-hq/core';
 import { activeTracker } from '@miloops-hq/core/bridge';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
+import { UsageMeter } from '../usage/meter';
 import { MissionAgent, OperationError, type WaitControl } from './agent';
 
 const INSTRUCTIONS = `${BRAND.name} is the command center for this repo's missions. A mission is a map of tickets (research, prototype, grilling, task, execute) with blocking edges; the human watches it live in the command center and answers questions there.
 
-Work loop: resume_mission (or start_mission for a new idea) → claim_ticket → do the work, calling report_progress with steps, notes and token/cost usage → ask_human whenever you need the human (it waits for the answer) → close_ticket with the resolution → claim the next ticket.
+Work loop: resume_mission (or start_mission for a new idea) → claim_ticket → do the work, calling report_progress with steps and notes → ask_human whenever you need the human (it waits for the answer) → close_ticket with the resolution → claim the next ticket.
 Use record_decision for any other call worth keeping. Never decide HITL tickets (grilling, prototype, HITL tasks) alone: ask.
 If ask_human returns answered=false, call wait_for_answer with the questionId, or tell the user the question is waiting in the command center.`;
 
@@ -49,6 +50,7 @@ export function createMcpServer(agent: MissionAgent, version: string) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (async (args: any, extra: any) => {
         try {
+          agent.noteCall(extra?._meta);
           return result(await fn(args, extra));
         } catch (e) {
           return failure(e);
@@ -138,7 +140,7 @@ export function createMcpServer(agent: MissionAgent, version: string) {
     {
       title: 'Report progress',
       description:
-        'Show progress live in the command center: a step of the session procedure (work: Load mission, Claim, Resolve, Record, Update plan; research: Claim, Investigate, Record), a log line, a chat message to the human, and model usage since your last report (tokens and USD).',
+        'Show progress live in the command center: a step of the session procedure (work: Load mission, Claim, Resolve, Record, Update plan; research: Claim, Investigate, Record), a log line, a chat message to the human. Token and cost usage is read from Claude Code and Codex session logs; pass inputTokens/outputTokens/costUsd only when your client has no such log and you actually know them (since your last report).',
     },
     {
       message: z.string().optional().describe('Log line, or detail for the step.'),
@@ -232,7 +234,7 @@ export async function runMcpServer(opts: { root: string; agent?: string; version
     return v ? `${v.name} ${v.version}` : undefined;
   };
   const markdown = new MarkdownAdapter({ ...nodeMarkdownFs(opts.root), watch: undefined }, opts.root);
-  const agent = new MissionAgent({ root: opts.root, agent: opts.agent, client, tracker: activeTracker({ root: opts.root, markdown }) });
+  const agent = new MissionAgent({ root: opts.root, agent: opts.agent, client, tracker: activeTracker({ root: opts.root, markdown }), usage: new UsageMeter({ root: opts.root }) });
   server = createMcpServer(agent, opts.version);
   let closed = false;
   const shutdown = (code = 0) => {

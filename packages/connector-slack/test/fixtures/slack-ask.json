@@ -1,0 +1,973 @@
+{
+  "source": "fake",
+  "recordedAt": "2026-10-31T16:56:50.392Z",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Agent questions as DMs: refused click, button answer, late click, answer in the command center, Reply… modal, agent gone.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/conversations.open",
+        "body": {
+          "users": "U0ANA0001"
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": {
+            "id": "D00ANA0001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Awaiting you · claude-07: Postgres or SQLite for the event store? Postgres needs a container in CI.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◆ *AWAITING YOU* · Event store · #3 Pick DB · claude-07\n>Postgres or SQLite for the event store? Postgres needs a container in CI."
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "ask:q1",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "ask_option:0",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Postgres",
+                    "emoji": true
+                  },
+                  "value": "{\"s\":\"s1\",\"q\":\"q1\",\"i\":0}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "ask_option:1",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "SQLite",
+                    "emoji": true
+                  },
+                  "value": "{\"s\":\"s1\",\"q\":\"q1\",\"i\":1}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "ask_reply",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Reply…",
+                    "emoji": true
+                  },
+                  "value": "{\"s\":\"s1\",\"q\":\"q1\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Awaiting you · claude-07: Postgres or SQLite for the event store? Postgres needs a container in CI.",
+            "ts": "1793448000.000001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/1/fakeresponse1",
+        "body": {
+          "response_type": "ephemeral",
+          "replace_original": false,
+          "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "text": "✓ Answered by <@U0ANA0001> via Slack: “Postgres”. claude-07 resumed.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *ANSWERED* · Event store · #3 Pick DB · claude-07\n>Postgres or SQLite for the event store? Postgres needs a container in CI."
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "✓ Answered by <@U0ANA0001> via Slack: “Postgres”. claude-07 resumed."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448000.000001",
+          "text": "✓ Answered by <@U0ANA0001> via Slack: “Postgres”. claude-07 resumed."
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/3/fakeresponse3",
+        "body": {
+          "response_type": "ephemeral",
+          "replace_original": false,
+          "text": "Already answered in MILOOPS."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Awaiting you · codex-02: Keep events for 30 or 90 days?",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◆ *AWAITING YOU* · Event store · #4 Retention policy · codex-02\n>Keep events for 30 or 90 days?"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "ask:q2",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "ask_reply",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Reply…",
+                    "emoji": true
+                  },
+                  "value": "{\"s\":\"s2\",\"q\":\"q2\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Awaiting you · codex-02: Keep events for 30 or 90 days?",
+            "ts": "1793448001.000002"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "✓ Answered in MILOOPS by operator: “90 days”.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *ANSWERED* · Event store · #4 Retention policy · codex-02\n>Keep events for 30 or 90 days?"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "✓ Answered in MILOOPS by operator: “90 days”."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000002",
+          "text": "✓ Answered in MILOOPS by operator: “90 days”."
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Awaiting you · claude-09: Name for the events table?",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◆ *AWAITING YOU* · Event store · claude-09\n>Name for the events table?"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "ask:q3",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "ask_reply",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Reply…",
+                    "emoji": true
+                  },
+                  "value": "{\"s\":\"s3\",\"q\":\"q3\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448002.000003",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Awaiting you · claude-09: Name for the events table?",
+            "ts": "1793448002.000003"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.open",
+        "body": {
+          "trigger_id": "1793448003.4.fake4",
+          "view": {
+            "type": "modal",
+            "callback_id": "ask_reply_modal",
+            "private_metadata": "{\"s\":\"s3\",\"q\":\"q3\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Reply",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Send",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "claude-09"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": ">Name for the events table?"
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "answer",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Answer",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true
+                }
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "V000000001",
+            "hash": "1793448003.h1",
+            "type": "modal",
+            "callback_id": "ask_reply_modal",
+            "private_metadata": "{\"s\":\"s3\",\"q\":\"q3\"}",
+            "title": {
+              "type": "plain_text",
+              "text": "Reply",
+              "emoji": true
+            },
+            "submit": {
+              "type": "plain_text",
+              "text": "Send",
+              "emoji": true
+            },
+            "close": {
+              "type": "plain_text",
+              "text": "Cancel",
+              "emoji": true
+            },
+            "blocks": [
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "claude-09"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": ">Name for the events table?"
+                }
+              },
+              {
+                "type": "input",
+                "block_id": "answer",
+                "label": {
+                  "type": "plain_text",
+                  "text": "Answer",
+                  "emoji": true
+                },
+                "element": {
+                  "type": "plain_text_input",
+                  "action_id": "value",
+                  "multiline": true
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448002.000003",
+          "text": "✓ Answered by <@U0ANA0001> via Slack: “event_log”. claude-09 resumed.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *ANSWERED* · Event store · claude-09\n>Name for the events table?"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "✓ Answered by <@U0ANA0001> via Slack: “event_log”. claude-09 resumed."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448002.000003",
+          "text": "✓ Answered by <@U0ANA0001> via Slack: “event_log”. claude-09 resumed."
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Awaiting you · claude-07: Ship behind a flag?",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◆ *AWAITING YOU* · Event store · claude-07\n>Ship behind a flag?"
+              }
+            },
+            {
+              "type": "actions",
+              "block_id": "ask:q4",
+              "elements": [
+                {
+                  "type": "button",
+                  "action_id": "ask_reply",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Reply…",
+                    "emoji": true
+                  },
+                  "value": "{\"s\":\"s4\",\"q\":\"q4\"}"
+                },
+                {
+                  "type": "button",
+                  "action_id": "open_miloops",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Open in MILOOPS",
+                    "emoji": true
+                  },
+                  "url": "http://localhost:7420/"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448003.000004",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Awaiting you · claude-07: Ship behind a flag?",
+            "ts": "1793448003.000004"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.update",
+        "body": {
+          "channel": "D00ANA0001",
+          "ts": "1793448003.000004",
+          "text": "No longer waiting: claude-07 session ended.",
+          "blocks": [
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "◇ *CLOSED* · Event store · claude-07\n>Ship behind a flag?"
+              }
+            },
+            {
+              "type": "context",
+              "elements": [
+                {
+                  "type": "mrkdwn",
+                  "text": "No longer waiting: claude-07 session ended."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448003.000004",
+          "text": "No longer waiting: claude-07 session ended."
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/actions/T0EFIKA01/5/fakeresponse5",
+        "body": {
+          "response_type": "ephemeral",
+          "text": "Nothing is waiting on you."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json"
+        },
+        "body": {
+          "ok": true
+        }
+      }
+    }
+  ],
+  "envelopes": [
+    {
+      "label": "eve (not allowed) clicks Postgres",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0EVE0001",
+          "username": "eve",
+          "name": "eve",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448000.000001",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448001.1.fake1",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448000.000001",
+          "text": "Awaiting you · claude-07: Postgres or SQLite for the event store? Postgres needs a container in CI."
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/1/fakeresponse1",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "ask_option:0",
+            "block_id": "ask:q1",
+            "text": {
+              "type": "plain_text",
+              "text": "Postgres",
+              "emoji": true
+            },
+            "value": "{\"s\":\"s1\",\"q\":\"q1\",\"i\":0}",
+            "action_ts": "1793448001.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana clicks Postgres",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448000.000001",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448001.2.fake2",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448000.000001",
+          "text": "Awaiting you · claude-07: Postgres or SQLite for the event store? Postgres needs a container in CI."
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/2/fakeresponse2",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "ask_option:0",
+            "block_id": "ask:q1",
+            "text": {
+              "type": "plain_text",
+              "text": "Postgres",
+              "emoji": true
+            },
+            "value": "{\"s\":\"s1\",\"q\":\"q1\",\"i\":0}",
+            "action_ts": "1793448001.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "raj clicks SQLite late",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0RAJ0001",
+          "username": "raj",
+          "name": "raj",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448000.000001",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448001.3.fake3",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448000.000001",
+          "text": "✓ Answered by <@U0ANA0001> via Slack: “Postgres”. claude-07 resumed."
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "ask_option:1",
+            "block_id": "ask:q1",
+            "text": {
+              "type": "plain_text",
+              "text": "SQLite",
+              "emoji": true
+            },
+            "value": "{\"s\":\"s1\",\"q\":\"q1\",\"i\":1}",
+            "action_ts": "1793448001.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana clicks Reply…",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "message",
+          "message_ts": "1793448002.000003",
+          "channel_id": "D00ANA0001",
+          "is_ephemeral": false
+        },
+        "trigger_id": "1793448003.4.fake4",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "channel": {
+          "id": "D00ANA0001",
+          "name": "D00ANA0001"
+        },
+        "message": {
+          "type": "message",
+          "ts": "1793448002.000003",
+          "text": "Awaiting you · claude-09: Name for the events table?"
+        },
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4",
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "ask_reply",
+            "block_id": "ask:q3",
+            "text": {
+              "type": "plain_text",
+              "text": "Reply…",
+              "emoji": true
+            },
+            "value": "{\"s\":\"s3\",\"q\":\"q3\"}",
+            "action_ts": "1793448003.000002"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ana submits an empty reply",
+      "type": "interactive",
+      "payload": {
+        "type": "view_submission",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "trigger_id": "1793448003.5.fake5",
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448003.h1",
+          "type": "modal",
+          "callback_id": "ask_reply_modal",
+          "private_metadata": "{\"s\":\"s3\",\"q\":\"q3\"}",
+          "state": {
+            "values": {
+              "answer": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": ""
+                }
+              }
+            }
+          }
+        },
+        "response_urls": []
+      },
+      "ack": {
+        "response_action": "errors",
+        "errors": {
+          "answer": "Enter an answer"
+        }
+      }
+    },
+    {
+      "label": "ana submits the reply",
+      "type": "interactive",
+      "payload": {
+        "type": "view_submission",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "trigger_id": "1793448003.6.fake6",
+        "view": {
+          "id": "V000000001",
+          "hash": "1793448003.h1",
+          "type": "modal",
+          "callback_id": "ask_reply_modal",
+          "private_metadata": "{\"s\":\"s3\",\"q\":\"q3\"}",
+          "state": {
+            "values": {
+              "answer": {
+                "value": {
+                  "type": "plain_text_input",
+                  "value": "event_log"
+                }
+              }
+            }
+          }
+        },
+        "response_urls": []
+      }
+    },
+    {
+      "label": "/milo inbox with nothing waiting",
+      "type": "slash_commands",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "team_domain": "efika",
+        "channel_id": "D00ANA0001",
+        "channel_name": "D00ANA0001",
+        "user_id": "U0ANA0001",
+        "user_name": "ana",
+        "command": "/milo",
+        "text": "inbox",
+        "api_app_id": "A0MILO0001",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.test/actions/T0EFIKA01/5/fakeresponse5",
+        "trigger_id": "1793448004.7.fake7"
+      }
+    }
+  ]
+}

@@ -23,7 +23,7 @@ export interface Fixture {
   exchanges: Exchange[];
 }
 
-const KEEP_HEADERS = /^(etag|retry-after|x-ratelimit-.*|content-type)$/i;
+const KEEP_HEADERS = /^(etag|retry-after|x-ratelimit-.*|x-oauth-scopes|content-type)$/i;
 
 function describe(url: string, init: RequestInit = {}): Exchange['req'] {
   const u = new URL(url);

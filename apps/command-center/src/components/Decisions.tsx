@@ -74,7 +74,7 @@ export function DecisionsView(props: {
           </button>
         ) : (
           <Label as="h2">
-            Decisions <span className="n">{rows.length === all.length ? all.length : `${rows.length}/${all.length}`}</span>
+            Decisions {rows.length !== all.length && <span className="n">{`${rows.length}/${all.length}`}</span>}
           </Label>
         )}
         {bp !== 'mobile' && <Readouts stats={stats} />}

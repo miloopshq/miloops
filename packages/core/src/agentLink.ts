@@ -8,6 +8,7 @@ import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, Session
  *   <tracker>/.agents/sessions/<sessionId>.json             AgentSessionDoc, written only by the owning process
  *   <tracker>/.agents/answers/<sessionId>/<questionId>.json AgentAnswer, written by whoever answers
  *   <tracker>/.agents/server.json                           CommandCenterLock, while `miloops` is serving
+ *   <tracker>/.agents/hosts/<agent>-<hostSessionId>.json    HostSessionLink, written by the agent's session hook
  *
  * Plain files keep it local, survive restarts on either side and need no ports.
  */
@@ -19,7 +20,20 @@ export const agentPaths = {
   answers: (sessionId: string) => `${AGENTS_DIR}/answers/${sessionId}`,
   answer: (sessionId: string, questionId: string) => `${AGENTS_DIR}/answers/${sessionId}/${questionId}.json`,
   lock: `${AGENTS_DIR}/server.json`,
+  hosts: `${AGENTS_DIR}/hosts`,
+  host: (agent: string, hostSessionId: string) => `${AGENTS_DIR}/hosts/${agent}-${hostSessionId.replace(/[^\w.-]/g, '_')}.json`,
 };
+
+/** Where a host agent (Claude Code) keeps the log of one of its sessions, as its SessionStart hook reported it. */
+export interface HostSessionLink {
+  agent: 'claude-code';
+  hostSessionId: string;
+  transcriptPath: string;
+  cwd?: string;
+  /** SessionStart source: startup, resume, clear, compact. */
+  source?: string;
+  at: number;
+}
 
 export const isAgentPath = (rel: string) => rel === AGENTS_DIR || rel.startsWith(`${AGENTS_DIR}/`);
 export const SESSION_DOC_PATH = /^\.agents\/sessions\/([^/]+)\.json$/;

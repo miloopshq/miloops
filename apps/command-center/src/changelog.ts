@@ -12,6 +12,18 @@ export const NEXT: { area: string; items: string[] }[] = [
 
 export const RELEASES: Release[] = [
   {
+    version: '0.12.0',
+    date: '2026-10-31',
+    items: [
+      'Slack: your own MILO app, created from a manifest and connected from your machine over Socket Mode in five guided steps (Settings → Slack or `miloops connect slack`)',
+      'Tokens stay in your local credential store next to the GitHub and Linear ones; nothing passes through MILOOPS servers',
+      'Agent questions arrive as a Slack DM with answer buttons and a Reply… box; answering there resolves the item in Waiting on you, and answering in the command center closes the DM',
+      'Save as decision on any message, or `/milo decide`: the form is prefilled with a summary of the thread, and the decision is recorded with a permalink, resolving the related ticket by default',
+      '`/milo status` and `/milo inbox` for the mission at a glance; DMs when a ticket is blocked or a mission is done',
+      'Allowed users, notification target and events in Settings → Slack',
+    ],
+  },
+  {
     version: '0.11.0',
     date: '2026-10-31',
     items: [

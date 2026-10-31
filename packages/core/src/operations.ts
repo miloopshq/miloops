@@ -105,7 +105,7 @@ export async function resolve(
   adapter: TrackerAdapter,
   mapId: string,
   ticketId: string,
-  input: { answer: string; author: string; summary?: string; transcript?: string; decision?: DecisionMeta },
+  input: { answer: string; author: string; summary?: string; transcript?: string; decision?: DecisionMeta; missionLine?: string },
 ) {
   const snap = await adapter.loadMap(mapId);
   const t = snap.tickets.find((x) => x.id === ticketId);
@@ -115,28 +115,33 @@ export async function resolve(
   await adapter.comment(mapId, ticketId, input.author, `**Resolution**\n\n${input.answer}`);
   await adapter.close(mapId, ticketId, 'completed');
   const d = input.decision ?? {};
-  await recordDecision(adapter, mapId, {
-    ticketId: t.id,
-    ticketKey: t.key,
-    question: d.question ?? t.title,
-    answer: input.answer,
-    summary: input.summary ?? firstSentence(input.answer),
-    alternatives: d.alternatives,
-    rationale: d.rationale,
-    decidedBy: d.decidedBy ?? input.author,
-    participants: d.participants,
-    source: d.source ?? { kind: 'agent', label: input.author },
-    transcript: d.transcript,
-  });
+  await recordDecision(
+    adapter,
+    mapId,
+    {
+      ticketId: t.id,
+      ticketKey: t.key,
+      question: d.question ?? t.title,
+      answer: input.answer,
+      summary: input.summary ?? firstSentence(input.answer),
+      alternatives: d.alternatives,
+      rationale: d.rationale,
+      decidedBy: d.decidedBy ?? input.author,
+      participants: d.participants,
+      source: d.source ?? { kind: 'agent', label: input.author },
+      transcript: d.transcript,
+    },
+    { missionLine: input.missionLine },
+  );
   return t;
 }
 
 /**
  * Record a decision (from any source: command center, agent, Slack, tracker import)
- * and, unless `appendToMission` is false, add its summary to the map's "Decisions so far".
+ * and, unless `appendToMission` is false, add `missionLine` (default: its summary) to the map's "Decisions so far".
  * Re-recording the same `source.kind` + `source.ref` returns the existing record.
  */
-export async function recordDecision(adapter: TrackerAdapter, mapId: string, input: DecisionInput, opts: { appendToMission?: boolean } = {}) {
+export async function recordDecision(adapter: TrackerAdapter, mapId: string, input: DecisionInput, opts: { appendToMission?: boolean; missionLine?: string } = {}) {
   if (input.source.ref) {
     const dup = (await adapter.listDecisions(mapId)).find((d) => d.source.kind === input.source.kind && d.source.ref === input.source.ref);
     if (dup) return dup;
@@ -145,7 +150,7 @@ export async function recordDecision(adapter: TrackerAdapter, mapId: string, inp
   if (opts.appendToMission ?? true) {
     const fresh = await adapter.loadMap(mapId);
     await adapter.updateMapSections(mapId, {
-      decisions: [...fresh.map.sections.decisions, { ticketId: rec.ticketId, ticketKey: rec.ticketKey, text: rec.summary }],
+      decisions: [...fresh.map.sections.decisions, { ticketId: rec.ticketId, ticketKey: rec.ticketKey, text: opts.missionLine ?? rec.summary }],
     });
   }
   return rec;

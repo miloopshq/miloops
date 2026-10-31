@@ -17,6 +17,13 @@ const LINES = {
 const SPEAK_AT = 1500;
 const ORDER: MiloStyleId[] = ['crt', 'mono'];
 const TAGLINE = 'One command center. Every agent. Total operational awareness.';
+/** Banner wordmark; override with `?wordmark=` (capture: WORDMARK env). Text after `|` renders in the brand copper (`.wordmark-ops`). */
+const WORDMARK = 'MILO|OPS';
+
+function Wordmark({ text }: { text: string }) {
+  const [lead, tone] = text.split('|');
+  return <div className="wordmark">{lead}{tone && <span className="wordmark-ops">{tone}</span>}</div>;
+}
 
 function Options() {
   return (
@@ -164,7 +171,7 @@ function Favicon({ px }: { px: number }) {
 }
 
 /** card: social preview / Open Graph; header: X profile header (avatar overlaps bottom-left, so content sits right). */
-function Banner({ w, h, layout, url }: { w: number; h: number; layout: 'card' | 'header'; url?: string }) {
+function Banner({ w, h, layout, url, wordmark }: { w: number; h: number; layout: 'card' | 'header'; url?: string; wordmark: string }) {
   const u = h / 640;
   const rows = composeFrame(STYLES.crt.art, { eyes: 'open', mouth: 'rest' });
   return (
@@ -173,8 +180,7 @@ function Banner({ w, h, layout, url }: { w: number; h: number; layout: 'card' | 
         <div className="banner-feed"><MiloAvatar variant="crt" size={Math.floor(11 * u)} state="idle" at={0} caption={false} /></div>
       ) : null}
       <div className="banner-copy">
-        <div className="social-chip">MILO // ONLINE</div>
-        <div className="wordmark">MILOOPS</div>
+        <Wordmark text={wordmark} />
         <div className="social-cat">Autonomous Agent Command Center</div>
         <div className="social-tag">{TAGLINE}</div>
         <div className="social-cmd"><span>$</span> npx miloops{url && <em>{url}</em>}</div>
@@ -225,7 +231,7 @@ function App() {
   if (view === 'demo') return <Demo variant={variant} />;
   if (view === 'square') return <BrandSquare n={Number(q.get('n') || 512)} />;
   if (view === 'favicon') return <Favicon px={Number(q.get('px') || 64)} />;
-  if (view === 'banner') return <Banner w={Number(q.get('w') || 1280)} h={Number(q.get('h') || 640)} layout={(q.get('layout') as 'card' | 'header') || 'card'} url={q.get('url') || undefined} />;
+  if (view === 'banner') return <Banner w={Number(q.get('w') || 1280)} h={Number(q.get('h') || 640)} layout={(q.get('layout') as 'card' | 'header') || 'card'} url={q.get('url') || undefined} wordmark={q.get('wordmark') || WORDMARK} />;
   return <Playground />;
 }
 

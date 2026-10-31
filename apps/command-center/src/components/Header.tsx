@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BRAND, eventPulse, missionProgress, type ActivityState, type MapDoc, type MapSnapshot, type TrackerHealth } from '@miloops-hq/core';
 import { Bars, dur, hms, useNow } from './Hud';
 import { MiloMark, type MarkState } from './MiloMark';
-import { Badge, Button, Label, Panel, Readout } from './ui';
+import { Badge, Button, Label, Panel, Readout, Wordmark } from './ui';
 
 export function Header(props: {
   repo: string;
@@ -15,6 +15,9 @@ export function Header(props: {
   onNewMission: () => void;
   onToggleMode: () => void;
   onSettings: () => void;
+  /** Set when the Slack connection needs attention (revoked token, app uninstalled). */
+  slackAlert?: string;
+  onSlack: () => void;
   decisions: number;
   decisionsOpen: boolean;
   onDecisions: () => void;
@@ -30,7 +33,7 @@ export function Header(props: {
     <Panel as="header" className="header">
       <div className="h-brand">
         <MiloMark size={28} className="logo" title={BRAND.name} />
-        <span className="wordmark">{BRAND.name}</span>
+        <Wordmark className="wordmark" />
       </div>
       <div className="h-title">
         <div className="h-line1">
@@ -61,6 +64,11 @@ export function Header(props: {
             <b>{waiting}</b>
             <span className="wl">&nbsp;waiting on you</span>
           </span>
+        )}
+        {props.slackAlert && (
+          <Button size="sm" variant="urgent" onClick={props.onSlack} title={props.slackAlert}>
+            Slack disconnected
+          </Button>
         )}
         <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
         <TrackerPulse health={props.health} now={now} />

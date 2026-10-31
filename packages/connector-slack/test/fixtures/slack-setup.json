@@ -1,0 +1,585 @@
+{
+  "source": "fake",
+  "recordedAt": "2026-10-31T16:56:50.377Z",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Guided setup: wrong token type, app-level token, bot token missing a scope, bot token, Home tab, owner claim.",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/auth.test"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history"
+        },
+        "body": {
+          "ok": true,
+          "url": "https://efika.slack.com/",
+          "team": "efika",
+          "user": "milo",
+          "team_id": "T0EFIKA01",
+          "user_id": "U0MILOBOT",
+          "bot_id": "B0MILO0001",
+          "is_enterprise_install": false
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/auth.test"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "url": "https://efika.slack.com/",
+          "team": "efika",
+          "user": "milo",
+          "team_id": "T0EFIKA01",
+          "user_id": "U0MILOBOT",
+          "bot_id": "B0MILO0001",
+          "is_enterprise_install": false
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/bots.info?bot=B0MILO0001"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "bot": {
+            "id": "B0MILO0001",
+            "deleted": false,
+            "name": "MILO",
+            "app_id": "A0MILO0001",
+            "user_id": "U0MILOBOT"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/apps.connections.open",
+        "body": {}
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8"
+        },
+        "body": {
+          "ok": true,
+          "url": "wss://wss-primary.slack.test/link/?ticket=2&app_id=A0MILO0001"
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.publish",
+        "body": {
+          "user_id": "U0ANA0001",
+          "view": {
+            "type": "home",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*MILO* is almost connected. Click below if you are setting up MILOOPS on this workspace."
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "action_id": "claim_owner",
+                    "style": "primary",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "This is me",
+                      "emoji": true
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Runs while MILOOPS is open on your computer."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "VHU0ANA0001",
+            "type": "home",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*MILO* is almost connected. Click below if you are setting up MILOOPS on this workspace."
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "action_id": "claim_owner",
+                    "style": "primary",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "This is me",
+                      "emoji": true
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Runs while MILOOPS is open on your computer."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "GET",
+        "url": "/api/users.info?user=U0ANA0001"
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "user": {
+            "id": "U0ANA0001",
+            "team_id": "T0EFIKA01",
+            "name": "ana",
+            "deleted": false,
+            "real_name": "Ana Silva",
+            "is_bot": false,
+            "profile": {
+              "display_name": "ana",
+              "real_name": "Ana Silva"
+            }
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/conversations.open",
+        "body": {
+          "users": "U0ANA0001"
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": {
+            "id": "D00ANA0001"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/chat.postMessage",
+        "body": {
+          "channel": "D00ANA0001",
+          "text": "Connected. Decisions and questions will reach you here."
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "channel": "D00ANA0001",
+          "ts": "1793448001.000003",
+          "message": {
+            "type": "message",
+            "bot_id": "B0MILO0001",
+            "text": "Connected. Decisions and questions will reach you here.",
+            "ts": "1793448001.000003"
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.publish",
+        "body": {
+          "user_id": "U0ANA0001",
+          "view": {
+            "type": "home",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Connected. Decisions and questions reach you here."
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "action_id": "open_miloops",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Open in MILOOPS",
+                      "emoji": true
+                    },
+                    "url": "http://localhost:7420/"
+                  }
+                ]
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Runs while MILOOPS is open on your computer."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "VHU0ANA0001",
+            "type": "home",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Connected. Decisions and questions reach you here."
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "action_id": "open_miloops",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Open in MILOOPS",
+                      "emoji": true
+                    },
+                    "url": "http://localhost:7420/"
+                  }
+                ]
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Runs while MILOOPS is open on your computer."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "req": {
+        "method": "POST",
+        "url": "/api/views.publish",
+        "body": {
+          "user_id": "U0RAJ0001",
+          "view": {
+            "type": "home",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Connected to MILOOPS for <@U0ANA0001>."
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "action_id": "open_miloops",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Open in MILOOPS",
+                      "emoji": true
+                    },
+                    "url": "http://localhost:7420/"
+                  }
+                ]
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Runs while MILOOPS is open on your computer."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "res": {
+        "status": 200,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "x-oauth-scopes": "commands,chat:write,im:write,channels:history,groups:history,im:history,mpim:history,users:read"
+        },
+        "body": {
+          "ok": true,
+          "view": {
+            "id": "VHU0RAJ0001",
+            "type": "home",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "Connected to MILOOPS for <@U0ANA0001>."
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "action_id": "open_miloops",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Open in MILOOPS",
+                      "emoji": true
+                    },
+                    "url": "http://localhost:7420/"
+                  }
+                ]
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "Runs while MILOOPS is open on your computer."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "envelopes": [
+    {
+      "label": "owner opens the Home tab",
+      "type": "events_api",
+      "payload": {
+        "token": "legacy",
+        "team_id": "T0EFIKA01",
+        "api_app_id": "A0MILO0001",
+        "type": "event_callback",
+        "event_id": "Ev01",
+        "event_time": 1793448000,
+        "event": {
+          "type": "app_home_opened",
+          "user": "U0ANA0001",
+          "channel": "D00ANA0001",
+          "tab": "home",
+          "event_ts": "1793448000.000002"
+        }
+      }
+    },
+    {
+      "label": "owner clicks This is me",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0ANA0001",
+          "username": "ana",
+          "name": "ana",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "view",
+          "view_id": "VHU0ANA0001"
+        },
+        "trigger_id": "1793448001.1.fake1",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "view": {
+          "id": "VHU0ANA0001",
+          "type": "home"
+        },
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "claim_owner",
+            "block_id": "home",
+            "action_ts": "1793448001.000003"
+          }
+        ]
+      }
+    },
+    {
+      "label": "someone else clicks This is me later",
+      "type": "interactive",
+      "payload": {
+        "type": "block_actions",
+        "user": {
+          "id": "U0RAJ0001",
+          "username": "raj",
+          "name": "raj",
+          "team_id": "T0EFIKA01"
+        },
+        "api_app_id": "A0MILO0001",
+        "token": "legacy",
+        "container": {
+          "type": "view",
+          "view_id": "VHU0RAJ0001"
+        },
+        "trigger_id": "1793448002.2.fake2",
+        "team": {
+          "id": "T0EFIKA01",
+          "domain": "efika"
+        },
+        "view": {
+          "id": "VHU0RAJ0001",
+          "type": "home"
+        },
+        "actions": [
+          {
+            "type": "button",
+            "action_id": "claim_owner",
+            "block_id": "home",
+            "action_ts": "1793448002.000003"
+          }
+        ]
+      }
+    }
+  ]
+}

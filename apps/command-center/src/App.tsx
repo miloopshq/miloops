@@ -10,6 +10,7 @@ import { Inspector } from './components/Inspector';
 import { ActivityStack, LogZone, MapSections, StatusPanel, StepZone, UpNext } from './components/Zones';
 import { CommandBar, NewMissionDialog } from './components/CommandBar';
 import { Onboarding, SettingsPanel } from './components/Settings';
+import { useSlackStatus } from './components/SlackSetup';
 import { Tabs, useBreakpoint } from './components/Hud';
 import { DecisionsView } from './components/Decisions';
 import { BriefingDialog } from './components/Briefing';
@@ -48,7 +49,10 @@ export function App() {
   const api = useCommandCenter(rt);
   const { snap, activity, selection, setSelection, actions } = api;
   const [prefs, updatePrefs] = usePrefs();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  /** `?settings=slack` (from `miloops connect slack`) opens Settings on the Slack setup. */
+  const [settingsOpen, setSettingsOpen] = useState<false | 'top' | 'slack'>(() => (new URLSearchParams(location.search).get('settings') === 'slack' ? 'slack' : false));
+  const [slack] = useSlackStatus(rt.kind === 'demo' ? 0 : 15000);
+  const slackAlert = slack?.enabled && slack.state === 'auth-error' ? slack.error ?? 'Slack rejected the tokens' : undefined;
   const [newMission, setNewMission] = useState(false);
   const repo = useRepoName(rt.kind);
   const bp = useBreakpoint();
@@ -163,7 +167,9 @@ export function App() {
       trackerLabel={rt.adapter.label.toLowerCase()}
       onSelectMap={actions.selectMap}
       onToggleMode={() => snap && actions.setMode(snap.map.mode === 'plan-only' ? 'plan+execute' : 'plan-only')}
-      onSettings={() => setSettingsOpen(true)}
+      onSettings={() => setSettingsOpen('top')}
+      slackAlert={slackAlert}
+      onSlack={() => setSettingsOpen('slack')}
       decisions={api.decisions.length}
       decisionsOpen={!!decisionsView}
       onDecisions={() => (decisionsView ? setDecisionsView(null) : openDecisions())}
@@ -249,7 +255,15 @@ export function App() {
           location={rt.adapter.location}
           map={snap?.map}
           onMapMode={actions.setMode}
-          onClose={() => setSettingsOpen(false)}
+          focus={settingsOpen === 'slack' ? 'slack' : undefined}
+          onClose={() => {
+            setSettingsOpen(false);
+            const url = new URL(location.href);
+            if (url.searchParams.has('settings')) {
+              url.searchParams.delete('settings');
+              history.replaceState(null, '', url);
+            }
+          }}
         />
       )}
       {newMission && <NewMissionDialog onClose={() => setNewMission(false)} onSubmit={actions.chart} tracker={rt.adapter.label} />}
