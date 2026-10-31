@@ -1,17 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { Panel, SectionHeader } from './ui';
 
 /** A fixed zone: title row + scrollable body. Zones never resize with content. `bare` renders only the body (for tabbed hosts). */
 export function Zone(props: { title: string; count?: ReactNode; right?: ReactNode; className?: string; children: ReactNode; area?: string; bare?: boolean }) {
   if (props.bare) return <div className={`zone-b ${props.className ?? ''}`}>{props.children}</div>;
   return (
-    <section className={`zone ${props.className ?? ''}`} style={props.area ? { gridArea: props.area } : undefined}>
-      <header className="zone-h">
-        <h2 className="chip-label">{props.title}</h2>
-        {props.count !== undefined && <span className="count">{props.count}</span>}
-        <span className="zone-h-right">{props.right}</span>
-      </header>
+    <Panel className={`zone ${props.className ?? ''}`} style={props.area ? { gridArea: props.area } : undefined}>
+      <SectionHeader title={props.title} count={props.count} right={props.right ?? null} />
       <div className="zone-b">{props.children}</div>
-    </section>
+    </Panel>
   );
 }
 

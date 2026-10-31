@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
   BRAND,
   DECISION_SOURCE_KINDS,
@@ -16,6 +16,7 @@ import {
 } from '@miloops-hq/core';
 import type { CommandCenterApi } from '../useCommandCenter';
 import { Empty, ago, type Breakpoint } from './Hud';
+import { Button, Card, Field, Label, Meta, Panel, Pill, Readout } from './ui';
 
 const day = (n: number) => new Date(n).toISOString().slice(0, 10);
 const hm = (n: number) => new Date(n).toTimeString().slice(0, 5);
@@ -65,25 +66,25 @@ export function DecisionsView(props: {
   const detailOnly = bp === 'mobile' && !!current;
 
   return (
-    <section className={`zone decisions-view dv-${bp}`}>
+    <Panel className={`zone decisions-view dv-${bp}`}>
       <header className="dv-head">
         {detailOnly ? (
           <button className="back" onClick={() => setSel(undefined)}>
             ‹ Decisions
           </button>
         ) : (
-          <h2 className="chip-label">
+          <Label as="h2">
             Decisions <span className="n">{rows.length === all.length ? all.length : `${rows.length}/${all.length}`}</span>
-          </h2>
+          </Label>
         )}
         {bp !== 'mobile' && <Readouts stats={stats} />}
         <span className="dv-head-right">
           {!detailOnly && (
-            <button className="btn" onClick={exportMd} disabled={!rows.length} title="Export the filtered list as markdown">
+            <Button onClick={exportMd} disabled={!rows.length} title="Export the filtered list as markdown">
               Export .md
-            </button>
+            </Button>
           )}
-          <button className="x" onClick={props.onClose} aria-label="Close">
+          <button className="icon-btn" onClick={props.onClose} aria-label="Close">
             ×
           </button>
         </span>
@@ -133,7 +134,7 @@ export function DecisionsView(props: {
           </div>
         ) : null}
       </div>
-    </section>
+    </Panel>
   );
 }
 
@@ -141,27 +142,15 @@ export function DecisionsView(props: {
 function Readouts({ stats }: { stats: ReturnType<typeof decisionStats> }) {
   return (
     <span className="dv-readouts">
-      <span className="readout">
-        <span className="mono-label">Active</span>
-        <b>{stats.active}</b>
-      </span>
-      <span className="readout">
-        <span className="mono-label">Superseded</span>
-        <b>{stats.superseded}</b>
-      </span>
-      <span className="readout">
-        <span className="mono-label">Last 24h</span>
-        <b>{stats.last24h}</b>
-      </span>
-      <span className="readout">
-        <span className="mono-label">Human</span>
-        <b>{stats.total ? Math.round((stats.human / stats.total) * 100) : 0}%</b>
-      </span>
+      <Readout layout="start" label="Active" value={stats.active} />
+      <Readout layout="start" label="Superseded" value={stats.superseded} />
+      <Readout layout="start" label="Last 24h" value={stats.last24h} />
+      <Readout layout="start" label="Human" value={`${stats.total ? Math.round((stats.human / stats.total) * 100) : 0}%`} />
       <span className="dv-src-mix" title="Decisions per source">
         {DECISION_SOURCE_KINDS.filter((k) => stats.bySource[k]).map((k) => (
-          <span key={k} className={`src-tag src-${k}`}>
+          <Pill key={k} className={`src-${k}`}>
             {DECISION_SOURCES[k].code} {stats.bySource[k]}
-          </span>
+          </Pill>
         ))}
       </span>
     </span>
@@ -181,7 +170,7 @@ function Filters(props: {
   if (props.compact)
     return (
       <div className="dv-filters compact">
-        <select value={filter.mapId ?? ''} onChange={(e) => set({ mapId: e.target.value || undefined })} aria-label="Mission">
+        <select className="mono" value={filter.mapId ?? ''} onChange={(e) => set({ mapId: e.target.value || undefined })} aria-label="Mission">
           <option value="">All missions</option>
           {props.missions.map((s) => (
             <option key={s.map.id} value={s.map.id}>
@@ -189,7 +178,7 @@ function Filters(props: {
             </option>
           ))}
         </select>
-        <select value={filter.source ?? ''} onChange={(e) => set({ source: (e.target.value || undefined) as DecisionSourceKind | undefined })} aria-label="Source">
+        <select className="mono" value={filter.source ?? ''} onChange={(e) => set({ source: (e.target.value || undefined) as DecisionSourceKind | undefined })} aria-label="Source">
           <option value="">All sources</option>
           {DECISION_SOURCE_KINDS.map((k) => (
             <option key={k} value={k}>
@@ -197,13 +186,13 @@ function Filters(props: {
             </option>
           ))}
         </select>
-        <select value={filter.decidedBy ?? ''} onChange={(e) => set({ decidedBy: e.target.value || undefined })} aria-label="Decided by">
+        <select className="mono" value={filter.decidedBy ?? ''} onChange={(e) => set({ decidedBy: e.target.value || undefined })} aria-label="Decided by">
           <option value="">Anyone</option>
           {props.people.map((p) => (
             <option key={p}>{p}</option>
           ))}
         </select>
-        <select value={filter.status ?? ''} onChange={(e) => set({ status: (e.target.value || undefined) as DecisionStatus | undefined })} aria-label="Status">
+        <select className="mono" value={filter.status ?? ''} onChange={(e) => set({ status: (e.target.value || undefined) as DecisionStatus | undefined })} aria-label="Status">
           <option value="">Any status</option>
           <option value="active">Active</option>
           <option value="superseded">Superseded</option>
@@ -253,9 +242,9 @@ function Filters(props: {
 
 function SourceTag({ kind }: { kind: DecisionSourceKind }) {
   return (
-    <span className={`src-tag src-${kind}`} title={DECISION_SOURCES[kind].label}>
+    <Pill className={`src-${kind}`} title={DECISION_SOURCES[kind].label}>
       {DECISION_SOURCES[kind].code}
-    </span>
+    </Pill>
   );
 }
 
@@ -312,15 +301,13 @@ function Detail(props: {
     <div className="detail dv-d">
       <div className="d-head">
         <span className="key">{d.id}</span>
-        <span className={`state-pill dv-st-${status}`}>{status}</span>
+        <Pill tone="state" className={`dv-st-${status}`}>{status}</Pill>
         <SourceTag kind={d.source.kind} />
-        <span className="att-tag">
-          {stamp(d.decidedAt)} · {ago(now - d.decidedAt)} ago
-        </span>
+        <Meta as="span" parts={[stamp(d.decidedAt), `${ago(now - d.decidedAt)} ago`]} />
       </div>
-      <h3>{d.question}</h3>
+      <h3 className="t-heading">{d.question}</h3>
       <div className="resolution">
-        <div className="dim">Decision</div>
+        <Meta parts={['Decision']} />
         <p>{d.answer}</p>
       </div>
 
@@ -389,9 +376,7 @@ function Detail(props: {
                   <i />
                   <span className="id">{c.id}</span>
                   <span className="a">{c.summary}</span>
-                  <span className="by">
-                    {c.decidedBy} · {day(c.decidedAt)}
-                  </span>
+                  <Meta as="span" parts={[c.decidedBy, day(c.decidedAt)]} />
                 </button>
               </li>
             ))}
@@ -401,34 +386,38 @@ function Detail(props: {
 
       <div className="actions">
         {status === 'active' && (
-          <button className={`btn ${form ? 'on' : ''}`} onClick={() => setForm((f) => !f)}>
+          <Button on={form} onClick={() => setForm((f) => !f)}>
             Supersede…
-          </button>
+          </Button>
         )}
       </div>
       {form && (
-        <form
+        <Card
+          as="form"
+          tone="inset"
           className="inline-form"
-          onSubmit={(e) => {
+          onSubmit={(e: FormEvent) => {
             e.preventDefault();
             if (!answer.trim()) return;
             void props.onSupersede(d, { answer: answer.trim(), rationale: rationale.trim(), alternatives: [d.summary] });
             setForm(false);
           }}
         >
-          <label>New decision</label>
-          <textarea rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)} autoFocus />
-          <label>Rationale</label>
-          <input value={rationale} onChange={(e) => setRationale(e.target.value)} />
+          <Field label="New decision">
+            <textarea rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)} autoFocus />
+          </Field>
+          <Field label="Rationale">
+            <input value={rationale} onChange={(e) => setRationale(e.target.value)} />
+          </Field>
           <div className="form-actions">
-            <button type="button" className="btn ghost" onClick={() => setForm(false)}>
+            <Button variant="ghost" onClick={() => setForm(false)}>
               Cancel
-            </button>
-            <button className="btn primary" disabled={!answer.trim()}>
+            </Button>
+            <Button type="submit" variant="primary" disabled={!answer.trim()}>
               Supersede
-            </button>
+            </Button>
           </div>
-        </form>
+        </Card>
       )}
 
       <div className="dv-sec">
@@ -439,9 +428,7 @@ function Detail(props: {
           <div className="dv-transcript comms-log">
             {d.transcript.map((m, i) => (
               <div key={i} className={`msg from-${m.from} voice-${m.from === 'human' ? 'human' : 'agent'}`}>
-                <div className="msg-meta">
-                  {m.author} · {hm(m.at)}
-                </div>
+                <Meta parts={[m.author, hm(m.at)]} />
                 <div className="msg-text">{m.text}</div>
               </div>
             ))}

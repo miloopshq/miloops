@@ -14,6 +14,7 @@ import { Tabs, useBreakpoint } from './components/Hud';
 import { DecisionsView } from './components/Decisions';
 import { BriefingDialog } from './components/Briefing';
 import { useBriefing } from './useBriefing';
+import { Badge, Button, Panel } from './components/ui';
 
 /** Repo name shown in the header: the folder that contains the tracker data. */
 function useRepoName(kind: string) {
@@ -189,7 +190,7 @@ export function App() {
         <>
           {inbox}
           {map}
-          <section className="zone side" style={{ gridArea: 'inspector' }}>
+          <Panel className="zone side" style={{ gridArea: 'inspector' }}>
             <Tabs
               className="zone-tabs"
               value={sideTab}
@@ -201,14 +202,14 @@ export function App() {
               ]}
             />
             {sideTab === 'ticket' ? inspector(true) : sideTab === 'activity' ? <ActivityStack {...zoneProps} /> : plan(true)}
-          </section>
+          </Panel>
           {decisions}
         </>
       )}
       {bp === 'mobile' && (
         <>
           <main className="phone-view">
-            {decisions ? decisions : phoneTab === 'home' ? inbox : phoneTab === 'map' ? map : phoneTab === 'ticket' ? <section className="zone">{inspector(true)}</section> : phoneTab === 'activity' ? <section className="zone"><ActivityStack {...zoneProps} /></section> : plan(true)}
+            {decisions ? decisions : phoneTab === 'home' ? inbox : phoneTab === 'map' ? map : phoneTab === 'ticket' ? <Panel className="zone">{inspector(true)}</Panel> : phoneTab === 'activity' ? <Panel className="zone"><ActivityStack {...zoneProps} /></Panel> : plan(true)}
           </main>
           <nav className="tabbar">
             {(
@@ -230,9 +231,7 @@ export function App() {
               >
                 {label}
                 {id === 'home' && pending > 0 && (
-                  <span key={pending} className="badge urgent pop">
-                    {pending}
-                  </span>
+                  <Badge key={pending} n={pending} urgent pop />
                 )}
               </button>
             ))}
@@ -262,7 +261,7 @@ export function App() {
 function MapZone(props: { api: CommandCenterApi; sessions: CommandCenterApi['activity']['sessions']; onSelect: (s: Selection) => void; onNewMission: () => void; compact: boolean; minFit: number }) {
   const { snap, selection, actions } = props.api;
   return (
-    <main className="zone map-zone" style={{ gridArea: 'map' }}>
+    <Panel as="main" className="zone map-zone" style={{ gridArea: 'map' }}>
       {snap && <CommandBar api={props.api} />}
       <div className="map-area">
         {snap && !props.compact && <StatusPanel snap={snap} sessions={props.sessions} />}
@@ -272,18 +271,16 @@ function MapZone(props: { api: CommandCenterApi; sessions: CommandCenterApi['act
           <div className="nomap">
             <h2>No mission</h2>
             <div className="actions">
-              <button className="btn primary" onClick={props.onNewMission}>
+              <Button variant="primary" onClick={props.onNewMission}>
                 New mission
-              </button>
-              <button className="btn" onClick={actions.loadSample}>
-                Load sample mission
-              </button>
+              </Button>
+              <Button onClick={actions.loadSample}>Load sample mission</Button>
             </div>
           </div>
         )}
         {snap && props.compact && <Legend planOnly={snap.map.mode === 'plan-only'} />}
       </div>
-    </main>
+    </Panel>
   );
 }
 
