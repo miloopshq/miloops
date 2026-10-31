@@ -1,0 +1,111 @@
+/* MILOOPS HUD: framed panels, thin grid, chip labels, mono caps for labels only. Every number is real data.
+ * Palette: desaturated steel blue and copper for the base; saturated red only for waiting-on-you, alerts and danger zones.
+ * Sizes, spacing and shared components (panel, button, card, label, badge, pill, meta, readout, input row) live in ui.css. */
+:root {
+  --bg: #05090b;
+  --panel: rgba(8, 15, 18, 0.9);
+  --panel2: rgba(13, 23, 27, 0.9);
+  --line-rgb: 128, 164, 172;
+  --line: rgba(var(--line-rgb), 0.15);
+  --line2: rgba(var(--line-rgb), 0.28);
+  --text: #b6c8cb;
+  --text-hi: #e1e9ea;
+  --dim: #66797c;
+  --faint: #3d4c4f;
+
+  --accent-rgb: 132, 182, 194;
+  --accent: rgb(var(--accent-rgb));
+  --accent-bg: rgba(var(--accent-rgb), 0.08);
+
+  --claimed-rgb: 196, 138, 98;
+  --amber-rgb: 200, 164, 118;
+  --decided-rgb: 104, 138, 143;
+  --st-frontier: var(--accent);
+  --st-claimed: rgb(var(--claimed-rgb));
+  --st-decided: rgb(var(--decided-rgb));
+  --st-blocked: #4a585c;
+  --st-parked: #4a585c;
+  --st-oos: #ff4d42;
+  --urgent: #ff4d42;
+  --urgent-bg: rgba(255, 77, 66, 0.1);
+  --amber: rgb(var(--amber-rgb));
+  /* "OPS" half of the wordmark: MILO's antenna copper, shared with the brand kit. */
+  --brand-ops: #c98b5e;
+
+  /* Option C "Hardware HUD" (src/fonts.ts). --display: headings; --mono: caps labels and readouts; --sans: body. */
+  --display: 'Chakra Petch', sans-serif;
+  --mono: 'Share Tech Mono', ui-monospace, monospace;
+  --sans: 'Barlow', system-ui, sans-serif;
+  /* Dot-matrix accent for signal moments only (a decision request arriving, a mission launch). */
+  --dot: 'Doto', var(--mono);
+
+  /* Type voices: humans write in Barlow, agents and MILO speak in Chakra Petch, tracker/system data in mono. */
+  --voice-human: var(--sans);
+  --voice-agent: var(--display);
+  --voice-data: var(--mono);
+
+  /* Map graph text is in SVG units and scales with zoom; these sizes are tuned to NODE_W/NODE_H. */
+  --fs-node-title: 11.5px;
+  --fs-node-meta: 9.5px;
+  --fs-node-tag: 7.5px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  width: 100%;
+  overflow: hidden;
+}
+body {
+  background:
+    linear-gradient(rgba(var(--accent-rgb), 0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+    radial-gradient(ellipse at 50% 35%, #0b171b 0%, var(--bg) 70%);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+button,
+select,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line2);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dim {
+  color: var(--dim);
+}
+.key {
+  font-family: var(--mono);
+  color: var(--dim);
+  font-size: var(--fs-sm);
+}
+code {
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  color: var(--text-hi);
+  background: var(--panel2);
+  padding: 1px 5px;
+}

@@ -1,0 +1,194 @@
+/* ---------- Header ---------- */
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 var(--gutter);
+}
+.h-brand {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-10);
+  padding-right: 16px;
+  border-right: 1px solid var(--line);
+  height: 38px;
+}
+.wordmark {
+  font-family: var(--display);
+  font-weight: 300;
+  font-size: var(--fs-heading);
+  letter-spacing: var(--ls-brand);
+  text-transform: uppercase;
+  color: var(--text-hi);
+}
+.wordmark-ops {
+  color: var(--brand-ops);
+}
+.h-title {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.h-line1 {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.repo {
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-data);
+  white-space: nowrap;
+}
+.sep {
+  color: var(--faint);
+}
+.h-dest {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.h-dest .chip-label {
+  margin-right: var(--sp-8);
+}
+.h-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-10);
+  flex: 0 0 auto;
+}
+.mode-chip {
+  color: var(--accent);
+}
+.tracker-chip {
+  height: var(--h-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.sync-glyph {
+  color: var(--faint);
+  flex: 0 0 auto;
+}
+.sync-ok .sync-glyph {
+  color: var(--st-decided);
+}
+.sync-syncing .sync-glyph {
+  color: var(--amber);
+}
+.sync-error .sync-glyph {
+  color: var(--urgent);
+}
+.sync-error .tl {
+  color: var(--urgent);
+}
+.tracker-chip .latency {
+  color: var(--text-hi);
+  min-width: 4.5ch;
+}
+.pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+.pulse .mono-label {
+  min-width: 5ch;
+}
+.bars rect.on {
+  fill: var(--accent);
+  opacity: 0.75;
+}
+.bars rect.off {
+  fill: var(--line2);
+}
+.bars rect.hot {
+  fill: var(--amber);
+}
+.bp-laptop .pulse,
+.bp-mobile .pulse {
+  display: none;
+}
+@media (max-width: 1599px) {
+  .bp-wide .tracker-chip .tl {
+    display: none;
+  }
+}
+.waiting-chip {
+  height: var(--h-sm);
+  padding: 0 var(--sp-10);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  background: var(--urgent);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.waiting-chip b {
+  font-weight: 400;
+}
+.briefing-btn .milo-mark {
+  color: var(--accent);
+}
+/* Laptop: the mission title gets the room; secondary readouts collapse to glyph + number. */
+.bp-laptop .wordmark,
+.bp-laptop .repo,
+.bp-laptop .h-line1 .sep,
+.bp-laptop .mission-meta,
+.bp-laptop .tracker-chip .chip-label,
+.bp-laptop .tracker-chip .tl,
+.bp-laptop .waiting-chip .wl,
+.bp-laptop .briefing-btn .bl {
+  display: none;
+}
+.bp-laptop .h-brand {
+  padding-right: var(--sp-12);
+}
+.bp-laptop .header {
+  gap: var(--sp-12);
+}
+.bp-laptop .h-right {
+  gap: var(--sp-6);
+}
+.bp-laptop .h-right .btn:not(.sm) {
+  padding: 0 var(--sp-8);
+}
+.bp-laptop .waiting-chip {
+  padding: 0 var(--sp-8);
+}
+@media (max-width: 1799px) {
+  .bp-wide .wordmark,
+  .bp-wide .tracker-chip .chip-label,
+  .bp-wide .waiting-chip .wl,
+  .bp-wide .briefing-btn .bl {
+    display: none;
+  }
+  .bp-wide .h-brand {
+    padding-right: var(--sp-12);
+  }
+}
+@media (max-width: 1599px) {
+  .bp-wide .pulse {
+    display: none;
+  }
+}
+.bp-mobile .briefing-btn .bl {
+  display: none;
+}

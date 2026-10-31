@@ -1,0 +1,169 @@
+import { type MapSnapshot, type SessionInfo, layout } from '@miloops-hq/core';
+import { useRef, useState, useEffect, useMemo } from 'react';
+import { type Selection, isRunning } from '../../lib';
+import { GraphDefs } from './GraphDefs';
+import { GraphEdge } from './GraphEdge';
+import { GraphNode } from './GraphNode';
+
+export const PAD = 32;
+
+export type View = { k: number; x: number; y: number };
+
+/** Decision graph. Fits itself to the zone; drag/pinch/wheel to pan and zoom. */
+export function MapGraph(props: {
+  snap: MapSnapshot;
+  sessions: SessionInfo[];
+  selection: Selection;
+  onSelect: (s: Selection) => void;
+  /** Smallest zoom the initial fit may use; keeps text readable on phones. */
+  minFit?: number;
+}) {
+  const { snap, selection, onSelect } = props;
+  const box = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setSize({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const L = useMemo(() => {
+    const lr = layout(snap.tickets, 'LR', snap.map.mode);
+    const tb = layout(snap.tickets, 'TB', snap.map.mode);
+    const fit = (l: typeof lr) => Math.min(size.w / (l.width + PAD * 2), size.h / (l.height + PAD * 2 + 16));
+    return fit(lr) >= fit(tb) ? lr : tb;
+  }, [snap.tickets, snap.map.mode, size.w, size.h]);
+  const W = L.width + PAD * 2;
+  const H = L.height + PAD * 2 + 16;
+
+  const fitView = (): View => {
+    const k = Math.min(1.25, Math.max(props.minFit ?? 0, Math.min(size.w / W, size.h / H)));
+    return { k, x: Math.max(0, (size.w - W * k) / 2), y: Math.max(0, (size.h - H * k) / 2) };
+  };
+  const [view, setView] = useState<View>({ k: 1, x: 0, y: 0 });
+  const touched = useRef(false);
+  useEffect(() => {
+    touched.current = false;
+  }, [snap.map.id]);
+  useEffect(() => {
+    if (!touched.current && size.w) setView(fitView());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [size.w, size.h, W, H, snap.map.id]);
+
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const gesture = useRef<{ view: View; dist: number; mid: { x: number; y: number }; moved: boolean } | null>(null);
+  const local = (e: { clientX: number; clientY: number }) => {
+    const r = box.current!.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+  const startGesture = () => {
+    const pts = [...pointers.current.values()];
+    const mid = pts.length > 1 ? { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 } : pts[0];
+    const dist = pts.length > 1 ? Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) : 0;
+    gesture.current = { view, dist, mid, moved: gesture.current?.moved ?? false };
+  };
+  const zoomAt = (v: View, k: number, p: { x: number; y: number }): View => {
+    const nk = Math.min(3, Math.max(0.2, k));
+    return { k: nk, x: p.x - ((p.x - v.x) * nk) / v.k, y: p.y - ((p.y - v.y) * nk) / v.k };
+  };
+
+  const live = new Map(props.sessions.filter((s) => isRunning(s) && s.ticketId).map((s) => [s.ticketId!, s]));
+  const selId = selection?.kind === 'ticket' ? selection.id : undefined;
+
+  return (
+    <div
+      className="graph-box"
+      ref={box}
+      onPointerDown={(e) => {
+        pointers.current.set(e.pointerId, local(e));
+        if (pointers.current.size === 1) gesture.current = null;
+        startGesture();
+      }}
+      onPointerMove={(e) => {
+        if (!pointers.current.has(e.pointerId) || !gesture.current) return;
+        pointers.current.set(e.pointerId, local(e));
+        const g = gesture.current;
+        const pts = [...pointers.current.values()];
+        if (pts.length > 1) {
+          const mid = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+          const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+          const z = zoomAt(g.view, (g.view.k * dist) / (g.dist || dist), g.mid);
+          setView({ ...z, x: z.x + mid.x - g.mid.x, y: z.y + mid.y - g.mid.y });
+          g.moved = true;
+        } else {
+          const dx = pts[0].x - g.mid.x,
+            dy = pts[0].y - g.mid.y;
+          if (!g.moved && Math.hypot(dx, dy) < 5) return;
+          if (!g.moved) box.current?.setPointerCapture(e.pointerId);
+          g.moved = true;
+          setView({ ...g.view, x: g.view.x + dx, y: g.view.y + dy });
+        }
+        touched.current = true;
+      }}
+      onPointerUp={(e) => {
+        pointers.current.delete(e.pointerId);
+        if (pointers.current.size) startGesture();
+      }}
+      onPointerCancel={(e) => pointers.current.delete(e.pointerId)}
+      onWheel={(e) => {
+        touched.current = true;
+        setView((v) => zoomAt(v, v.k * Math.exp(-e.deltaY * 0.0015), local(e)));
+      }}
+      onClickCapture={(e) => {
+        if (gesture.current?.moved) {
+          e.stopPropagation();
+          gesture.current = null;
+        }
+      }}
+    >
+      <svg className="graph" width={size.w} height={size.h} onClick={() => onSelect(null)}>
+        <GraphDefs />
+        <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
+          <g transform={`translate(${PAD} ${PAD})`}>
+            {L.nodes.some((n) => n.state === 'out-of-scope') && (
+              <g className="quarantine">
+                <rect
+                  x={-20}
+                  y={L.quarantineY - 30}
+                  width={L.width + 40}
+                  height={L.quarantineH + 18}
+                  fill="url(#hatch-oos)"
+                />
+                <text x={-12} y={L.quarantineY - 14}>
+                  OUT OF SCOPE // QUARANTINE
+                </text>
+              </g>
+            )}
+
+            {L.edges.map(({ from, to }) => (
+              <GraphEdge key={`${from.ticket.id}-${to.ticket.id}`} from={from} to={to} direction={L.direction} />
+            ))}
+
+            {L.nodes.map((n) => (
+              <GraphNode
+                key={n.ticket.id}
+                n={n}
+                session={live.get(n.ticket.id)}
+                selected={selId === n.ticket.id}
+                onSelect={onSelect}
+              />
+            ))}
+          </g>
+        </g>
+      </svg>
+      <button
+        className="btn sm fit-btn"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          touched.current = false;
+          setView(fitView());
+        }}
+      >
+        Fit
+      </button>
+    </div>
+  );
+}

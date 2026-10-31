@@ -49,6 +49,15 @@ export default tseslint.config(
       'import-x/no-self-import': 'error',
       'import-x/no-useless-path-segments': 'error',
       'no-duplicate-imports': [PENDING, { allowSeparateTypeImports: false }],
+      'import-x/no-duplicates': [PENDING, { 'prefer-inline': true }],
+      'import-x/order': [
+        PENDING,
+        {
+          groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+          'newlines-between': 'never',
+          alphabetize: { order: 'asc', caseInsensitive: true },
+        },
+      ],
       'prefer-const': ['error', { ignoreReadBeforeAssign: true }],
       'no-fallthrough': 'off', // tsc understands `never`-returning calls such as process.exit; ESLint does not.
       '@typescript-eslint/no-this-alias': PENDING,

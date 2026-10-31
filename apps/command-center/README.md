@@ -66,13 +66,13 @@ Layers by priority. Smaller screens show fewer layers by default; larger screens
 | — | While you were away | Dialog: MILO line, Done / Blocked / Waiting / Spend tiles, Done, Blocked, Waiting lists | Dialog: adds Ruled out, Agent decisions and Active sessions lists | Same, with an Agent decisions tile |
 | — | Decisions audit | Header → Decisions: list, tap for detail; filters behind a toggle | Covers the zones under the header: list + detail, filters as a row | Same, with a filter rail on the left and a mission column |
 
-The phone tab bar is fixed at the bottom. Breakpoints live in `useBreakpoint()` (`components/Hud.tsx`); the grids are the `.bp-*` rules in `styles.css`. Motion is limited to state changes (a new inbox item, a node changing state) and respects `prefers-reduced-motion`.
+The phone tab bar is fixed at the bottom. Breakpoints live in `useBreakpoint()` (`src/hooks/useBreakpoint.ts`); the grids are the `.bp-*` rules in `src/styles/layout.css`. Motion is limited to state changes (a new inbox item, a node changing state) and respects `prefers-reduced-motion`.
 
-The Changelog tab reads `apps/command-center/src/changelog.ts` (`RELEASES` for what shipped, `NEXT` for what's coming).
+The Changelog tab reads `apps/command-center/src/features/settings/changelog.ts` (`RELEASES` for what shipped, `NEXT` for what's coming).
 
 ## Type, colour and the MILO mark
 
-One typeface family, defined as CSS variables at the top of `styles.css` and loaded in `src/fonts.ts` (all SIL OFL 1.1 via Fontsource):
+One typeface family, defined as CSS variables at the top of `src/styles/base.css` and loaded in `src/fonts.ts` (all SIL OFL 1.1 via Fontsource):
 
 | Variable | Face | Used for |
 | --- | --- | --- |
@@ -85,7 +85,7 @@ Voices: `--voice-human`, `--voice-agent` and `--voice-data` keep operators, agen
 
 Colour: the base palette is a desaturated blue / orange set (`--accent-rgb`, `--claimed-rgb`, `--amber-rgb`, `--decided-rgb`, `--line-rgb`). Saturated colour (`--urgent`) is reserved for warnings, waiting on you and danger.
 
-The MILO mark (`components/MiloMark.tsx`) is an open ring with an arrow tip. Its variants double as glyphs: `status` (tracker chip), `action` (primary buttons), `voice` (MILO log lines and chips) and `alert` (waiting on you). `npm run dev`, then open `/?mark-sheet` for the sheet of variants.
+The MILO mark (`src/components/ui/MiloMark.tsx`) is an open ring with an arrow tip. Its variants double as glyphs: `status` (tracker chip), `action` (primary buttons), `voice` (MILO log lines and chips) and `alert` (waiting on you). `npm run dev`, then open `/?mark-sheet` for the sheet of variants.
 
 ## HUD widgets → metrics
 
@@ -136,6 +136,12 @@ packages/core            UI-free engine (@miloops-hq/core). No React, no DOM.
   src/agentLink.ts       session docs + answers shared between MCP agent processes and the command center
   src/agentHost.ts       node side of the agent link (@miloops-hq/core/agents): doc writer, answers, server lock
 apps/command-center      Vite + React front end; plugins/trackerFs.ts mounts the tracker API on the dev server
+  src/App.tsx            layout shell per breakpoint; its private parts (header, briefing, settings wiring, phone views, navigation) are in src/app/
+  src/components/ui/     design-system primitives, one per file (Button, Panel, Card, Tabs, Zone, MiloMark, …)
+  src/features/<name>/   one folder per zone or dialog: inbox, map, inspector, activity, status, up-next, plan, decisions, briefing, header, mission, settings, trackers, slack
+  src/hooks/             useCommandCenter (state + actions), useBriefing, useBreakpoint, useNow, usePrefs
+  src/lib/               React-free helpers: runtime, prefs, format, labels, sessions, operator actions
+  src/styles/            index.css imports the design system then one stylesheet per zone, in cascade order
 packages/cli             the `miloops` npm package: src/cli.ts (flags, static server, browser open), build.mjs (bundle + copy app)
   src/mcp/               `miloops mcp`: MCP server (server.ts) over the agent controller (agent.ts)
   src/connect.ts         `miloops connect claude|codex`; commands/milo.md is the /milo command
@@ -147,7 +153,7 @@ Every UI write goes through `operations.ts`, then through the monitored adapter.
 
 ## While you were away
 
-`Presence` (`packages/core/src/presence.ts`) stores when the operator was last present, per mission, in a `KeyValueStore` (localStorage scoped by tracker root; memory in demo). `apps/command-center/src/useBriefing.ts` decides presence: while the tab is visible, the operator was present at their last input; hiding the tab while active counts as present until then. The briefing opens when the app loads, the tab becomes visible, or input arrives after an idle stretch, if the operator was away at least the threshold (Settings → Briefing, default 15 min, or Off) and `buildBriefing(...).changed`. A first run, with no presence yet, shows none. Header → Briefing reopens the last one.
+`Presence` (`packages/core/src/presence.ts`) stores when the operator was last present, per mission, in a `KeyValueStore` (localStorage scoped by tracker root; memory in demo). `apps/command-center/src/hooks/useBriefing.ts` decides presence: while the tab is visible, the operator was present at their last input; hiding the tab while active counts as present until then. The briefing opens when the app loads, the tab becomes visible, or input arrives after an idle stretch, if the operator was away at least the threshold (Settings → Briefing, default 15 min, or Off) and `buildBriefing(...).changed`. A first run, with no presence yet, shows none. Header → Briefing reopens the last one.
 
 ## Decision records
 

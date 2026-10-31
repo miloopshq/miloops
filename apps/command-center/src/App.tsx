@@ -1,40 +1,29 @@
-import { useEffect, useMemo, useState } from 'react';
-import { BRAND } from '@miloops-hq/core';
-import { createRuntime, trackerKind } from './runtime';
-import { useCommandCenter, type CommandCenterApi, type Selection } from './useCommandCenter';
-import { usePrefs } from './prefs';
-import { Header } from './components/Header';
-import { InboxPane } from './components/Inbox';
-import { MapGraph } from './components/MapGraph';
-import { Inspector } from './components/Inspector';
-import { ActivityStack, LogZone, MapSections, StatusPanel, StepZone, UpNext } from './components/Zones';
-import { CommandBar, NewMissionDialog } from './components/CommandBar';
-import { Onboarding, SettingsPanel } from './components/Settings';
-import { useSlackStatus } from './components/SlackSetup';
-import { Tabs, useBreakpoint } from './components/Hud';
-import { DecisionsView } from './components/Decisions';
-import { BriefingDialog } from './components/Briefing';
-import { useBriefing } from './useBriefing';
-import { Badge, Button, Panel } from './components/ui';
-
-/** Repo name shown in the header: the folder that contains the tracker data. */
-function useRepoName(kind: string) {
-  const [name, setName] = useState(kind === 'demo' ? 'demo' : '…');
-  useEffect(() => {
-    if (kind === 'demo') return;
-    fetch(`${BRAND.apiPrefix}/list`)
-      .then((r) => r.json())
-      .then((j: { root: string }) => {
-        const parts = j.root.split('/').filter(Boolean);
-        setName(parts[parts.length - 1]?.startsWith('.') ? parts[parts.length - 2] ?? 'repo' : parts[parts.length - 1] ?? 'repo');
-      })
-      .catch(() => setName('repo'));
-  }, [kind]);
-  return name;
-}
-
-type SideTab = 'ticket' | 'activity' | 'plan';
-type PhoneTab = 'home' | 'map' | SideTab;
+import { useMemo, useState } from 'react';
+import {
+  AppBriefing,
+  AppHeader,
+  AppSettings,
+  LaptopSide,
+  MapZone,
+  PhoneTabBar,
+  PhoneView,
+  type SettingsOpen,
+  settingsFromUrl,
+  useAppNavigation,
+  useDocumentTitle,
+  useRepoName,
+  useScopedActivity,
+} from './app';
+import { StepZone, LogZone, ActivityStack } from './features/activity';
+import { DecisionsView } from './features/decisions';
+import { InboxPane } from './features/inbox';
+import { Inspector } from './features/inspector';
+import { NewMissionDialog } from './features/mission';
+import { MapSections } from './features/plan';
+import { Onboarding } from './features/settings';
+import { UpNext } from './features/up-next';
+import { useBriefing, useBreakpoint, usePrefs, useCommandCenter } from './hooks';
+import { createRuntime, trackerKind } from './lib';
 
 /**
  * Progressive disclosure. Layers by priority:
@@ -47,57 +36,17 @@ type PhoneTab = 'home' | 'map' | SideTab;
 export function App() {
   const rt = useMemo(() => createRuntime(trackerKind()), []);
   const api = useCommandCenter(rt);
-  const { snap, activity, selection, setSelection, actions } = api;
+  const { snap, activity, selection, actions } = api;
   const [prefs, updatePrefs] = usePrefs();
-  /** `?settings=slack` (from `miloops connect slack`) opens Settings on the Slack setup. */
-  const [settingsOpen, setSettingsOpen] = useState<false | 'top' | 'slack'>(() => (new URLSearchParams(location.search).get('settings') === 'slack' ? 'slack' : false));
-  const [slack] = useSlackStatus(rt.kind === 'demo' ? 0 : 15000);
-  const slackAlert = slack?.enabled && slack.state === 'auth-error' ? slack.error ?? 'Slack rejected the tokens' : undefined;
+  const [settingsOpen, setSettingsOpen] = useState<SettingsOpen>(settingsFromUrl);
   const [newMission, setNewMission] = useState(false);
   const repo = useRepoName(rt.kind);
   const bp = useBreakpoint();
-  const [sideTab, setSideTab] = useState<SideTab>('ticket');
-  const [phoneTab, setPhoneTab] = useState<PhoneTab>('home');
-  const [convRequest, setConvRequest] = useState(0);
-  /** Decisions view: closed, or open with an optional record to focus. */
-  const [decisionsView, setDecisionsView] = useState<{ focus?: string } | null>(null);
-  const openDecisions = (focus?: string) => setDecisionsView({ focus });
   const brief = useBriefing(rt, api, prefs.briefing);
   const pending = activity.pending.length;
-  /** Map-scoped zones only see this mission's sessions; the inbox sees every mission. */
-  const scoped = useMemo(() => {
-    const sessions = activity.sessions.filter((s) => s.mapId === api.mapId);
-    const other = new Set(activity.sessions.filter((s) => s.mapId !== api.mapId).map((s) => s.id));
-    return { ...activity, sessions, feed: activity.feed.filter((e) => !e.sessionId || !other.has(e.sessionId)) };
-  }, [activity, api.mapId]);
-
-  useEffect(() => {
-    document.title = `${pending ? `(${pending}) ` : ''}${snap?.map.title ?? 'No mission'} · ${BRAND.name}`;
-  }, [pending, snap?.map.title]);
-
-  useEffect(() => {
-    const s = activity.sessions.find((x) => x.id === api.chatSession);
-    if (!selection && s?.ticketId && s.mapId === api.mapId) setSelection({ kind: 'ticket', id: s.ticketId });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [api.chatSession, api.mapId]);
-
-  /** Selecting from the map or a list shows the ticket wherever the ticket layer lives. */
-  const select = (s: Selection) => {
-    setSelection(s);
-    if (!s) return;
-    if (bp === 'laptop') setSideTab('ticket');
-    if (bp === 'mobile') setPhoneTab('ticket');
-  };
-  const openChat = (sessionId: string, ticketId?: string, mapId?: string) => {
-    if (mapId && mapId !== api.mapId) actions.selectMap(mapId);
-    actions.openChat(sessionId);
-    const s = activity.sessions.find((x) => x.id === sessionId);
-    if (ticketId && s?.mapId === (mapId ?? api.mapId)) setSelection({ kind: 'ticket', id: ticketId });
-    if (bp === 'mobile') {
-      setPhoneTab('home');
-      setConvRequest((n) => n + 1);
-    }
-  };
+  const scoped = useScopedActivity(activity, api.mapId);
+  useDocumentTitle(pending, snap?.map.title);
+  const nav = useAppNavigation(api, bp);
 
   const inbox = (
     <InboxPane
@@ -106,81 +55,88 @@ export function App() {
       currentMapId={api.mapId}
       sessionId={api.chatSession}
       layout={bp === 'mobile' ? 'stack' : 'split'}
-      convRequest={convRequest}
-      onOpen={openChat}
+      convRequest={nav.convRequest}
+      onOpen={nav.openChat}
       onAnswer={actions.answer}
-      below={<UpNext snap={snap} sessions={scoped.sessions} selection={selection} onSelect={select} onWork={() => actions.work()} />}
+      below={
+        <UpNext
+          snap={snap}
+          sessions={scoped.sessions}
+          selection={selection}
+          onSelect={nav.select}
+          onWork={() => actions.work()}
+        />
+      }
     />
   );
-  const map = <MapZone api={api} sessions={scoped.sessions} onSelect={select} onNewMission={() => setNewMission(true)} compact={bp === 'mobile'} minFit={bp === 'mobile' ? 0.7 : 0} />;
-  const inspector = (bare: boolean) => <Inspector api={api} sessions={scoped.sessions} bare={bare} onOpenChat={(id) => openChat(id)} onOpenDecision={openDecisions} />;
-  const zoneProps = { activity: scoped, snap, onTicket: (id: string) => select({ kind: 'ticket', id }), onOpenChat: (id: string) => openChat(id) };
-  const plan = (bare: boolean) => <MapSections snap={snap} selection={selection} onSelect={select} bare={bare} onAudit={() => openDecisions()} />;
-  const openTicket = (mapId: string, ticketId: string) => {
-    if (mapId !== api.mapId) actions.selectMap(mapId);
-    setSelection({ kind: 'ticket', id: ticketId });
-    setDecisionsView(null);
-    if (bp === 'laptop') setSideTab('ticket');
-    if (bp === 'mobile') setPhoneTab('ticket');
+  const map = (
+    <MapZone
+      api={api}
+      sessions={scoped.sessions}
+      onSelect={nav.select}
+      onNewMission={() => setNewMission(true)}
+      compact={bp === 'mobile'}
+      minFit={bp === 'mobile' ? 0.7 : 0}
+    />
+  );
+  const inspector = (bare: boolean) => (
+    <Inspector
+      api={api}
+      sessions={scoped.sessions}
+      bare={bare}
+      onOpenChat={(id) => nav.openChat(id)}
+      onOpenDecision={nav.openDecisions}
+    />
+  );
+  const zoneProps = {
+    activity: scoped,
+    snap,
+    onTicket: (id: string) => nav.select({ kind: 'ticket', id }),
+    onOpenChat: (id: string) => nav.openChat(id),
   };
-  const decisions = decisionsView && <DecisionsView api={api} bp={bp} focus={decisionsView.focus} onClose={() => setDecisionsView(null)} onOpenTicket={openTicket} />;
+  const plan = (bare: boolean) => (
+    <MapSections
+      snap={snap}
+      selection={selection}
+      onSelect={nav.select}
+      bare={bare}
+      onAudit={() => nav.openDecisions()}
+    />
+  );
+  const decisions = nav.decisionsView && (
+    <DecisionsView
+      api={api}
+      bp={bp}
+      focus={nav.decisionsView.focus}
+      onClose={() => nav.setDecisionsView(null)}
+      onOpenTicket={nav.openTicket}
+    />
+  );
   const briefing = brief.shown && (
-    <BriefingDialog
-      briefing={brief.briefing}
-      line={brief.line}
+    <AppBriefing
+      brief={brief}
       snaps={api.allSnaps}
       bp={bp}
-      onClose={brief.dismiss}
-      onTicket={(mapId, ticketId) => {
-        brief.dismiss();
-        openTicket(mapId, ticketId);
-      }}
-      onAnswer={(q) => {
-        brief.dismiss();
-        setDecisionsView(null);
-        openChat(q.sessionId, q.ticketId, q.mapId);
-      }}
-      onSession={(s) => {
-        brief.dismiss();
-        setDecisionsView(null);
-        openChat(s.id, s.ticketId, s.mapId);
-      }}
-      onDecision={(id) => {
-        brief.dismiss();
-        openDecisions(id);
-      }}
-      onResume={() => {
-        brief.dismiss();
-        setDecisionsView(null);
-        if (bp === 'mobile') setPhoneTab('home');
-      }}
-    />
-  );
-  const header = (
-    <Header
-      repo={repo}
-      snaps={api.allSnaps}
-      map={snap?.map}
-      activity={activity}
-      health={api.health}
-      onNewMission={() => setNewMission(true)}
-      trackerLabel={rt.adapter.label.toLowerCase()}
-      onSelectMap={actions.selectMap}
-      onToggleMode={() => snap && actions.setMode(snap.map.mode === 'plan-only' ? 'plan+execute' : 'plan-only')}
-      onSettings={() => setSettingsOpen('top')}
-      slackAlert={slackAlert}
-      onSlack={() => setSettingsOpen('slack')}
-      decisions={api.decisions.length}
-      decisionsOpen={!!decisionsView}
-      onDecisions={() => (decisionsView ? setDecisionsView(null) : openDecisions())}
-      briefingOpen={brief.shown}
-      onBriefing={() => (brief.shown ? brief.dismiss() : brief.open())}
+      openTicket={nav.openTicket}
+      openChat={nav.openChat}
+      openDecisions={nav.openDecisions}
+      closeDecisions={() => nav.setDecisionsView(null)}
+      showPhoneHome={() => nav.setPhoneTab('home')}
     />
   );
 
   return (
     <div className={`app bp-${bp}`}>
-      {header}
+      <AppHeader
+        api={api}
+        rt={rt}
+        repo={repo}
+        brief={brief}
+        decisionsOpen={!!nav.decisionsView}
+        onDecisions={() => (nav.decisionsView ? nav.setDecisionsView(null) : nav.openDecisions())}
+        onNewMission={() => setNewMission(true)}
+        onSettings={setSettingsOpen}
+      />
       {bp === 'wide' && (
         <>
           {inbox}
@@ -196,127 +152,56 @@ export function App() {
         <>
           {inbox}
           {map}
-          <Panel className="zone side" style={{ gridArea: 'inspector' }}>
-            <Tabs
-              className="zone-tabs"
-              value={sideTab}
-              onChange={setSideTab}
-              items={[
-                { id: 'ticket', label: 'Ticket' },
-                { id: 'activity', label: 'Activity' },
-                { id: 'plan', label: 'Plan', n: snap?.map.sections.unspecified.length },
-              ]}
-            />
-            {sideTab === 'ticket' ? inspector(true) : sideTab === 'activity' ? <ActivityStack {...zoneProps} /> : plan(true)}
-          </Panel>
+          <LaptopSide
+            tab={nav.sideTab}
+            onTab={nav.setSideTab}
+            unspecified={snap?.map.sections.unspecified.length}
+            ticket={inspector(true)}
+            activity={<ActivityStack {...zoneProps} />}
+            plan={plan(true)}
+          />
           {decisions}
         </>
       )}
       {bp === 'mobile' && (
         <>
-          <main className="phone-view">
-            {decisions ? decisions : phoneTab === 'home' ? inbox : phoneTab === 'map' ? map : phoneTab === 'ticket' ? <Panel className="zone">{inspector(true)}</Panel> : phoneTab === 'activity' ? <Panel className="zone"><ActivityStack {...zoneProps} /></Panel> : plan(true)}
-          </main>
-          <nav className="tabbar">
-            {(
-              [
-                ['home', 'Inbox'],
-                ['map', 'Map'],
-                ['ticket', 'Ticket'],
-                ['activity', 'Activity'],
-                ['plan', 'Plan'],
-              ] as [PhoneTab, string][]
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                className={phoneTab === id && !decisionsView ? 'on' : ''}
-                onClick={() => {
-                  setPhoneTab(id);
-                  setDecisionsView(null);
-                }}
-              >
-                {label}
-                {id === 'home' && pending > 0 && (
-                  <Badge key={pending} n={pending} urgent pop />
-                )}
-              </button>
-            ))}
-          </nav>
+          <PhoneView
+            tab={nav.phoneTab}
+            decisions={decisions}
+            inbox={inbox}
+            map={map}
+            ticket={inspector(true)}
+            activity={<ActivityStack {...zoneProps} />}
+            plan={plan(true)}
+          />
+          <PhoneTabBar
+            tab={nav.phoneTab}
+            covered={!!nav.decisionsView}
+            pending={pending}
+            onPick={(id) => {
+              nav.setPhoneTab(id);
+              nav.setDecisionsView(null);
+            }}
+          />
         </>
       )}
 
       {briefing}
       {api.error && <div className="error-toast">{api.error}</div>}
       {settingsOpen && (
-        <SettingsPanel
+        <AppSettings
+          rt={rt}
+          api={api}
           prefs={prefs}
           update={updatePrefs}
-          activeTracker={rt.kind}
-          location={rt.adapter.location}
-          map={snap?.map}
-          onMapMode={actions.setMode}
-          focus={settingsOpen === 'slack' ? 'slack' : undefined}
-          onClose={() => {
-            setSettingsOpen(false);
-            const url = new URL(location.href);
-            if (url.searchParams.has('settings')) {
-              url.searchParams.delete('settings');
-              history.replaceState(null, '', url);
-            }
-          }}
+          focus={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
         />
       )}
-      {newMission && <NewMissionDialog onClose={() => setNewMission(false)} onSubmit={actions.chart} tracker={rt.adapter.label} />}
+      {newMission && (
+        <NewMissionDialog onClose={() => setNewMission(false)} onSubmit={actions.chart} tracker={rt.adapter.label} />
+      )}
       {!prefs.onboarded && <Onboarding prefs={prefs} update={updatePrefs} activeTracker={rt.kind} />}
-    </div>
-  );
-}
-
-function MapZone(props: { api: CommandCenterApi; sessions: CommandCenterApi['activity']['sessions']; onSelect: (s: Selection) => void; onNewMission: () => void; compact: boolean; minFit: number }) {
-  const { snap, selection, actions } = props.api;
-  return (
-    <Panel as="main" className="zone map-zone" style={{ gridArea: 'map' }}>
-      {snap && <CommandBar api={props.api} />}
-      <div className="map-area">
-        {snap && !props.compact && <StatusPanel snap={snap} sessions={props.sessions} />}
-        {snap ? (
-          <MapGraph snap={snap} sessions={props.sessions} selection={selection} onSelect={props.onSelect} minFit={props.minFit} />
-        ) : (
-          <div className="nomap">
-            <h2>No mission</h2>
-            <div className="actions">
-              <Button variant="primary" onClick={props.onNewMission}>
-                New mission
-              </Button>
-              <Button onClick={actions.loadSample}>Load sample mission</Button>
-            </div>
-          </div>
-        )}
-        {snap && props.compact && <Legend planOnly={snap.map.mode === 'plan-only'} />}
-      </div>
-    </Panel>
-  );
-}
-
-function Legend({ planOnly }: { planOnly: boolean }) {
-  const items: [string, string][] = [
-    ['frontier', 'Frontier'],
-    ['claimed', 'Claimed'],
-    ['blocked', 'Blocked'],
-    ['decided', 'Decided'],
-    ...(planOnly ? ([['parked', 'Parked']] as [string, string][]) : []),
-    ['out-of-scope', 'Out of scope'],
-    ['waiting', 'Waiting on you'],
-  ];
-  return (
-    <div className="legend">
-      {items.map(([k, v]) => (
-        <span key={k} className={`lg st-${k}`}>
-          <i />
-          {v}
-        </span>
-      ))}
-      <span className="lg hitl">● needs human</span>
     </div>
   );
 }

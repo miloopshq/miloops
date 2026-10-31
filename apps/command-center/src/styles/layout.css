@@ -1,0 +1,95 @@
+/* ---------- Grid per breakpoint: visible zones keep their place as the screen grows ---------- */
+.app {
+  height: 100dvh;
+  display: grid;
+  gap: var(--sp-10);
+  padding: var(--sp-10) var(--sp-12);
+}
+.app.bp-wide {
+  grid-template-columns: clamp(310px, 21.5vw, 360px) minmax(0, 1.1fr) minmax(0, 1fr) clamp(340px, 24vw, 400px);
+  grid-template-rows: 62px minmax(0, 1fr) 262px;
+  grid-template-areas:
+    'header header header header'
+    'inbox  map    map    inspector'
+    'inbox  step   log    plan';
+}
+.app.bp-laptop {
+  grid-template-columns: 320px minmax(0, 1fr) 360px;
+  grid-template-rows: 62px minmax(0, 1fr);
+  grid-template-areas:
+    'header header header'
+    'inbox  map    inspector';
+}
+.app.bp-mobile {
+  gap: 0;
+  padding: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) 58px;
+  grid-template-areas: 'header' 'view' 'tabbar';
+}
+
+/* A zone is a framed panel with a header row and a scrolling body. */
+.zone {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.zone-b {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--sp-2) var(--gutter) var(--gutter);
+}
+.empty {
+  color: var(--faint);
+  padding: var(--sp-4) var(--gutter) var(--sp-12);
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+}
+.zone-b .empty {
+  padding: var(--sp-4) 0 var(--sp-12);
+}
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-10);
+  flex: 0 0 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+.tab {
+  height: var(--h-zone);
+  padding: 0 var(--sp-8);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.tab:hover {
+  color: var(--text);
+}
+.tab.on {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab .n {
+  margin-left: 5px;
+  color: var(--faint);
+}
+.tab.on .n {
+  color: var(--dim);
+}
