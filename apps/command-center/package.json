@@ -1,6 +1,11 @@
 {
   "name": "@miloops-hq/command-center",
   "version": "0.1.0",
+  "author": "MILOOPS",
+  "homepage": "https://miloops.app",
+  "bugs": {
+    "url": "https://github.com/miloopshq/miloops/issues"
+  },
   "private": true,
   "type": "module",
   "scripts": {

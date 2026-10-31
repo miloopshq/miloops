@@ -2,6 +2,11 @@
   "name": "@miloops-hq/landing",
   "private": true,
   "version": "0.1.0",
+  "author": "MILOOPS",
+  "homepage": "https://miloops.app",
+  "bugs": {
+    "url": "https://github.com/miloopshq/miloops/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,6 +1,12 @@
 {
   "name": "@miloops-hq/milo-avatar",
   "version": "0.1.0",
+  "private": true,
+  "author": "MILOOPS",
+  "homepage": "https://miloops.app",
+  "bugs": {
+    "url": "https://github.com/miloopshq/miloops/issues"
+  },
   "description": "Pixel-art MILO avatar: a React component plus a framework-free renderer (mountMilo).",
   "type": "module",
   "license": "MIT",
