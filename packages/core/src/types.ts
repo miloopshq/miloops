@@ -8,6 +8,8 @@ export interface Comment {
   author: string;
   body: string;
   createdAt: number;
+  /** Remote trackers: id of the MILOOPS write that posted it. */
+  writeId?: string;
 }
 
 /** A child issue of a map, as the tracker stores it. */

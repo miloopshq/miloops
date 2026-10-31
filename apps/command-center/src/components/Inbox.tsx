@@ -144,8 +144,14 @@ function Conversation(props: { activity: ActivityState; snaps: Record<string, Ma
   const ticket = session?.ticketId ? mission?.tickets.find((t) => t.id === session.ticketId) : undefined;
 
   useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages.length]);
+    const log = logRef.current;
+    if (!log) return;
+    const bottom = log.scrollHeight - log.clientHeight;
+    const q = log.querySelector<HTMLElement>('.open-q');
+    /* A question taller than the log is pinned by its top, so its avatar and label are never cut off above. */
+    const qTop = q ? q.getBoundingClientRect().top - log.getBoundingClientRect().top + log.scrollTop - parseFloat(getComputedStyle(log).paddingTop) : bottom;
+    log.scrollTo({ top: Math.min(bottom, qTop), behavior: 'smooth' });
+  }, [messages.length, pending?.id]);
   useEffect(() => {
     if (pending && !props.onBack) inputRef.current?.focus({ preventScroll: true });
   }, [pending?.id, props.onBack]);

@@ -55,14 +55,14 @@ export function SyncLine({ status }: { status?: SyncStatus }) {
   const queued = status.queued ? ` · ${status.queued} queued` : '';
   const [cls, text] =
     status.state === 'online'
-      ? ['ok', `Online · synced ${ago(status.lastSyncAt)}`]
+      ? ['ok', `Online · synced ${ago(status.lastSyncAt)}${queued}`]
       : status.state === 'offline'
         ? ['warn', `Offline${queued}`]
         : status.state === 'rate-limited'
           ? ['warn', `Rate limited · resumes ${hhmm(status.resetAt)}${queued}`]
           : status.state === 'auth-error'
-            ? ['alert', 'Credentials rejected']
-            : ['', 'Connecting'];
+            ? ['alert', `Credentials rejected${queued}`]
+            : ['', `Connecting${queued}`];
   return (
     <div className={`sync-line ${cls}`} title={status.error}>
       <span className="dot" />

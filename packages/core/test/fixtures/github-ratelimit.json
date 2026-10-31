@@ -1,6 +1,6 @@
 {
   "source": "fake",
-  "recordedAt": "2026-10-31T16:18:20.388Z",
+  "recordedAt": "2026-10-31T16:45:40.267Z",
   "notes": "Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema). Error bodies and headers as documented for secondary (429 + retry-after) and primary (403 + x-ratelimit-remaining: 0) limits.",
   "exchanges": [
     {
@@ -326,7 +326,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "<!-- miloops:author claude-07 -->\nRetried after a secondary limit."
+          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0a58t63 -->\nRetried after a secondary limit."
         }
       },
       "res": {
@@ -345,7 +345,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "<!-- miloops:author claude-07 -->\nRetried after a secondary limit."
+          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0a58t63 -->\nRetried after a secondary limit."
         }
       },
       "res": {
@@ -358,7 +358,7 @@
         },
         "body": {
           "id": 9001,
-          "body": "<!-- miloops:author claude-07 -->\nRetried after a secondary limit.",
+          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0a58t63 -->\nRetried after a secondary limit.",
           "created_at": "2026-10-31T12:00:04Z",
           "user": {
             "login": "octo-dev"
@@ -372,7 +372,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "<!-- miloops:author claude-07 -->\nSent after the window reset."
+          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01oxa5gx -->\nSent after the window reset."
         }
       },
       "res": {
@@ -393,7 +393,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "<!-- miloops:author claude-07 -->\nSent after the window reset."
+          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01oxa5gx -->\nSent after the window reset."
         }
       },
       "res": {
@@ -406,7 +406,7 @@
         },
         "body": {
           "id": 9002,
-          "body": "<!-- miloops:author claude-07 -->\nSent after the window reset.",
+          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01oxa5gx -->\nSent after the window reset.",
           "created_at": "2026-10-31T12:00:05Z",
           "user": {
             "login": "octo-dev"
@@ -488,7 +488,7 @@
                         "nodes": [
                           {
                             "databaseId": 9001,
-                            "body": "<!-- miloops:author claude-07 -->\nRetried after a secondary limit.",
+                            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0a58t63 -->\nRetried after a secondary limit.",
                             "createdAt": "2026-10-31T12:00:04Z",
                             "author": {
                               "login": "octo-dev"
@@ -496,7 +496,7 @@
                           },
                           {
                             "databaseId": 9002,
-                            "body": "<!-- miloops:author claude-07 -->\nSent after the window reset.",
+                            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01oxa5gx -->\nSent after the window reset.",
                             "createdAt": "2026-10-31T12:00:05Z",
                             "author": {
                               "login": "octo-dev"

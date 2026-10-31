@@ -220,11 +220,16 @@ code { font-family: var(--mono); font-size: var(--fs-sm); color: var(--text-hi);
 .msg.from-human .msg-text { background: rgba(var(--amber-rgb), 0.07); border-color: rgba(var(--amber-rgb), 0.35); border-left-width: 1px; border-right: 2px solid var(--amber); color: var(--text-hi); }
 .msg.open-q .msg-text { border-color: var(--urgent); border-left: 2px solid var(--urgent); background: var(--urgent-bg); color: var(--text-hi); }
 /* Open question: 32px MILO beside the text column; suggestions and the answer row share that column. */
-.comms { --q-col: 42px; container-type: inline-size; }
-.msg.open-q { max-width: none; display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: var(--sp-10); }
-.msg.open-q > * { grid-column: 2; }
-.msg.open-q .q-avatar { grid-column: 1; grid-row: 1 / span 2; align-self: start; position: relative; margin-top: var(--sp-2); }
-.msg.open-q .q-avatar::after { content: ''; position: absolute; top: -3px; right: -3px; width: 6px; height: 6px; background: var(--urgent); }
+.comms { --q-col: 46px; container-type: inline-size; }
+.comms-ticket .meta > span { display: inline-block; max-width: 100%; white-space: pre-wrap; }
+.msg .meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-text { min-width: 0; overflow-wrap: anywhere; }
+.msg.open-q { max-width: none; min-width: 0; display: grid; grid-template-columns: 36px minmax(0, 1fr); column-gap: var(--sp-10); overflow: visible; }
+.msg.open-q > * { grid-column: 2; min-width: 0; }
+/* The frame is a real border inside the 36px column so nothing paints outside the scrolling log. */
+.msg.open-q .q-avatar { grid-column: 1; grid-row: 1 / span 2; align-self: start; position: relative; padding: 1px; border: 1px solid var(--urgent); }
+.msg.open-q .q-avatar .milo-sprite { outline: none; }
+.msg.open-q .q-avatar::after { content: ''; position: absolute; top: 2px; right: 2px; width: 5px; height: 5px; background: var(--urgent); }
 .suggest { display: flex; flex-wrap: wrap; gap: var(--sp-6); padding: 0 var(--gutter) var(--sp-8); }
 .suggest .chip { border-color: rgba(var(--amber-rgb), 0.4); }
 .suggest .chip:hover { border-color: var(--amber); color: var(--amber); }
