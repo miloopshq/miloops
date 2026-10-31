@@ -10,11 +10,10 @@ import type {
 import { buildDecision, decisionNumber } from '../../../planning/decisions/decisionRecord';
 import { OperationError } from '../../../planning/operations/operationError';
 import type { TrackerAdapter } from '../../adapter';
-import { isTransient } from '../http';
 import { roundtrip } from './fingerprint';
-import { applyWrite, ticketOf, writeId } from './queuedWrites';
-import { SyncedStore } from './syncedStore';
-import type { CacheEntry, EventInit, QueuedChange, QueuedWrite } from './types';
+import { ticketOf } from './queuedWrites';
+import { SyncedWriter } from './syncedWriter';
+import type { EventInit } from './types';
 
 /**
  * Shared engine of the GitHub and Linear adapters. It implements the whole
@@ -31,115 +30,12 @@ import type { CacheEntry, EventInit, QueuedChange, QueuedWrite } from './types';
  * - polling (while subscribed) picks up changes made in the tracker and emits
  *   `external.changed` only when the mission really differs from the cache.
  */
-export abstract class SyncedAdapter extends SyncedStore implements TrackerAdapter {
+export abstract class SyncedAdapter extends SyncedWriter implements TrackerAdapter {
   abstract readonly kind: 'github' | 'linear';
   abstract readonly label: string;
   abstract readonly location: string;
 
-  protected abstract remoteCreateMap(input: { title: string; sections: MapSections; mode: MapMode }): Promise<MapDoc>;
-  protected abstract remoteCreateTicket(
-    map: MapDoc,
-    input: { title: string; type: TicketType; body: string; hitl?: boolean },
-  ): Promise<Ticket>;
-  protected abstract remoteAddBlocking(map: MapDoc, blocker: Ticket, blocked: Ticket): Promise<void>;
-  /** Persist the claim (`t.assignee`) of an already-updated ticket. */
-  protected abstract remoteSetClaim(map: MapDoc, t: Ticket): Promise<void>;
-  /** `writeId` must be readable back as the comment's `writeId`. */
-  protected abstract remoteComment(
-    map: MapDoc,
-    t: Ticket,
-    author: string,
-    body: string,
-    writeId: string,
-  ): Promise<void>;
-  protected abstract remoteClose(map: MapDoc, t: Ticket, reason: 'completed' | 'not_planned'): Promise<void>;
-  protected abstract remoteUpdateMap(map: MapDoc): Promise<void>;
-  protected abstract remoteSetMode(map: MapDoc, mode: MapMode): Promise<void>;
-  /** Post a decision record on its ticket, or on the mission when it has none. */
-  protected abstract remotePostDecision(map: MapDoc, d: DecisionRecord, ticket?: Ticket): Promise<void>;
-  protected abstract remoteUpdateDecision(map: MapDoc, d: DecisionRecord): Promise<void>;
-
   private lastDecision = 0;
-  private writes = 0;
-
-  protected send(e: CacheEntry, w: QueuedWrite): Promise<unknown> {
-    const c = w.change;
-    const map = e.snap.map;
-    switch (c.kind) {
-      case 'mode':
-        return this.remoteSetMode(map, c.mode);
-      case 'sections':
-        return this.remoteUpdateMap({ ...map, sections: c.sections });
-      case 'blocking':
-        return this.remoteAddBlocking(map, ticketOf(e, c.blockerId), ticketOf(e, c.blockedId));
-      case 'claim':
-        return this.remoteSetClaim(map, { ...ticketOf(e, c.ticketId), assignee: c.assignee });
-      case 'comment':
-        return this.remoteComment(map, ticketOf(e, c.ticketId), c.author, c.body, w.id);
-      case 'close':
-        return this.remoteClose(map, ticketOf(e, c.ticketId), c.reason);
-      case 'decision':
-        return this.remotePostDecision(
-          map,
-          c.decision,
-          c.decision.ticketId ? e.snap.tickets.find((t) => t.id === c.decision.ticketId) : undefined,
-        );
-      case 'supersede': {
-        const d = e.decisions.find((x) => x.id === c.decisionId);
-        if (!d) throw new OperationError(`decision ${c.decisionId} not found in ${w.mapId}`);
-        return this.remoteUpdateDecision(map, { ...d, supersededBy: c.supersededBy });
-      }
-    }
-  }
-
-  /**
-   * Sends one queueable write and applies it to the cache. When the tracker is
-   * offline or rate limited (or other writes are queued, to keep order) it is
-   * applied to the cache now and queued, persisted when there is a store.
-   */
-  private async change(
-    mapId: string,
-    label: string,
-    change: QueuedChange | ((e: CacheEntry) => QueuedChange),
-    event: EventInit,
-  ) {
-    await this.locks.run(mapId, async () => {
-      const e = await this.entry(mapId);
-      const c = typeof change === 'function' ? change(e) : change;
-      const w: QueuedWrite = {
-        id: writeId(mapId, c, this.now, ++this.writes),
-        mapId,
-        label,
-        at: this.now(),
-        change: c,
-      };
-      if (this.queue.length) this.enqueue(w);
-      else {
-        try {
-          await this.send(e, w);
-          this.health.online();
-        } catch (err) {
-          this.health.failed(err);
-          if (!isTransient(err)) throw err;
-          this.enqueue({ ...w, verify: err.code === 'offline' || undefined });
-        }
-      }
-      applyWrite(e, w, this.now);
-      e.at = this.now();
-      e.snap.map.updatedAt = this.now();
-      this.emit(event);
-    });
-  }
-
-  private enqueue(w: QueuedWrite) {
-    this.queue.push(w);
-    this.health.set({});
-    const s = this.health.status;
-    this.poller.schedule(
-      s.state === 'rate-limited' && s.resetAt ? Math.max(1000, s.resetAt - this.now()) : Math.min(this.pollMs, 5000),
-    );
-  }
-
   async createMap(input: { title: string; sections: MapSections; mode?: MapMode }): Promise<MapDoc> {
     let map: MapDoc;
     try {

@@ -4,15 +4,15 @@ import type { DecisionRecord, MapSnapshot, MapSummary, TrackerEvent } from '../.
 import { isTransient, type RateInfo } from '../http';
 import { fingerprint } from './fingerprint';
 import { Poller } from './poller';
-import { applyWrite, CHECKED, hasLanded } from './queuedWrites';
+import { applyWrite } from './queuedWrites';
 import { SyncHealth } from './syncHealth';
-import type { CacheEntry, EventInit, QueuedWrite, SyncOptions, SyncStatus } from './types';
+import type { CacheEntry, EventInit, SyncOptions, SyncStatus } from './types';
 import { WriteQueue } from './writeQueue';
 
 /**
- * Read side of a synced adapter: the mission cache, the write queue flush and
- * the poll loop that picks up changes made in the tracker. Writes are added by
- * `SyncedAdapter`, which also supplies `send`.
+ * Read side of a synced adapter: the mission cache and the poll loop that
+ * sends queued writes and picks up changes made in the tracker. Writes are
+ * added by `SyncedWriter`, which also supplies `flush`.
  */
 export abstract class SyncedStore {
   protected abstract fetchMaps(): Promise<MapSummary[]>;
@@ -20,8 +20,8 @@ export abstract class SyncedStore {
   /** Missions changed in the tracker since the last call; `'all'` when the mission list itself may have changed. */
   protected abstract changedSince(known: (issueRef: string) => string | undefined): Promise<string[] | 'all'>;
   protected abstract rate(): RateInfo | undefined;
-  /** Sends a queueable write, reading tickets and decisions from `e` (the mission before the write is applied). */
-  protected abstract send(e: CacheEntry, w: QueuedWrite): Promise<unknown>;
+  /** Sends the queued writes, oldest first. */
+  protected abstract flush(): Promise<void>;
 
   protected readonly now: () => number;
   protected readonly pollMs: number;
@@ -88,7 +88,7 @@ export abstract class SyncedStore {
     return structuredClone(this.maps.list);
   }
 
-  private async fetchEntry(mapId: string): Promise<CacheEntry> {
+  protected async fetchEntry(mapId: string): Promise<CacheEntry> {
     const inflight = this.loading.get(mapId);
     if (inflight) return inflight;
     const p = this.fetchMap(mapId)
@@ -102,7 +102,7 @@ export abstract class SyncedStore {
   }
 
   /** Remote state plus the queued writes not sent yet (after a restart there is no cache that has them). */
-  private withQueued(mapId: string, remote: CacheEntry): CacheEntry {
+  protected withQueued(mapId: string, remote: CacheEntry): CacheEntry {
     const queued = this.queue.forMap(mapId);
     if (!queued.length) return remote;
     const e = structuredClone(remote);
@@ -159,42 +159,6 @@ export abstract class SyncedStore {
   private async poll() {
     await this.flush();
     if (this.polling()) await this.sync();
-  }
-
-  private async flush() {
-    /** Uncached remote state read during this flush, to check writes that may have landed. */
-    const remote = new Map<string, CacheEntry>();
-    const read = async (mapId: string) => {
-      let r = remote.get(mapId);
-      if (!r) {
-        r = await this.fetchEntry(mapId);
-        remote.set(mapId, r);
-        if (!this.entries.has(mapId)) this.entries.set(mapId, this.withQueued(mapId, r));
-      }
-      return r;
-    };
-    for (let w = this.queue.head; w; w = this.queue.head) {
-      try {
-        const check = w.verify && CHECKED.has(w.change.kind);
-        if (check || !this.entries.has(w.mapId)) await read(w.mapId);
-        if (!(check && hasLanded(remote.get(w.mapId)!, w))) await this.send(await this.entry(w.mapId), w);
-      } catch (err) {
-        if (isTransient(err)) {
-          if (err.code === 'offline' && !w.verify) {
-            w.verify = true;
-            this.queue.save();
-          }
-          throw err;
-        }
-        // the tracker rejected it for good (deleted issue, revoked access): drop it rather than block the queue
-        this.queue.shift();
-        this.health.set({ error: `Dropped queued write (${w.label}): ${(err as Error).message}` });
-        continue;
-      }
-      this.queue.shift();
-      this.health.online();
-      this.health.set({});
-    }
   }
 
   private async sync() {
