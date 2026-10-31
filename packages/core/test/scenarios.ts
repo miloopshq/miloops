@@ -64,6 +64,20 @@ export async function syncFlow(make: () => SyncedAdapter, human: { act(ticketRef
   return { map, ticket: tickets[0], quiet, seen, idle: events.length - quiet - seen.length, after };
 }
 
+/** Another process (an MCP agent) charts a mission after this adapter listed missions but before its first poll. */
+export async function lateMissionFlow(make: () => SyncedAdapter) {
+  const a = make();
+  const before = await a.listMaps();
+  const events: TrackerEvent[] = [];
+  a.subscribe((e) => events.push(e));
+  const { map } = await chartMap(make(), { title: 'Charted by an agent', sections: SECTIONS, tickets: [{ ref: 'r', title: 'Survey CRDT libraries', type: 'research', body: 'Compare.' }] });
+  await a.tick();
+  const after = await a.listMaps();
+  const second = await chartMap(make(), { title: 'Charted after the first poll', sections: SECTIONS, tickets: [] });
+  await a.tick();
+  return { before, map, after, second: second.map, later: await a.listMaps(), events };
+}
+
 /** Network drops mid-mission: writes queue, reads serve the cache, creates fail fast, the queue drains on reconnect. */
 export async function offlineFlow(make: () => SyncedAdapter, net: { offline(on: boolean): void }) {
   const a = make();

@@ -228,7 +228,8 @@ export class GitHubAdapter extends SyncedAdapter {
     const newest = items.reduce((m, i) => (i.updated_at > m ? i.updated_at : m), this.cursor ?? '');
     const since = this.cursor;
     this.cursor = newest;
-    if (since === undefined) return [];
+    // the cached list predates this baseline: anything created in between only shows up through a full resync
+    if (since === undefined) return 'all';
     const out: string[] = [];
     for (const i of items.filter((x) => x.updated_at > since && !x.pull_request)) {
       const mission = known(String(i.number));
