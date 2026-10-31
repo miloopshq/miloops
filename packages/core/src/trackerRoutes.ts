@@ -7,6 +7,7 @@ import type { SyncedAdapter } from './adapters/remote/synced';
 import type { RemoteKind, TrackerConnectRequest, TrackerSettings, TrackerTestRequest, TrackerTestResult } from './adapters/remote/types';
 import { BRAND } from './brand';
 import { OperationError } from './operations';
+import type { TrackerEvent } from './types';
 import { configDir, credentialStore, detectGitHubRepo, projectConfig, resolveGitHubToken, resolveLinearKey, run, type Run } from './trackerConfig';
 
 export interface TrackerRoutesOptions {
@@ -22,7 +23,7 @@ export interface TrackerRoutesOptions {
   configDir?: string;
 }
 
-const CALLS = new Set<keyof TrackerAdapter>([
+const CALL_NAMES = [
   'listMaps',
   'loadMap',
   'createMap',
@@ -36,7 +37,8 @@ const CALLS = new Set<keyof TrackerAdapter>([
   'listDecisions',
   'createDecision',
   'markSuperseded',
-]);
+] as const satisfies readonly (keyof TrackerAdapter)[];
+const CALLS = new Set<keyof TrackerAdapter>(CALL_NAMES);
 
 const STATUS: Record<TrackerError['code'], number> = { offline: 503, rate_limited: 429, auth: 401, not_found: 404, invalid: 400, http: 502 };
 
@@ -276,6 +278,74 @@ export function createTrackerRoutes(o: TrackerRoutesOptions) {
     },
     close() {
       for (const k of Object.keys(live) as RemoteKind[]) reset(k);
+    },
+  };
+}
+
+/**
+ * The project's active tracker as a plain adapter, for processes without the
+ * HTTP bridge (the MCP server). Every call re-reads `trackers.json`, so
+ * connecting GitHub or Linear in Settings applies without restarting the agent;
+ * a remote tracker that can't be reached fails the call instead of falling back
+ * to local markdown.
+ */
+export function activeTracker(o: TrackerRoutesOptions): TrackerAdapter & { dispose(): void } {
+  const routes = createTrackerRoutes(o);
+  const listeners = new Set<(e: TrackerEvent) => void>();
+  let current: TrackerAdapter = o.markdown;
+  let off: () => void = () => {};
+  const attach = () => {
+    off();
+    off = listeners.size ? current.subscribe((e) => listeners.forEach((l) => l(e))) : () => {};
+  };
+  const use = async () => {
+    const a = await routes.active();
+    if (a !== current) {
+      current = a;
+      attach();
+    }
+    return a;
+  };
+  const call = <K extends (typeof CALL_NAMES)[number]>(k: K) =>
+    (async (...args: unknown[]) => {
+      const a = await use();
+      return (a[k] as (...x: unknown[]) => unknown).apply(a, args);
+    }) as TrackerAdapter[K];
+  return {
+    get kind() {
+      return current.kind;
+    },
+    get label() {
+      return current.label;
+    },
+    get location() {
+      return current.location;
+    },
+    listMaps: call('listMaps'),
+    loadMap: call('loadMap'),
+    createMap: call('createMap'),
+    setMapMode: call('setMapMode'),
+    updateMapSections: call('updateMapSections'),
+    createTicket: call('createTicket'),
+    addBlocking: call('addBlocking'),
+    assign: call('assign'),
+    comment: call('comment'),
+    close: call('close'),
+    listDecisions: call('listDecisions'),
+    createDecision: call('createDecision'),
+    markSuperseded: call('markSuperseded'),
+    subscribe(listener) {
+      listeners.add(listener);
+      if (listeners.size === 1) attach();
+      return () => {
+        listeners.delete(listener);
+        if (!listeners.size) attach();
+      };
+    },
+    dispose() {
+      listeners.clear();
+      off();
+      routes.close();
     },
   };
 }

@@ -110,6 +110,7 @@ export function createRuntime(kind: TrackerKind) {
         const kv = localStore(`${kind}:${remote.location}`);
         store.presence = new Presence(kv);
         activity.ledger = new UsageLedger(kv);
+        linkAgents(activity);
       });
   } else if (kind === 'markdown') {
     raw = new MarkdownAdapter(httpFs, `./${BRAND.dataDir}`);
