@@ -4,6 +4,7 @@ import { BRAND } from '@miloops-hq/core';
 import { credentialStore, writeJsonAtomic } from '@miloops-hq/core/bridge';
 import type { AskView } from './blocks';
 import { DEFAULT_COMMAND } from './manifest';
+import type { PostedApproval } from './service/types';
 import { DEFAULT_NOTIFY_EVENTS, type SlackNotify, type SlackTokenSource, type SlackUser } from './types';
 
 /*
@@ -157,5 +158,19 @@ export function askStore(root: string) {
     read: (): Record<string, AskRecord> =>
       (readJson<{ asks: Record<string, AskRecord> }>(file).asks ?? {}) as Record<string, AskRecord>,
     write: (asks: Record<string, AskRecord>) => writeJsonAtomic(file, { asks }),
+  };
+}
+
+/**
+ * Approval messages MILO posted, by mission/ticket/attempt/kind, in the tracker
+ * folder (`.agents/slack-approvals.json`), so a restart updates them instead of
+ * posting again. Stays on this machine.
+ */
+export function approvalStore(root: string) {
+  const file = path.join(root, '.agents', 'slack-approvals.json');
+  return {
+    read: (): Record<string, PostedApproval> =>
+      (readJson<{ approvals: Record<string, PostedApproval> }>(file).approvals ?? {}) as Record<string, PostedApproval>,
+    write: (approvals: Record<string, PostedApproval>) => writeJsonAtomic(file, { approvals }),
   };
 }

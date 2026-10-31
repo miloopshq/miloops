@@ -13,7 +13,15 @@ import { deterministicSummary, plainText } from '../src/summary';
 import { fakeSlack } from './fakes/slack';
 import { socketHub } from './fakes/socket';
 import { ALL_SCOPES, ANA, RAJ, TOKENS, URL_, connected, freezeTime, until, world, type SlackFixture } from './harness';
-import { approvalFlow, askFlow, decisionFlow, notifyFlow, setupFlow, statusFlow } from './scenarios';
+import {
+  approvalFlow,
+  approvalRestartFlow,
+  askFlow,
+  decisionFlow,
+  notifyFlow,
+  setupFlow,
+  statusFlow,
+} from './scenarios';
 
 let thaw: () => void;
 before(() => (thaw = freezeTime()));
@@ -259,6 +267,46 @@ test('approvals: a reviewed pass and a held ticket reach the owner; Approve and 
   );
   assert.ok(posts(fx, 'chat.update').every((u) => !u.blocks.some((b: { type: string }) => b.type === 'actions')));
   assert.equal(responses(fx)[0].text.startsWith('Only the MILOOPS owner'), true);
+});
+
+test('approvals survive a restart: stored messages are updated in place, and out-of-date buttons are refused', async () => {
+  const r = await replayed('slack-approvals-restart.json', approvalRestartFlow);
+  const fx = fixture('slack-approvals-restart.json');
+  assert.equal(posts(fx, 'chat.postMessage').length, 2, 'the restart posts nothing new');
+  const [approve, held] = posts(fx, 'chat.postMessage');
+  const updates = posts(fx, 'chat.update');
+  assert.deepEqual(
+    updates.map((u) => [u.text, u.blocks.some((b: { type: string }) => b.type === 'actions')]),
+    [
+      ['No longer waiting on you: #2 is done.', false],
+      ['Held · #3 Migrate schema', true],
+      ['No longer waiting on you: #3 went back to rework.', false],
+    ],
+  );
+  assert.deepEqual(
+    updates.map((u) => u.ts),
+    [approve, held, held].map((p) => (fx.exchanges.find((e) => e.req.body === p)!.res.body as { ts: string }).ts),
+    'each update edits the message posted before the restart',
+  );
+  assert.deepEqual(
+    responses(fx).map((b) => b.text),
+    [
+      'Nothing changed: this message is out of date. #2 is done.',
+      'Nothing changed: this message is out of date. #3 went back to rework.',
+    ],
+  );
+  assert.equal(posts(fx, 'views.open').length, 0, 'a stale Rework… opens no modal');
+  assert.deepEqual(
+    r.verdicts.map((v) => [v.by, v.verdict]),
+    [
+      ['claude-02', 'PASS'],
+      ['operator', 'PASS'],
+      ['operator', 'FAIL'],
+    ],
+    'the stale clicks added no verdict',
+  );
+  assert.deepEqual([r.api.state, r.mig.status], ['closed', 'rework']);
+  assert.deepEqual(r.stored, {}, 'nothing left with live buttons');
 });
 
 /* ---------- connection, lock, failures ---------- */

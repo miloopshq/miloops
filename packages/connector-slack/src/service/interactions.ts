@@ -12,7 +12,7 @@ import {
 import { SAVE_DECISION_CALLBACK } from '../manifest';
 import type { Envelope, EnvelopeResult } from '../socket';
 import { plainText } from '../summary';
-import { decideApproval } from './approvals';
+import { decideApproval, waitingApproval } from './approvals';
 import { answer, closeAsk, pendingAsk, writeAnswer } from './asks';
 import { inboxMessage, statusMessage } from './commands';
 import { REFUSED, ALREADY } from './constants';
@@ -125,14 +125,16 @@ function onApproval(ctx: SlackContext, p: Payload, id: string, value: string): E
   const ref = JSON.parse(value) as ApprovalRef;
   if (id === ACTIONS.approve)
     return { after: () => decideApproval(ctx, ref, user, { action: 'approve' }, p.response_url) };
-  const item = [...ctx.approvals.values()].find((x) => x.item.ticketId === ref.t && x.item.mapId === ref.m)?.item;
   const meta = JSON.stringify({ ...ref, r: p.response_url });
   return {
-    after: () =>
-      ctx.call('views.open', {
-        trigger_id: p.trigger_id,
-        view: reworkModal(item ? `${item.ticketKey} ${item.title}` : ref.t, meta),
-      }),
+    after: async () => {
+      const item = await waitingApproval(ctx, ref, 'rework', p.response_url);
+      if (item)
+        await ctx.call('views.open', {
+          trigger_id: p.trigger_id,
+          view: reworkModal(`${item.ticketKey} ${item.title}`, meta),
+        });
+    },
   };
 }
 

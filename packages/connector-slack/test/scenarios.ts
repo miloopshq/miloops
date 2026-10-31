@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { MemoryAdapter, chartMap, claim, transition, type MapSections, type Ticket } from '@miloops-hq/core';
-import { readVerdicts, writeAttempt, writeVerdict } from '@miloops-hq/core/agents';
+import { operatorAction, readVerdicts, writeAttempt, writeVerdict } from '@miloops-hq/core/agents';
 import type { FakeSlack } from './fakes/slack';
 import { ALL_SCOPES, ANA, EVE, RAJ, TOKENS, agentDoc, connected, readJson, until, type World } from './harness';
 
@@ -249,8 +249,8 @@ function posted(f: FakeSlack, prefix: string): [string, string] {
   throw new Error(`no message starting "${prefix}"`);
 }
 
-/** A reviewed pass to approve and a held ticket reach the owner; Approve and Rework… decide them from Slack. */
-export async function approvalFlow(w: World) {
+/** A mission at checks+review+human: #2 is a reviewed pass to approve, #3 failed its checks and is held. */
+async function approvalMission(w: World) {
   const a = new MemoryAdapter({ latency: [0, 0] });
   writeFileSync(
     path.join(w.root, 'verification.json'),
@@ -301,7 +301,12 @@ export async function approvalFlow(w: World) {
   });
   attempt(mig, 'fail');
   await transition(a, map.id, mig.id, { event: 'checks.fail', to: 'blocked', actor: 'miloops', actorKind: 'engine' });
+  return { a, map, api, mig };
+}
 
+/** A reviewed pass to approve and a held ticket reach the owner; Approve and Rework… decide them from Slack. */
+export async function approvalFlow(w: World) {
+  const { a, map, api, mig } = await approvalMission(w);
   connected(w, { allow: [RAJ] });
   const svc = w.service(a);
   await until(() => svc.status().state === 'online', 'socket online');
@@ -325,5 +330,45 @@ export async function approvalFlow(w: World) {
     api: snap.tickets.find((t) => t.id === api.id)!,
     mig: snap.tickets.find((t) => t.id === mig.id)!,
     verdicts: [...readVerdicts(w.root, map.id, api.id), ...readVerdicts(w.root, map.id, mig.id)],
+  };
+}
+
+/**
+ * MILO restarts while both approvals wait; meanwhile #2 is approved in the
+ * command center. The new process updates the stored messages in place instead
+ * of posting again, and buttons on messages that are out of date are refused.
+ */
+export async function approvalRestartFlow(w: World) {
+  const { a, map, api, mig } = await approvalMission(w);
+  connected(w);
+  const first = w.service(a);
+  await until(() => first.status().state === 'online', 'socket online');
+  await first.tick();
+  first.close();
+  await operatorAction(
+    { adapter: a, root: w.root },
+    { action: 'approve', mapId: map.id, ticketId: api.id, by: 'operator' },
+  );
+
+  const second = w.service(a);
+  await until(() => second.status().state === 'online', 'second socket online');
+  await second.tick();
+  await w.send(second, 'ana clicks Approve on the message from before the restart', (f) =>
+    f.payload.click(ANA, ...posted(f, 'No longer waiting'), 'verify_approve'),
+  );
+  await operatorAction(
+    { adapter: a, root: w.root },
+    { action: 'rework', mapId: map.id, ticketId: mig.id, by: 'operator', reason: 'Redo it' },
+  );
+  await w.send(second, 'ana clicks Rework… after the operator sent it back', (f) =>
+    f.payload.click(ANA, ...posted(f, 'Held'), 'verify_rework'),
+  );
+  await second.tick();
+  const snap = await a.loadMap(map.id);
+  return {
+    api: snap.tickets.find((t) => t.id === api.id)!,
+    mig: snap.tickets.find((t) => t.id === mig.id)!,
+    verdicts: [...readVerdicts(w.root, map.id, api.id), ...readVerdicts(w.root, map.id, mig.id)],
+    stored: readJson(path.join(w.root, '.agents', 'slack-approvals.json')).approvals,
   };
 }
