@@ -30,6 +30,13 @@ const hideUnshipped = () =>
     }),
   );
 
+const setVisible = (v) =>
+  page.evaluate((v) => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (v ? 'visible' : 'hidden') });
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => !v });
+    document.dispatchEvent(new Event('visibilitychange'));
+  }, v);
+
 const shot = async (name) => {
   await page.screenshot({ path: join(media, `${name}.png`) });
   console.log('saved', `${name}.png`);
@@ -56,6 +63,8 @@ await wait(1200);
 await page.getByRole('button', { name: 'Load sample mission' }).click();
 await page.locator('.node').first().waitFor({ timeout: 15000 });
 await page.getByRole('button', { name: /Autopilot/ }).click();
+// Away from here on (tab hidden), so the Briefing button later covers everything the agents decided.
+await setVisible(false);
 await page.locator('.inbox-list li').first().waitFor({ timeout: 30000 });
 await wait(4000);
 await page.locator('.node', { hasText: 'silent auto-merge' }).first().click();

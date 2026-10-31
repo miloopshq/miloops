@@ -1,14 +1,38 @@
 /* ---------- Phone: one view at a time + fixed bottom tab bar ---------- */
+/* Phone: repo + actions on the first row so the mission title gets the full width below. */
 .bp-mobile .header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'repo right' 'title title' 'dest dest';
+  align-items: center;
+  column-gap: var(--sp-10);
+  row-gap: var(--sp-4);
   padding: var(--sp-10) var(--sp-12);
-  gap: var(--sp-10);
-  align-items: flex-start;
   border-width: 0 0 1px;
 }
 .bp-mobile .header::before {
   display: none;
 }
+.bp-mobile .h-title,
+.bp-mobile .h-line1 {
+  display: contents;
+}
+.bp-mobile .repo {
+  grid-area: repo;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bp-mobile .mission-switcher {
+  grid-area: title;
+}
+.bp-mobile .h-dest {
+  grid-area: dest;
+}
+.bp-mobile .h-right {
+  grid-area: right;
+}
 .bp-mobile .h-brand,
+.bp-mobile .h-line1 .sep,
 .bp-mobile .mode-chip,
 .bp-mobile .tracker-chip,
 .bp-mobile .waiting-chip,

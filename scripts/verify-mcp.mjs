@@ -70,6 +70,9 @@ const call = async (name, args = {}) => {
   fs.appendFileSync(transcript, `${JSON.stringify({ type: 'assistant', timestamp: new Date().toISOString(), requestId: `req_${seq}`, message })}\n`);
   const r = await client.callTool({ name, arguments: args, _meta: { 'claudecode/toolUseId': id } }, undefined, { timeout: 120_000 });
   if (r.isError) throw new Error(`${name}: ${r.content[0].text}`);
+  // A real agent's next message comes a model round trip after the result. Without the pause it can share the
+  // millisecond a session ended in, and the meter cannot tell which side of the boundary it belongs to.
+  await new Promise((done) => setTimeout(done, 5));
   return JSON.parse(r.content[0].text);
 };
 
