@@ -1,5 +1,5 @@
 // Install terminal: types the commands, prints MILOOPS starting up, holds, clears and loops,
-// alternating a global install with npx. `frameAt` is pure so the doc GIF renders the same frames.
+// alternating npx with a global install. `frameAt` is pure so the doc GIF renders the same frames.
 
 type Step = { ps: string; cmd: string } | { out: string[] };
 
@@ -13,15 +13,15 @@ const BOOT = [
 
 export const SCRIPTS: Step[][] = [
   [
+    { ps: '~ $', cmd: 'cd my-app' },
+    { ps: '~/my-app $', cmd: 'npx miloops' },
+    { out: BOOT },
+  ],
+  [
     { ps: '~ $', cmd: 'npm i -g miloops' },
     { out: ['<i>added 1 package in 2s</i>'] },
     { ps: '~ $', cmd: 'cd my-app' },
     { ps: '~/my-app $', cmd: 'miloops' },
-    { out: BOOT },
-  ],
-  [
-    { ps: '~ $', cmd: 'cd my-app' },
-    { ps: '~/my-app $', cmd: 'npx miloops' },
     { out: BOOT },
   ],
 ];
