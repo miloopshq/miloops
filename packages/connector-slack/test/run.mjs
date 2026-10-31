@@ -2,17 +2,19 @@
 //   node test/run.mjs                 run every *.node.test.ts
 //   node test/run.mjs record          re-record fixtures against the fake (see record.ts)
 //   node test/run.mjs serve [port]    fake Slack (Web API + Socket Mode) over HTTP for browser runs (see serve-fake.ts)
-import { build } from 'esbuild';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { build } from 'esbuild';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const out = path.resolve(here, '../../../node_modules/.cache/miloops-slack-tests');
 const [cmd, ...rest] = process.argv.slice(2);
 const script = { record: 'record.ts', serve: 'serve-fake.ts' }[cmd];
-const entries = script ? [script] : readdirSync(here).filter((f) => f.endsWith('.node.test.ts') && (!cmd || f.includes(cmd)));
+const entries = script
+  ? [script]
+  : readdirSync(here).filter((f) => f.endsWith('.node.test.ts') && (!cmd || f.includes(cmd)));
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });

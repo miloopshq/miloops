@@ -50,7 +50,10 @@ function readJson<T>(file: string): Partial<T> {
 }
 
 type Env = Record<string, string | undefined>;
-const ENV = { app: `${BRAND.slug.toUpperCase()}_SLACK_APP_TOKEN` as SlackTokenSource, bot: `${BRAND.slug.toUpperCase()}_SLACK_BOT_TOKEN` as SlackTokenSource };
+const ENV = {
+  app: `${BRAND.slug.toUpperCase()}_SLACK_APP_TOKEN` as SlackTokenSource,
+  bot: `${BRAND.slug.toUpperCase()}_SLACK_BOT_TOKEN` as SlackTokenSource,
+};
 
 export function slackStore(dir: string, env: Env = process.env) {
   const file = path.join(dir, 'slack.json');
@@ -74,8 +77,16 @@ export function slackStore(dir: string, env: Env = process.env) {
     tokens(): { app?: { token: string; source: SlackTokenSource }; bot?: { token: string; source: SlackTokenSource } } {
       const s = creds.read().slack ?? {};
       return {
-        app: s.appToken ? { token: s.appToken, source: 'stored' } : env[ENV.app] ? { token: env[ENV.app]!, source: ENV.app } : undefined,
-        bot: s.botToken ? { token: s.botToken, source: 'stored' } : env[ENV.bot] ? { token: env[ENV.bot]!, source: ENV.bot } : undefined,
+        app: s.appToken
+          ? { token: s.appToken, source: 'stored' }
+          : env[ENV.app]
+            ? { token: env[ENV.app]!, source: ENV.app }
+            : undefined,
+        bot: s.botToken
+          ? { token: s.botToken, source: 'stored' }
+          : env[ENV.bot]
+            ? { token: env[ENV.bot]!, source: ENV.bot }
+            : undefined,
       };
     },
     saveToken(kind: 'app' | 'bot', token: string) {
@@ -143,7 +154,8 @@ export interface AskRecord {
 export function askStore(root: string) {
   const file = path.join(root, '.agents', 'slack.json');
   return {
-    read: (): Record<string, AskRecord> => (readJson<{ asks: Record<string, AskRecord> }>(file).asks ?? {}) as Record<string, AskRecord>,
+    read: (): Record<string, AskRecord> =>
+      (readJson<{ asks: Record<string, AskRecord> }>(file).asks ?? {}) as Record<string, AskRecord>,
     write: (asks: Record<string, AskRecord>) => writeJsonAtomic(file, { asks }),
   };
 }

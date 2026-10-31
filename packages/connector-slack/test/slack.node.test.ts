@@ -5,14 +5,14 @@ import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { MemoryAdapter } from '@miloops-hq/core';
 import { createTrackerBridge } from '@miloops-hq/core/bridge';
-import { slackPlugin, slackRoutes } from '../src/node';
-import { BOT_SCOPES, appIdFromToken, slackLinks, slackManifest, tokenKind } from '../src/manifest';
-import { deterministicSummary, plainText } from '../src/summary';
-import { SocketMode } from '../src/socket';
 import { FIXTURES } from '../../core/test/fixtures';
-import { ALL_SCOPES, ANA, RAJ, TOKENS, URL_, connected, freezeTime, until, world, type SlackFixture } from './harness';
+import { BOT_SCOPES, appIdFromToken, slackLinks, slackManifest, tokenKind } from '../src/manifest';
+import { slackPlugin, slackRoutes } from '../src/node';
+import { SocketMode } from '../src/socket';
+import { deterministicSummary, plainText } from '../src/summary';
 import { fakeSlack } from './fakes/slack';
 import { socketHub } from './fakes/socket';
+import { ALL_SCOPES, ANA, RAJ, TOKENS, URL_, connected, freezeTime, until, world, type SlackFixture } from './harness';
 import { askFlow, decisionFlow, notifyFlow, setupFlow, statusFlow } from './scenarios';
 
 let thaw: () => void;
@@ -20,8 +20,10 @@ before(() => (thaw = freezeTime()));
 after(() => thaw());
 
 const fixture = (name: string) => JSON.parse(readFileSync(path.join(FIXTURES, name), 'utf8')) as SlackFixture;
-const posts = (fx: SlackFixture, method: string) => fx.exchanges.filter((e) => e.req.url.startsWith(`/api/${method}`)).map((e) => e.req.body as Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
-const responses = (fx: SlackFixture) => fx.exchanges.filter((e) => e.req.url.startsWith('/actions/')).map((e) => e.req.body as Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
+const posts = (fx: SlackFixture, method: string) =>
+  fx.exchanges.filter((e) => e.req.url.startsWith(`/api/${method}`)).map((e) => e.req.body as Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
+const responses = (fx: SlackFixture) =>
+  fx.exchanges.filter((e) => e.req.url.startsWith('/actions/')).map((e) => e.req.body as Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 async function replayed<T>(name: string, flow: (w: ReturnType<typeof world>) => Promise<T>) {
   const w = world('replay', name);
@@ -46,10 +48,20 @@ test('setup: tokens are routed by prefix, checked live, stored only in the local
   assert.deepEqual([r.bot.ok, r.bot.kind, r.bot.status.enabled], [true, 'bot', true]);
   assert.deepEqual([r.beforeClaim.state, r.beforeClaim.step], ['online', 5]);
   assert.equal(r.beforeClaim.links.home, 'slack://app?team=T0EFIKA01&id=A0MILO0001&tab=home');
-  assert.deepEqual([r.after.step, r.after.owners], ['done', [{ id: ANA, name: 'ana', via: 'home' }]], 'the first click wins; a later click does not take over');
+  assert.deepEqual(
+    [r.after.step, r.after.owners],
+    ['done', [{ id: ANA, name: 'ana', via: 'home' }]],
+    'the first click wins; a later click does not take over',
+  );
   assert.deepEqual(r.creds, { slack: { appToken: TOKENS.app, botToken: TOKENS.bot } });
-  assert.ok(!JSON.stringify(r.settings).includes('xox') && !JSON.stringify(r.settings).includes('xapp'), 'slack.json holds no secrets');
-  assert.ok(!JSON.stringify(r.after).includes(TOKENS.bot) && !JSON.stringify(r.after).includes(TOKENS.app), 'status never echoes a token');
+  assert.ok(
+    !JSON.stringify(r.settings).includes('xox') && !JSON.stringify(r.settings).includes('xapp'),
+    'slack.json holds no secrets',
+  );
+  assert.ok(
+    !JSON.stringify(r.after).includes(TOKENS.bot) && !JSON.stringify(r.after).includes(TOKENS.app),
+    'status never echoes a token',
+  );
   assert.equal(r.socketConnections, 2, 'one probe socket on paste, then the live one');
   const fx = fixture('slack-setup.json');
   assert.equal(posts(fx, 'chat.postMessage')[0].text, 'Connected. Decisions and questions will reach you here.');
@@ -58,16 +70,31 @@ test('setup: tokens are routed by prefix, checked live, stored only in the local
 
 test('asks: DM to the owner, buttons answer the waiting agent, late and unauthorized clicks are refused, UI answers close the DM', async () => {
   const r = await replayed('slack-ask.json', askFlow);
-  assert.deepEqual({ ...r.answer1, at: 0 }, { sessionId: 's1', questionId: 'q1', text: 'Postgres', author: `slack:${ANA}`, at: 0 });
-  assert.deepEqual({ ...r.answer3, at: 0 }, { sessionId: 's3', questionId: 'q3', text: 'event_log', author: `slack:${ANA}`, at: 0 });
+  assert.deepEqual(
+    { ...r.answer1, at: 0 },
+    { sessionId: 's1', questionId: 'q1', text: 'Postgres', author: `slack:${ANA}`, at: 0 },
+  );
+  assert.deepEqual(
+    { ...r.answer3, at: 0 },
+    { sessionId: 's3', questionId: 'q3', text: 'event_log', author: `slack:${ANA}`, at: 0 },
+  );
   assert.deepEqual(r.answers.sort(), ['s1', 's3'], 'refused, late and UI answers write nothing');
-  assert.ok(Object.values(r.asks).every((a) => (a as { closed?: boolean }).closed), 'every ask message lost its buttons');
+  assert.ok(
+    Object.values(r.asks).every((a) => (a as { closed?: boolean }).closed),
+    'every ask message lost its buttons',
+  );
 
   const fx = fixture('slack-ask.json');
   const [ask] = posts(fx, 'chat.postMessage');
   assert.equal(ask.channel, 'D00ANA0001');
-  assert.match(ask.blocks[0].text.text, /^◆ \*AWAITING YOU\* · Event store · #3 Pick DB · claude-07\n>Postgres or SQLite/);
-  assert.deepEqual(ask.blocks[1].elements.map((e: { text: { text: string } }) => e.text.text), ['Postgres', 'SQLite', 'Reply…', 'Open in MILOOPS']);
+  assert.match(
+    ask.blocks[0].text.text,
+    /^◆ \*AWAITING YOU\* · Event store · #3 Pick DB · claude-07\n>Postgres or SQLite/,
+  );
+  assert.deepEqual(
+    ask.blocks[1].elements.map((e: { text: { text: string } }) => e.text.text),
+    ['Postgres', 'SQLite', 'Reply…', 'Open in MILOOPS'],
+  );
   assert.equal(ask.blocks[1].elements[3].url, URL_);
   const updates = posts(fx, 'chat.update').map((u) => u.text);
   assert.deepEqual(updates, [
@@ -77,12 +104,18 @@ test('asks: DM to the owner, buttons answer the waiting agent, late and unauthor
     'No longer waiting: claude-07 session ended.',
   ]);
   assert.ok(posts(fx, 'chat.update').every((u) => !u.blocks.some((b: { type: string }) => b.type === 'actions')));
-  assert.deepEqual(responses(fx).map((b) => b.text), [
-    'Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack.',
-    'Already answered in MILOOPS.',
-    'Nothing is waiting on you.',
-  ]);
-  assert.deepEqual(fx.envelopes.find((e) => e.label === 'ana submits an empty reply')!.ack, { response_action: 'errors', errors: { answer: 'Enter an answer' } });
+  assert.deepEqual(
+    responses(fx).map((b) => b.text),
+    [
+      'Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack.',
+      'Already answered in MILOOPS.',
+      'Nothing is waiting on you.',
+    ],
+  );
+  assert.deepEqual(fx.envelopes.find((e) => e.label === 'ana submits an empty reply')!.ack, {
+    response_action: 'errors',
+    errors: { answer: 'Enter an answer' },
+  });
 });
 
 test('Save as decision: modal defaults to resolving the related ticket; the record carries source, permalink, participants and summary; the tracker is updated', async () => {
@@ -101,31 +134,72 @@ test('Save as decision: modal defaults to resolving the related ticket; the reco
     ref: 'C0INFRA01/1793448003.000004',
     url: 'https://efika.slack.com/archives/C0INFRA01/p1793448003000004',
     label: '#infra',
-    meta: { workspaceId: 'T0EFIKA01', channelId: 'C0INFRA01', channelName: 'infra', threadTs: '1793448000.000001', messageTs: '1793448003.000004' },
+    meta: {
+      workspaceId: 'T0EFIKA01',
+      channelId: 'C0INFRA01',
+      channelName: 'infra',
+      threadTs: '1793448000.000001',
+      messageTs: '1793448003.000004',
+    },
   });
   assert.deepEqual(rec.participants, [
     { id: `slack:${ANA}`, name: 'ana' },
     { id: `slack:${RAJ}`, name: 'raj' },
   ]);
-  assert.match(rec.rationale, /^ana: Event store: Postgres or SQLite\? @raj any numbers\?\nana: CI needs/, 'deterministic summary, Slack markup resolved');
+  assert.match(
+    rec.rationale,
+    /^ana: Event store: Postgres or SQLite\? @raj any numbers\?\nana: CI needs/,
+    'deterministic summary, Slack markup resolved',
+  );
   assert.deepEqual(rec.transcript, [], 'summary only: no raw thread excerpt is stored');
-  assert.deepEqual(r.snap.map.sections.decisions.at(-1), { ticketId: r.dbId, ticketKey: '#3', text: 'Use Postgres; SQLite for tests. ([Slack](https://efika.slack.com/archives/C0INFRA01/p1793448003000004), 2026-10-31)' });
+  assert.deepEqual(r.snap.map.sections.decisions.at(-1), {
+    ticketId: r.dbId,
+    ticketKey: '#3',
+    text: 'Use Postgres; SQLite for tests. ([Slack](https://efika.slack.com/archives/C0INFRA01/p1793448003000004), 2026-10-31)',
+  });
 
   const mission = r.all.find((d) => d.decidedBy === `slack:${RAJ}`)!;
   assert.equal(mission.ticketId, undefined);
-  assert.equal(mission.source.url, 'https://efika.slack.com/archives/G0MILOTST', '/milo decide outside a thread links the channel');
+  assert.equal(
+    mission.source.url,
+    'https://efika.slack.com/archives/G0MILOTST',
+    '/milo decide outside a thread links the channel',
+  );
   assert.equal(r.after.map.sections.decisions.length, 2);
 
   const fx = fixture('slack-decision.json');
   const form = posts(fx, 'views.update')[0].view;
-  assert.equal(form.blocks.find((b: { block_id?: string }) => b.block_id === 'mode').element.initial_option.value, 'resolve');
-  assert.equal(form.blocks.find((b: { block_id?: string }) => b.block_id === 'ticket').element.initial_option.value, r.dbId, 'the claimed decision ticket is pre-selected');
+  assert.equal(
+    form.blocks.find((b: { block_id?: string }) => b.block_id === 'mode').element.initial_option.value,
+    'resolve',
+  );
+  assert.equal(
+    form.blocks.find((b: { block_id?: string }) => b.block_id === 'ticket').element.initial_option.value,
+    r.dbId,
+    'the claimed decision ticket is pre-selected',
+  );
   const switched = posts(fx, 'views.update')[1].view;
-  assert.equal(switched.blocks.find((b: { block_id?: string }) => b.block_id === 'mode').element.initial_option.value, 'new', 'a mission with no related ticket defaults to a new decision ticket');
-  assert.match(posts(fx, 'views.update').find((u) => u.view.blocks[0].text?.text?.includes('Invite'))!.view.blocks[0].text.text, /Invite @MILO to #random/);
+  assert.equal(
+    switched.blocks.find((b: { block_id?: string }) => b.block_id === 'mode').element.initial_option.value,
+    'new',
+    'a mission with no related ticket defaults to a new decision ticket',
+  );
+  assert.match(
+    posts(fx, 'views.update').find((u) => u.view.blocks[0].text?.text?.includes('Invite'))!.view.blocks[0].text.text,
+    /Invite @MILO to #random/,
+  );
   const confirm = posts(fx, 'chat.postMessage')[0];
-  assert.deepEqual([confirm.channel, confirm.thread_ts, confirm.text], ['C0INFRA01', '1793448000.000001', 'Saved to *Event store*, resolved #3 Pick DB']);
-  assert.deepEqual(responses(fx).map((b) => b.text), ['Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack.', 'Saved to *Event store*']);
+  assert.deepEqual(
+    [confirm.channel, confirm.thread_ts, confirm.text],
+    ['C0INFRA01', '1793448000.000001', 'Saved to *Event store*, resolved #3 Pick DB'],
+  );
+  assert.deepEqual(
+    responses(fx).map((b) => b.text),
+    [
+      'Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack.',
+      'Saved to *Event store*',
+    ],
+  );
 });
 
 test('/milo status, inbox and help', async () => {
@@ -159,7 +233,18 @@ function live(o: { hub?: ReturnType<typeof socketHub>; configDir?: string } = {}
   const hub = o.hub ?? socketHub();
   const w = world('record', 'unused.json');
   connected(w);
-  return { fake, hub, w, make: (extra = {}) => w.service(new MemoryAdapter({ latency: [0, 0] }), { fetch: fake.fetch, WebSocket: hub.WebSocket, ...(o.configDir ? { configDir: o.configDir } : {}), ...extra }) };
+  return {
+    fake,
+    hub,
+    w,
+    make: (extra = {}) =>
+      w.service(new MemoryAdapter({ latency: [0, 0] }), {
+        fetch: fake.fetch,
+        WebSocket: hub.WebSocket,
+        ...(o.configDir ? { configDir: o.configDir } : {}),
+        ...extra,
+      }),
+  };
 }
 
 test('socket: reconnects on refresh_requested and on a dropped socket; link_disabled stops with an explanation', async () => {
@@ -203,7 +288,11 @@ test('a revoked bot token turns Slack off and asks to reconnect', async () => {
     const svc = make();
     await until(() => svc.status().state === 'online');
     fake.state.installed = false;
-    const r = await svc.onEnvelope({ envelope_id: 'x', type: 'events_api', payload: { event: { type: 'app_home_opened', user: ANA } } });
+    const r = await svc.onEnvelope({
+      envelope_id: 'x',
+      type: 'events_api',
+      payload: { event: { type: 'app_home_opened', user: ANA } },
+    });
     await r?.after?.().catch(() => {});
     assert.equal(svc.status().state, 'auth-error');
     assert.equal(svc.status().enabled, false);
@@ -217,14 +306,25 @@ test('env tokens work like GITHUB_TOKEN: reported by source, never stored', asyn
   const hub = socketHub();
   const w = world('record', 'unused.json');
   try {
-    const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), { fetch: fake.fetch, WebSocket: hub.WebSocket, env: { MILOOPS_SLACK_APP_TOKEN: TOKENS.app, MILOOPS_SLACK_BOT_TOKEN: TOKENS.bot } });
+    const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), {
+      fetch: fake.fetch,
+      WebSocket: hub.WebSocket,
+      env: { MILOOPS_SLACK_APP_TOKEN: TOKENS.app, MILOOPS_SLACK_BOT_TOKEN: TOKENS.bot },
+    });
     const s = svc.status();
     assert.deepEqual([s.setup.appToken, s.setup.botToken], ['MILOOPS_SLACK_APP_TOKEN', 'MILOOPS_SLACK_BOT_TOKEN']);
     await until(() => svc.status().state === 'online');
     const on = svc.status();
-    assert.deepEqual([on.enabled, on.step, on.setup.appId, on.workspace?.name], [true, 5, 'A0MILO0001', 'efika'], 'verified on first start, then setup continues at the claim');
+    assert.deepEqual(
+      [on.enabled, on.step, on.setup.appId, on.workspace?.name],
+      [true, 5, 'A0MILO0001', 'efika'],
+      'verified on first start, then setup continues at the claim',
+    );
     const creds = path.join(w.configDir, 'credentials.json');
-    assert.ok(!existsSync(creds) || !readFileSync(creds, 'utf8').includes('xoxb-'), 'env tokens are not written to the credential store');
+    assert.ok(
+      !existsSync(creds) || !readFileSync(creds, 'utf8').includes('xoxb-'),
+      'env tokens are not written to the credential store',
+    );
     svc.close();
   } finally {
     w.cleanup();
@@ -236,12 +336,19 @@ test('the owner is recognised by git email, so setup ends without the Home-tab c
   const hub = socketHub();
   const w = world('record', 'unused.json');
   try {
-    const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), { fetch: fake.fetch, WebSocket: hub.WebSocket, ownerEmail: () => 'Ana@efika.test\n' });
+    const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), {
+      fetch: fake.fetch,
+      WebSocket: hub.WebSocket,
+      ownerEmail: () => 'Ana@efika.test\n',
+    });
     await svc.pasteToken(TOKENS.app);
     const r = await svc.pasteToken(TOKENS.bot);
     assert.equal(r.ok, true);
     assert.deepEqual([r.status.step, r.status.owners], ['done', [{ id: ANA, name: 'ana', via: 'git-email' }]]);
-    assert.deepEqual(fake.channels.get(fake.im(ANA))!.messages.map((m) => m.text), ['Connected. Decisions and questions will reach you here.']);
+    assert.deepEqual(
+      fake.channels.get(fake.im(ANA))!.messages.map((m) => m.text),
+      ['Connected. Decisions and questions will reach you here.'],
+    );
     svc.close();
   } finally {
     w.cleanup();
@@ -249,12 +356,19 @@ test('the owner is recognised by git email, so setup ends without the Home-tab c
 });
 
 test('no email match, or an app without users:read.email, falls back to the Home-tab claim', async () => {
-  for (const [email, scopes] of [['nobody@efika.test', ALL_SCOPES], ['ana@efika.test', [...BOT_SCOPES]]] as const) {
+  for (const [email, scopes] of [
+    ['nobody@efika.test', ALL_SCOPES],
+    ['ana@efika.test', [...BOT_SCOPES]],
+  ] as const) {
     const fake = fakeSlack();
     fake.state.scopes = [...scopes];
     const w = world('record', 'unused.json');
     try {
-      const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), { fetch: fake.fetch, WebSocket: socketHub().WebSocket, ownerEmail: () => email });
+      const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), {
+        fetch: fake.fetch,
+        WebSocket: socketHub().WebSocket,
+        ownerEmail: () => email,
+      });
       await svc.pasteToken(TOKENS.app);
       const r = await svc.pasteToken(TOKENS.bot);
       assert.deepEqual([r.ok, r.status.step, r.status.owners], [true, 5, []], email);
@@ -271,7 +385,18 @@ test('routes: status and token endpoints; cross-site requests are refused; the b
   const fake = fakeSlack();
   const hub = socketHub();
   const w = world('record', 'unused.json');
-  const bridge = createTrackerBridge(w.root, { plugins: [slackPlugin({ configDir: w.configDir, env: {}, fetch: fake.fetch, WebSocket: hub.WebSocket, apiUrl: 'https://slack.test/api', pollMs: 0 })] });
+  const bridge = createTrackerBridge(w.root, {
+    plugins: [
+      slackPlugin({
+        configDir: w.configDir,
+        env: {},
+        fetch: fake.fetch,
+        WebSocket: hub.WebSocket,
+        apiUrl: 'https://slack.test/api',
+        pollMs: 0,
+      }),
+    ],
+  });
   const server = http.createServer((req, res) => void bridge.handle(req, res));
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
@@ -279,18 +404,36 @@ test('routes: status and token endpoints; cross-site requests are refused; the b
     const status = await (await fetch(`${base}/slack`)).json();
     assert.equal(status.step, 1);
     assert.match(status.links.create, /^https:\/\/api\.slack\.com\/apps\?new_app=1&manifest_json=/);
-    const bad = await fetch(`${base}/slack/token`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: 'hello' }) });
+    const bad = await fetch(`${base}/slack/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: 'hello' }),
+    });
     assert.equal(bad.status, 400);
     assert.equal((await bad.json()).code, 'unknown_token');
-    const ok = await fetch(`${base}/slack/token`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: TOKENS.app }) });
+    const ok = await fetch(`${base}/slack/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: TOKENS.app }),
+    });
     const body = await ok.text();
     assert.equal(ok.status, 200);
     assert.ok(!body.includes(TOKENS.app), 'the token is not echoed back');
-    const cross = await fetch(`${base}/slack/token`, { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' }, body: JSON.stringify({ token: TOKENS.app }) });
+    const cross = await fetch(`${base}/slack/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' },
+      body: JSON.stringify({ token: TOKENS.app }),
+    });
     assert.equal(cross.status, 403);
-    const form = await fetch(`${base}/slack/token`, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ token: TOKENS.app }) });
+    const form = await fetch(`${base}/slack/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ token: TOKENS.app }),
+    });
     assert.equal(form.status, 403, 'simple (no-preflight) cross-site posts are refused');
-    const removed = await (await fetch(`${base}/slack`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } })).json();
+    const removed = await (
+      await fetch(`${base}/slack`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' } })
+    ).json();
     assert.deepEqual([removed.step, removed.setup.appToken], [1, null]);
   } finally {
     server.close();
@@ -308,7 +451,12 @@ test('manifest: Socket Mode, /milo, Save as decision, App Home, the planned scop
   assert.equal(m.settings.interactivity.is_enabled, true);
   assert.deepEqual(m.settings.event_subscriptions.bot_events, ['app_home_opened']);
   assert.equal(m.features.slash_commands[0].command, '/milo');
-  assert.deepEqual(m.features.shortcuts[0], { name: 'Save as decision', type: 'message', callback_id: 'save_decision', description: 'Record this thread as a MILOOPS decision' });
+  assert.deepEqual(m.features.shortcuts[0], {
+    name: 'Save as decision',
+    type: 'message',
+    callback_id: 'save_decision',
+    description: 'Record this thread as a MILOOPS decision',
+  });
   assert.equal(m.features.app_home.home_tab_enabled, true);
   assert.deepEqual(m.oauth_config.scopes.bot, [...BOT_SCOPES, 'users:read.email']);
   assert.ok(!('user' in m.oauth_config.scopes));
@@ -317,7 +465,13 @@ test('manifest: Socket Mode, /milo, Save as decision, App Home, the planned scop
 });
 
 test('tokens are routed by prefix; the app ID comes from the app-level token', () => {
-  assert.deepEqual(['xapp-1-A1-1-x', 'xoxb-1', 'xoxp-1', 'xoxe.xoxp-1', 'nope'].map(tokenKind), ['app', 'bot', 'user', 'config', 'unknown']);
+  assert.deepEqual(['xapp-1-A1-1-x', 'xoxb-1', 'xoxp-1', 'xoxe.xoxp-1', 'nope'].map(tokenKind), [
+    'app',
+    'bot',
+    'user',
+    'config',
+    'unknown',
+  ]);
   assert.equal(appIdFromToken('xapp-1-A0123ABCD-4567-deadbeef'), 'A0123ABCD');
   assert.equal(appIdFromToken('xoxb-1'), undefined);
 });
@@ -327,7 +481,10 @@ test('summary: first, clicked and last two messages, trimmed, markup resolved', 
   const msgs = [m('1', 'ana', 'Q?'), m('2', 'raj', 'a'), m('3', 'ana', 'b'), m('4', 'raj', 'c'), m('5', 'ana', 'd')];
   assert.equal(deterministicSummary(msgs, '2'), 'ana: Q?\nraj: a\nraj: c\nana: d');
   assert.equal(deterministicSummary([m('1', 'ana', 'x '.repeat(200))]).length, 'ana: '.length + 220);
-  assert.equal(plainText('<@U1> see <https://x.y|docs> in <#C1|infra> &amp; more', { U1: 'raj' }), '@raj see docs in #infra & more');
+  assert.equal(
+    plainText('<@U1> see <https://x.y|docs> in <#C1|infra> &amp; more', { U1: 'raj' }),
+    '@raj see docs in #infra & more',
+  );
 });
 
 test('socket acks within the handler and runs slow work after the ack', async () => {

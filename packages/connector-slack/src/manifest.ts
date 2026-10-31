@@ -1,7 +1,16 @@
 import { BRAND } from '@miloops-hq/core';
 
 /** Bot scopes, and why: see the Slack integration plan. Nothing else is requested (no user tokens, no admin, no search). */
-export const BOT_SCOPES = ['commands', 'chat:write', 'im:write', 'channels:history', 'groups:history', 'im:history', 'mpim:history', 'users:read'] as const;
+export const BOT_SCOPES = [
+  'commands',
+  'chat:write',
+  'im:write',
+  'channels:history',
+  'groups:history',
+  'im:history',
+  'mpim:history',
+  'users:read',
+] as const;
 
 /** Requested, but setup works without them: `users:read.email` lets MILO recognise the owner by their git email. */
 export const OPTIONAL_SCOPES = ['users:read.email'] as const;
@@ -29,7 +38,14 @@ export function slackManifest(o: { command?: string } = {}) {
           should_escape: false,
         },
       ],
-      shortcuts: [{ name: 'Save as decision', type: 'message', callback_id: SAVE_DECISION_CALLBACK, description: `Record this thread as a ${BRAND.name} decision` }],
+      shortcuts: [
+        {
+          name: 'Save as decision',
+          type: 'message',
+          callback_id: SAVE_DECISION_CALLBACK,
+          description: `Record this thread as a ${BRAND.name} decision`,
+        },
+      ],
     },
     oauth_config: { scopes: { bot: [...BOT_SCOPES, ...OPTIONAL_SCOPES] } },
     settings: {
@@ -44,7 +60,8 @@ export function slackManifest(o: { command?: string } = {}) {
 
 export const slackLinks = {
   /** Slack's "create from manifest" page, pre-filled. */
-  create: (command?: string) => `https://api.slack.com/apps?new_app=1&manifest_json=${encodeURIComponent(JSON.stringify(slackManifest({ command })))}`,
+  create: (command?: string) =>
+    `https://api.slack.com/apps?new_app=1&manifest_json=${encodeURIComponent(JSON.stringify(slackManifest({ command })))}`,
   /** Basic Information: where App-Level Tokens are generated. */
   app: (appId: string) => `https://api.slack.com/apps/${appId}/general`,
   /** Install App page: Install to Workspace, then the Bot User OAuth Token. */

@@ -39,7 +39,8 @@ export interface SocketModeOptions {
   backoffMs?: (attempt: number) => number;
 }
 
-const text = (d: unknown) => (typeof d === 'string' ? d : d instanceof ArrayBuffer ? new TextDecoder().decode(d) : String(d));
+const text = (d: unknown) =>
+  typeof d === 'string' ? d : d instanceof ArrayBuffer ? new TextDecoder().decode(d) : String(d);
 
 export class SocketMode {
   private ws?: WebSocketLike;
@@ -140,7 +141,14 @@ export class SocketMode {
       } catch {
         result = undefined;
       }
-      if (ws.readyState === 1) ws.send(JSON.stringify(result?.ack === undefined ? { envelope_id: env.envelope_id } : { envelope_id: env.envelope_id, payload: result.ack }));
+      if (ws.readyState === 1)
+        ws.send(
+          JSON.stringify(
+            result?.ack === undefined
+              ? { envelope_id: env.envelope_id }
+              : { envelope_id: env.envelope_id, payload: result.ack },
+          ),
+        );
       await result?.after?.().catch(() => {});
     })();
     this.work.add(job);
