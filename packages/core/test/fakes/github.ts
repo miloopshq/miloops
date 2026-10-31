@@ -1,0 +1,236 @@
+/**
+ * In-memory stand-in for the slice of the GitHub REST + GraphQL API the
+ * adapter uses. Response shapes follow the live API (see the `github-live-*`
+ * fixtures, recorded against api.github.com), trimmed to the fields read.
+ * Used to record the flow fixtures and to drive the browser demo.
+ */
+export interface FakeIssue {
+  id: number;
+  node_id: string;
+  number: number;
+  title: string;
+  body: string | null;
+  state: 'open' | 'closed';
+  state_reason: string | null;
+  labels: string[];
+  assignees: string[];
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+  comments: { id: number; body: string; created_at: string; user: string }[];
+  subIssues: number[];
+  blockedBy: number[];
+}
+
+type Res = { status: number; headers?: Record<string, string>; body?: unknown };
+
+export function fakeGitHub(opts: { repo?: string; login?: string; start?: number } = {}) {
+  const repo = opts.repo ?? 'octo-org/launchpad';
+  const login = opts.login ?? 'octo-dev';
+  let clock = opts.start ?? Date.UTC(2026, 9, 31, 12, 0, 0);
+  let nextNumber = 1;
+  let nextComment = 9001;
+  const issues = new Map<number, FakeIssue>();
+  const labels = new Set<string>(['bug', 'enhancement']);
+  const tick = () => new Date((clock += 1000)).toISOString().replace('.000Z', 'Z');
+  const rate = (): Record<string, string> => ({ 'x-ratelimit-limit': '5000', 'x-ratelimit-remaining': '4990', 'x-ratelimit-reset': String(Math.floor(clock / 1000) + 3600) });
+  const byId = (id: number) => [...issues.values()].find((i) => i.id === id);
+
+  const rest = (i: FakeIssue) => ({
+    id: i.id,
+    node_id: i.node_id,
+    number: i.number,
+    title: i.title,
+    body: i.body,
+    state: i.state,
+    state_reason: i.state_reason,
+    labels: i.labels.map((name) => ({ name })),
+    assignees: i.assignees.map((l) => ({ login: l })),
+    created_at: i.created_at,
+    updated_at: i.updated_at,
+    closed_at: i.closed_at,
+    html_url: `https://github.com/${repo}/issues/${i.number}`,
+  });
+
+  const gql = (i: FakeIssue, withBlocked: boolean): Record<string, unknown> => ({
+    id: i.node_id,
+    databaseId: i.id,
+    number: i.number,
+    title: i.title,
+    body: i.body ?? '',
+    state: i.state.toUpperCase(),
+    stateReason: i.state_reason ? i.state_reason.toUpperCase() : null,
+    createdAt: i.created_at,
+    updatedAt: i.updated_at,
+    closedAt: i.closed_at,
+    labels: { nodes: i.labels.map((name) => ({ name })) },
+    assignees: { nodes: i.assignees.map((l) => ({ login: l })) },
+    comments: { nodes: i.comments.map((c) => ({ databaseId: c.id, body: c.body, createdAt: c.created_at, author: { login: c.user } })) },
+    ...(withBlocked ? { blockedBy: { nodes: i.blockedBy.map((id) => ({ number: byId(id)!.number })) } } : {}),
+  });
+
+  const etagOf = (v: unknown) => `"${Buffer.from(JSON.stringify(v)).toString('base64').slice(-40)}"`;
+
+  function createIssue(b: { title: string; body?: string; labels?: string[] }): FakeIssue {
+    const n = nextNumber++;
+    const now = tick();
+    const i: FakeIssue = {
+      id: 3_100_000_000 + n,
+      node_id: `I_kwDOfake${n}`,
+      number: n,
+      title: b.title,
+      body: b.body ?? null,
+      state: 'open',
+      state_reason: null,
+      labels: b.labels ?? [],
+      assignees: [],
+      created_at: now,
+      updated_at: now,
+      closed_at: null,
+      comments: [],
+      subIssues: [],
+      blockedBy: [],
+    };
+    for (const l of i.labels) labels.add(l);
+    issues.set(n, i);
+    return i;
+  }
+
+  function handle(method: string, url: URL, headers: Headers, body: unknown): Res {
+    const p = url.pathname.replace(/^\/api\/v3/, '');
+    const base = `/repos/${repo}`;
+    const ok = (b: unknown, status = 200): Res => ({ status, headers: { 'content-type': 'application/json; charset=utf-8', ...rate() }, body: b });
+    const notFound: Res = { status: 404, headers: rate(), body: { message: 'Not Found', documentation_url: 'https://docs.github.com/rest' } };
+
+    if (p === '/graphql' || p === '/api/graphql') {
+      const { query, variables } = body as { query: string; variables: { number: number } };
+      if (!/query Mission\b/.test(query)) return { status: 200, body: { errors: [{ type: 'INTERNAL', message: 'fake: unsupported query' }] } };
+      const root = issues.get(variables.number);
+      const issue = root ? { ...gql(root, false), subIssues: { nodes: root.subIssues.map((n) => gql(issues.get(n)!, true)) } } : null;
+      return ok({ data: { repository: { issue } } });
+    }
+    if (method === 'GET' && p === '/user') return ok({ login, id: 4242, type: 'User' });
+    if (!p.startsWith(base)) return notFound;
+    const rest_ = p.slice(base.length);
+
+    if (method === 'GET' && rest_ === '') return ok({ full_name: repo, private: true, has_issues: true, permissions: { admin: false, maintain: false, push: true, triage: true, pull: true } });
+    if (method === 'GET' && rest_ === '/labels') return ok([...labels].map((name) => ({ name })));
+    if (method === 'POST' && rest_ === '/labels') {
+      const { name } = body as { name: string };
+      if (labels.has(name)) return { status: 422, body: { message: 'Validation Failed' } };
+      labels.add(name);
+      return ok({ name }, 201);
+    }
+    if (method === 'GET' && rest_ === '/issues') {
+      const want = (url.searchParams.get('labels') ?? '').split(',').filter(Boolean);
+      let list = [...issues.values()].filter((i) => want.every((l) => i.labels.includes(l)));
+      if (url.searchParams.get('sort') === 'updated') list.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+      else list.sort((a, b) => b.number - a.number);
+      list = list.slice(0, Number(url.searchParams.get('per_page') ?? 30));
+      const out = list.map(rest);
+      const etag = etagOf(out);
+      if (headers.get('if-none-match') === etag) return { status: 304, headers: { etag, ...rate() } };
+      return { ...ok(out), headers: { ...ok(out).headers, etag } };
+    }
+    if (method === 'POST' && rest_ === '/issues') return ok(rest(createIssue(body as { title: string })), 201);
+
+    const m = rest_.match(/^\/issues\/(\d+)(\/.*)?$/);
+    const cm = rest_.match(/^\/issues\/comments\/(\d+)$/);
+    if (cm && method === 'PATCH') {
+      for (const i of issues.values()) {
+        const c = i.comments.find((x) => x.id === Number(cm[1]));
+        if (c) {
+          c.body = (body as { body: string }).body;
+          return ok({ id: c.id, body: c.body });
+        }
+      }
+      return notFound;
+    }
+    if (!m) return notFound;
+    const issue = issues.get(Number(m[1]));
+    if (!issue) return notFound;
+    const sub = m[2] ?? '';
+    if (method === 'GET' && !sub) return ok(rest(issue));
+    if (method === 'PATCH' && !sub) {
+      const b = body as Partial<{ title: string; body: string; state: 'open' | 'closed'; state_reason: string }>;
+      if (b.title !== undefined) issue.title = b.title;
+      if (b.body !== undefined) issue.body = b.body;
+      if (b.state) {
+        issue.state = b.state;
+        issue.state_reason = b.state === 'closed' ? b.state_reason ?? 'completed' : null;
+        issue.closed_at = b.state === 'closed' ? tick() : null;
+      }
+      issue.updated_at = tick();
+      return ok(rest(issue));
+    }
+    if (method === 'POST' && sub === '/sub_issues') {
+      const child = byId((body as { sub_issue_id: number }).sub_issue_id);
+      if (!child) return { status: 422, body: { message: 'Validation Failed' } };
+      issue.subIssues.push(child.number);
+      issue.updated_at = tick();
+      return ok(rest(issue), 201);
+    }
+    if (method === 'POST' && sub === '/dependencies/blocked_by') {
+      const blocker = byId((body as { issue_id: number }).issue_id);
+      if (!blocker) return { status: 422, body: { message: 'Validation Failed' } };
+      if (!issue.blockedBy.includes(blocker.id)) issue.blockedBy.push(blocker.id);
+      issue.updated_at = tick();
+      return ok(rest(blocker), 201);
+    }
+    if (method === 'POST' && sub === '/comments') {
+      const c = { id: nextComment++, body: (body as { body: string }).body, created_at: tick(), user: login };
+      issue.comments.push(c);
+      issue.updated_at = c.created_at;
+      return ok({ id: c.id, body: c.body, created_at: c.created_at, user: { login }, html_url: `https://github.com/${repo}/issues/${issue.number}#issuecomment-${c.id}` }, 201);
+    }
+    if (method === 'POST' && sub === '/labels') {
+      for (const l of (body as { labels: string[] }).labels) if (!issue.labels.includes(l)) issue.labels.push(l);
+      issue.updated_at = tick();
+      return ok(issue.labels.map((name) => ({ name })));
+    }
+    const dl = sub.match(/^\/labels\/(.+)$/);
+    if (method === 'DELETE' && dl) {
+      const name = decodeURIComponent(dl[1]);
+      if (!issue.labels.includes(name)) return notFound;
+      issue.labels = issue.labels.filter((l) => l !== name);
+      issue.updated_at = tick();
+      return ok(issue.labels.map((n) => ({ name: n })));
+    }
+    return notFound;
+  }
+
+  const fetch = async (input: string | URL | Request, init: RequestInit = {}): Promise<Response> => {
+    const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+    const headers = new Headers(init.headers);
+    const body = typeof init.body === 'string' && init.body ? JSON.parse(init.body) : undefined;
+    const r = handle(init.method ?? 'GET', url, headers, body);
+    return new Response(r.status === 304 || r.body === undefined ? null : JSON.stringify(r.body), { status: r.status, headers: r.headers });
+  };
+
+  return {
+    repo,
+    issues,
+    fetch: fetch as typeof globalThis.fetch,
+    handle,
+    /** What a teammate does in the GitHub UI. */
+    human: {
+      close(number: number, reason: 'completed' | 'not_planned' = 'completed') {
+        const i = issues.get(number)!;
+        Object.assign(i, { state: 'closed', state_reason: reason, closed_at: tick() });
+        i.updated_at = tick();
+      },
+      comment(number: number, user: string, body: string) {
+        const i = issues.get(number)!;
+        i.comments.push({ id: nextComment++, body, created_at: tick(), user });
+        i.updated_at = tick();
+      },
+      createSubIssue(parent: number, title: string, labelNames: string[] = []) {
+        const i = createIssue({ title, body: '', labels: labelNames });
+        issues.get(parent)!.subIssues.push(i.number);
+        issues.get(parent)!.updated_at = tick();
+        return i;
+      },
+      seed: createIssue,
+    },
+  };
+}

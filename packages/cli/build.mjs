@@ -21,6 +21,7 @@ await build({
   target: 'node20',
   banner: { js: '#!/usr/bin/env node' },
   define: { __VERSION__: JSON.stringify(version) },
+  loader: { '.md': 'text' },
   logLevel: 'warning',
 });
 fs.chmodSync(path.join(dist, 'cli.js'), 0o755);

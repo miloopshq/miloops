@@ -1,9 +1,14 @@
+import { readdirSync, statSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 import { nodeMarkdownFs } from './node';
 import { MarkdownAdapter } from './adapters/markdown';
 import { DECISION_SOURCES, parseDecision } from './decisions';
-import { OperationError, recordDecision, supersedeDecision } from './operations';
+import { recordDecision, supersedeDecision } from './operations';
+import { AnswerError, readAgentDoc, readAgentDocs, writeAgentAnswer } from './agentHost';
+import { SESSION_DOC_PATH, agentPaths, isAgentPath, type AgentAnswer } from './agentLink';
+import { createTrackerRoutes, sendTrackerError, type TrackerRoutesOptions } from './trackerRoutes';
+import type { TrackerAdapter } from './adapter';
 import type { DecisionInput, DecisionRecord } from './types';
 
 export interface TrackerBridge {
@@ -11,10 +16,15 @@ export interface TrackerBridge {
   /**
    * Handles a request whose URL has already had the API prefix stripped:
    *   GET  /list, GET|PUT /file?path=        raw tracker files (the browser's MarkdownFs)
-   *   GET  /events                           SSE: `{ path }` per changed file; named `decision` events (DecisionEvent)
+   *   GET  /events                           SSE: `{ path }` per changed file; named `decision` events (DecisionEvent);
+   *                                          named `agent` events (AgentSessionDoc) when an agent session reports
+   *   GET  /agents                           `{ sessions: AgentSessionDoc[] }` running and recent agent sessions
+   *   POST /agents/answer                    body `{ sessionId, questionId, text, author? }` → AgentAnswer
    *   GET  /decisions[?mission=<id>]         `{ decisions: DecisionRecord[] }`
    *   POST /decisions                        body `{ mission, appendToMission?, ...DecisionInput }` → DecisionRecord (idempotent per source.kind + source.ref)
    *   POST /decisions/<id>/supersede         body `{ mission, ...DecisionInput }` → the new DecisionRecord
+   *   /trackers*, /tracker/<kind>/*          GitHub / Linear settings and API (trackerRoutes.ts)
+   * Decision routes use the project's active tracker (local markdown, GitHub or Linear).
    */
   handle(req: IncomingMessage, res: ServerResponse): Promise<void>;
   close(): void;
@@ -35,10 +45,11 @@ class BadRequest extends Error {}
  * HTTP API for the local-markdown tracker. Shared by the Vite dev plugin and
  * the `miloops` CLI so both serve the same contract.
  */
-export function createTrackerBridge(root: string): TrackerBridge {
+export function createTrackerBridge(root: string, trackers: Omit<TrackerRoutesOptions, 'root' | 'markdown'> = {}): TrackerBridge {
   const abs = path.resolve(root);
   const fs = nodeMarkdownFs(abs);
-  const adapter = new MarkdownAdapter({ ...fs, watch: undefined }, abs);
+  const markdown = new MarkdownAdapter({ ...fs, watch: undefined }, abs);
+  const routes = createTrackerRoutes({ ...trackers, root: abs, markdown });
   const clients = new Set<ServerResponse>();
   const seen = new Map<string, { text: string; supersededBy?: string }>();
   const send = (text: string) => {
@@ -68,7 +79,42 @@ export function createTrackerBridge(root: string): TrackerBridge {
     }
   });
 
+  const sentDocs = new Map<string, string>();
+  function onAgentFile(rel: string) {
+    if (!SESSION_DOC_PATH.test(rel)) return;
+    const doc = readAgentDoc(abs, rel);
+    if (!doc) return;
+    const text = JSON.stringify(doc);
+    if (sentDocs.get(rel) === text) return;
+    sentDocs.set(rel, text);
+    send(`event: agent\ndata: ${text}\n\n`);
+  }
+  // Session docs are replaced by rename, which recursive fs.watch on Linux reports only once per file,
+  // so they are polled by mtime. A killed agent writes nothing more: running sessions are re-read to notice.
+  const mtimes = new Map<string, number>();
+  let ticks = 0;
+  const liveness = setInterval(() => {
+    const recheck = ++ticks % 10 === 0;
+    let names: string[] = [];
+    try {
+      names = readdirSync(path.join(abs, agentPaths.sessions)).filter((n) => n.endsWith('.json'));
+    } catch {
+      return;
+    }
+    for (const n of names) {
+      const rel = `${agentPaths.sessions}/${n}`;
+      const m = statSync(path.join(abs, rel), { throwIfNoEntry: false })?.mtimeMs;
+      if (m === undefined) continue;
+      if (mtimes.get(rel) !== m || (recheck && sentDocs.get(rel)?.includes('"status":"running"'))) {
+        mtimes.set(rel, m);
+        onAgentFile(rel);
+      }
+    }
+  }, 500);
+  liveness.unref?.();
+
   const unwatch = fs.watch!((rel) => {
+    if (isAgentPath(rel)) return onAgentFile(rel);
     send(`data: ${JSON.stringify({ path: rel })}\n\n`);
     if (DECISION_PATH.test(rel)) void onDecisionFile(rel);
   });
@@ -83,7 +129,7 @@ export function createTrackerBridge(root: string): TrackerBridge {
     }
   }
 
-  async function missionOf(b: { mission?: unknown }) {
+  async function missionOf(adapter: TrackerAdapter, b: { mission?: unknown }) {
     const id = typeof b.mission === 'string' ? b.mission : '';
     if (!(await adapter.listMaps()).some((m) => m.id === id)) throw new BadRequest(`unknown mission "${id}"`);
     return id;
@@ -130,6 +176,8 @@ export function createTrackerBridge(root: string): TrackerBridge {
         res.end(await fs.read(p));
         return;
       }
+      if (await routes.handle(req, res, url)) return;
+      const adapter = url.pathname.startsWith('/decisions') ? await routes.active() : markdown;
       if (url.pathname === '/decisions' && req.method === 'GET') {
         const only = url.searchParams.get('mission');
         const ids = only ? [only] : (await adapter.listMaps()).map((m) => m.id);
@@ -139,16 +187,27 @@ export function createTrackerBridge(root: string): TrackerBridge {
       }
       if (url.pathname === '/decisions' && req.method === 'POST') {
         const b = await body<Partial<DecisionInput> & { mission?: string; appendToMission?: boolean }>(req);
-        const mapId = await missionOf(b);
+        const mapId = await missionOf(adapter, b);
         checkInput(b, true);
         const { mission: _m, appendToMission, ...input } = b;
         json(res, 201, await recordDecision(adapter, mapId, input as DecisionInput, { appendToMission }));
         return;
       }
+      if (url.pathname === '/agents' && req.method === 'GET') {
+        json(res, 200, { sessions: await readAgentDocs(abs) });
+        return;
+      }
+      if (url.pathname === '/agents/answer' && req.method === 'POST') {
+        const b = await body<Partial<AgentAnswer>>(req);
+        for (const k of ['sessionId', 'questionId', 'text'] as const)
+          if (typeof b[k] !== 'string' || !b[k]!.trim()) throw new BadRequest(`"${k}" is required`);
+        json(res, 201, writeAgentAnswer(abs, { sessionId: b.sessionId!, questionId: b.questionId!, text: b.text!, author: typeof b.author === 'string' && b.author ? b.author : 'operator' }));
+        return;
+      }
       const sup = url.pathname.match(/^\/decisions\/([^/]+)\/supersede$/);
       if (sup && req.method === 'POST') {
         const b = await body<Partial<DecisionInput> & { mission?: string }>(req);
-        const mapId = await missionOf(b);
+        const mapId = await missionOf(adapter, b);
         checkInput(b, false);
         const { mission: _m, ...input } = b;
         json(res, 201, await supersedeDecision(adapter, mapId, decodeURIComponent(sup[1]), input as DecisionInput));
@@ -157,8 +216,8 @@ export function createTrackerBridge(root: string): TrackerBridge {
       res.statusCode = 404;
       res.end('not found');
     } catch (err) {
-      if (err instanceof BadRequest || err instanceof OperationError) json(res, err instanceof BadRequest ? 400 : 409, { error: err.message });
-      else {
+      if (err instanceof BadRequest || err instanceof AnswerError) json(res, err instanceof BadRequest ? 400 : 409, { error: err.message });
+      else if (!sendTrackerError(res, err)) {
         res.statusCode = 500;
         res.end(String(err));
       }
@@ -169,7 +228,9 @@ export function createTrackerBridge(root: string): TrackerBridge {
     root: abs,
     handle,
     close() {
+      routes.close();
       unwatch();
+      clearInterval(liveness);
       for (const c of clients) c.end();
       clients.clear();
     },

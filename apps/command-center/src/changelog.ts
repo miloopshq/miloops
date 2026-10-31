@@ -6,12 +6,35 @@ export interface Release {
 }
 
 export const NEXT: { area: string; items: string[] }[] = [
-  { area: 'Trackers', items: ['GitHub Issues connector', 'Linear connector'] },
-  { area: 'Agents', items: ['Claude Code live sessions (replacing the simulator)', 'Codex', 'Cursor'] },
-  { area: 'Packaging', items: ['Publish to npm', 'MCP server'] },
+  { area: 'Agents', items: ['Start agent sessions from the command center', 'Cursor'] },
+  { area: 'Packaging', items: ['Publish to npm'] },
 ];
 
 export const RELEASES: Release[] = [
+  {
+    version: '0.11.0',
+    date: '2026-10-31',
+    items: [
+      'GitHub Issues tracker: missions are labelled issues, tickets are sub-issues, blocking uses native issue dependencies',
+      'Linear tracker: missions are labelled issues in a team (optionally one project), tickets are sub-issues, blocking uses "blocks" relations',
+      'Two-way sync: tickets, status, claims, comments, blockers and decisions written from MILOOPS land in the tracker; changes made there show up within seconds',
+      'Decisions are posted as comments on their ticket and listed in the mission',
+      'Connect from Settings with Test connection; GitHub reuses your gh login or GITHUB_TOKEN, Linear takes a personal API key',
+      'Tokens stay on your machine: kept by the local server, never sent to the browser or anywhere else',
+      'Offline and rate limits: changes queue and send in order when the tracker answers again; the connector shows status, queue and remaining requests',
+    ],
+  },
+  {
+    version: '0.10.0',
+    date: '2026-10-31',
+    items: [
+      'MCP server in the miloops package: `claude mcp add miloops -- npx -y miloops mcp`, or the same for Codex',
+      'Connected agents start and resume missions, claim ready tickets, report steps, tokens and spend, close tickets and record decisions, live in the command center',
+      'Agent questions land in Waiting on you and the agent waits for your answer; answer in the command center or in the agent chat',
+      '/milo new, resume, status and inbox commands for Claude Code (and as a Codex prompt); `miloops connect claude|codex` sets them up',
+      'The command center follows a mission an agent just charted; sessions of agents that quit show as disconnected',
+    ],
+  },
   {
     version: '0.9.0',
     date: '2026-10-31',

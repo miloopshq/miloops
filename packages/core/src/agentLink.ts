@@ -1,0 +1,68 @@
+import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo } from './types';
+
+/**
+ * How agent sessions running in other processes (the `miloops mcp` server an
+ * agent connects to) reach the command center. Each process writes one JSON
+ * document per session; the command center mirrors them and writes answers back:
+ *
+ *   <tracker>/.agents/sessions/<sessionId>.json             AgentSessionDoc, written only by the owning process
+ *   <tracker>/.agents/answers/<sessionId>/<questionId>.json AgentAnswer, written by whoever answers
+ *   <tracker>/.agents/server.json                           CommandCenterLock, while `miloops` is serving
+ *
+ * Plain files keep it local, survive restarts on either side and need no ports.
+ */
+export const AGENTS_DIR = '.agents';
+
+export const agentPaths = {
+  sessions: `${AGENTS_DIR}/sessions`,
+  session: (sessionId: string) => `${AGENTS_DIR}/sessions/${sessionId}.json`,
+  answers: (sessionId: string) => `${AGENTS_DIR}/answers/${sessionId}`,
+  answer: (sessionId: string, questionId: string) => `${AGENTS_DIR}/answers/${sessionId}/${questionId}.json`,
+  lock: `${AGENTS_DIR}/server.json`,
+};
+
+export const isAgentPath = (rel: string) => rel === AGENTS_DIR || rel.startsWith(`${AGENTS_DIR}/`);
+export const SESSION_DOC_PATH = /^\.agents\/sessions\/([^/]+)\.json$/;
+
+/** One agent session's slice of activity, as its process last reported it. */
+export interface AgentSessionDoc {
+  v: 1;
+  session: SessionInfo;
+  chats: ChatMessage[];
+  pending: PendingQuestion[];
+  answered: AnsweredQuestion[];
+  feed: FeedEntry[];
+  /** Client that connected, e.g. `claude-code 2.1.0`. */
+  client?: string;
+  pid: number;
+  updatedAt: number;
+}
+
+export interface AgentAnswer {
+  sessionId: string;
+  questionId: string;
+  text: string;
+  /** Actor id of who answered, e.g. `operator`. */
+  author: string;
+  at: number;
+}
+
+export interface CommandCenterLock {
+  url: string;
+  pid: number;
+  startedAt: number;
+}
+
+/** A doc whose process is gone while the session still claims to run: show it as ended, with nothing left pending. */
+export function markDisconnected(doc: AgentSessionDoc): AgentSessionDoc {
+  if (doc.session.status !== 'running') return doc;
+  return {
+    ...doc,
+    session: { ...doc.session, status: 'failed', waitingOn: undefined, endedAt: doc.updatedAt },
+    pending: [],
+    feed: [
+      ...doc.feed,
+      { id: `${doc.session.id}-gone`, at: doc.updatedAt, source: 'session', sessionId: doc.session.id, agent: doc.session.agent, level: 'alert', text: 'Agent disconnected' },
+    ],
+  };
+}

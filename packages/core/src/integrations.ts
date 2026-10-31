@@ -11,8 +11,8 @@ export interface ConnectorInfo {
 export const CONNECTORS: ConnectorInfo[] = [
   { id: 'markdown', name: 'Local markdown', status: 'available' },
   { id: 'demo', name: 'Demo tracker', status: 'available' },
-  { id: 'github', name: 'GitHub Issues', status: 'stub' },
-  { id: 'linear', name: 'Linear', status: 'stub' },
+  { id: 'github', name: 'GitHub Issues', status: 'available' },
+  { id: 'linear', name: 'Linear', status: 'available' },
 ];
 
 export interface AgentIntegration {
@@ -25,7 +25,7 @@ export interface AgentIntegration {
 
 export const AGENT_INTEGRATIONS: AgentIntegration[] = [
   { id: 'claude-code', name: 'Claude Code', status: 'primary', callsign: 'claude' },
-  { id: 'codex', name: 'Codex', status: 'planned', callsign: 'codex' },
+  { id: 'codex', name: 'Codex', status: 'primary', callsign: 'codex' },
   { id: 'cursor', name: 'Cursor', status: 'planned', callsign: 'cursor' },
 ];
 

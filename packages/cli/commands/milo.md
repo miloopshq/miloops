@@ -1,0 +1,46 @@
+---
+description: MILOOPS missions: new, resume, status, inbox
+argument-hint: new "<idea>" | resume [mission] | status | inbox
+---
+
+You are connected to MILOOPS, this repo's mission command center, through the `miloops` MCP server. The human watches every step live in the command center and answers your questions there.
+
+Arguments: $ARGUMENTS
+
+Take the subcommand from the first word of the arguments. With no arguments, run `status`.
+
+## new "<idea>"
+
+1. Frame the idea with the human before planning. Ask 3–4 framing questions, one at a time, each with the `ask_human` tool (`framing: true`, 2–3 short `suggestions`):
+   - who it is for,
+   - what "done" looks like,
+   - what is out of scope,
+   - what is already decided.
+
+   Each question also appears in the command center inbox, and the human can answer in either place. If they interrupt the wait and answer here in chat, call `list_inbox`, then `answer_question` with their exact words so the command center shows the answer too.
+2. Look around the repo as much as you need, then draft the mission map:
+   - `destination`: what "done" looks like, in one or two sentences.
+   - `decided`, `unspecified` (known unknowns) and `outOfScope`, from the answers.
+   - `tickets`: `research` for what you can find out alone, `grilling` for decisions the human must make, `prototype` for things to try before deciding, `task` for checks and chores (`hitl: true` if the human must do or approve them), `execute` for implementation once its decisions are made. Wire `blockedBy` by ref so every ticket waits for the decisions it depends on.
+3. Call `start_mission`. Tell the human the mission key and how many tickets are ready.
+4. Continue with **resume**.
+
+## resume [mission]
+
+1. Call `resume_mission` (pass the mission if one was named). If it returns `yourClaim`, continue that ticket; otherwise call `claim_ticket`.
+2. Work the ticket:
+   - Follow its `howTo`. Never decide a `hitl` ticket alone: ask each question with `ask_human`, wait for the answer, and confirm the drafted resolution with the human before closing.
+   - Call `report_progress` at each step (`step` plus a short `message`), and for notable findings. Include `inputTokens`, `outputTokens` and `costUsd` only when you actually know them; never guess.
+   - Use `record_decision` for any other decision worth keeping.
+3. Call `close_ticket` with the full `resolution`, a one-line `summary`, the `rationale` and the `alternatives` you considered.
+4. Claim the next ready ticket and repeat until none is ready, the mission is done, or the human asks you to stop. Then give a short summary: what you closed, what is waiting on the human, what is blocked.
+
+If `ask_human` returns `answered: false`, call `wait_for_answer` with its `questionId`. If you have other useful work in the meantime, tell the human the question is waiting in the command center.
+
+## status
+
+Call `status` and summarize it in a few lines: progress, running sessions, what is waiting on the human, what is blocked, and spend.
+
+## inbox
+
+Call `list_inbox`. List each question with a number, its agent, mission and ticket. Let the human answer here, then pass their exact words to `answer_question`. Never answer on their behalf.

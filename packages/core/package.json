@@ -12,7 +12,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./node": "./src/node.ts",
-    "./bridge": "./src/bridge.ts"
+    "./bridge": "./src/bridge.ts",
+    "./agents": "./src/agentHost.ts"
   },
   "sideEffects": false,
   "license": "MIT",
@@ -22,6 +23,8 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p . && tsc -p test",
+    "test": "node test/run.mjs",
+    "record": "node test/run.mjs record"
   }
 }

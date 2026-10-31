@@ -1,0 +1,39 @@
+{
+  "source": "live",
+  "recordedAt": "2026-10-31T14:40:55.113Z",
+  "notes": "api.linear.app with an invalid personal API key (no Linear key was available for a full live run).",
+  "exchanges": [
+    {
+      "req": {
+        "method": "POST",
+        "url": "/graphql",
+        "operation": "Test"
+      },
+      "res": {
+        "status": 401,
+        "headers": {
+          "content-type": "application/json; charset=utf-8",
+          "etag": "W/\"121-zqm5UPdEe2zPAnGCLuDQqbBUkgc\""
+        },
+        "body": {
+          "errors": [
+            {
+              "message": "Authentication required, not authenticated",
+              "extensions": {
+                "type": "authentication error",
+                "code": "AUTHENTICATION_ERROR",
+                "statusCode": 401,
+                "userError": true,
+                "userPresentableMessage": "You need to authenticate to access this operation.",
+                "meta": {},
+                "http": {
+                  "status": 401
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
