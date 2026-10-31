@@ -13,6 +13,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --port 4173",
     "capture": "node scripts/capture.mjs",
+    "media": "node scripts/media.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

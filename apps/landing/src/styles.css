@@ -171,18 +171,6 @@ code {
   box-shadow: 0 0 0 3px rgba(127, 174, 154, 0.18);
 }
 
-.soon {
-  display: inline-block;
-  margin-top: 8px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--dim);
-  border: 1px dashed var(--line-2);
-  padding: 2px 8px;
-}
-
 /* ---------- buttons ---------- */
 
 .btn {
@@ -678,6 +666,10 @@ code {
   align-items: start;
 }
 
+.steps > * {
+  min-width: 0;
+}
+
 .steps__list {
   position: relative;
   display: flex;
@@ -845,6 +837,18 @@ code {
 }
 
 .term__cur.off { background: transparent; }
+
+@media (max-width: 860px) {
+  .term--wrap {
+    aspect-ratio: auto;
+    min-height: 0;
+  }
+
+  .term--wrap .term__body {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
 
 /* ---------- zones ---------- */
 
@@ -1148,63 +1152,8 @@ code {
   background: var(--accent);
 }
 
-.plan:not(.plan--now) li {
-  color: var(--dim);
-}
-
-.plan:not(.plan--now) li::before {
-  background: var(--faint);
-}
-
 .plan .btn {
   align-self: flex-start;
-}
-
-.rings {
-  list-style: none;
-  margin: 24px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  border: 1px solid var(--line);
-}
-
-.rings__item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 20px;
-  position: relative;
-}
-
-.rings__item + .rings__item {
-  border-left: 1px dashed var(--line);
-}
-
-.rings__item strong {
-  font-family: var(--display);
-  font-weight: 500;
-  color: var(--text-hi);
-  font-size: 17px;
-}
-
-.rings__item > span:last-child {
-  font-size: 14px;
-  color: var(--dim);
-}
-
-.rings__item--now {
-  background: var(--accent-bg);
-}
-
-.rings__item--now::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -1px;
-  height: 2px;
-  background: var(--accent);
 }
 
 /* ---------- faq ---------- */
@@ -1471,7 +1420,7 @@ code {
 
   .steps__list {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     border-left: 0;
     border-bottom: 1px solid var(--line);
   }
@@ -1517,17 +1466,6 @@ code {
     font-size: 16px;
   }
 
-  .rings {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .rings__item:nth-child(4) {
-    border-left: 0;
-  }
-
-  .rings__item:nth-child(n + 4) {
-    border-top: 1px dashed var(--line);
-  }
 }
 
 @media (max-width: 860px) {
@@ -1691,26 +1629,20 @@ code {
   }
 
   .steps__list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .steps__list button {
+    padding-right: 6px;
   }
 
   .steps__t {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.2;
   }
 
   .zones__list {
     grid-template-columns: 1fr;
-  }
-
-  .rings {
-    grid-template-columns: 1fr;
-  }
-
-  .rings__item + .rings__item,
-  .rings__item:nth-child(n + 4) {
-    border-left: 0;
-    border-top: 1px dashed var(--line);
   }
 
   .faq details ul {
