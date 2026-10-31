@@ -660,6 +660,30 @@ textarea:disabled { opacity: 0.5; }
 .connector .tag.on { color: var(--accent); }
 .connector .c-loc { font-family: var(--mono); font-size: 11px; color: var(--dim); word-break: break-all; }
 .connector .btn { align-self: flex-start; height: 26px; font-size: 11px; }
+.connector.open { border-color: var(--line2); background: rgba(var(--accent-rgb), 0.04); }
+.connector .c-actions { display: flex; gap: 6px; margin-top: auto; }
+.choice .c-sub { font-family: var(--mono); font-size: 11px; color: var(--dim); word-break: break-all; }
+.sync-line { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--dim); }
+.sync-line .dot { width: 6px; height: 6px; background: var(--faint); flex: none; }
+.sync-line.ok .dot { background: var(--accent); }
+.sync-line.warn { color: var(--amber); }
+.sync-line.warn .dot { background: var(--amber); }
+.sync-line.alert { color: var(--urgent); }
+.sync-line.alert .dot { background: var(--urgent); }
+.sync-line .rate { margin-left: auto; color: var(--faint); }
+.tracker-setup { border: 1px solid var(--line2); padding: 12px; display: flex; flex-direction: column; gap: 10px; background: rgba(0, 0, 0, 0.18); }
+.tracker-setup .ts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.tracker-setup .ts-label { display: flex; gap: 8px; align-items: baseline; }
+.tracker-setup .ts-label a { margin-left: auto; color: var(--accent); text-decoration: none; letter-spacing: 0.06em; }
+.tracker-setup .ts-label a:hover { text-decoration: underline; }
+.tracker-setup select { height: 32px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--line2); padding: 0 6px; font-family: var(--sans); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--text); }
+.tracker-setup .ts-auth { display: flex; align-items: center; gap: 8px; }
+.tracker-setup .ts-auth .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--line2); padding: 1px 6px; }
+.tracker-setup .ts-auth .btn { height: 24px; font-size: 11px; margin-left: auto; }
+.tracker-setup footer .btn { height: 30px; font-size: 11px; }
+.test-line { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.03em; word-break: break-word; }
+.test-line.ok { color: var(--accent); }
+.test-line.alert { color: var(--urgent); }
 .label-codes { display: flex; flex-wrap: wrap; gap: 6px; }
 .changelog ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
 .changelog .set-sec:first-child { border-top: 0; padding-top: 0; }

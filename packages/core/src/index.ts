@@ -16,7 +16,12 @@ export { Emitter, sleep, uid } from './emitter';
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memory';
 export { MarkdownAdapter, type MarkdownFs } from './adapters/markdown';
 export { demoSnapshot, seedDecisions, seedSnapshot, seedUsage } from './adapters/seed';
-export { GitHubAdapter, LinearAdapter } from './adapters/stubs';
+export { GitHubAdapter, testGitHub, type GitHubOptions } from './adapters/remote/github';
+export { LinearAdapter, testLinear, type LinearOptions } from './adapters/remote/linear';
+export { SyncedAdapter, type SyncState, type SyncStatus, type SyncOptions } from './adapters/remote/synced';
+export { TrackerError, isTransient, type RateInfo, type TrackerErrorCode } from './adapters/remote/http';
+export { BridgeAdapter, trackerSettingsApi } from './adapters/remote/bridgeClient';
+export type * from './adapters/remote/types';
 export * from './integrations';
 
 export { simulatedBrain, type AgentBrain, type Conversation } from './sim/brain';

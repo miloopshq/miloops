@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { PREFS_KEY, PRIMARY_AGENT, type HitlTranscriptMode } from '@miloops-hq/core';
 
-export type TrackerChoice = 'markdown' | 'demo';
+/** GitHub and Linear are configured on the local server (repo/team and credentials); prefs only pick which one this browser shows. */
+export type TrackerChoice = 'markdown' | 'demo' | 'github' | 'linear';
 
 export interface Prefs {
   onboarded: boolean;
