@@ -28,6 +28,15 @@ miloops
 
 `miloops` opens the command center in your browser. Run `miloops --help` for options.
 
+Connect your agent once, then use `/milo new "<idea>"`, `/milo resume`, `/milo status` and `/milo inbox`:
+
+```bash
+claude mcp add miloops -- npx -y miloops mcp   # Claude Code; `npx miloops connect claude` also adds /milo
+codex mcp add miloops -- npx -y miloops mcp    # Codex; see packages/cli for the config.toml entry
+```
+
+Details for both agents are in [`packages/cli/README.md`](packages/cli/README.md#connect-your-coding-agent).
+
 ## Repository
 
 | Path | Package | |
@@ -46,6 +55,8 @@ npm install
 npm run dev           # command center with hot reload, http://localhost:5173
 npm run dev:landing   # landing page
 npm run typecheck     # every workspace
+npm test              # unit and MCP tests (vitest)
+npm run verify:mcp    # after a build: an MCP client drives a mission while the command center shows it
 npm run build         # every workspace; the CLI lands in packages/cli/dist
 npm start             # run the built CLI (same as `miloops`)
 ```

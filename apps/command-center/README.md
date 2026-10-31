@@ -133,9 +133,13 @@ packages/core            UI-free engine (@miloops-hq/core). No React, no DOM.
   src/briefing.ts        buildBriefing / briefingLine: what changed since the operator was last present
   src/decisions.ts       decision record file format, source registry, audit merge, filters, chain, export, stats
   src/bridge.ts          HTTP tracker API over node.ts (@miloops-hq/core/bridge), used by the CLI and the dev server
+  src/agentLink.ts       session docs + answers shared between MCP agent processes and the command center
+  src/agentHost.ts       node side of the agent link (@miloops-hq/core/agents): doc writer, answers, server lock
 apps/command-center      Vite + React front end; plugins/trackerFs.ts mounts the tracker API on the dev server
 packages/cli             the `miloops` npm package: src/cli.ts (flags, static server, browser open), build.mjs (bundle + copy app)
-scripts/                 capture.mjs (media), flow.mjs (user-flow shots), verify-cli.mjs (CLI smoke test), seed-markdown.ts, check-markdown.mjs, shot.mjs
+  src/mcp/               `miloops mcp`: MCP server (server.ts) over the agent controller (agent.ts)
+  src/connect.ts         `miloops connect claude|codex`; commands/milo.md is the /milo command
+scripts/                 capture.mjs (media), flow.mjs (user-flow shots), verify-cli.mjs (CLI smoke test), verify-mcp.mjs (MCP end-to-end), seed-markdown.ts, check-markdown.mjs, shot.mjs
 THIRD_PARTY_NOTICES.md   credit and MIT licence for the reused skill concepts
 ```
 
@@ -156,7 +160,13 @@ Every resolve, ticket rule-out and supersede writes a `DecisionRecord` (`package
 | `GET /decisions[?mission=<id>]` | `{ decisions: DecisionRecord[] }`, newest first |
 | `POST /decisions` | body `{ mission, appendToMission?, ...DecisionInput }` → `201` record; same `source.kind` + `source.ref` returns the existing record |
 | `POST /decisions/<id>/supersede` | body `{ mission, ...DecisionInput }` → `201` new record; `409` if already superseded |
-| `GET /events` | SSE: unnamed `{ path }` per changed file, plus named `decision` events `{ kind: decision.recorded \| decision.superseded \| decision.updated, mapId, decision }` |
+| `GET /events` | SSE: unnamed `{ path }` per changed file, plus named `decision` events `{ kind: decision.recorded \| decision.superseded \| decision.updated, mapId, decision }` and named `agent` events (`AgentSessionDoc`) |
+| `GET /agents` | `{ sessions: AgentSessionDoc[] }`: running agent sessions and those of the last 24 h |
+| `POST /agents/answer` | body `{ sessionId, questionId, text, author? }` → `201`; `409` if the question is not open |
+
+## Agents over MCP
+
+`miloops mcp` (`packages/cli/src/mcp/`) is the MCP server a coding agent starts over stdio. Each agent process runs its own `ActivityStream` and writes one doc per session to `.miloops/.agents/sessions/<id>.json` (`AgentDocWriter`, `agentHost.ts`). The bridge streams those docs as `agent` events; in local-markdown mode `runtime.ts` mirrors them with `ActivityStream.syncRemote`, so remote sessions, their questions, chat and usage use the same inbox, sessions and map UI as everything else. An answer in the inbox goes to `POST /agents/answer`, which writes `.miloops/.agents/answers/<session>/<question>.json`; the agent process picks it up and its `ask_human` call returns. Docs are polled by mtime as well as watched, and a session whose process is gone shows as disconnected. While `miloops` serves, `.miloops/.agents/server.json` tells agents the command-center URL.
 
 ## Model notes
 
@@ -169,9 +179,10 @@ Every resolve, ticket rule-out and supersede writes a `DecisionRecord` (`package
 
 | Real | Mocked / stubbed |
 | --- | --- |
-| Local-markdown tracker (read/write/watch, YAML frontmatter) | Agents: canned questions and answers (`sim/brain.ts`), not Claude |
-| Frontier, blocking, claim-race check, all map operations | Autopilot fleet (MILO's dispatcher) and demo HITL scenario |
-| HITL ask/answer plumbing, transcript posting, response times | Token / cost reports (simulated meter) |
+| Local-markdown tracker (read/write/watch, YAML frontmatter) | Dispatch / Work next / Autopilot agents: canned questions and answers (`sim/brain.ts`) |
+| Agents connected over MCP (Claude Code, Codex): sessions, steps, questions, decisions, reported usage | Autopilot fleet (MILO's dispatcher) and demo HITL scenario |
+| Frontier, blocking, claim-race check, all map operations | Token / cost reports of simulated sessions (simulated meter) |
+| HITL ask/answer plumbing, transcript posting, response times | |
 | Tracker write latency, sync status, event pulse | GitHub / Linear adapters (throw "not implemented") |
 | Settings and onboarding persistence (localStorage) | |
 

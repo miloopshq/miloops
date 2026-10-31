@@ -10,6 +10,7 @@ export * from './metrics';
 export * from './decisions';
 export * from './presence';
 export * from './briefing';
+export * from './agentLink';
 export { Emitter, sleep, uid } from './emitter';
 
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memory';

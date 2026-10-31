@@ -49,6 +49,10 @@ export class ActivityStream {
   private state: ActivityState = { sessions: [], feed: [], chats: [], pending: [], answered: [], usageByMap: {} };
   private changes = new Emitter<ActivityState>();
   private resolvers = new Map<string, (answer: string) => void>();
+  /** Sessions mirrored from another process (`syncRemote`), with the last usage total each reported. */
+  private remote = new Map<string, SessionUsage | undefined>();
+  /** Delivers operator answers to questions asked by remote sessions. */
+  public remoteAnswer?: (q: PendingQuestion, text: string, author: string) => void;
   constructor(
     private readonly maxFeed = 400,
     /** Receives every usage report with its time, for spend-since readouts. Settable once storage is known. */
@@ -87,7 +91,8 @@ export class ActivityStream {
   answer(questionId: string, text: string, author: string) {
     const q = this.state.pending.find((p) => p.id === questionId);
     const resolveFn = this.resolvers.get(questionId);
-    if (!q || !resolveFn) return false;
+    const remote = !!q && this.remote.has(q.sessionId) && !!this.remoteAnswer;
+    if (!q || (!resolveFn && !remote)) return false;
     this.resolvers.delete(questionId);
     this.chat({ sessionId: q.sessionId, ticketId: q.ticketId, from: 'human', author, text });
     this.set({
@@ -96,14 +101,55 @@ export class ActivityStream {
     });
     this.patchSession(q.sessionId, { waitingOn: undefined });
     this.push({ source: 'operator', agent: author, level: 'ok', ticketId: q.ticketId, sessionId: q.sessionId, text: `Answered ${q.agent}` });
-    resolveFn(text);
+    if (resolveFn) resolveFn(text);
+    else this.remoteAnswer!(q, text, author);
     return true;
   }
 
-  startSession(input: { agent: string; mode: SessionMode; mapId: string; ticketId?: string }): SessionHandle {
+  /**
+   * Mirror a session owned by another process: its info, conversation, feed lines
+   * and open questions are replaced by the latest report; answers merge in.
+   */
+  syncRemote(doc: { session: SessionInfo; chats: ChatMessage[]; pending: PendingQuestion[]; answered: AnsweredQuestion[]; feed: FeedEntry[] }) {
+    const { session } = doc;
+    const sid = session.id;
+    if (!this.remote.has(sid) && this.state.sessions.some((s) => s.id === sid)) return;
+    const prevUsage = this.remote.get(sid);
+    this.remote.set(sid, session.usage);
+    let usageByMap = this.state.usageByMap;
+    if (session.usage && session.mapId) {
+      const d = {
+        inputTokens: session.usage.inputTokens - (prevUsage?.inputTokens ?? 0),
+        outputTokens: session.usage.outputTokens - (prevUsage?.outputTokens ?? 0),
+        costUsd: session.usage.costUsd - (prevUsage?.costUsd ?? 0),
+      };
+      if (d.inputTokens || d.outputTokens || d.costUsd) usageByMap = { ...usageByMap, [session.mapId]: addUsage(usageByMap[session.mapId], d) };
+      this.ledger?.addTotal(session.mapId, sid, session.usage);
+    }
+    const others = <T extends { sessionId: string }>(xs: T[]) => xs.filter((x) => x.sessionId !== sid);
+    const answeredIds = new Set(this.state.answered.map((a) => a.id));
+    const sessions = this.state.sessions.some((s) => s.id === sid)
+      ? this.state.sessions.map((s) => (s.id === sid ? session : s))
+      : [...this.state.sessions, session].slice(-24);
+    this.set({
+      sessions,
+      chats: [...others(this.state.chats), ...doc.chats].sort((a, b) => a.at - b.at).slice(-600),
+      pending: [...others(this.state.pending), ...doc.pending],
+      answered: [...this.state.answered, ...doc.answered.filter((a) => !answeredIds.has(a.id))].sort((a, b) => a.answeredAt - b.answeredAt).slice(-200),
+      feed: [...this.state.feed.filter((f) => f.sessionId !== sid), ...doc.feed].sort((a, b) => a.at - b.at).slice(-this.maxFeed),
+      usageByMap,
+    });
+  }
+
+  /** True for sessions mirrored from another process. */
+  isRemote(sessionId: string) {
+    return this.remote.has(sessionId);
+  }
+
+  startSession(input: { agent: string; mode: SessionMode; mapId: string; ticketId?: string; id?: string }): SessionHandle {
     const info: SessionInfo = {
-      id: uid('s'),
       ...input,
+      id: input.id ?? uid('s'),
       step: 0,
       total: STEPS[input.mode].length,
       stepLabel: 'BOOT',

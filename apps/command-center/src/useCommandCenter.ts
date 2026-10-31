@@ -52,6 +52,9 @@ export function useCommandCenter(rt: Runtime) {
   /** Session whose conversation is open in the dock. */
   const [chatSession, setChatSession] = useState<string>();
   const mapIdRef = useRef<string>();
+  /** Mission a connected agent just created; shown as soon as the tracker lists it. */
+  const followRef = useRef<string>();
+  const followed = useRef(new Set<string>());
   const snapRef = useRef<MapSnapshot>();
   snapRef.current = snap;
   const workN = useRef(0);
@@ -70,7 +73,12 @@ export function useCommandCenter(rt: Runtime) {
     const list = await rt.adapter.listMaps();
     setMaps(list);
     let id = mapIdRef.current;
-    if (!id || !list.some((m) => m.id === id)) {
+    const follow = followRef.current;
+    if (follow && list.some((m) => m.id === follow)) {
+      followRef.current = undefined;
+      id = follow;
+      if (id !== mapIdRef.current) setMapId(id);
+    } else if (!id || !list.some((m) => m.id === id)) {
       id = list[0]?.id;
       setMapId(id);
     }
@@ -94,7 +102,10 @@ export function useCommandCenter(rt: Runtime) {
       if (!alive) return;
       offT = rt.adapter.subscribe((e) => {
         const line = describeTrackerEvent(e, (id) => snapRef.current?.tickets.find((t) => t.id === id));
-        if (line && (!('mapId' in e) || !e.mapId || e.mapId === mapIdRef.current || e.kind === 'map.created')) rt.activity.push(line);
+        // Writes by a connected agent are already described in its own session feed.
+        const byAgent =
+          e.kind === 'external.changed' && rt.activity.snapshot.sessions.some((s) => s.status === 'running' && rt.activity.isRemote(s.id) && (!e.mapId || !s.mapId || s.mapId === e.mapId));
+        if (line && !byAgent && (!('mapId' in e) || !e.mapId || e.mapId === mapIdRef.current || e.kind === 'map.created')) rt.activity.push(line);
         schedule();
       });
       offA = rt.activity.subscribe(setActivity);
@@ -113,6 +124,17 @@ export function useCommandCenter(rt: Runtime) {
   useEffect(() => {
     if (mapId) void rt.adapter.loadMap(mapId).then(setSnap);
   }, [mapId, rt]);
+
+  // A connected agent that charts a new mission brings the command center along.
+  useEffect(() => {
+    for (const s of activity.sessions) {
+      if (s.mode !== 'chart' || !s.mapId || !rt.activity.isRemote(s.id) || followed.current.has(s.id)) continue;
+      followed.current.add(s.id);
+      if (s.status !== 'running' && Date.now() - (s.endedAt ?? 0) > 60_000) continue;
+      followRef.current = s.mapId;
+      void refresh().catch((e) => setError(String(e)));
+    }
+  }, [activity.sessions, rt, refresh]);
 
   // Never make the operator go looking: surface the oldest open question.
   const firstPending = activity.pending[0]?.sessionId;

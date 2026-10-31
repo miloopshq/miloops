@@ -16,6 +16,7 @@ import {
   type KeyValueStore,
   monitorTracker,
   simulatedBrain,
+  type AgentSessionDoc,
   type MarkdownFs,
   type ProcedureContext,
   type TrackerAdapter,
@@ -43,6 +44,27 @@ export const httpFs: MarkdownFs = {
     return () => es.close();
   },
 };
+
+/** Mirror agent sessions reported over MCP (see core agentLink.ts) and send operator answers back to them. */
+function linkAgents(activity: ActivityStream) {
+  activity.remoteAnswer = (q, text, author) => {
+    void fetch(`${BRAND.apiPrefix}/agents/answer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: q.sessionId, questionId: q.id, text, author }),
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error(((await r.json().catch(() => ({}))) as { error?: string }).error ?? `HTTP ${r.status}`);
+      })
+      .catch((e: Error) => activity.push({ source: 'system', level: 'alert', sessionId: q.sessionId, text: `Answer not delivered to ${q.agent} · ${e.message}` }));
+  };
+  const es = new EventSource(`${BRAND.apiPrefix}/events`);
+  es.addEventListener('agent', (m) => activity.syncRemote(JSON.parse((m as MessageEvent<string>).data) as AgentSessionDoc));
+  void fetch(`${BRAND.apiPrefix}/agents`)
+    .then((r) => (r.ok ? (r.json() as Promise<{ sessions: AgentSessionDoc[] }>) : { sessions: [] }))
+    .then(({ sessions }) => [...sessions].reverse().forEach((d) => activity.syncRemote(d)))
+    .catch(() => {});
+}
 
 export type TrackerKind = TrackerChoice;
 
@@ -83,6 +105,7 @@ export function createRuntime(kind: TrackerKind) {
         const kv = localStore(root);
         store.presence = new Presence(kv);
         activity.ledger = new UsageLedger(kv);
+        linkAgents(activity);
       });
   } else {
     const mem = new MemoryAdapter({ label: 'Demo tracker', location: 'in-memory · resets on reload' });

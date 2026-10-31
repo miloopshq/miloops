@@ -5,15 +5,25 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BRAND } from '@miloops-hq/core';
+import { writeCommandCenterLock } from '@miloops-hq/core/agents';
 import { createTrackerBridge, type TrackerBridge } from '@miloops-hq/core/bridge';
+import { runConnect } from './connect';
+import { runMcpServer } from './mcp/server';
 
 declare const __VERSION__: string;
 
 const HELP = `${BRAND.name} — ${BRAND.category}
 
 Usage: ${BRAND.slug} [options]
+       ${BRAND.slug} mcp [--dir <path>] [--agent <callsign>]
+       ${BRAND.slug} connect claude|codex [--dir <path>]
 
 Starts the command center for the current folder and opens it in your browser.
+
+Commands:
+  mcp            Serve the MCP server for coding agents over stdio
+                 (claude mcp add ${BRAND.slug} -- npx -y ${BRAND.slug} mcp)
+  connect <agent>  Register the MCP server with Claude Code or Codex and add the /milo command
 
 Options:
   --dir <path>   Tracker folder (default: ./${BRAND.dataDir}, or $${BRAND.dataDirEnv})
@@ -133,8 +143,41 @@ function openBrowser(url: string) {
   }
 }
 
+/** Options of the `mcp` and `connect` subcommands. */
+function parseSubArgs(argv: string[], allowed: string[]) {
+  const o: { dir: string; agent?: string; rest: string[] } = { dir: process.env[BRAND.dataDirEnv] || BRAND.dataDir, rest: [] };
+  for (let i = 0; i < argv.length; i++) {
+    const [flag, inline] = argv[i].startsWith('--') && argv[i].includes('=') ? argv[i].split(/=(.*)/s, 2) : [argv[i], undefined];
+    const value = () => inline ?? argv[++i] ?? fail(`${flag} needs a value`);
+    if (flag === '-h' || flag === '--help') {
+      process.stdout.write(HELP);
+      process.exit(0);
+    } else if (flag.startsWith('-') && !allowed.includes(flag)) fail(`unknown option: ${argv[i]}`);
+    else if (flag === '--dir') o.dir = value();
+    else if (flag === '--agent') o.agent = value();
+    else o.rest.push(argv[i]);
+  }
+  return o;
+}
+
 async function main() {
-  const opts = parseArgs(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  if (argv[0] === 'mcp') {
+    const o = parseSubArgs(argv.slice(1), ['--dir', '--agent']);
+    if (o.rest.length) fail(`unexpected argument: ${o.rest[0]}`);
+    await runMcpServer({ root: path.resolve(process.cwd(), o.dir), agent: o.agent, version: __VERSION__ });
+    return;
+  }
+  if (argv[0] === 'connect') {
+    const o = parseSubArgs(argv.slice(1), ['--dir']);
+    const target = o.rest[0];
+    if (target !== 'claude' && target !== 'codex') fail('connect needs an agent: claude or codex');
+    process.stdout.write(`\n  ${BRAND.name} · connect ${target === 'claude' ? 'Claude Code' : 'Codex'}\n\n`);
+    runConnect(target, { cwd: process.cwd(), dir: o.dir });
+    process.stdout.write('\n');
+    return;
+  }
+  const opts = parseArgs(argv);
   const appDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app');
   if (!existsSync(path.join(appDir, 'index.html'))) fail(`command center bundle missing at ${appDir}; reinstall the package`);
 
@@ -174,8 +217,10 @@ async function main() {
       `  Press Ctrl+C to stop.\n\n`,
   );
   if (opts.open) openBrowser(url);
+  const unlock = writeCommandCenterLock(bridge.root, url);
 
   const stop = () => {
+    unlock();
     bridge?.close();
     server.close(() => process.exit(0));
     server.closeAllConnections();
