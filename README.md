@@ -16,6 +16,8 @@ MILOOPS is a local command center for planning and executing big work with your 
 
 Works with any coding agent that connects over MCP. Claude Code and Codex are the primary supported agents.
 
+Where MILOOPS is headed, and what it will not become, is in [`PRODUCT_VISION.md`](PRODUCT_VISION.md).
+
 ## Install
 
 Requires Node 20+.
