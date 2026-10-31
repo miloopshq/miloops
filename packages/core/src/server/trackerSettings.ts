@@ -1,0 +1,94 @@
+import { testGitHub } from '../adapters/remote/github';
+import { testLinear } from '../adapters/remote/linear';
+import type {
+  TrackerConnectRequest,
+  TrackerSettings,
+  TrackerTestRequest,
+  TrackerTestResult,
+} from '../adapters/remote/types';
+import { BadRequest } from './http';
+import type { RemoteAdapters } from './remoteAdapters';
+import type { TrackerContext } from './trackerContext';
+import { resolveLinearKey } from './trackerConfig';
+
+/** Reading, testing and switching the project's tracker connection. */
+export function trackerSettings(ctx: TrackerContext, remotes: RemoteAdapters) {
+  const { o, env, creds, project, apiUrl } = ctx;
+
+  async function settings(): Promise<TrackerSettings> {
+    const cfg = project.read();
+    const detected = ctx.detectedRepo();
+    const [gh, repo] = await Promise.all([ctx.githubToken(), detected]);
+    return {
+      active: cfg.active,
+      github: {
+        repo: cfg.github?.repo,
+        detectedRepo: repo,
+        auth: gh?.source ?? null,
+        status: remotes.status('github'),
+      },
+      linear: {
+        ...cfg.linear,
+        auth: resolveLinearKey(creds.read(), env)?.source ?? null,
+        status: remotes.status('linear'),
+      },
+    };
+  }
+
+  async function test(req: TrackerTestRequest): Promise<TrackerTestResult> {
+    const cfg = project.read();
+    if (req.kind === 'github') {
+      const token = req.token?.trim() || (await ctx.githubToken())?.token;
+      if (!token)
+        return { ok: false, code: 'auth', error: 'No GitHub token found. Run `gh auth login`, or paste a token.' };
+      const detected = ctx.detectedRepo();
+      const repo = req.repo?.trim() || cfg.github?.repo || (await detected);
+      if (!repo) return { ok: false, code: 'invalid', error: 'Enter the repository as owner/name' };
+      return testGitHub({ repo, token, apiUrl: apiUrl.github, fetch: o.fetch });
+    }
+    const apiKey = req.apiKey?.trim() || resolveLinearKey(creds.read(), env)?.token;
+    if (!apiKey) return { ok: false, code: 'auth', error: 'Paste a Linear personal API key.' };
+    return testLinear({ apiKey, teamId: req.teamId ?? cfg.linear?.teamId, apiUrl: apiUrl.linear, fetch: o.fetch });
+  }
+
+  async function connect(req: TrackerConnectRequest): Promise<{ status: number; body: unknown }> {
+    const cfg = project.read();
+    if (req.active === 'markdown') {
+      project.write({ ...cfg, active: 'markdown' });
+      return { status: 200, body: await settings() };
+    }
+    if (req.active === 'github') {
+      const repo = req.github?.repo?.trim();
+      if (!repo) throw new BadRequest('"github.repo" is required');
+      const result = await test({ kind: 'github', repo, token: req.github?.token });
+      if (!result.ok) return { status: 400, body: result };
+      if (req.github?.token?.trim()) creds.write({ ...creds.read(), github: { token: req.github.token.trim() } });
+      project.write({ ...cfg, active: 'github', github: { repo: result.target ?? repo } });
+      remotes.reset('github');
+      return { status: 200, body: await settings() };
+    }
+    if (req.active === 'linear') {
+      const l = req.linear;
+      if (!l?.teamId) throw new BadRequest('"linear.teamId" is required');
+      const result = await test({ kind: 'linear', apiKey: l.apiKey, teamId: l.teamId });
+      if (!result.ok) return { status: 400, body: result };
+      if (l.apiKey?.trim()) creds.write({ ...creds.read(), linear: { apiKey: l.apiKey.trim() } });
+      project.write({
+        ...cfg,
+        active: 'linear',
+        linear: {
+          teamId: l.teamId,
+          teamKey: l.teamKey,
+          teamName: l.teamName,
+          projectId: l.projectId || undefined,
+          projectName: l.projectId ? l.projectName : undefined,
+        },
+      });
+      remotes.reset('linear');
+      return { status: 200, body: await settings() };
+    }
+    throw new BadRequest('"active" must be markdown, github or linear');
+  }
+
+  return { settings, test, connect };
+}

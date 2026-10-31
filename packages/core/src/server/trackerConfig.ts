@@ -30,7 +30,8 @@ type Env = Record<string, string | undefined>;
 export function configDir(env: Env = process.env) {
   const own = env[`${BRAND.slug.toUpperCase()}_CONFIG_DIR`];
   if (own) return own;
-  const base = env.XDG_CONFIG_HOME || (process.platform === 'win32' && env.APPDATA) || path.join(os.homedir(), '.config');
+  const base =
+    env.XDG_CONFIG_HOME || (process.platform === 'win32' && env.APPDATA) || path.join(os.homedir(), '.config');
   return path.join(base, BRAND.slug);
 }
 
@@ -73,11 +74,17 @@ export type Run = (cmd: string, args: string[], cwd?: string) => Promise<string>
 
 export const run: Run = (cmd, args, cwd) =>
   new Promise((resolve, reject) =>
-    execFile(cmd, args, { cwd, timeout: 5000, windowsHide: true }, (err, stdout) => (err ? reject(err) : resolve(String(stdout).trim()))),
+    execFile(cmd, args, { cwd, timeout: 5000, windowsHide: true }, (err, stdout) =>
+      err ? reject(err) : resolve(String(stdout).trim()),
+    ),
   );
 
 /** First usable GitHub token: saved in Settings, then $GITHUB_TOKEN / $GH_TOKEN, then `gh auth token`. */
-export async function resolveGitHubToken(creds: Credentials, env: Env = process.env, exec: Run = run): Promise<{ token: string; source: CredentialSource } | null> {
+export async function resolveGitHubToken(
+  creds: Credentials,
+  env: Env = process.env,
+  exec: Run = run,
+): Promise<{ token: string; source: CredentialSource } | null> {
   if (creds.github?.token) return { token: creds.github.token, source: 'stored' };
   if (env.GITHUB_TOKEN) return { token: env.GITHUB_TOKEN, source: 'GITHUB_TOKEN' };
   if (env.GH_TOKEN) return { token: env.GH_TOKEN, source: 'GH_TOKEN' };
@@ -85,7 +92,10 @@ export async function resolveGitHubToken(creds: Credentials, env: Env = process.
   return token ? { token, source: 'gh' } : null;
 }
 
-export function resolveLinearKey(creds: Credentials, env: Env = process.env): { token: string; source: CredentialSource } | null {
+export function resolveLinearKey(
+  creds: Credentials,
+  env: Env = process.env,
+): { token: string; source: CredentialSource } | null {
   if (creds.linear?.apiKey) return { token: creds.linear.apiKey, source: 'stored' };
   if (env.LINEAR_API_KEY) return { token: env.LINEAR_API_KEY, source: 'LINEAR_API_KEY' };
   return null;

@@ -21,7 +21,8 @@ export const agentPaths = {
   answer: (sessionId: string, questionId: string) => `${AGENTS_DIR}/answers/${sessionId}/${questionId}.json`,
   lock: `${AGENTS_DIR}/server.json`,
   hosts: `${AGENTS_DIR}/hosts`,
-  host: (agent: string, hostSessionId: string) => `${AGENTS_DIR}/hosts/${agent}-${hostSessionId.replace(/[^\w.-]/g, '_')}.json`,
+  host: (agent: string, hostSessionId: string) =>
+    `${AGENTS_DIR}/hosts/${agent}-${hostSessionId.replace(/[^\w.-]/g, '_')}.json`,
 };
 
 /** Where a host agent (Claude Code) keeps the log of one of its sessions, as its SessionStart hook reported it. */
@@ -76,7 +77,15 @@ export function markDisconnected(doc: AgentSessionDoc): AgentSessionDoc {
     pending: [],
     feed: [
       ...doc.feed,
-      { id: `${doc.session.id}-gone`, at: doc.updatedAt, source: 'session', sessionId: doc.session.id, agent: doc.session.agent, level: 'alert', text: 'Agent disconnected' },
+      {
+        id: `${doc.session.id}-gone`,
+        at: doc.updatedAt,
+        source: 'session',
+        sessionId: doc.session.id,
+        agent: doc.session.agent,
+        level: 'alert',
+        text: 'Agent disconnected',
+      },
     ],
   };
 }
