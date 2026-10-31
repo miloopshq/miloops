@@ -1,7 +1,7 @@
-import type { TrackerAdapter } from '../adapter';
-import { Emitter, sleep } from '../emitter';
-import { buildDecision } from '../decisions';
-import { DEFAULT_MAP_MODE, type DecisionInput, type DecisionRecord, type MapMode, type MapSections, type MapSnapshot, type Ticket, type TicketType, type TrackerEvent, type MapDoc } from '../types';
+import type { TrackerAdapter } from './adapter';
+import { Emitter, sleep } from '../lib/emitter';
+import { buildDecision } from '../planning/decisions';
+import { DEFAULT_MAP_MODE, type DecisionInput, type DecisionRecord, type MapMode, type MapSections, type MapSnapshot, type Ticket, type TicketType, type TrackerEvent, type MapDoc } from '../model/types';
 
 export interface MemoryAdapterOptions {
   /** Simulated network latency range in ms. */

@@ -1,4 +1,4 @@
-import { sleep } from '../../emitter';
+import { sleep } from '../../lib/emitter';
 
 export type TrackerErrorCode = 'offline' | 'rate_limited' | 'auth' | 'not_found' | 'invalid' | 'http';
 

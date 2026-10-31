@@ -1,6 +1,6 @@
-import type { TrackerAdapter } from '../../adapter';
-import { Emitter } from '../../emitter';
-import type { DecisionInput, DecisionRecord, MapDoc, MapMode, MapSections, MapSnapshot, MapSummary, Ticket, TicketType, TrackerEvent } from '../../types';
+import type { TrackerAdapter } from '../adapter';
+import { Emitter } from '../../lib/emitter';
+import type { DecisionInput, DecisionRecord, MapDoc, MapMode, MapSections, MapSnapshot, MapSummary, Ticket, TicketType, TrackerEvent } from '../../model/types';
 import { TrackerError } from './http';
 import type { SyncStatus } from './synced';
 import type { RemoteKind, TrackerConnectRequest, TrackerSettings, TrackerTestRequest, TrackerTestResult } from './types';

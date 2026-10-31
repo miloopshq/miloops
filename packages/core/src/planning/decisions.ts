@@ -1,4 +1,4 @@
-import { arr, iso, parseFront, str, time, writeFront, type Front } from './frontmatter';
+import { arr, iso, parseFront, str, time, writeFront, type Front } from '../model/frontmatter';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -8,7 +8,7 @@ import type {
   MapSnapshot,
   Participant,
   TranscriptEntry,
-} from './types';
+} from '../model/types';
 
 /** Display names per source kind. A new integration adds its kind to `DecisionSourceKind` and a line here. */
 export const DECISION_SOURCES: Record<DecisionSourceKind, { label: string; code: string }> = {

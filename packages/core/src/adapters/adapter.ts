@@ -9,7 +9,7 @@ import type {
   TicketType,
   TrackerEvent,
   MapDoc,
-} from './types';
+} from '../model/types';
 
 /**
  * The tracker is the source of truth. Adapters expose only the primitive

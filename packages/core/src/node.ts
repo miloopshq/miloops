@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import { mkdirSync, watch } from 'node:fs';
 import path from 'node:path';
-import type { MarkdownFs } from './adapters/markdown';
+import type { MarkdownFs } from './adapters/markdown/markdownAdapter';
 
 /** node:fs-backed MarkdownFs, for a CLI / MCP server running next to the repo. */
 export function nodeMarkdownFs(root: string): MarkdownFs {

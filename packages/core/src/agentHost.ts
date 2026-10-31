@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import type { ActivityStream } from './activity';
-import { SESSION_DOC_PATH, agentPaths, markDisconnected, type AgentAnswer, type AgentSessionDoc, type CommandCenterLock } from './agentLink';
+import type { ActivityStream } from './activity/activityStream';
+import { SESSION_DOC_PATH, agentPaths, markDisconnected, type AgentAnswer, type AgentSessionDoc, type CommandCenterLock } from './agents/agentLink';
 
 /** Node side of the agent link (agentLink.ts): session docs, answers and the command-center lock under a tracker root. */
 

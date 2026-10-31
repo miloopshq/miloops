@@ -1,8 +1,8 @@
-import type { TrackerAdapter } from './adapter';
+import type { TrackerAdapter } from '../adapters/adapter';
 import { deriveStates, frontier } from './derive';
-import { DEFAULT_MAP_MODE, TICKET_TYPES } from './types';
+import { DEFAULT_MAP_MODE, TICKET_TYPES } from '../model/types';
 import { firstSentence } from './decisions';
-import type { DecisionInput, DecisionRecord, DecisionSource, MapMode, MapSections, MapSnapshot, Participant, Ticket, TicketType, MapDoc, TranscriptEntry } from './types';
+import type { DecisionInput, DecisionRecord, DecisionSource, MapMode, MapSections, MapSnapshot, Participant, Ticket, TicketType, MapDoc, TranscriptEntry } from '../model/types';
 
 /**
  * Map operations, composed from tracker primitives. Every front end

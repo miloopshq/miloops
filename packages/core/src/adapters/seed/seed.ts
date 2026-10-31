@@ -1,7 +1,7 @@
 import type { TrackerAdapter } from '../adapter';
-import { recordDecision, supersedeDecision } from '../operations';
-import type { UsageLedger } from '../presence';
-import type { MapSnapshot, Ticket, TicketType, TranscriptEntry } from '../types';
+import { recordDecision, supersedeDecision } from '../../planning/operations';
+import type { UsageLedger } from '../../activity/presence';
+import type { MapSnapshot, Ticket, TicketType, TranscriptEntry } from '../../model/types';
 
 type SeedTicket = {
   n: number;

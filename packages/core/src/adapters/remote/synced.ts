@@ -1,9 +1,9 @@
-import type { TrackerAdapter } from '../../adapter';
-import { Emitter } from '../../emitter';
-import { buildDecision, decisionNumber } from '../../decisions';
-import { parseMapBody, serializeMapBody } from '../../mapBody';
-import { OperationError } from '../../operations';
-import type { DecisionInput, DecisionRecord, MapDoc, MapMode, MapSections, MapSnapshot, MapSummary, Ticket, TicketType, TrackerEvent } from '../../types';
+import type { TrackerAdapter } from '../adapter';
+import { Emitter } from '../../lib/emitter';
+import { buildDecision, decisionNumber } from '../../planning/decisions';
+import { parseMapBody, serializeMapBody } from '../../model/mapBody';
+import { OperationError } from '../../planning/operations';
+import type { DecisionInput, DecisionRecord, MapDoc, MapMode, MapSections, MapSnapshot, MapSummary, Ticket, TicketType, TrackerEvent } from '../../model/types';
 import { TrackerError, isTransient, type RateInfo } from './http';
 
 export type SyncState = 'connecting' | 'online' | 'offline' | 'rate-limited' | 'auth-error';

@@ -1,6 +1,6 @@
-import { BRAND, MAP_LABEL, PLAN_ONLY_LABEL } from '../../brand';
-import { parseMapBody, serializeMapBody } from '../../mapBody';
-import { DEFAULT_MAP_MODE, type Comment, type DecisionRecord, type MapDoc, type MapMode, type MapSections, type MapSnapshot, type MapSummary, type Ticket, type TicketType } from '../../types';
+import { BRAND, MAP_LABEL, PLAN_ONLY_LABEL } from '../../model/brand';
+import { parseMapBody, serializeMapBody } from '../../model/mapBody';
+import { DEFAULT_MAP_MODE, type Comment, type DecisionRecord, type MapDoc, type MapMode, type MapSections, type MapSnapshot, type MapSummary, type Ticket, type TicketType } from '../../model/types';
 import { ALL_LABELS, authoredBody, decisionComment, joinBody, mapLabels, parseDecisionComment, readComment, splitBody, ticketFromIssue, ticketLabels } from './format';
 import { describeError } from './github';
 import { HttpClient, TrackerError, graphqlError, linear, type HttpOptions } from './http';

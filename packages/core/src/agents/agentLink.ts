@@ -1,4 +1,4 @@
-import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo } from './types';
+import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo } from '../model/types';
 
 /**
  * How agent sessions running in other processes (the `miloops mcp` server an

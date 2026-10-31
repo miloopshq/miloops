@@ -2,18 +2,18 @@ import { readdirSync, statSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 import { nodeMarkdownFs } from './node';
-import { MarkdownAdapter } from './adapters/markdown';
-import { DECISION_SOURCES, parseDecision } from './decisions';
-import { recordDecision, supersedeDecision } from './operations';
+import { MarkdownAdapter } from './adapters/markdown/markdownAdapter';
+import { DECISION_SOURCES, parseDecision } from './planning/decisions';
+import { recordDecision, supersedeDecision } from './planning/operations';
 import { AnswerError, readAgentDoc, readAgentDocs, writeAgentAnswer } from './agentHost';
-import { SESSION_DOC_PATH, agentPaths, isAgentPath, type AgentAnswer } from './agentLink';
+import { SESSION_DOC_PATH, agentPaths, isAgentPath, type AgentAnswer } from './agents/agentLink';
 import { isOutboxPath } from './adapters/remote/outboxFile';
-import { createTrackerRoutes, sendTrackerError, type TrackerRoutesOptions } from './trackerRoutes';
-import type { TrackerAdapter } from './adapter';
-import type { DecisionInput, DecisionRecord } from './types';
+import { createTrackerRoutes, sendTrackerError, type TrackerRoutesOptions } from './server/trackerRoutes';
+import type { TrackerAdapter } from './adapters/adapter';
+import type { DecisionInput, DecisionRecord } from './model/types';
 
-export { activeTracker, crossSite } from './trackerRoutes';
-export { configDir, credentialStore, type Credentials } from './trackerConfig';
+export { activeTracker, crossSite } from './server/trackerRoutes';
+export { configDir, credentialStore, type Credentials } from './server/trackerConfig';
 export { AnswerError, readAgentDocs, readCommandCenterLock, writeAgentAnswer, writeJsonAtomic } from './agentHost';
 export { outboxFile, outboxKey } from './adapters/remote/outboxFile';
 

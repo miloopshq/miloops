@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
 import { createTrackerBridge, type TrackerBridge } from '../src/bridge';
-import { parseGitHubRemote, resolveGitHubToken, resolveLinearKey } from '../src/trackerConfig';
+import { parseGitHubRemote, resolveGitHubToken, resolveLinearKey } from '../src/server/trackerConfig';
 import type { TrackerSettings, TrackerTestResult } from '../src/adapters/remote/types';
 import { fakeGitHub } from './fakes/github';
 

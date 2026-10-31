@@ -1,7 +1,7 @@
-import type { ActivityState } from './activity';
+import type { ActivityState } from '../activity/activityStream';
 import { attention, deriveStates } from './derive';
-import type { UsageLedger } from './presence';
-import type { DecisionRecord, MapSnapshot, PendingQuestion, SessionInfo, SessionUsage, Ticket } from './types';
+import type { UsageLedger } from '../activity/presence';
+import type { DecisionRecord, MapSnapshot, PendingQuestion, SessionInfo, SessionUsage, Ticket } from '../model/types';
 
 export interface MissionBriefing {
   mapId: string;

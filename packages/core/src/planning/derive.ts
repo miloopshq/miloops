@@ -1,4 +1,4 @@
-import { DEFAULT_MAP_MODE, type Attention, type MapMode, type NodeState, type Ticket, type TicketType } from './types';
+import { DEFAULT_MAP_MODE, type Attention, type MapMode, type NodeState, type Ticket, type TicketType } from '../model/types';
 
 export function attention(t: Pick<Ticket, 'type' | 'hitl'>): Attention {
   if (t.type === 'grilling' || t.type === 'prototype') return 'hitl';

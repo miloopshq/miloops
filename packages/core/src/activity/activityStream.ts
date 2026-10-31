@@ -1,9 +1,9 @@
-import { BRAND, MAP_LABEL } from './brand';
-import { Emitter, uid } from './emitter';
-import { STEPS, stepTag } from './steps';
-import { SECTION_LABEL } from './mapBody';
+import { BRAND, MAP_LABEL } from '../model/brand';
+import { Emitter, uid } from '../lib/emitter';
+import { STEPS, stepTag } from '../model/steps';
+import { SECTION_LABEL } from '../model/mapBody';
 import type { UsageLedger } from './presence';
-import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo, SessionMode, SessionUsage, Ticket, TrackerEvent } from './types';
+import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo, SessionMode, SessionUsage, Ticket, TrackerEvent } from '../model/types';
 
 const addUsage = (a: SessionUsage | undefined, b: SessionUsage): SessionUsage => ({
   inputTokens: (a?.inputTokens ?? 0) + b.inputTokens,

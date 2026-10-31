@@ -1,8 +1,8 @@
-import { sleep } from '../emitter';
-import { attention, frontier } from '../derive';
+import { sleep } from '../lib/emitter';
+import { attention, frontier } from '../planning/derive';
 import { runWork, type ProcedureContext } from './procedures';
 
-import { callsign } from '../integrations';
+import { callsign } from '../model/integrations';
 
 const AGENTS = [12, 21, 49, 16, 33].map((n) => callsign(n));
 
