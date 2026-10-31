@@ -2,6 +2,7 @@ export function Legend({ planOnly }: { planOnly: boolean }) {
   const items: [string, string][] = [
     ['frontier', 'Frontier'],
     ['claimed', 'Claimed'],
+    ['stalled', 'Stalled'],
     ['blocked', 'Blocked'],
     ['decided', 'Decided'],
     ...(planOnly ? ([['parked', 'Parked']] as [string, string][]) : []),

@@ -24,6 +24,7 @@ export function MapZone(props: {
           <MapGraph
             snap={snap}
             sessions={props.sessions}
+            leases={props.api.leases}
             selection={selection}
             onSelect={props.onSelect}
             minFit={props.minFit}

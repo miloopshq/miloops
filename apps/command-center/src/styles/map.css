@@ -73,6 +73,9 @@
 .st-out-of-scope {
   --c: var(--st-oos);
 }
+.st-stalled {
+  --c: var(--amber);
+}
 .st-waiting {
   --c: var(--urgent);
 }
@@ -466,6 +469,15 @@
   fill: rgba(255, 77, 66, 0.12);
   stroke-opacity: 1;
   stroke-width: 1.5;
+}
+/* Claimed by an agent that went quiet: the lease is about to return the ticket to the queue. */
+.node.stalled {
+  --c: var(--amber);
+}
+.node.stalled .body {
+  fill: rgba(var(--amber-rgb), 0.08);
+  stroke-dasharray: 5 3;
+  stroke-opacity: 1;
 }
 .node .alarm {
   fill: none;

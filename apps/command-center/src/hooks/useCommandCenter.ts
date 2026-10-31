@@ -9,6 +9,7 @@ import {
 } from '@miloops-hq/core';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createActions, OPERATOR, type Runtime, type Selection, isRunning } from '../lib';
+import { useLeases } from './useLeases';
 
 export function useCommandCenter(rt: Runtime) {
   const [maps, setMaps] = useState<MapSummary[]>([]);
@@ -22,6 +23,7 @@ export function useCommandCenter(rt: Runtime) {
   const [loaded, setLoaded] = useState(false);
   const [activity, setActivity] = useState<ActivityState>(rt.activity.snapshot);
   const [health, setHealth] = useState<TrackerHealth>(rt.monitor.health);
+  const leases = useLeases(rt);
   useEffect(() => rt.monitor.subscribe(setHealth), [rt]);
   const [selection, setSelection] = useState<Selection>(null);
   const [autopilot, setAutopilot] = useState(false);
@@ -190,6 +192,7 @@ export function useCommandCenter(rt: Runtime) {
     error,
     chatSession,
     decisions,
+    leases,
     loaded,
     actions,
   };
