@@ -186,14 +186,26 @@ export interface SessionInfo {
   waitingOn?: string;
   startedAt: number;
   endedAt?: number;
-  /** Cumulative model usage as reported by the agent (simulated in demo mode). */
+  /** Cumulative model usage: read from the agent's local logs, else as reported by the agent (simulated in demo mode). */
   usage?: SessionUsage;
 }
 
+/**
+ * Where a session's usage comes from: `claude-code` (Claude Code transcript),
+ * `codex` (Codex rollout log), or `reported` (the agent's own report_progress numbers).
+ */
+export type UsageSource = 'claude-code' | 'codex' | 'reported';
+
 export interface SessionUsage {
+  /** Input tokens, cache reads and writes included. */
   inputTokens: number;
   outputTokens: number;
   costUsd: number;
+  /** Of `inputTokens`, served from the prompt cache. */
+  cachedInputTokens?: number;
+  source?: UsageSource;
+  /** Model ids seen, for log sources. */
+  models?: string[];
 }
 
 export interface AnsweredQuestion {

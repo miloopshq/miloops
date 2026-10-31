@@ -45,14 +45,30 @@ const shot = async (name) => {
   if (shots) await page.screenshot({ path: path.join(shots, `${name}.png`) });
 };
 
-// 2. The agent, as Claude Code starts it (`claude mcp add miloops -- npx miloops mcp`).
-const transport = new StdioClientTransport({ command: process.execPath, args: [cli, 'mcp'], cwd: repo, stderr: 'pipe' });
+// 2. The agent, as Claude Code starts it (`claude mcp add miloops -- npx miloops mcp`): Claude Code passes
+// CLAUDE_PROJECT_DIR and tags each call with its tool_use id; the transcript holds the API usage of every message.
+const claudeConfig = path.join(repo, '.claude-config');
+const transcript = path.join(claudeConfig, 'projects', repo.replace(/[^a-zA-Z0-9]/g, '-'), 'verify-session.jsonl');
+fs.mkdirSync(path.dirname(transcript), { recursive: true });
+const PER_MESSAGE = { input_tokens: 200, cache_creation_input_tokens: 300, cache_read_input_tokens: 1500, output_tokens: 150 };
+const PER_MESSAGE_USD = (200 * 3 + 300 * 3.75 + 1500 * 0.3 + 150 * 15) / 1e6;
+const transport = new StdioClientTransport({
+  command: process.execPath,
+  args: [cli, 'mcp'],
+  cwd: repo,
+  stderr: 'pipe',
+  env: { ...process.env, CLAUDE_CONFIG_DIR: claudeConfig, CLAUDE_PROJECT_DIR: repo },
+});
 const client = new Client({ name: 'claude-code', version: '2.1.0' });
 await client.connect(transport);
 const tools = (await client.listTools()).tools.map((t) => t.name);
 log(`MCP connected · ${tools.length} tools: ${tools.join(', ')}`);
+let seq = 0;
 const call = async (name, args = {}) => {
-  const r = await client.callTool({ name, arguments: args }, undefined, { timeout: 120_000 });
+  const id = `toolu_verify_${Date.now().toString(36)}_${seq++}`;
+  const message = { id: `msg_verify_${seq}`, type: 'message', role: 'assistant', model: 'claude-sonnet-4-5', content: [{ type: 'tool_use', id, name: `mcp__miloops__${name}`, input: args }], usage: PER_MESSAGE };
+  fs.appendFileSync(transcript, `${JSON.stringify({ type: 'assistant', timestamp: new Date().toISOString(), requestId: `req_${seq}`, message })}\n`);
+  const r = await client.callTool({ name, arguments: args, _meta: { 'claudecode/toolUseId': id } }, undefined, { timeout: 120_000 });
   if (r.isError) throw new Error(`${name}: ${r.content[0].text}`);
   return JSON.parse(r.content[0].text);
 };
@@ -124,8 +140,14 @@ await call('report_progress', { step: 'Investigate', message: 'checking the land
 log(`claimed ${c3.claimed.key}; left running so the sessions zone shows a live session`);
 
 const status = await call('status');
-log(`status: ${status.mission.progress} · ready ${status.mission.ready.map((t) => t.key).join(', ') || '—'} · spend $${status.mission.spend.costUsd} (${status.mission.spend.inputTokens + status.mission.spend.outputTokens} tokens)`);
-await page.waitForTimeout(1200);
+log(`status: ${status.mission.progress} · ready ${status.mission.ready.map((t) => t.key).join(', ') || '—'} · spend $${status.mission.spend.costUsd} (${status.mission.spend.inputTokens + status.mission.spend.outputTokens} tokens) from ${status.mission.spend.sources.join(', ')}`);
+// Every transcript message counts (the status call's own too) except record_decision's: it ran between tickets,
+// with no session open. The numbers passed to report_progress are ignored.
+const measured = seq - 1;
+const spendOk = status.mission.spend.sources.join() === 'claude-code' && Math.abs(status.mission.spend.costUsd - Math.round(measured * PER_MESSAGE_USD * 1e4) / 1e4) < 1e-4;
+log(`measured spend ${spendOk ? 'matches' : 'DOES NOT match'} ${measured} transcript messages ($${(measured * PER_MESSAGE_USD).toFixed(6)})`);
+const uiTokens = `${((measured * 2150) / 1000).toFixed(1)}k tok`;
+await page.locator('.sessions-head .usage', { hasText: uiTokens }).first().waitFor({ timeout: 15000 }).catch(() => {});
 await shot('04-live-session-and-decisions');
 
 const ui = {
@@ -143,5 +165,5 @@ log(`page errors: ${errors.length ? errors.join(' | ') : 'none'}`);
 await browser.close();
 server.kill('SIGTERM');
 if (!process.env.KEEP) fs.rmSync(repo, { recursive: true, force: true }); else log("kept", repo);
-if (errors.length || f.answer !== 'Users of the CLI' || h.answer !== 'Grouped by version, newest first' || status.mission.progress !== '2/4 decided' || after !== 0) process.exit(1);
+if (errors.length || !spendOk || !ui.usage?.includes(uiTokens) || !/LOG$/.test(ui.usage) || f.answer !== 'Users of the CLI' || h.answer !== 'Grouped by version, newest first' || status.mission.progress !== '2/4 decided' || after !== 0) process.exit(1);
 console.log('\nOK');

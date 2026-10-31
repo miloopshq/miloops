@@ -9,6 +9,7 @@ import { writeCommandCenterLock } from '@miloops-hq/core/agents';
 import { createTrackerBridge, type TrackerBridge } from '@miloops-hq/core/bridge';
 import { runConnect } from './connect';
 import { runMcpServer } from './mcp/server';
+import { readStdin, recordClaudeSession } from './usage/hook';
 
 declare const __VERSION__: string;
 
@@ -24,6 +25,8 @@ Commands:
   mcp            Serve the MCP server for coding agents over stdio
                  (claude mcp add ${BRAND.slug} -- npx -y ${BRAND.slug} mcp)
   connect <agent>  Register the MCP server with Claude Code or Codex and add the /milo command
+                 (for Claude Code also a SessionStart hook, so usage comes from the transcript)
+  hook claude    The SessionStart hook itself (reads the hook payload on stdin)
 
 Options:
   --dir <path>   Tracker folder (default: ./${BRAND.dataDir}, or $${BRAND.dataDirEnv})
@@ -166,6 +169,16 @@ async function main() {
     const o = parseSubArgs(argv.slice(1), ['--dir', '--agent']);
     if (o.rest.length) fail(`unexpected argument: ${o.rest[0]}`);
     await runMcpServer({ root: path.resolve(process.cwd(), o.dir), agent: o.agent, version: __VERSION__ });
+    return;
+  }
+  if (argv[0] === 'hook') {
+    const o = parseSubArgs(argv.slice(1), ['--dir']);
+    if (o.rest[0] !== 'claude') fail('hook needs an agent: claude');
+    try {
+      recordClaudeSession(await readStdin(), { dir: o.dir });
+    } catch {
+      // a hook must never break the agent's session
+    }
     return;
   }
   if (argv[0] === 'connect') {
