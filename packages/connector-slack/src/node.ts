@@ -1,5 +1,11 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { configDir, crossSite, type BridgeContext, type BridgePlugin, type BridgePluginFactory } from '@miloops-hq/core/bridge';
+import {
+  configDir,
+  crossSite,
+  type BridgeContext,
+  type BridgePlugin,
+  type BridgePluginFactory,
+} from '@miloops-hq/core/bridge';
 import { SlackService, type SlackServiceOptions } from './service';
 import type { SlackSettingsPatch } from './types';
 
@@ -40,20 +46,21 @@ export function slackRoutes(service: SlackService) {
     const p = url.pathname;
     if (p !== '/slack' && !p.startsWith('/slack/')) return false;
     try {
-      if (crossSite(req)) return json(res, 403, { error: 'cross-site request refused' }), true;
+      if (crossSite(req)) return (json(res, 403, { error: 'cross-site request refused' }), true);
       const m = req.method;
-      if (p === '/slack' && m === 'GET') return json(res, 200, service.status()), true;
-      if (p === '/slack' && m === 'DELETE') return json(res, 200, service.remove()), true;
-      if (p === '/slack/created' && m === 'POST') return json(res, 200, service.markCreated()), true;
+      if (p === '/slack' && m === 'GET') return (json(res, 200, service.status()), true);
+      if (p === '/slack' && m === 'DELETE') return (json(res, 200, service.remove()), true);
+      if (p === '/slack/created' && m === 'POST') return (json(res, 200, service.markCreated()), true);
       if (p === '/slack/token' && m === 'POST') {
         const b = await body<{ token?: unknown }>(req);
         if (typeof b.token !== 'string' || !b.token.trim()) throw new BadRequest('"token" is required');
         const r = await service.pasteToken(b.token);
-        return json(res, r.ok ? 200 : 400, r), true;
+        return (json(res, r.ok ? 200 : 400, r), true);
       }
-      if (p === '/slack/settings' && m === 'PUT') return json(res, 200, service.updateSettings(await body<SlackSettingsPatch>(req))), true;
-      if (p === '/slack/owner/reset' && m === 'POST') return json(res, 200, service.resetOwner()), true;
-      if (p === '/slack/members' && m === 'GET') return json(res, 200, { members: await service.members() }), true;
+      if (p === '/slack/settings' && m === 'PUT')
+        return (json(res, 200, service.updateSettings(await body<SlackSettingsPatch>(req))), true);
+      if (p === '/slack/owner/reset' && m === 'POST') return (json(res, 200, service.resetOwner()), true);
+      if (p === '/slack/members' && m === 'GET') return (json(res, 200, { members: await service.members() }), true);
       json(res, 405, { error: 'method not allowed' });
     } catch (err) {
       json(res, err instanceof BadRequest ? 400 : 500, { error: String((err as Error)?.message ?? err) });
@@ -63,9 +70,18 @@ export function slackRoutes(service: SlackService) {
 }
 
 /** Optional module for the local server: `createTrackerBridge(root, { plugins: [slackPlugin()] })`. */
-export function slackPlugin(o: Partial<Omit<SlackServiceOptions, 'root' | 'active' | 'url'>> = {}): BridgePluginFactory {
+export function slackPlugin(
+  o: Partial<Omit<SlackServiceOptions, 'root' | 'active' | 'url'>> = {},
+): BridgePluginFactory {
   return (ctx: BridgeContext): BridgePlugin => {
-    const service = new SlackService({ pollMs: 1000, ...o, configDir: o.configDir ?? configDir(o.env), root: ctx.root, active: ctx.active, url: ctx.url });
+    const service = new SlackService({
+      pollMs: 1000,
+      ...o,
+      configDir: o.configDir ?? configDir(o.env),
+      root: ctx.root,
+      active: ctx.active,
+      url: ctx.url,
+    });
     const handle = slackRoutes(service);
     return { handle, close: () => service.close() };
   };

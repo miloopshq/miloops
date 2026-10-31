@@ -39,7 +39,11 @@ type Res = { status: number; headers?: Record<string, string>; body?: unknown };
 export function fakeSlack(opts: { start?: number } = {}) {
   const team = { id: 'T0EFIKA01', name: 'efika', domain: 'efika', url: 'https://efika.slack.com/' };
   const app = { id: 'A0MILO0001', botId: 'B0MILO0001', botUser: 'U0MILOBOT' };
-  const tokens = { app: `xapp-1-${app.id}-1001-6d696c6f6170706c6576656c`, bot: 'xoxb-1001-2002-fakebottokenmilo', user: 'xoxp-1001-2002-fakeusertoken' };
+  const tokens = {
+    app: `xapp-1-${app.id}-1001-6d696c6f6170706c6576656c`,
+    bot: 'xoxb-1001-2002-fakebottokenmilo',
+    user: 'xoxp-1001-2002-fakeusertoken',
+  };
   const state = { scopes: [...BOT_SCOPES, ...OPTIONAL_SCOPES] as string[], socketMode: true, installed: true };
   let clock = Math.floor((opts.start ?? Date.UTC(2026, 9, 31, 12, 0, 0)) / 1000);
   let seq = 0;
@@ -60,13 +64,27 @@ export function fakeSlack(opts: { start?: number } = {}) {
   );
   const channels = new Map<string, FakeChannel>();
   const addChannel = (id: string, name: string, is_private: boolean, botIn: boolean) =>
-    channels.set(id, { id, name, is_private, members: new Set(['U0ANA0001', 'U0RAJ0001', ...(botIn ? [app.botUser] : [])]), messages: [] });
+    channels.set(id, {
+      id,
+      name,
+      is_private,
+      members: new Set(['U0ANA0001', 'U0RAJ0001', ...(botIn ? [app.botUser] : [])]),
+      messages: [],
+    });
   addChannel('C0INFRA01', 'infra', false, true);
   addChannel('G0MILOTST', 'milo-test', true, true);
   addChannel('C0RANDOM1', 'random', false, false);
   const im = (user: string) => {
     const id = `D0${user.slice(1, 9)}`;
-    if (!channels.has(id)) channels.set(id, { id, name: id, is_private: true, is_im: true, members: new Set([user, app.botUser]), messages: [] });
+    if (!channels.has(id))
+      channels.set(id, {
+        id,
+        name: id,
+        is_private: true,
+        is_im: true,
+        members: new Set([user, app.botUser]),
+        messages: [],
+      });
     return id;
   };
   const views = new Map<string, FakeView>();
@@ -84,11 +102,18 @@ export function fakeSlack(opts: { start?: number } = {}) {
     profile: { display_name: u.display_name, real_name: u.real_name },
   });
 
-  function api(method: string, token: string, args: Record<string, any>): Res { // eslint-disable-line @typescript-eslint/no-explicit-any
-    const err = (error: string, extra: Record<string, unknown> = {}): Res => ({ status: 200, body: { ok: false, error, ...extra } });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function api(method: string, token: string, args: Record<string, any>): Res {
+    const err = (error: string, extra: Record<string, unknown> = {}): Res => ({
+      status: 200,
+      body: { ok: false, error, ...extra },
+    });
     const ok = (b: Record<string, unknown> = {}): Res => ({
       status: 200,
-      headers: { 'content-type': 'application/json; charset=utf-8', ...(token === tokens.bot ? { 'x-oauth-scopes': state.scopes.join(',') } : {}) },
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        ...(token === tokens.bot ? { 'x-oauth-scopes': state.scopes.join(',') } : {}),
+      },
       body: { ok: true, ...b },
     });
     if (method === 'apps.connections.open') {
@@ -101,17 +126,30 @@ export function fakeSlack(opts: { start?: number } = {}) {
     const channel = (id: string) => channels.get(id);
     switch (method) {
       case 'auth.test':
-        return ok({ url: team.url, team: team.name, user: 'milo', team_id: team.id, user_id: app.botUser, bot_id: app.botId, is_enterprise_install: false });
+        return ok({
+          url: team.url,
+          team: team.name,
+          user: 'milo',
+          team_id: team.id,
+          user_id: app.botUser,
+          bot_id: app.botId,
+          is_enterprise_install: false,
+        });
       case 'bots.info':
-        return args.bot === app.botId ? ok({ bot: { id: app.botId, deleted: false, name: 'MILO', app_id: app.id, user_id: app.botUser } }) : err('bot_not_found');
+        return args.bot === app.botId
+          ? ok({ bot: { id: app.botId, deleted: false, name: 'MILO', app_id: app.id, user_id: app.botUser } })
+          : err('bot_not_found');
       case 'users.info': {
         const u = users.get(args.user);
         return u ? ok({ user: userJson(u) }) : err('user_not_found');
       }
       case 'users.lookupByEmail': {
-        if (!state.scopes.includes('users:read.email')) return err('missing_scope', { needed: 'users:read.email', provided: state.scopes.join(',') });
+        if (!state.scopes.includes('users:read.email'))
+          return err('missing_scope', { needed: 'users:read.email', provided: state.scopes.join(',') });
         const u = [...users.values()].find((x) => 'email' in x && x.email === String(args.email).toLowerCase());
-        return u ? ok({ user: { ...userJson(u), profile: { ...userJson(u).profile, email: u.email } } }) : err('users_not_found');
+        return u
+          ? ok({ user: { ...userJson(u), profile: { ...userJson(u).profile, email: u.email } } })
+          : err('users_not_found');
       }
       case 'users.list':
         return ok({ members: [...users.values()].map(userJson), response_metadata: { next_cursor: '' } });
@@ -125,20 +163,42 @@ export function fakeSlack(opts: { start?: number } = {}) {
         if (!c.members.has(app.botUser)) return err('not_in_channel');
         const root = c.messages.find((m) => m.ts === args.ts);
         if (!root) return err('thread_not_found');
-        const thread = [root, ...c.messages.filter((m) => m.thread_ts === args.ts && m.ts !== args.ts)].slice(0, Number(args.limit ?? 1000));
-        return ok({ messages: thread.map((m) => ({ type: 'message', ts: m.ts, ...(m.user ? { user: m.user } : {}), ...(m.bot_id ? { bot_id: m.bot_id } : {}), text: m.text, ...(m.thread_ts ? { thread_ts: m.thread_ts } : {}) })), has_more: false });
+        const thread = [root, ...c.messages.filter((m) => m.thread_ts === args.ts && m.ts !== args.ts)].slice(
+          0,
+          Number(args.limit ?? 1000),
+        );
+        return ok({
+          messages: thread.map((m) => ({
+            type: 'message',
+            ts: m.ts,
+            ...(m.user ? { user: m.user } : {}),
+            ...(m.bot_id ? { bot_id: m.bot_id } : {}),
+            text: m.text,
+            ...(m.thread_ts ? { thread_ts: m.thread_ts } : {}),
+          })),
+          has_more: false,
+        });
       }
       case 'chat.getPermalink': {
         const c = channel(args.channel);
         if (!c) return err('channel_not_found');
-        return ok({ channel: c.id, permalink: `${team.url}archives/${c.id}/p${String(args.message_ts).replace('.', '')}` });
+        return ok({
+          channel: c.id,
+          permalink: `${team.url}archives/${c.id}/p${String(args.message_ts).replace('.', '')}`,
+        });
       }
       case 'chat.postMessage': {
         let c = channel(args.channel);
         if (!c && users.has(args.channel)) c = channel(im(args.channel));
         if (!c) return err('channel_not_found');
         if (!c.members.has(app.botUser)) return err('not_in_channel');
-        const m: FakeMessage = { ts: ts(), bot_id: app.botId, text: args.text, ...(args.thread_ts ? { thread_ts: args.thread_ts } : {}), ...(args.blocks ? { blocks: args.blocks } : {}) };
+        const m: FakeMessage = {
+          ts: ts(),
+          bot_id: app.botId,
+          text: args.text,
+          ...(args.thread_ts ? { thread_ts: args.thread_ts } : {}),
+          ...(args.blocks ? { blocks: args.blocks } : {}),
+        };
         c.messages.push(m);
         return ok({ channel: c.id, ts: m.ts, message: { type: 'message', bot_id: app.botId, text: m.text, ts: m.ts } });
       }
@@ -154,7 +214,12 @@ export function fakeSlack(opts: { start?: number } = {}) {
         const user = triggers.get(args.trigger_id);
         if (!user) return err('expired_trigger_id');
         triggers.delete(args.trigger_id);
-        const v: FakeView = { id: `V0${String(++viewSeq).padStart(8, '0')}`, hash: `${clock}.h${viewSeq}`, user, view: args.view };
+        const v: FakeView = {
+          id: `V0${String(++viewSeq).padStart(8, '0')}`,
+          hash: `${clock}.h${viewSeq}`,
+          user,
+          view: args.view,
+        };
         views.set(v.id, v);
         return ok({ view: { id: v.id, hash: v.hash, ...args.view } });
       }
@@ -178,7 +243,10 @@ export function fakeSlack(opts: { start?: number } = {}) {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
     if (url.hostname === 'hooks.slack.test') {
       responses.push({ url: url.pathname, body: JSON.parse(String(init.body)) });
-      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'content-type': 'application/json' } });
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
     }
     const method = url.pathname.replace(/^.*\/api\//, '');
     const auth = new Headers(init.headers).get('authorization') ?? '';
@@ -196,13 +264,17 @@ export function fakeSlack(opts: { start?: number } = {}) {
   const userRef = (id: string) => ({ id, username: users.get(id)?.name, name: users.get(id)?.name, team_id: team.id });
 
   /** Values Slack would report for a view: initial values, overridden by what the user typed or picked. */
-  function stateOf(view: Record<string, any>, input: Record<string, string>) { // eslint-disable-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function stateOf(view: Record<string, any>, input: Record<string, string>) {
     const values: Record<string, Record<string, unknown>> = {};
     for (const b of view.blocks ?? []) {
       const el = b.type === 'input' ? b.element : b.type === 'section' ? b.accessory : undefined;
       if (!el?.action_id || !b.block_id) continue;
       const given = input[b.block_id];
-      const pick = (v?: string) => (v === undefined ? el.initial_option ?? null : el.options.find((o: { value: string }) => o.value === v) ?? null);
+      const pick = (v?: string) =>
+        v === undefined
+          ? (el.initial_option ?? null)
+          : (el.options.find((o: { value: string }) => o.value === v) ?? null);
       values[b.block_id] = {
         [el.action_id]:
           el.type === 'plain_text_input'
@@ -236,7 +308,15 @@ export function fakeSlack(opts: { start?: number } = {}) {
     payload: {
       homeOpened: (user: string, tab = 'home') => ({
         type: 'events_api' as const,
-        payload: { token: 'legacy', team_id: team.id, api_app_id: app.id, type: 'event_callback', event_id: `Ev0${++seq}`, event_time: clock, event: { type: 'app_home_opened', user, channel: im(user), tab, event_ts: ts() } },
+        payload: {
+          token: 'legacy',
+          team_id: team.id,
+          api_app_id: app.id,
+          type: 'event_callback',
+          event_id: `Ev0${++seq}`,
+          event_time: clock,
+          event: { type: 'app_home_opened', user, channel: im(user), tab, event_ts: ts() },
+        },
       }),
       command: (user: string, channel: string, text: string, command = '/milo') => ({
         type: 'slash_commands' as const,
@@ -273,14 +353,22 @@ export function fakeSlack(opts: { start?: number } = {}) {
             trigger_id: trigger(user),
             response_url: responseUrl(),
             message_ts: m.ts,
-            message: { type: 'message', ts: m.ts, user: m.user, text: m.text, ...(m.thread_ts ? { thread_ts: m.thread_ts } : {}) },
+            message: {
+              type: 'message',
+              ts: m.ts,
+              user: m.user,
+              text: m.text,
+              ...(m.thread_ts ? { thread_ts: m.thread_ts } : {}),
+            },
           },
         };
       },
       /** Click a button in a posted message, by action_id (or prefix). */
       click: (user: string, channel: string, messageTs: string, actionId: string) => {
         const m = channels.get(channel)!.messages.find((x) => x.ts === messageTs)!;
-        const block = [m.blocks ?? [], ...[...(m.history ?? [])].reverse()].flat().find((b) => (b.elements as { action_id: string }[] | undefined)?.some((e) => e.action_id === actionId));
+        const block = [m.blocks ?? [], ...[...(m.history ?? [])].reverse()]
+          .flat()
+          .find((b) => (b.elements as { action_id: string }[] | undefined)?.some((e) => e.action_id === actionId));
         const el = (block!.elements as Record<string, unknown>[]).find((e) => e.action_id === actionId)!;
         return {
           type: 'interactive' as const,
@@ -295,7 +383,16 @@ export function fakeSlack(opts: { start?: number } = {}) {
             channel: { id: channel, name: channels.get(channel)!.name },
             message: { type: 'message', ts: m.ts, text: m.text },
             response_url: responseUrl(),
-            actions: [{ type: 'button', action_id: el.action_id, block_id: block!.block_id, text: el.text, value: el.value, action_ts: `${clock}.000002` }],
+            actions: [
+              {
+                type: 'button',
+                action_id: el.action_id,
+                block_id: block!.block_id,
+                text: el.text,
+                value: el.value,
+                action_ts: `${clock}.000002`,
+              },
+            ],
           },
         };
       },
@@ -328,8 +425,22 @@ export function fakeSlack(opts: { start?: number } = {}) {
             container: { type: 'view', view_id: v.id },
             trigger_id: trigger(user),
             team: { id: team.id, domain: team.domain },
-            view: { id: v.id, hash: v.hash, callback_id: v.view.callback_id, private_metadata: v.view.private_metadata, state: stateOf(v.view, { [block.block_id]: value }) },
-            actions: [{ type: 'static_select', action_id: actionId, block_id: block.block_id, selected_option: option, action_ts: `${clock}.000004` }],
+            view: {
+              id: v.id,
+              hash: v.hash,
+              callback_id: v.view.callback_id,
+              private_metadata: v.view.private_metadata,
+              state: stateOf(v.view, { [block.block_id]: value }),
+            },
+            actions: [
+              {
+                type: 'static_select',
+                action_id: actionId,
+                block_id: block.block_id,
+                selected_option: option,
+                action_ts: `${clock}.000004`,
+              },
+            ],
           },
         };
       },
@@ -344,7 +455,14 @@ export function fakeSlack(opts: { start?: number } = {}) {
             api_app_id: app.id,
             token: 'legacy',
             trigger_id: trigger(user),
-            view: { id: v.id, hash: v.hash, type: 'modal', callback_id: v.view.callback_id, private_metadata: v.view.private_metadata, state: stateOf(v.view, input) },
+            view: {
+              id: v.id,
+              hash: v.hash,
+              type: 'modal',
+              callback_id: v.view.callback_id,
+              private_metadata: v.view.private_metadata,
+              state: stateOf(v.view, input),
+            },
             response_urls: [],
           },
         };

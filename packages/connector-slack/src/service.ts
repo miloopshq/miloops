@@ -39,7 +39,14 @@ import { SocketMode, probeSocket, type Envelope, type EnvelopeResult, type WebSo
 import { briefMission, formatTokens, missionListBlocks, statusBlocks } from './status';
 import { askStore, slackLock, slackStore, type AskRecord, type SlackConfig } from './store';
 import { deterministicSummary, plainText, type ThreadMessage } from './summary';
-import { SLACK_NOTIFY_EVENTS, type SlackSettingsPatch, type SlackState, type SlackStatus, type SlackTokenResult, type SlackUser } from './types';
+import {
+  SLACK_NOTIFY_EVENTS,
+  type SlackSettingsPatch,
+  type SlackState,
+  type SlackStatus,
+  type SlackTokenResult,
+  type SlackUser,
+} from './types';
 
 type Env = Record<string, string | undefined>;
 type Payload = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -72,17 +79,30 @@ export interface SlackServiceOptions {
 
 function gitEmail(cwd: string) {
   try {
-    return execFileSync('git', ['config', '--get', 'user.email'], { cwd: existsSync(cwd) ? cwd : undefined, encoding: 'utf8', timeout: 2000, stdio: ['ignore', 'pipe', 'ignore'] });
+    return execFileSync('git', ['config', '--get', 'user.email'], {
+      cwd: existsSync(cwd) ? cwd : undefined,
+      encoding: 'utf8',
+      timeout: 2000,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
   } catch {
     return undefined;
   }
 }
 
-const AUTH_CODES = new Set(['invalid_auth', 'not_authed', 'account_inactive', 'token_revoked', 'token_expired', 'no_permission']);
+const AUTH_CODES = new Set([
+  'invalid_auth',
+  'not_authed',
+  'account_inactive',
+  'token_revoked',
+  'token_expired',
+  'no_permission',
+]);
 const REFUSED = `Only the ${BRAND.name} owner and allowed users can do that. Ask the owner to add you in ${BRAND.name} Settings → Slack.`;
 const ALREADY = `Already answered in ${BRAND.name}.`;
 const DECISION_TYPES = new Set<Ticket['type']>(['grilling', 'prototype']);
-const isDecisionTicket = (t: Ticket) => t.state === 'open' && (DECISION_TYPES.has(t.type) || (t.type === 'task' && !!t.hitl));
+const isDecisionTicket = (t: Ticket) =>
+  t.state === 'open' && (DECISION_TYPES.has(t.type) || (t.type === 'task' && !!t.hitl));
 const day = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 /** What the decision modal carries between open, mission change and submit. Thread text is never stored here. */
@@ -176,7 +196,12 @@ export class SlackService {
       error: this.error,
       enabled: c.enabled,
       step,
-      setup: { created: c.created || !!t.app, appId: c.appId, appToken: t.app?.source ?? null, botToken: t.bot?.source ?? null },
+      setup: {
+        created: c.created || !!t.app,
+        appId: c.appId,
+        appToken: t.app?.source ?? null,
+        botToken: t.bot?.source ?? null,
+      },
       workspace: c.workspace,
       bot: c.bot,
       owners: c.owners,
@@ -187,7 +212,9 @@ export class SlackService {
       links: {
         create: slackLinks.create(c.command),
         ...(c.appId ? { app: slackLinks.app(c.appId), install: slackLinks.install(c.appId) } : {}),
-        ...(c.appId && c.workspace ? { home: slackLinks.home(c.workspace.id, c.appId), homeWeb: slackLinks.homeWeb(c.workspace.id, c.appId) } : {}),
+        ...(c.appId && c.workspace
+          ? { home: slackLinks.home(c.workspace.id, c.appId), homeWeb: slackLinks.homeWeb(c.workspace.id, c.appId) }
+          : {}),
       },
       ...(this.heldBy ? { heldBy: this.heldBy } : {}),
     };
@@ -221,20 +248,46 @@ export class SlackService {
   }
 
   private async verifyToken(token: string, save: boolean): Promise<SlackTokenResult> {
-    const fail = (error: string, code: string, kind?: 'app' | 'bot'): SlackTokenResult => ({ ok: false, error, code, kind, status: this.status() });
+    const fail = (error: string, code: string, kind?: 'app' | 'bot'): SlackTokenResult => ({
+      ok: false,
+      error,
+      code,
+      kind,
+      status: this.status(),
+    });
     const kind = tokenKind(token);
-    if (kind === 'user') return fail('That is a user token (xoxp-). Paste the Bot User OAuth Token (xoxb-) from Install App.', 'user_token');
-    if (kind === 'config') return fail('That is a configuration token. Paste the app-level token (xapp-) or the bot token (xoxb-).', 'config_token');
-    if (kind === 'unknown') return fail('Not a Slack token. App-level tokens start with xapp-, bot tokens with xoxb-.', 'unknown_token');
+    if (kind === 'user')
+      return fail(
+        'That is a user token (xoxp-). Paste the Bot User OAuth Token (xoxb-) from Install App.',
+        'user_token',
+      );
+    if (kind === 'config')
+      return fail(
+        'That is a configuration token. Paste the app-level token (xapp-) or the bot token (xoxb-).',
+        'config_token',
+      );
+    if (kind === 'unknown')
+      return fail('Not a Slack token. App-level tokens start with xapp-, bot tokens with xoxb-.', 'unknown_token');
     if (kind === 'app') {
       let url: string;
       try {
         url = (await this.api(token).call<{ url: string }>('apps.connections.open')).url;
       } catch (e) {
         const code = e instanceof SlackApiError ? e.code : 'error';
-        if (code === 'offline') return fail('Slack is unreachable. Check your connection and paste again.', code, 'app');
-        if (code === 'missing_scope') return fail('This token is missing connections:write. Generate it again with the connections:write scope.', code, 'app');
-        if (code === 'not_allowed_token_type') return fail('That is not an app-level token. Generate one under Basic Information → App-Level Tokens.', code, 'app');
+        if (code === 'offline')
+          return fail('Slack is unreachable. Check your connection and paste again.', code, 'app');
+        if (code === 'missing_scope')
+          return fail(
+            'This token is missing connections:write. Generate it again with the connections:write scope.',
+            code,
+            'app',
+          );
+        if (code === 'not_allowed_token_type')
+          return fail(
+            'That is not an app-level token. Generate one under Basic Information → App-Level Tokens.',
+            code,
+            'app',
+          );
         return fail('Slack rejected that token. Generate a new app-level token and copy it again.', code, 'app');
       }
       if (!this.WS) return fail('Slack needs Node.js 22 or newer.', 'unsupported', 'app');
@@ -242,7 +295,11 @@ export class SlackService {
       try {
         hello = await probeSocket(url, this.WS);
       } catch {
-        return fail('Socket Mode is off. Turn it on under Socket Mode in the app settings, then paste again.', 'socket_mode_off', 'app');
+        return fail(
+          'Socket Mode is off. Turn it on under Socket Mode in the app settings, then paste again.',
+          'socket_mode_off',
+          'app',
+        );
       }
       const appId = appIdFromToken(token) ?? hello.appId;
       const prev = this.store.read();
@@ -261,18 +318,34 @@ export class SlackService {
         who = await api.call('auth.test');
       } catch (e) {
         const code = e instanceof SlackApiError ? e.code : 'error';
-        if (code === 'offline') return fail('Slack is unreachable. Check your connection and paste again.', code, 'bot');
+        if (code === 'offline')
+          return fail('Slack is unreachable. Check your connection and paste again.', code, 'bot');
         return fail('Slack rejected that token. Copy the Bot User OAuth Token from Install App again.', code, 'bot');
       }
       const missing = api.scopes ? BOT_SCOPES.filter((s) => !api.scopes!.includes(s)) : [];
-      if (missing.length) return fail(`The app is missing ${missing.join(', ')}. Reinstall it from Install App, then paste the new token.`, 'missing_scope', 'bot');
+      if (missing.length)
+        return fail(
+          `The app is missing ${missing.join(', ')}. Reinstall it from Install App, then paste the new token.`,
+          'missing_scope',
+          'bot',
+        );
       const appId = this.store.read().appId;
       if (appId && who.bot_id) {
-        const info = await api.call<{ bot?: { app_id?: string } }>('bots.info', { bot: who.bot_id }).catch(() => undefined);
-        if (info?.bot?.app_id && info.bot.app_id !== appId) return fail(`That bot token belongs to another Slack app (${info.bot.app_id}). Paste the token from ${BRAND.assistant.name}'s Install App page.`, 'wrong_app', 'bot');
+        const info = await api
+          .call<{ bot?: { app_id?: string } }>('bots.info', { bot: who.bot_id })
+          .catch(() => undefined);
+        if (info?.bot?.app_id && info.bot.app_id !== appId)
+          return fail(
+            `That bot token belongs to another Slack app (${info.bot.app_id}). Paste the token from ${BRAND.assistant.name}'s Install App page.`,
+            'wrong_app',
+            'bot',
+          );
       }
       if (save) this.store.saveToken('bot', token);
-      this.store.update({ workspace: { id: who.team_id, name: who.team, url: who.url }, bot: { userId: who.user_id, name: who.user } });
+      this.store.update({
+        workspace: { id: who.team_id, name: who.team, url: who.url },
+        bot: { userId: who.user_id, name: who.user },
+      });
       if (!this.store.read().owners.length && api.scopes?.includes('users:read.email')) await this.ownerByEmail(api);
     }
     const t = this.store.tokens();
@@ -287,7 +360,8 @@ export class SlackService {
   updateSettings(patch: SlackSettingsPatch) {
     const c = this.store.read();
     const next: Partial<SlackConfig> = {};
-    if (patch.allow) next.allow = patch.allow.filter((u) => /^[UW][A-Z0-9]+$/.test(u.id)).map((u) => ({ id: u.id, name: u.name }));
+    if (patch.allow)
+      next.allow = patch.allow.filter((u) => /^[UW][A-Z0-9]+$/.test(u.id)).map((u) => ({ id: u.id, name: u.name }));
     if (patch.notify) {
       const n = { ...c.notify, ...patch.notify };
       if (n.target !== 'dm' && !/^[CG][A-Z0-9]+$/.test(n.target)) n.target = c.notify.target;
@@ -359,7 +433,10 @@ export class SlackService {
         this.error = err;
         if (s === 'auth-error') this.authFailed(err);
       },
-      fatal: (e) => (e instanceof SlackApiError && (AUTH_CODES.has(e.code) || e.code === 'not_allowed_token_type') ? 'Slack rejected the app-level token; reconnect in Settings' : undefined),
+      fatal: (e) =>
+        e instanceof SlackApiError && (AUTH_CODES.has(e.code) || e.code === 'not_allowed_token_type')
+          ? 'Slack rejected the app-level token; reconnect in Settings'
+          : undefined,
       backoffMs: this.o.backoffMs,
     });
     this.socket.start();
@@ -410,7 +487,11 @@ export class SlackService {
   }
 
   private async dmOf(user: string) {
-    if (!this.dms.has(user)) this.dms.set(user, (await this.call<{ channel: { id: string } }>('conversations.open', { users: user })).channel.id);
+    if (!this.dms.has(user))
+      this.dms.set(
+        user,
+        (await this.call<{ channel: { id: string } }>('conversations.open', { users: user })).channel.id,
+      );
     return this.dms.get(user)!;
   }
 
@@ -438,7 +519,16 @@ export class SlackService {
 
   private async publishHome(user: string) {
     const c = this.store.read();
-    await this.call('views.publish', { user_id: user, view: homeView({ claimed: !!c.owners.length, owner: c.owners[0]?.id, you: c.owners.some((o) => o.id === user), url: this.o.url(), command: c.command }) });
+    await this.call('views.publish', {
+      user_id: user,
+      view: homeView({
+        claimed: !!c.owners.length,
+        owner: c.owners[0]?.id,
+        you: c.owners.some((o) => o.id === user),
+        url: this.o.url(),
+        command: c.command,
+      }),
+    });
   }
 
   /**
@@ -449,13 +539,31 @@ export class SlackService {
   private async ownerByEmail(api: SlackApi) {
     const email = (this.o.ownerEmail ?? (() => gitEmail(this.o.root)))()?.trim();
     if (!email) return;
-    const r = await api.call<{ user?: { id: string; deleted?: boolean; is_bot?: boolean; name?: string; real_name?: string; profile?: { display_name?: string } } }>('users.lookupByEmail', { email }).catch(() => undefined);
+    const r = await api
+      .call<{
+        user?: {
+          id: string;
+          deleted?: boolean;
+          is_bot?: boolean;
+          name?: string;
+          real_name?: string;
+          profile?: { display_name?: string };
+        };
+      }>('users.lookupByEmail', { email })
+      .catch(() => undefined);
     const u = r?.user;
     if (!u || u.deleted || u.is_bot) return;
-    this.store.update({ owners: [{ id: u.id, name: u.profile?.display_name || u.name || u.real_name, via: 'git-email' }] });
+    this.store.update({
+      owners: [{ id: u.id, name: u.profile?.display_name || u.name || u.real_name, via: 'git-email' }],
+    });
     await api
       .call<{ channel: { id: string } }>('conversations.open', { users: u.id })
-      .then((o) => api.call('chat.postMessage', { channel: o.channel.id, text: 'Connected. Decisions and questions will reach you here.' }))
+      .then((o) =>
+        api.call('chat.postMessage', {
+          channel: o.channel.id,
+          text: 'Connected. Decisions and questions will reach you here.',
+        }),
+      )
       .catch(() => undefined);
   }
 
@@ -463,13 +571,18 @@ export class SlackService {
   private async claim(user: string) {
     if (this.store.read().owners.length) return this.publishHome(user);
     this.store.update({ owners: [{ id: user, name: await this.nameOf(user), via: 'home' }] });
-    await this.call('chat.postMessage', { channel: await this.dmOf(user), text: 'Connected. Decisions and questions will reach you here.' });
+    await this.call('chat.postMessage', {
+      channel: await this.dmOf(user),
+      text: 'Connected. Decisions and questions will reach you here.',
+    });
     await this.publishHome(user);
   }
 
   private onCommand(p: Payload): EnvelopeResult {
     const command = p.command as string;
-    const [sub = '', ...rest] = String(p.text ?? '').trim().split(/\s+/);
+    const [sub = '', ...rest] = String(p.text ?? '')
+      .trim()
+      .split(/\s+/);
     const arg = rest.join(' ').trim();
     const reply = (text: string) => ({ ack: { response_type: 'ephemeral', text } });
     if (!sub || sub === 'help') return reply(helpText(command));
@@ -478,16 +591,36 @@ export class SlackService {
       const meta: DecisionMeta = { c: p.channel_id, cn: p.channel_name, u: p.user_id, w: p.team_id, r: p.response_url };
       return { after: () => this.openDecision(p.trigger_id, meta, arg) };
     }
-    if (sub === 'status') return { after: async () => postResponse(p.response_url, { response_type: 'ephemeral', ...(await this.statusMessage(arg, command)) }, this.o.fetch) };
-    if (sub === 'inbox') return { after: async () => postResponse(p.response_url, { response_type: 'ephemeral', ...(await this.inboxMessage()) }, this.o.fetch) };
+    if (sub === 'status')
+      return {
+        after: async () =>
+          postResponse(
+            p.response_url,
+            { response_type: 'ephemeral', ...(await this.statusMessage(arg, command)) },
+            this.o.fetch,
+          ),
+      };
+    if (sub === 'inbox')
+      return {
+        after: async () =>
+          postResponse(p.response_url, { response_type: 'ephemeral', ...(await this.inboxMessage()) }, this.o.fetch),
+      };
     return reply(`Unknown command \`${sub}\`.\n${helpText(command)}`);
   }
 
   private onShortcut(p: Payload): EnvelopeResult | void {
     if (p.callback_id !== SAVE_DECISION_CALLBACK) return;
-    if (!this.allowed(p.user.id)) return { after: () => postResponse(p.response_url, { response_type: 'ephemeral', text: REFUSED }, this.o.fetch) };
+    if (!this.allowed(p.user.id))
+      return { after: () => postResponse(p.response_url, { response_type: 'ephemeral', text: REFUSED }, this.o.fetch) };
     const msg = p.message as Payload;
-    const meta: DecisionMeta = { c: p.channel.id, cn: p.channel.name, t: msg.thread_ts ?? msg.ts, m: msg.ts, u: p.user.id, w: p.team.id };
+    const meta: DecisionMeta = {
+      c: p.channel.id,
+      cn: p.channel.name,
+      t: msg.thread_ts ?? msg.ts,
+      m: msg.ts,
+      u: p.user.id,
+      w: p.team.id,
+    };
     return { after: () => this.openDecision(p.trigger_id, meta, plainText(String(msg.text ?? ''))) };
   }
 
@@ -496,9 +629,11 @@ export class SlackService {
     const id = String(a?.action_id ?? '');
     const user = p.user.id as string;
     if (id === ACTIONS.claim) return { after: () => this.claim(user) };
-    if (id === ACTIONS.missionPick && p.view) return { after: () => this.changeMission(p.view, a.selected_option.value) };
+    if (id === ACTIONS.missionPick && p.view)
+      return { after: () => this.changeMission(p.view, a.selected_option.value) };
     if (id !== ACTIONS.reply && !id.startsWith(`${ACTIONS.option}:`)) return;
-    const ephemeral = (text: string) => postResponse(p.response_url, { response_type: 'ephemeral', replace_original: false, text }, this.o.fetch);
+    const ephemeral = (text: string) =>
+      postResponse(p.response_url, { response_type: 'ephemeral', replace_original: false, text }, this.o.fetch);
     if (!this.allowed(user)) return { after: () => ephemeral(REFUSED) };
     const ref = JSON.parse(a.value) as AskRef;
     return {
@@ -506,7 +641,10 @@ export class SlackService {
         const found = await this.pending(ref);
         if (!found) return ephemeral(ALREADY);
         if (id === ACTIONS.reply) {
-          await this.call('views.open', { trigger_id: p.trigger_id, view: replyModal(found.view, JSON.stringify({ s: ref.s, q: ref.q })) });
+          await this.call('views.open', {
+            trigger_id: p.trigger_id,
+            view: replyModal(found.view, JSON.stringify({ s: ref.s, q: ref.q })),
+          });
           return;
         }
         const text = found.q.suggestions?.[ref.i ?? -1];
@@ -536,7 +674,8 @@ export class SlackService {
     if (!this.allowed(user)) return { ack: { response_action: 'errors', errors: { decision: REFUSED } } };
     const mode = (values.mode?.value?.selected_option?.value ?? 'mission') as SaveMode;
     const ticketId = values.ticket?.value?.selected_option?.value as string | undefined;
-    if (mode === 'resolve' && !ticketId) return { ack: { response_action: 'errors', errors: { ticket: 'Pick the ticket to resolve' } } };
+    if (mode === 'resolve' && !ticketId)
+      return { ack: { response_action: 'errors', errors: { ticket: 'Pick the ticket to resolve' } } };
     const mapId = meta.mid ?? (values.mission?.[ACTIONS.missionPick]?.selected_option?.value as string | undefined);
     if (!mapId) return { ack: { response_action: 'errors', errors: { decision: 'Pick a mission' } } };
     const summary = String(values.summary?.value?.value ?? '').trim();
@@ -546,12 +685,18 @@ export class SlackService {
   /* ---------------- decisions ---------------- */
 
   private async openDecision(trigger: string, meta: DecisionMeta, prefill: string) {
-    const opened = await this.call<{ view: { id: string } }>('views.open', { trigger_id: trigger, view: loadingModal(JSON.stringify(meta)) });
+    const opened = await this.call<{ view: { id: string } }>('views.open', {
+      trigger_id: trigger,
+      view: loadingModal(JSON.stringify(meta)),
+    });
     const viewId = opened.view.id;
     const adapter = await this.o.active();
     const maps = await adapter.listMaps();
     if (!maps.length) {
-      await this.call('views.update', { view_id: viewId, view: noticeModal(JSON.stringify(meta), `No missions yet. Start one in ${BRAND.name}, then save this again.`) });
+      await this.call('views.update', {
+        view_id: viewId,
+        view: noticeModal(JSON.stringify(meta), `No missions yet. Start one in ${BRAND.name}, then save this again.`),
+      });
       return;
     }
     let messages: ThreadMessage[] = [];
@@ -571,9 +716,16 @@ export class SlackService {
       const human = replies.messages.filter((m) => m.user && !m.bot_id).slice(0, 200);
       const ids = [...new Set(human.map((m) => m.user as string))];
       const names = Object.fromEntries(await Promise.all(ids.map(async (id) => [id, await this.nameOf(id)] as const)));
-      messages = human.map((m) => ({ ts: m.ts, user: m.user, name: names[m.user], text: plainText(String(m.text ?? ''), names) }));
+      messages = human.map((m) => ({
+        ts: m.ts,
+        user: m.user,
+        name: names[m.user],
+        text: plainText(String(m.text ?? ''), names),
+      }));
       meta.p = ids.slice(0, 15).map((id) => [id, clip(names[id], 40)]);
-      meta.l = (await this.call<{ permalink: string }>('chat.getPermalink', { channel: meta.c, message_ts: meta.m ?? meta.t })).permalink;
+      meta.l = (
+        await this.call<{ permalink: string }>('chat.getPermalink', { channel: meta.c, message_ts: meta.m ?? meta.t })
+      ).permalink;
     } else {
       const ws = this.store.read().workspace;
       if (ws) meta.l = `${ws.url.replace(/\/$/, '')}/archives/${meta.c}`;
@@ -581,8 +733,16 @@ export class SlackService {
     const summary = deterministicSummary(messages, meta.m);
     const asks = this.asks.read();
     const inThread = meta.t ? Object.values(asks).find((a) => a.channel === meta.c && a.ts === meta.t) : undefined;
-    meta.mid = [inThread?.view?.mapId, this.store.read().channelMission[meta.c], maps[0].id].find((id) => id && maps.some((m) => m.id === id))!;
-    const form = await this.form(adapter, maps, meta.mid, { decision: prefill, summary, related: inThread?.view?.ticketId, count: messages.length, meta });
+    meta.mid = [inThread?.view?.mapId, this.store.read().channelMission[meta.c], maps[0].id].find(
+      (id) => id && maps.some((m) => m.id === id),
+    )!;
+    const form = await this.form(adapter, maps, meta.mid, {
+      decision: prefill,
+      summary,
+      related: inThread?.view?.ticketId,
+      count: messages.length,
+      meta,
+    });
     await this.call('views.update', { view_id: viewId, view: decisionModal(form, JSON.stringify(meta)) });
   }
 
@@ -604,7 +764,9 @@ export class SlackService {
       mode: related ? 'resolve' : 'new',
       decision: o.decision,
       summary: o.summary,
-      thread: o.meta.t ? { channel: o.meta.cn, count: o.count, participants: (o.meta.p ?? []).map(([, n]) => n), permalink: o.meta.l } : undefined,
+      thread: o.meta.t
+        ? { channel: o.meta.cn, count: o.count, participants: (o.meta.p ?? []).map(([, n]) => n), permalink: o.meta.l }
+        : undefined,
       postsTo: `${adapter.label} · mission ${snap.map.key}${related ? ` · ${related.key}` : ''}`,
     };
   }
@@ -614,7 +776,14 @@ export class SlackService {
     const open = snap.tickets.filter((t) => t.state === 'open');
     const byId = (id?: string) => open.find((t) => t.id === id);
     if (byId(askTicket)) return byId(askTicket);
-    const waiting = [...new Set(docs.flatMap((d) => d.pending).filter((q) => q.mapId === snap.map.id && q.ticketId).map((q) => q.ticketId!))].filter((id) => byId(id));
+    const waiting = [
+      ...new Set(
+        docs
+          .flatMap((d) => d.pending)
+          .filter((q) => q.mapId === snap.map.id && q.ticketId)
+          .map((q) => q.ticketId!),
+      ),
+    ].filter((id) => byId(id));
     if (waiting.length === 1) return byId(waiting[0]);
     return open.filter((t) => isDecisionTicket(t) && t.assignee).sort((a, b) => b.updatedAt - a.updatedAt)[0];
   }
@@ -632,10 +801,22 @@ export class SlackService {
       meta,
     });
     if (form.thread) form.thread.count = 0;
-    await this.call('views.update', { view_id: view.id, hash: view.hash, view: decisionModal(form, JSON.stringify(meta)) });
+    await this.call('views.update', {
+      view_id: view.id,
+      hash: view.hash,
+      view: decisionModal(form, JSON.stringify(meta)),
+    });
   }
 
-  private async saveDecision(s: { meta: DecisionMeta; user: string; mapId: string; mode: SaveMode; ticketId?: string; decision: string; summary: string }) {
+  private async saveDecision(s: {
+    meta: DecisionMeta;
+    user: string;
+    mapId: string;
+    mode: SaveMode;
+    ticketId?: string;
+    decision: string;
+    summary: string;
+  }) {
     const { meta } = s;
     const adapter = await this.o.active();
     const decidedBy = `slack:${s.user}`;
@@ -645,10 +826,17 @@ export class SlackService {
       ref: `${meta.c}/${meta.m ?? `cmd-${at}`}`,
       ...(meta.l ? { url: meta.l } : {}),
       ...(meta.cn ? { label: `#${meta.cn}` } : {}),
-      meta: { workspaceId: meta.w, channelId: meta.c, ...(meta.cn ? { channelName: meta.cn } : {}), ...(meta.t ? { threadTs: meta.t } : {}), ...(meta.m ? { messageTs: meta.m } : {}) },
+      meta: {
+        workspaceId: meta.w,
+        channelId: meta.c,
+        ...(meta.cn ? { channelName: meta.cn } : {}),
+        ...(meta.t ? { threadTs: meta.t } : {}),
+        ...(meta.m ? { messageTs: meta.m } : {}),
+      },
     };
     const participants = (meta.p ?? []).map(([id, name]) => ({ id: `slack:${id}`, name }));
-    if (!participants.some((p) => p.id === decidedBy)) participants.push({ id: decidedBy, name: await this.nameOf(s.user) });
+    if (!participants.some((p) => p.id === decidedBy))
+      participants.push({ id: decidedBy, name: await this.nameOf(s.user) });
     const line = `${firstSentence(s.decision)}${meta.l ? ` ([Slack](${meta.l}), ${day(at)})` : ` (Slack, ${day(at)})`}`;
     const fields = { decidedBy, participants, source, ...(s.summary ? { rationale: s.summary } : {}) };
     let resolved: Ticket | undefined;
@@ -657,7 +845,17 @@ export class SlackService {
       const snap = await adapter.loadMap(s.mapId);
       title = snap.map.title;
       if (s.mode === 'mission') {
-        await recordDecision(adapter, s.mapId, { question: `Slack thread${meta.cn ? ` in #${meta.cn}` : ''}`, answer: s.decision, summary: firstSentence(s.decision), ...fields }, { missionLine: line });
+        await recordDecision(
+          adapter,
+          s.mapId,
+          {
+            question: `Slack thread${meta.cn ? ` in #${meta.cn}` : ''}`,
+            answer: s.decision,
+            summary: firstSentence(s.decision),
+            ...fields,
+          },
+          { missionLine: line },
+        );
       } else {
         const ticketId =
           s.mode === 'resolve'
@@ -669,7 +867,13 @@ export class SlackService {
                   body: `Recorded from Slack${meta.cn ? ` (#${meta.cn})` : ''}.${meta.l ? `\n\n${meta.l}` : ''}\n\nPart of mission ${snap.map.key}.`,
                 })
               ).id;
-        resolved = await resolve(adapter, s.mapId, ticketId, { answer: s.decision, author: decidedBy, summary: firstSentence(s.decision), decision: fields, missionLine: line });
+        resolved = await resolve(adapter, s.mapId, ticketId, {
+          answer: s.decision,
+          author: decidedBy,
+          summary: firstSentence(s.decision),
+          decision: fields,
+          missionLine: line,
+        });
       }
     } catch (e) {
       await this.tell(meta, `Couldn't save the decision: ${(e as Error).message}`);
@@ -678,22 +882,49 @@ export class SlackService {
     this.store.update({ channelMission: { ...this.store.read().channelMission, [meta.c]: s.mapId } });
     const url = this.o.url();
     const text = `Saved to *${escape(title)}*${resolved ? `, resolved ${escape(resolved.key)} ${escape(resolved.title)}` : ''}`;
-    await this.tell(meta, text, url ? [{ type: 'section', text: md(text) }, { type: 'actions', elements: [{ type: 'button', action_id: ACTIONS.open, text: { type: 'plain_text', text: `Open in ${BRAND.name}` }, url }] }] : undefined);
+    await this.tell(
+      meta,
+      text,
+      url
+        ? [
+            { type: 'section', text: md(text) },
+            {
+              type: 'actions',
+              elements: [
+                {
+                  type: 'button',
+                  action_id: ACTIONS.open,
+                  text: { type: 'plain_text', text: `Open in ${BRAND.name}` },
+                  url,
+                },
+              ],
+            },
+          ]
+        : undefined,
+    );
   }
 
   /** Confirmation: a thread reply for shortcuts, ephemeral for the slash command, the user's DM as the fallback. */
   private async tell(meta: DecisionMeta, text: string, blocks?: unknown[]) {
-    if (meta.r) return postResponse(meta.r, { response_type: 'ephemeral', text, ...(blocks ? { blocks } : {}) }, this.o.fetch);
+    if (meta.r)
+      return postResponse(meta.r, { response_type: 'ephemeral', text, ...(blocks ? { blocks } : {}) }, this.o.fetch);
     try {
       await this.call('chat.postMessage', { channel: meta.c, thread_ts: meta.t, text, ...(blocks ? { blocks } : {}) });
     } catch {
-      await this.call('chat.postMessage', { channel: await this.dmOf(meta.u), text, ...(blocks ? { blocks } : {}) }).catch(() => {});
+      await this.call('chat.postMessage', {
+        channel: await this.dmOf(meta.u),
+        text,
+        ...(blocks ? { blocks } : {}),
+      }).catch(() => {});
     }
   }
 
   /* ---------------- agent asks ---------------- */
 
-  private async askView(q: PendingQuestion, adapter?: TrackerAdapter): Promise<AskView & { mapId: string; ticketId?: string; at: number }> {
+  private async askView(
+    q: PendingQuestion,
+    adapter?: TrackerAdapter,
+  ): Promise<AskView & { mapId: string; ticketId?: string; at: number }> {
     let mission: string | undefined;
     let ticket: string | undefined;
     try {
@@ -704,7 +935,18 @@ export class SlackService {
     } catch {
       /* mission unknown to the active tracker: show the ask without it */
     }
-    return { sessionId: q.sessionId, questionId: q.id, text: q.text, suggestions: q.suggestions, agent: q.agent, mission, ticket, mapId: q.mapId, ticketId: q.ticketId, at: q.at };
+    return {
+      sessionId: q.sessionId,
+      questionId: q.id,
+      text: q.text,
+      suggestions: q.suggestions,
+      agent: q.agent,
+      mission,
+      ticket,
+      mapId: q.mapId,
+      ticketId: q.ticketId,
+      at: q.at,
+    };
   }
 
   private async pending(ref: AskRef) {
@@ -745,7 +987,8 @@ export class SlackService {
     if (!rec || rec.closed || !rec.view) return;
     let line: string;
     let answered = true;
-    if (rec.by) line = `✓ Answered by <@${rec.by.user}> via Slack: “${escape(clip(rec.by.text, 300))}”. ${escape(rec.view.agent)} resumed.`;
+    if (rec.by)
+      line = `✓ Answered by <@${rec.by.user}> via Slack: “${escape(clip(rec.by.text, 300))}”. ${escape(rec.view.agent)} resumed.`;
     else {
       const doc = (docs ?? (await readAgentDocs(this.o.root))).find((d) => d.session.id === rec.sessionId);
       const reply = doc?.chats.find((c) => c.from === 'human' && c.at >= rec.view!.at);
@@ -757,7 +1000,11 @@ export class SlackService {
     rec.closed = true;
     this.asks.write(asks);
     const detail = this.store.read().notify.detail;
-    await this.call('chat.update', { channel: rec.channel, ts: rec.ts, ...askClosedMessage(rec.view, line, { detail, answered }) }).catch(() => {});
+    await this.call('chat.update', {
+      channel: rec.channel,
+      ts: rec.ts,
+      ...askClosedMessage(rec.view, line, { detail, answered }),
+    }).catch(() => {});
   }
 
   private async inboxMessage() {
@@ -766,7 +1013,11 @@ export class SlackService {
     if (!pending.length) return { text: 'Nothing is waiting on you.' };
     const adapter = await this.o.active();
     const url = this.o.url();
-    const blocks = (await Promise.all(pending.slice(0, 10).map(async (q) => askMessage(await this.askView(q, adapter), { url }).blocks))).flat();
+    const blocks = (
+      await Promise.all(
+        pending.slice(0, 10).map(async (q) => askMessage(await this.askView(q, adapter), { url }).blocks),
+      )
+    ).flat();
     return { text: `${pending.length} waiting on you`, blocks };
   }
 
@@ -777,11 +1028,15 @@ export class SlackService {
     const now = Date.now();
     if (arg) {
       const a = arg.toLowerCase().replace(/^#/, '');
-      const m = maps.find((x) => x.key.toLowerCase().replace(/^#/, '') === a || x.id === arg) ?? maps.find((x) => x.title.toLowerCase().includes(a));
+      const m =
+        maps.find((x) => x.key.toLowerCase().replace(/^#/, '') === a || x.id === arg) ??
+        maps.find((x) => x.title.toLowerCase().includes(a));
       if (!m) return { text: `No mission matches “${escape(arg)}”.` };
       return statusBlocks(briefMission(await adapter.loadMap(m.id), docs), { now, url: this.o.url() });
     }
-    const briefs = await Promise.all(maps.slice(0, 20).map(async (m) => briefMission(await adapter.loadMap(m.id), docs)));
+    const briefs = await Promise.all(
+      maps.slice(0, 20).map(async (m) => briefMission(await adapter.loadMap(m.id), docs)),
+    );
     return missionListBlocks(briefs, command);
   }
 
@@ -818,7 +1073,10 @@ export class SlackService {
         if (!channel) return;
         adapter ??= await this.o.active();
         const view = await this.askView(q, adapter);
-        const r = await this.call<{ channel: string; ts: string }>('chat.postMessage', { channel, ...askMessage(view, { url: this.o.url(), detail: c.notify.detail }) });
+        const r = await this.call<{ channel: string; ts: string }>('chat.postMessage', {
+          channel,
+          ...askMessage(view, { url: this.o.url(), detail: c.notify.detail }),
+        });
         asks[q.id] = { sessionId: q.sessionId, channel: r.channel, ts: r.ts, view };
         this.asks.write(asks);
       }
@@ -846,19 +1104,33 @@ export class SlackService {
         for (const id of now.blocked)
           if (prev.known.has(id) && !prev.blocked.has(id)) {
             const t = byId.get(id)!;
-            const by = t.blockedBy.map((b) => byId.get(b)).filter((b) => b && b.state === 'open').map((b) => `${b!.key} ${b!.title}`);
-            this.queue(m.id, `⛔ *BLOCKED* · ${title} · ${escape(t.key)} ${escape(t.title)}${by.length ? ` is blocked by ${escape(by.join(', '))}` : ''}`);
+            const by = t.blockedBy
+              .map((b) => byId.get(b))
+              .filter((b) => b && b.state === 'open')
+              .map((b) => `${b!.key} ${b!.title}`);
+            this.queue(
+              m.id,
+              `⛔ *BLOCKED* · ${title} · ${escape(t.key)} ${escape(t.title)}${by.length ? ` is blocked by ${escape(by.join(', '))}` : ''}`,
+            );
           }
       if (ev.has('resolved'))
         for (const id of now.closed)
           if (!prev.closed.has(id) && byId.get(id)?.closeReason === 'completed') {
             const t = byId.get(id)!;
-            const unblocked = [...prev.blocked].filter((b) => !now.blocked.has(b) && byId.get(b)?.state === 'open' && byId.get(b)?.blockedBy.includes(id)).length;
-            this.queue(m.id, `✓ *RESOLVED* · ${title} · ${escape(t.key)} ${escape(t.title)}${unblocked ? ` → ${unblocked} ticket${unblocked === 1 ? '' : 's'} unblocked` : ''}`);
+            const unblocked = [...prev.blocked].filter(
+              (b) => !now.blocked.has(b) && byId.get(b)?.state === 'open' && byId.get(b)?.blockedBy.includes(id),
+            ).length;
+            this.queue(
+              m.id,
+              `✓ *RESOLVED* · ${title} · ${escape(t.key)} ${escape(t.title)}${unblocked ? ` → ${unblocked} ticket${unblocked === 1 ? '' : 's'} unblocked` : ''}`,
+            );
           }
       if (ev.has('mission.done') && now.done && !prev.done) {
         const b = briefMission(snap, docs);
-        this.queue(m.id, `◉ *MISSION DONE* · ${title} · ${b.total} tickets · $${b.costUsd.toFixed(2)} · ${formatTokens(b.tokens)} tokens`);
+        this.queue(
+          m.id,
+          `◉ *MISSION DONE* · ${title} · ${b.total} tickets · $${b.costUsd.toFixed(2)} · ${formatTokens(b.tokens)} tokens`,
+        );
       }
     }
   }
@@ -879,7 +1151,11 @@ export class SlackService {
       const text = b.lines.join('\n');
       const today = day(now);
       const thread = b.root?.day === today ? b.root.ts : undefined;
-      const r = await this.call<{ ts: string }>('chat.postMessage', { channel, text, ...(thread ? { thread_ts: thread } : {}) });
+      const r = await this.call<{ ts: string }>('chat.postMessage', {
+        channel,
+        text,
+        ...(thread ? { thread_ts: thread } : {}),
+      });
       if (!thread) b.root = { day: today, ts: r.ts };
       b.lines = [];
       b.lastAt = now;
