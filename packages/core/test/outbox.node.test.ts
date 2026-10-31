@@ -124,7 +124,12 @@ async function serve(kind: Kind) {
     const chunks: Buffer[] = [];
     for await (const c of req) chunks.push(c as Buffer);
     const body = Buffer.concat(chunks).toString('utf8');
-    if (kind === 'github' ? req.method === 'POST' && /\/issues\/\d+\/comments$/.test(req.url ?? '') : /^\s*mutation\s+Comment\b/.test(JSON.parse(body || '{}').query ?? '')) commentPosts++;
+    if (
+      kind === 'github'
+        ? req.method === 'POST' && /\/issues\/\d+\/comments$/.test(req.url ?? '')
+        : /^\s*mutation\s+Comment\b/.test(JSON.parse(body || '{}').query ?? '')
+    )
+      commentPosts++;
     const r = await fake.fetch(`http://fake${req.url}`, {
       method: req.method,
       headers: req.headers as Record<string, string>,
@@ -193,7 +198,11 @@ for (const kind of process.env.OUTBOX_CHILD ? [] : (['github', 'linear'] as cons
       assert.equal(readFileSync(path.join(dir, '.gitignore'), 'utf8'), '*\n', 'the queue is never committed');
       assert.equal(orphanedWrites(root, key(kind)), 7, 'the dead run left its queue on disk');
       const before = await remote(kind, fake.api, first.mapId, first.r);
-      assert.deepEqual([before.t.comments.length, before.t.state, before.decisions.length], [0, 'open', 0], 'nothing reached the tracker');
+      assert.deepEqual(
+        [before.t.comments.length, before.t.state, before.decisions.length],
+        [0, 'open', 0],
+        'nothing reached the tracker',
+      );
 
       const b = adapter(kind, fake.api, {
         outbox: outboxFile(root, key(kind)),
@@ -284,7 +293,9 @@ if (!process.env.OUTBOX_CHILD)
       exec: () => Promise.reject(new Error('no exec in tests')),
       configDir: path.join(root, 'config'),
     });
-    const server = http.createServer((req, res) => void routes.handle(req, res, new URL(req.url ?? '/', 'http://localhost')));
+    const server = http.createServer(
+      (req, res) => void routes.handle(req, res, new URL(req.url ?? '/', 'http://localhost')),
+    );
     await new Promise<void>((ok) => server.listen(0, '127.0.0.1', ok));
     try {
       const r = await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}/trackers`);

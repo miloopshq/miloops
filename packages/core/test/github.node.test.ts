@@ -2,13 +2,25 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { GitHubAdapter, testGitHub } from '../src/adapters/remote/github';
 import { replay } from './fixtures';
-import { FROZEN, freezeTime, missionFlow, lateMissionFlow, noSleep, offlineFlow, rateLimitFlow, syncFlow } from './scenarios';
+import {
+  FROZEN,
+  freezeTime,
+  missionFlow,
+  lateMissionFlow,
+  noSleep,
+  offlineFlow,
+  rateLimitFlow,
+  syncFlow,
+} from './scenarios';
 
 let thaw: () => void;
 before(() => (thaw = freezeTime()));
 after(() => thaw());
 
-const adapter = (fetch: typeof globalThis.fetch, repo = 'octo-org/launchpad') => () => new GitHubAdapter({ repo, token: 'test-token', fetch, manual: true, ...noSleep });
+const adapter =
+  (fetch: typeof globalThis.fetch, repo = 'octo-org/launchpad') =>
+  () =>
+    new GitHubAdapter({ repo, token: 'test-token', fetch, manual: true, ...noSleep });
 
 test('mission flow: issues, sub-issues, blocking, claims, comments and decisions round-trip through GitHub', async () => {
   const rp = replay('github-flow.json');
@@ -18,7 +30,10 @@ test('mission flow: issues, sub-issues, blocking, claims, comments and decisions
   assert.deepEqual(r.before, []);
   assert.deepEqual(r.maps, [{ id: r.map.id, key: `#${r.map.id}`, title: 'Ship offline sync' }]);
   // a fresh adapter reads back exactly what the first one cached
-  assert.deepEqual(r.snap.tickets.map((t) => [t.id, t.type, t.state, t.closeReason, t.assignee, t.blockedBy]), r.cached.tickets.map((t) => [t.id, t.type, t.state, t.closeReason, t.assignee, t.blockedBy]));
+  assert.deepEqual(
+    r.snap.tickets.map((t) => [t.id, t.type, t.state, t.closeReason, t.assignee, t.blockedBy]),
+    r.cached.tickets.map((t) => [t.id, t.type, t.state, t.closeReason, t.assignee, t.blockedBy]),
+  );
   assert.equal(r.snap.map.mode, 'plan-only');
 
   const [research, grilling] = r.snap.tickets;
@@ -44,12 +59,16 @@ test('mission flow: issues, sub-issues, blocking, claims, comments and decisions
   assert.equal(byId['D-2'].ticketId, research.id, 'decision is linked back to its ticket');
   assert.equal(byId['D-2'].source.kind, 'command-center');
   assert.equal(byId['D-1'].decidedAt, FROZEN);
-  assert.deepEqual(r.snap.map.sections.decisions, [{ ticketKey: research.key, text: 'Use Automerge. Its history model fits the audit trail.' }]);
+  assert.deepEqual(r.snap.map.sections.decisions, [
+    { ticketKey: research.key, text: 'Use Automerge. Its history model fits the audit trail.' },
+  ]);
 });
 
 test('decision records are posted as readable comments on the ticket', () => {
   const rp = replay('github-flow.json');
-  const posts = rp.fixture.exchanges.filter((e) => e.req.method === 'POST' && /\/issues\/\d+\/comments$/.test(e.req.url)).map((e) => (e.req.body as { body: string }).body);
+  const posts = rp.fixture.exchanges
+    .filter((e) => e.req.method === 'POST' && /\/issues\/\d+\/comments$/.test(e.req.url))
+    .map((e) => (e.req.body as { body: string }).body);
   const record = posts.find((b) => b.startsWith('**Decision D-1**'));
   assert.ok(record, 'D-1 comment');
   assert.match(record!, /> Use Yjs\./);
@@ -61,7 +80,10 @@ test('missions charted by another process show up on the next poll, including be
   const r = await lateMissionFlow(adapter(rp.fetch));
   rp.done();
   assert.deepEqual(r.before, []);
-  assert.deepEqual(r.after.map((m) => m.id), [r.map.id]);
+  assert.deepEqual(
+    r.after.map((m) => m.id),
+    [r.map.id],
+  );
   assert.deepEqual(r.later.map((m) => m.id).sort(), [r.map.id, r.second.id].sort());
   assert.ok(r.events.some((e) => e.kind === 'external.changed'));
 });
@@ -78,7 +100,12 @@ test('sync: a teammate closing and commenting in GitHub reaches subscribers; an 
   assert.equal(r.idle, 0);
   const t = r.after.tickets[0];
   assert.equal(t.state, 'closed');
-  assert.deepEqual(t.comments.at(-1), { id: t.comments.at(-1)!.id, author: 'mona', body: 'Closing: Yjs it is.', createdAt: t.comments.at(-1)!.createdAt });
+  assert.deepEqual(t.comments.at(-1), {
+    id: t.comments.at(-1)!.id,
+    author: 'mona',
+    body: 'Closing: Yjs it is.',
+    createdAt: t.comments.at(-1)!.createdAt,
+  });
   assert.equal(rp.fixture.exchanges.at(-1)!.res.status, 304);
 });
 

@@ -1,7 +1,18 @@
 import { Emitter } from '../../lib/emitter';
 import { BRAND } from '../../model/brand';
 import { parseFront, str } from '../../model/frontmatter';
-import { DEFAULT_MAP_MODE, type DecisionInput, type DecisionRecord, type MapDoc, type MapMode, type MapSections, type MapSnapshot, type Ticket, type TicketType, type TrackerEvent } from '../../model/types';
+import {
+  DEFAULT_MAP_MODE,
+  type DecisionInput,
+  type DecisionRecord,
+  type MapDoc,
+  type MapMode,
+  type MapSections,
+  type MapSnapshot,
+  type Ticket,
+  type TicketType,
+  type TrackerEvent,
+} from '../../model/types';
 import { parseDecision, serializeDecision } from '../../planning/decisions/decisionFile';
 import { buildDecision, decisionNumber } from '../../planning/decisions/decisionRecord';
 import type { TrackerAdapter } from '../adapter';
@@ -82,7 +93,11 @@ export class MarkdownAdapter implements TrackerAdapter {
   private async nextNumber() {
     const files = await this.fs.list();
     const nums = files.filter((f) => !f.includes('/decisions/')).map((f) => Number(f.match(/(\d+)\.md$/)?.[1] ?? 0));
-    const keys = await Promise.all(files.filter((f) => f.endsWith('/map.md')).map(async (f) => Number(str(parseFront(await this.fs.read(f)).front.key).replace(/\D/g, '')) || 0));
+    const keys = await Promise.all(
+      files
+        .filter((f) => f.endsWith('/map.md'))
+        .map(async (f) => Number(str(parseFront(await this.fs.read(f)).front.key).replace(/\D/g, '')) || 0),
+    );
     return Math.max(0, ...nums, ...keys) + 1;
   }
 
@@ -94,7 +109,15 @@ export class MarkdownAdapter implements TrackerAdapter {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         .slice(0, 40) || `map-${n}`;
-    const map: MapDoc = { id: slug, key: `#${n}`, title: input.title, mode: input.mode ?? DEFAULT_MAP_MODE, sections: input.sections, createdAt: Date.now(), updatedAt: Date.now() };
+    const map: MapDoc = {
+      id: slug,
+      key: `#${n}`,
+      title: input.title,
+      mode: input.mode ?? DEFAULT_MAP_MODE,
+      sections: input.sections,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
     await this.writeMap(map);
     this.events.emit({ kind: 'map.created', mapId: slug, at: Date.now() });
     return map;
@@ -109,12 +132,26 @@ export class MarkdownAdapter implements TrackerAdapter {
   async updateMapSections(mapId: string, patch: Partial<MapSections>) {
     const m = await this.readMap(mapId);
     await this.writeMap({ ...m, sections: { ...m.sections, ...patch }, updatedAt: Date.now() });
-    this.events.emit({ kind: 'map.updated', mapId, section: Object.keys(patch)[0] as keyof MapSections, at: Date.now() });
+    this.events.emit({
+      kind: 'map.updated',
+      mapId,
+      section: Object.keys(patch)[0] as keyof MapSections,
+      at: Date.now(),
+    });
   }
 
   async createTicket(mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }) {
     const n = await this.nextNumber();
-    const t: Ticket = { id: String(n), key: `#${n}`, ...input, state: 'open', blockedBy: [], comments: [], createdAt: Date.now(), updatedAt: Date.now() };
+    const t: Ticket = {
+      id: String(n),
+      key: `#${n}`,
+      ...input,
+      state: 'open',
+      blockedBy: [],
+      comments: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
     await this.writeTicket(mapId, t);
     this.events.emit({ kind: 'ticket.created', mapId, ticketId: t.id, at: Date.now() });
     return t;
@@ -122,19 +159,27 @@ export class MarkdownAdapter implements TrackerAdapter {
 
   async addBlocking(mapId: string, blockerId: string, blockedId: string) {
     const t = await this.readTicket(mapId, blockedId);
-    if (!t.blockedBy.includes(blockerId)) await this.writeTicket(mapId, { ...t, blockedBy: [...t.blockedBy, blockerId] });
+    if (!t.blockedBy.includes(blockerId))
+      await this.writeTicket(mapId, { ...t, blockedBy: [...t.blockedBy, blockerId] });
     this.events.emit({ kind: 'edge.added', mapId, blockerId, blockedId, at: Date.now() });
   }
 
   async assign(mapId: string, ticketId: string, assignee: string | null) {
     const t = await this.readTicket(mapId, ticketId);
     await this.writeTicket(mapId, { ...t, assignee: assignee ?? undefined });
-    this.events.emit(assignee ? { kind: 'ticket.claimed', mapId, ticketId, assignee, at: Date.now() } : { kind: 'ticket.released', mapId, ticketId, at: Date.now() });
+    this.events.emit(
+      assignee
+        ? { kind: 'ticket.claimed', mapId, ticketId, assignee, at: Date.now() }
+        : { kind: 'ticket.released', mapId, ticketId, at: Date.now() },
+    );
   }
 
   async comment(mapId: string, ticketId: string, author: string, body: string) {
     const t = await this.readTicket(mapId, ticketId);
-    await this.writeTicket(mapId, { ...t, comments: [...t.comments, { id: `c${t.comments.length}`, author, body, createdAt: Date.now() }] });
+    await this.writeTicket(mapId, {
+      ...t,
+      comments: [...t.comments, { id: `c${t.comments.length}`, author, body, createdAt: Date.now() }],
+    });
     this.events.emit({ kind: 'ticket.commented', mapId, ticketId, at: Date.now() });
   }
 

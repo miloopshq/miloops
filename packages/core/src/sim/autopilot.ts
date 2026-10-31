@@ -3,7 +3,6 @@ import { callsign } from '../model/integrations';
 import { attention, frontier } from '../planning/derive';
 import { runWork, type ProcedureContext } from './procedures';
 
-
 const AGENTS = [12, 21, 49, 16, 33].map((n) => callsign(n));
 
 /**
@@ -47,8 +46,15 @@ export class Autopilot {
             const agent = AGENTS[this.n++ % AGENTS.length];
             const key = `${agent}:${this.n}`;
             this.inFlight.add(key);
-            this.ctx.activity.push({ source: 'system', level: 'info', ticketId: candidates[0].id, text: `Dispatching ${agent} · ${candidates[0].key} ${candidates[0].title}` });
-            void runWork(this.ctx, { mapId, agent, ticketId: candidates[0].id }).finally(() => this.inFlight.delete(key));
+            this.ctx.activity.push({
+              source: 'system',
+              level: 'info',
+              ticketId: candidates[0].id,
+              text: `Dispatching ${agent} · ${candidates[0].key} ${candidates[0].title}`,
+            });
+            void runWork(this.ctx, { mapId, agent, ticketId: candidates[0].id }).finally(() =>
+              this.inFlight.delete(key),
+            );
           }
         } catch {
           // map may be mid-creation; retry next tick

@@ -149,7 +149,8 @@ export interface DecisionRecord {
 export type DecisionStatus = 'active' | 'superseded';
 
 type DecisionDefaults = 'decidedAt' | 'summary' | 'alternatives' | 'rationale' | 'participants' | 'transcript';
-export type DecisionInput = Omit<DecisionRecord, 'id' | 'mapId' | 'supersededBy' | DecisionDefaults> & Partial<Pick<DecisionRecord, DecisionDefaults>>;
+export type DecisionInput = Omit<DecisionRecord, 'id' | 'mapId' | 'supersededBy' | DecisionDefaults> &
+  Partial<Pick<DecisionRecord, DecisionDefaults>>;
 
 export type TrackerEvent =
   | { kind: 'map.created'; mapId: string; at: number }
@@ -164,7 +165,14 @@ export type TrackerEvent =
   | { kind: 'edge.added'; mapId: string; blockerId: string; blockedId: string; at: number }
   /** `external`: written by another process (API, agent, integration) and picked up by the watcher. */
   | { kind: 'decision.recorded'; mapId: string; decisionId: string; ticketId?: string; external?: boolean; at: number }
-  | { kind: 'decision.superseded'; mapId: string; decisionId: string; supersededBy: string; external?: boolean; at: number }
+  | {
+      kind: 'decision.superseded';
+      mapId: string;
+      decisionId: string;
+      supersededBy: string;
+      external?: boolean;
+      at: number;
+    }
   | { kind: 'external.changed'; mapId?: string; at: number };
 
 /** Derived, UI-facing state of a ticket. */

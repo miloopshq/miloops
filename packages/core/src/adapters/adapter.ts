@@ -40,7 +40,10 @@ export interface TrackerAdapter {
   /** Rewrites the named sections of the map issue body. */
   updateMapSections(mapId: string, patch: Partial<MapSections>): Promise<void>;
 
-  createTicket(mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }): Promise<Ticket>;
+  createTicket(
+    mapId: string,
+    input: { title: string; type: TicketType; body: string; hitl?: boolean },
+  ): Promise<Ticket>;
   addBlocking(mapId: string, blockerId: string, blockedId: string): Promise<void>;
   assign(mapId: string, ticketId: string, assignee: string | null): Promise<void>;
   comment(mapId: string, ticketId: string, author: string, body: string): Promise<void>;

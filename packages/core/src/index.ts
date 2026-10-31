@@ -24,7 +24,14 @@ export { demoSnapshot, seedDecisions, seedSnapshot, seedUsage } from './adapters
 export { GitHubAdapter, testGitHub, type GitHubOptions } from './adapters/remote/github';
 export { LinearAdapter, testLinear, type LinearOptions } from './adapters/remote/linear';
 export { SyncedAdapter } from './adapters/remote/sync/syncedAdapter';
-export type { SyncState, SyncStatus, SyncOptions, OutboxStore, QueuedWrite, QueuedChange } from './adapters/remote/sync/types';
+export type {
+  SyncState,
+  SyncStatus,
+  SyncOptions,
+  OutboxStore,
+  QueuedWrite,
+  QueuedChange,
+} from './adapters/remote/sync/types';
 export { TrackerError, isTransient, type RateInfo, type TrackerErrorCode } from './adapters/remote/http';
 export { BridgeAdapter, trackerSettingsApi } from './adapters/remote/bridgeClient';
 export type * from './adapters/remote/types';

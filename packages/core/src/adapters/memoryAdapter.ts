@@ -1,5 +1,16 @@
 import { Emitter, sleep } from '../lib/emitter';
-import { DEFAULT_MAP_MODE, type DecisionInput, type DecisionRecord, type MapMode, type MapSections, type MapSnapshot, type Ticket, type TicketType, type TrackerEvent, type MapDoc } from '../model/types';
+import {
+  DEFAULT_MAP_MODE,
+  type DecisionInput,
+  type DecisionRecord,
+  type MapMode,
+  type MapSections,
+  type MapSnapshot,
+  type Ticket,
+  type TicketType,
+  type TrackerEvent,
+  type MapDoc,
+} from '../model/types';
 import { buildDecision } from '../planning/decisions/decisionRecord';
 import type { TrackerAdapter } from './adapter';
 
@@ -54,7 +65,10 @@ export class MemoryAdapter implements TrackerAdapter {
   private touch(mapId: string, t: Ticket) {
     const list = this.tickets.get(mapId)!;
     const next = { ...t, updatedAt: Date.now() };
-    this.tickets.set(mapId, list.map((x) => (x.id === t.id ? next : x)));
+    this.tickets.set(
+      mapId,
+      list.map((x) => (x.id === t.id ? next : x)),
+    );
     return next;
   }
 
@@ -179,7 +193,10 @@ export class MemoryAdapter implements TrackerAdapter {
     await this.wait();
     const list = this.decisions.get(mapId) ?? [];
     if (!list.some((d) => d.id === decisionId)) throw new Error(`decision ${decisionId} not found in ${mapId}`);
-    this.decisions.set(mapId, list.map((d) => (d.id === decisionId ? { ...d, supersededBy } : d)));
+    this.decisions.set(
+      mapId,
+      list.map((d) => (d.id === decisionId ? { ...d, supersededBy } : d)),
+    );
     this.emit({ kind: 'decision.superseded', mapId, decisionId, supersededBy, at: Date.now() });
   }
 

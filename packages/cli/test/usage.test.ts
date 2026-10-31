@@ -7,7 +7,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MissionAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
-import { installClaudeHook, recordClaudeSession  } from '../src/usage/hook';
+import { installClaudeHook, recordClaudeSession } from '../src/usage/hook';
 import { claudeTranscriptParser, codexRolloutParser, readLog, type UsageEvent } from '../src/usage/logs';
 import { UsageMeter, claudeProjectDirName } from '../src/usage/meter';
 import { priceUsage, rateFor } from '../src/usage/pricing';

@@ -35,7 +35,11 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
   const issues = new Map<number, FakeIssue>();
   const labels = new Set<string>(['bug', 'enhancement']);
   const tick = () => new Date((clock += 1000)).toISOString().replace('.000Z', 'Z');
-  const rate = (): Record<string, string> => ({ 'x-ratelimit-limit': '5000', 'x-ratelimit-remaining': '4990', 'x-ratelimit-reset': String(Math.floor(clock / 1000) + 3600) });
+  const rate = (): Record<string, string> => ({
+    'x-ratelimit-limit': '5000',
+    'x-ratelimit-remaining': '4990',
+    'x-ratelimit-reset': String(Math.floor(clock / 1000) + 3600),
+  });
   const byId = (id: number) => [...issues.values()].find((i) => i.id === id);
 
   const rest = (i: FakeIssue) => ({
@@ -67,7 +71,14 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
     closedAt: i.closed_at,
     labels: { nodes: i.labels.map((name) => ({ name })) },
     assignees: { nodes: i.assignees.map((l) => ({ login: l })) },
-    comments: { nodes: i.comments.map((c) => ({ databaseId: c.id, body: c.body, createdAt: c.created_at, author: { login: c.user } })) },
+    comments: {
+      nodes: i.comments.map((c) => ({
+        databaseId: c.id,
+        body: c.body,
+        createdAt: c.created_at,
+        author: { login: c.user },
+      })),
+    },
     ...(withBlocked ? { blockedBy: { nodes: i.blockedBy.map((id) => ({ number: byId(id)!.number })) } } : {}),
   });
 
@@ -101,21 +112,38 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
   function handle(method: string, url: URL, headers: Headers, body: unknown): Res {
     const p = url.pathname.replace(/^\/api\/v3/, '');
     const base = `/repos/${repo}`;
-    const ok = (b: unknown, status = 200): Res => ({ status, headers: { 'content-type': 'application/json; charset=utf-8', ...rate() }, body: b });
-    const notFound: Res = { status: 404, headers: rate(), body: { message: 'Not Found', documentation_url: 'https://docs.github.com/rest' } };
+    const ok = (b: unknown, status = 200): Res => ({
+      status,
+      headers: { 'content-type': 'application/json; charset=utf-8', ...rate() },
+      body: b,
+    });
+    const notFound: Res = {
+      status: 404,
+      headers: rate(),
+      body: { message: 'Not Found', documentation_url: 'https://docs.github.com/rest' },
+    };
 
     if (p === '/graphql' || p === '/api/graphql') {
       const { query, variables } = body as { query: string; variables: { number: number } };
-      if (!/query Mission\b/.test(query)) return { status: 200, body: { errors: [{ type: 'INTERNAL', message: 'fake: unsupported query' }] } };
+      if (!/query Mission\b/.test(query))
+        return { status: 200, body: { errors: [{ type: 'INTERNAL', message: 'fake: unsupported query' }] } };
       const root = issues.get(variables.number);
-      const issue = root ? { ...gql(root, false), subIssues: { nodes: root.subIssues.map((n) => gql(issues.get(n)!, true)) } } : null;
+      const issue = root
+        ? { ...gql(root, false), subIssues: { nodes: root.subIssues.map((n) => gql(issues.get(n)!, true)) } }
+        : null;
       return ok({ data: { repository: { issue } } });
     }
     if (method === 'GET' && p === '/user') return ok({ login, id: 4242, type: 'User' });
     if (!p.startsWith(base)) return notFound;
     const rest_ = p.slice(base.length);
 
-    if (method === 'GET' && rest_ === '') return ok({ full_name: repo, private: true, has_issues: true, permissions: { admin: false, maintain: false, push: true, triage: true, pull: true } });
+    if (method === 'GET' && rest_ === '')
+      return ok({
+        full_name: repo,
+        private: true,
+        has_issues: true,
+        permissions: { admin: false, maintain: false, push: true, triage: true, pull: true },
+      });
     if (method === 'GET' && rest_ === '/labels') return ok([...labels].map((name) => ({ name })));
     if (method === 'POST' && rest_ === '/labels') {
       const { name } = body as { name: string };
@@ -159,7 +187,7 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
       if (b.body !== undefined) issue.body = b.body;
       if (b.state) {
         issue.state = b.state;
-        issue.state_reason = b.state === 'closed' ? b.state_reason ?? 'completed' : null;
+        issue.state_reason = b.state === 'closed' ? (b.state_reason ?? 'completed') : null;
         issue.closed_at = b.state === 'closed' ? tick() : null;
       }
       issue.updated_at = tick();
@@ -183,7 +211,16 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
       const c = { id: nextComment++, body: (body as { body: string }).body, created_at: tick(), user: login };
       issue.comments.push(c);
       issue.updated_at = c.created_at;
-      return ok({ id: c.id, body: c.body, created_at: c.created_at, user: { login }, html_url: `https://github.com/${repo}/issues/${issue.number}#issuecomment-${c.id}` }, 201);
+      return ok(
+        {
+          id: c.id,
+          body: c.body,
+          created_at: c.created_at,
+          user: { login },
+          html_url: `https://github.com/${repo}/issues/${issue.number}#issuecomment-${c.id}`,
+        },
+        201,
+      );
     }
     if (method === 'POST' && sub === '/labels') {
       for (const l of (body as { labels: string[] }).labels) if (!issue.labels.includes(l)) issue.labels.push(l);
@@ -206,7 +243,10 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
     const headers = new Headers(init.headers);
     const body = typeof init.body === 'string' && init.body ? JSON.parse(init.body) : undefined;
     const r = handle(init.method ?? 'GET', url, headers, body);
-    return new Response(r.status === 304 || r.body === undefined ? null : JSON.stringify(r.body), { status: r.status, headers: r.headers });
+    return new Response(r.status === 304 || r.body === undefined ? null : JSON.stringify(r.body), {
+      status: r.status,
+      headers: r.headers,
+    });
   };
 
   return {

@@ -10,7 +10,8 @@ export function parseMapFile(mapId: string, md: string): MapDoc {
     id: mapId,
     key: str(front.key) || mapId,
     title: str(front.title) || mapId,
-    mode: str(front.mode) === 'plan-only' || arr(front.labels).includes(PLAN_ONLY_LABEL) ? 'plan-only' : DEFAULT_MAP_MODE,
+    mode:
+      str(front.mode) === 'plan-only' || arr(front.labels).includes(PLAN_ONLY_LABEL) ? 'plan-only' : DEFAULT_MAP_MODE,
     sections: parseMapBody(body),
     createdAt: time(front.created),
     updatedAt: time(front.updated),
@@ -18,5 +19,15 @@ export function parseMapFile(mapId: string, md: string): MapDoc {
 }
 
 export function serializeMapFile(m: MapDoc) {
-  return writeFront({ key: m.key, title: m.title, mode: m.mode, labels: [MAP_LABEL, ...(m.mode === 'plan-only' ? [PLAN_ONLY_LABEL] : [])], created: iso(m.createdAt), updated: iso(m.updatedAt) }, serializeMapBody(m.sections));
+  return writeFront(
+    {
+      key: m.key,
+      title: m.title,
+      mode: m.mode,
+      labels: [MAP_LABEL, ...(m.mode === 'plan-only' ? [PLAN_ONLY_LABEL] : [])],
+      created: iso(m.createdAt),
+      updated: iso(m.updatedAt),
+    },
+    serializeMapBody(m.sections),
+  );
 }

@@ -22,13 +22,15 @@ export function serializeMapBody(s: MapSections): string {
   const list = (xs: string[]) => (xs.length ? xs.map((x) => `- ${x}`).join('\n') : '_None yet._');
   const decisions = (ds: Decision[]) =>
     ds.length ? ds.map((d) => `- ${d.ticketKey ? `${d.ticketKey}: ` : ''}${d.text}`).join('\n') : '_None yet._';
-  return [
-    `## Destination\n\n${s.destination.trim()}`,
-    `## Notes\n\n${s.notes.trim() || '_None yet._'}`,
-    `## Decisions so far\n\n${decisions(s.decisions)}`,
-    `## Not yet specified\n\n${list(s.unspecified)}`,
-    `## Out of scope\n\n${list(s.outOfScope)}`,
-  ].join('\n\n') + '\n';
+  return (
+    [
+      `## Destination\n\n${s.destination.trim()}`,
+      `## Notes\n\n${s.notes.trim() || '_None yet._'}`,
+      `## Decisions so far\n\n${decisions(s.decisions)}`,
+      `## Not yet specified\n\n${list(s.unspecified)}`,
+      `## Out of scope\n\n${list(s.outOfScope)}`,
+    ].join('\n\n') + '\n'
+  );
 }
 
 export function parseMapBody(md: string): MapSections {
@@ -36,7 +38,10 @@ export function parseMapBody(md: string): MapSections {
   const parts = md.split(/^##\s+/m).slice(1);
   for (const part of parts) {
     const nl = part.indexOf('\n');
-    const heading = part.slice(0, nl === -1 ? undefined : nl).trim().toLowerCase();
+    const heading = part
+      .slice(0, nl === -1 ? undefined : nl)
+      .trim()
+      .toLowerCase();
     const body = (nl === -1 ? '' : part.slice(nl + 1)).trim();
     const key = HEADINGS.find(([, h]) => h.toLowerCase() === heading)?.[0];
     if (!key) continue;

@@ -31,9 +31,12 @@ export function fakeLinear(opts: { start?: number } = {}) {
     { id: 'st-canceled', name: 'Canceled', type: 'canceled', position: 4 },
     { id: 'st-dup', name: 'Duplicate', type: 'canceled', position: 5 },
   ];
-  const labels = new Map<string, { id: string; name: string; teamId: string | null }>([['lbl-bug', { id: 'lbl-bug', name: 'Bug', teamId: null }]]);
+  const labels = new Map<string, { id: string; name: string; teamId: string | null }>([
+    ['lbl-bug', { id: 'lbl-bug', name: 'Bug', teamId: null }],
+  ]);
   const issues = new Map<string, LIssue>();
-  const comments: { id: string; issueId: string; body: string; createdAt: string; updatedAt: string; user: string }[] = [];
+  const comments: { id: string; issueId: string; body: string; createdAt: string; updatedAt: string; user: string }[] =
+    [];
   const relations: { issueId: string; relatedIssueId: string; type: string }[] = [];
   let seq = 0;
 
@@ -50,8 +53,20 @@ export function fakeLinear(opts: { start?: number } = {}) {
     state: { type: stateOf(i).type },
     labels: { nodes: i.labelIds.map((id) => ({ id, name: labels.get(id)!.name })) },
     assignee: null,
-    comments: { nodes: comments.filter((c) => c.issueId === i.id).map((c) => ({ id: c.id, body: c.body, createdAt: c.createdAt, user: { displayName: c.user } })) },
-    ...(withRel ? { inverseRelations: { nodes: relations.filter((r) => r.relatedIssueId === i.id).map((r) => ({ type: r.type, issue: { id: r.issueId } })) } } : {}),
+    comments: {
+      nodes: comments
+        .filter((c) => c.issueId === i.id)
+        .map((c) => ({ id: c.id, body: c.body, createdAt: c.createdAt, user: { displayName: c.user } })),
+    },
+    ...(withRel
+      ? {
+          inverseRelations: {
+            nodes: relations
+              .filter((r) => r.relatedIssueId === i.id)
+              .map((r) => ({ type: r.type, issue: { id: r.issueId } })),
+          },
+        }
+      : {}),
   });
 
   function create(input: Record<string, unknown>) {
@@ -84,7 +99,11 @@ export function fakeLinear(opts: { start?: number } = {}) {
       case 'Team':
         return {
           team: v.id === team.id ? { ...team, states: { nodes: states } } : null,
-          issueLabels: { nodes: [...labels.values()].filter((l) => l.name.startsWith(v.prefix)).map((l) => ({ id: l.id, name: l.name, team: l.teamId ? { id: l.teamId } : null })) },
+          issueLabels: {
+            nodes: [...labels.values()]
+              .filter((l) => l.name.startsWith(v.prefix))
+              .map((l) => ({ id: l.id, name: l.name, team: l.teamId ? { id: l.teamId } : null })),
+          },
         };
       case 'Label': {
         const l = { id: uid('lbl'), name: v.input.name, teamId: v.input.teamId };
@@ -93,7 +112,11 @@ export function fakeLinear(opts: { start?: number } = {}) {
       }
       case 'Missions': {
         const want = v.filter.labels.some.name.eq;
-        const nodes = [...issues.values()].filter((i) => i.labelIds.some((id) => labels.get(id)!.name === want) && (!v.filter.project || i.projectId === v.filter.project.id.eq));
+        const nodes = [...issues.values()].filter(
+          (i) =>
+            i.labelIds.some((id) => labels.get(id)!.name === want) &&
+            (!v.filter.project || i.projectId === v.filter.project.id.eq),
+        );
         return { issues: { nodes: nodes.map((i) => ({ id: i.id, identifier: i.identifier, title: i.title })) } };
       }
       case 'Mission': {
@@ -105,8 +128,27 @@ export function fakeLinear(opts: { start?: number } = {}) {
       case 'Changes': {
         const since = v.issues.updatedAt.gt;
         return {
-          issues: { nodes: [...issues.values()].filter((i) => i.updatedAt > since).map((i) => ({ id: i.id, updatedAt: i.updatedAt, parent: i.parentId ? { id: i.parentId } : null, labels: { nodes: i.labelIds.map((id) => ({ name: labels.get(id)!.name })) } })) },
-          comments: { nodes: comments.filter((c) => c.updatedAt > since).map((c) => ({ updatedAt: c.updatedAt, issue: { id: c.issueId, parent: issues.get(c.issueId)!.parentId ? { id: issues.get(c.issueId)!.parentId } : null } })) },
+          issues: {
+            nodes: [...issues.values()]
+              .filter((i) => i.updatedAt > since)
+              .map((i) => ({
+                id: i.id,
+                updatedAt: i.updatedAt,
+                parent: i.parentId ? { id: i.parentId } : null,
+                labels: { nodes: i.labelIds.map((id) => ({ name: labels.get(id)!.name })) },
+              })),
+          },
+          comments: {
+            nodes: comments
+              .filter((c) => c.updatedAt > since)
+              .map((c) => ({
+                updatedAt: c.updatedAt,
+                issue: {
+                  id: c.issueId,
+                  parent: issues.get(c.issueId)!.parentId ? { id: issues.get(c.issueId)!.parentId } : null,
+                },
+              })),
+          },
         };
       }
       case 'Create':
@@ -131,7 +173,14 @@ export function fakeLinear(opts: { start?: number } = {}) {
         return { issueRelationCreate: { success: true } };
       case 'Comment': {
         const now = tick();
-        const c = { id: uid('cmt'), issueId: v.input.issueId, body: v.input.body, createdAt: now, updatedAt: now, user: 'Ada Ops' };
+        const c = {
+          id: uid('cmt'),
+          issueId: v.input.issueId,
+          body: v.input.body,
+          createdAt: now,
+          updatedAt: now,
+          user: 'Ada Ops',
+        };
         comments.push(c);
         return { commentCreate: { comment: { id: c.id } } };
       }
@@ -148,7 +197,12 @@ export function fakeLinear(opts: { start?: number } = {}) {
   const fetch = async (_input: string | URL | Request, init: RequestInit = {}): Promise<Response> => {
     const { query, variables } = JSON.parse(String(init.body));
     const name = String(query).match(/^\s*(?:query|mutation)\s+(\w+)/)?.[1] ?? '';
-    const headers = { 'content-type': 'application/json', 'x-ratelimit-requests-limit': '1500', 'x-ratelimit-requests-remaining': '1490', 'x-ratelimit-requests-reset': String(clock + 3_600_000) };
+    const headers = {
+      'content-type': 'application/json',
+      'x-ratelimit-requests-limit': '1500',
+      'x-ratelimit-requests-remaining': '1490',
+      'x-ratelimit-requests-reset': String(clock + 3_600_000),
+    };
     return new Response(JSON.stringify({ data: op(name, variables ?? {}) }), { status: 200, headers });
   };
 

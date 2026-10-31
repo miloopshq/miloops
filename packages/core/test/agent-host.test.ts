@@ -4,7 +4,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ActivityStream, agentPaths, type AgentSessionDoc } from '../src';
-import { AgentDocWriter, readAgentDocs, readCommandCenterLock, writeAgentAnswer, writeCommandCenterLock, writeJsonAtomic } from '../src/agentHost';
+import {
+  AgentDocWriter,
+  readAgentDocs,
+  readCommandCenterLock,
+  writeAgentAnswer,
+  writeCommandCenterLock,
+  writeJsonAtomic,
+} from '../src/agentHost';
 import { createTrackerBridge } from '../src/bridge';
 
 let root: string;
@@ -47,15 +54,30 @@ describe('agent link files', () => {
     const writer = new AgentDocWriter(root, activity);
     activity.startSession({ id: 's_t2', agent: 'claude-01', mode: 'work', mapId: 'm1' });
     writer.flush();
-    expect(() => writeAgentAnswer(root, { sessionId: 's_t2', questionId: 'q_nope', text: 'x', author: 'operator' })).toThrow(/not waiting/);
-    expect(() => writeAgentAnswer(root, { sessionId: 's_missing', questionId: 'q', text: 'x', author: 'operator' })).toThrow(/unknown session/);
+    expect(() =>
+      writeAgentAnswer(root, { sessionId: 's_t2', questionId: 'q_nope', text: 'x', author: 'operator' }),
+    ).toThrow(/not waiting/);
+    expect(() =>
+      writeAgentAnswer(root, { sessionId: 's_missing', questionId: 'q', text: 'x', author: 'operator' }),
+    ).toThrow(/unknown session/);
     writer.close();
   });
 
   it('shows sessions of dead processes as disconnected with nothing pending', async () => {
     const dead: AgentSessionDoc = {
       v: 1,
-      session: { id: 's_dead', agent: 'claude-02', mode: 'work', mapId: 'm1', step: 1, total: 5, stepLabel: 'Load mission', status: 'running', waitingOn: 'q1', startedAt: Date.now() },
+      session: {
+        id: 's_dead',
+        agent: 'claude-02',
+        mode: 'work',
+        mapId: 'm1',
+        step: 1,
+        total: 5,
+        stepLabel: 'Load mission',
+        status: 'running',
+        waitingOn: 'q1',
+        startedAt: Date.now(),
+      },
       chats: [],
       pending: [{ id: 'q1', sessionId: 's_dead', mapId: 'm1', agent: 'claude-02', text: '?', at: Date.now() }],
       answered: [],
@@ -101,9 +123,15 @@ describe('bridge /agents API', () => {
       expect(listed.sessions.map((d) => d.session.id)).toEqual(['s_b1']);
       const qid = listed.sessions[0].pending[0].id;
 
-      const bad = await fetch(`${base}/agents/answer`, { method: 'POST', body: JSON.stringify({ sessionId: 's_b1', questionId: 'nope', text: 'x' }) });
+      const bad = await fetch(`${base}/agents/answer`, {
+        method: 'POST',
+        body: JSON.stringify({ sessionId: 's_b1', questionId: 'nope', text: 'x' }),
+      });
       expect(bad.status).toBe(409);
-      const ok = await fetch(`${base}/agents/answer`, { method: 'POST', body: JSON.stringify({ sessionId: 's_b1', questionId: qid, text: 'Yes, behind a flag' }) });
+      const ok = await fetch(`${base}/agents/answer`, {
+        method: 'POST',
+        body: JSON.stringify({ sessionId: 's_b1', questionId: qid, text: 'Yes, behind a flag' }),
+      });
       expect(ok.status).toBe(201);
       await expect(answer).resolves.toBe('Yes, behind a flag');
       expect(activity.snapshot.chats.at(-1)).toMatchObject({ from: 'human', author: 'operator' });

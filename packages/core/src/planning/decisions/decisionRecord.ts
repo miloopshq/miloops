@@ -12,7 +12,8 @@ export const DECISION_SOURCE_KINDS = Object.keys(DECISION_SOURCES) as DecisionSo
 
 export const isSourceKind = (v: string): v is DecisionSourceKind => v in DECISION_SOURCES;
 
-export const decisionStatus = (d: Pick<DecisionRecord, 'supersededBy'>): DecisionStatus => (d.supersededBy ? 'superseded' : 'active');
+export const decisionStatus = (d: Pick<DecisionRecord, 'supersededBy'>): DecisionStatus =>
+  d.supersededBy ? 'superseded' : 'active';
 
 export function firstSentence(s: string) {
   const clean = s.replace(/\s+/g, ' ').trim();

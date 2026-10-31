@@ -61,7 +61,12 @@ export function parseDecision(md: string): DecisionRecord {
       const head = nl < 0 ? chunk : chunk.slice(0, nl);
       const [who, at = ''] = head.split(' @ ');
       const [author, from = 'agent'] = who.split(' · ');
-      return { author: author.trim(), from: (['agent', 'human', 'system'].includes(from.trim()) ? from.trim() : 'agent') as TranscriptEntry['from'], at: Date.parse(at) || 0, text: nl < 0 ? '' : chunk.slice(nl + 1).trim() };
+      return {
+        author: author.trim(),
+        from: (['agent', 'human', 'system'].includes(from.trim()) ? from.trim() : 'agent') as TranscriptEntry['from'],
+        at: Date.parse(at) || 0,
+        text: nl < 0 ? '' : chunk.slice(nl + 1).trim(),
+      };
     });
   const kind = str(front.source);
   const meta = arr(front.source_meta);
@@ -70,7 +75,9 @@ export function parseDecision(md: string): DecisionRecord {
     ...(str(front.source_ref) ? { ref: str(front.source_ref) } : {}),
     ...(str(front.source_url) ? { url: str(front.source_url) } : {}),
     ...(str(front.source_label) ? { label: str(front.source_label) } : {}),
-    ...(meta.length ? { meta: Object.fromEntries(meta.map((kv) => [kv.slice(0, kv.indexOf('=')), kv.slice(kv.indexOf('=') + 1)])) } : {}),
+    ...(meta.length
+      ? { meta: Object.fromEntries(meta.map((kv) => [kv.slice(0, kv.indexOf('=')), kv.slice(kv.indexOf('=') + 1)])) }
+      : {}),
   };
   const answer = sec.Decision ?? '';
   return {
@@ -81,7 +88,11 @@ export function parseDecision(md: string): DecisionRecord {
     question: sec.Question ?? '',
     answer,
     summary: sec.Summary || firstSentence(answer),
-    alternatives: (sec.Alternatives ?? '').split('\n').map((l) => l.trim()).filter((l) => l.startsWith('- ')).map((l) => l.slice(2)),
+    alternatives: (sec.Alternatives ?? '')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.startsWith('- '))
+      .map((l) => l.slice(2)),
     rationale: sec.Rationale ?? '',
     decidedBy: str(front.decided_by),
     decidedAt: time(front.decided_at),

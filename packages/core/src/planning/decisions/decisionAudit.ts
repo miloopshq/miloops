@@ -1,4 +1,10 @@
-import type { DecisionRecord, MapSnapshot, TranscriptEntry, DecisionSourceKind, DecisionStatus } from '../../model/types';
+import type {
+  DecisionRecord,
+  MapSnapshot,
+  TranscriptEntry,
+  DecisionSourceKind,
+  DecisionStatus,
+} from '../../model/types';
 import { firstSentence, decisionStatus, DECISION_SOURCE_KINDS } from './decisionRecord';
 
 /* ---------- audit view ---------- */
@@ -18,7 +24,9 @@ export function auditDecisions(snap: MapSnapshot, records: DecisionRecord[]): Au
     .filter((t) => t.state === 'closed' && t.closeReason === 'completed' && !covered.has(t.id))
     .map((t) => {
       const c = [...t.comments].reverse().find((x) => x.body.startsWith('**Resolution**'));
-      const answer = c ? c.body.replace(/^\*\*Resolution\*\*\s*/, '') : snap.map.sections.decisions.find((d) => d.ticketId === t.id || d.ticketKey === t.key)?.text ?? '';
+      const answer = c
+        ? c.body.replace(/^\*\*Resolution\*\*\s*/, '')
+        : (snap.map.sections.decisions.find((d) => d.ticketId === t.id || d.ticketKey === t.key)?.text ?? '');
       const author = c?.author ?? t.assignee ?? 'unknown';
       const posted = t.comments.find((x) => x.body.startsWith('**HITL transcript**'));
       const transcript: TranscriptEntry[] = posted
@@ -27,7 +35,12 @@ export function auditDecisions(snap: MapSnapshot, records: DecisionRecord[]): Au
             .split(/\n\n(?=\*\*[^*]+:\*\* )/)
             .map((p) => p.match(/^\*\*([^*]+):\*\* ([\s\S]*)$/))
             .filter((m): m is RegExpMatchArray => !!m)
-            .map((m) => ({ from: m[1] === author ? 'agent' : 'human', author: m[1], text: m[2].trim(), at: posted.createdAt }))
+            .map((m) => ({
+              from: m[1] === author ? 'agent' : 'human',
+              author: m[1],
+              text: m[2].trim(),
+              at: posted.createdAt,
+            }))
         : [];
       return {
         id: `T${t.key}`,
@@ -67,7 +80,17 @@ export function filterDecisions<T extends DecisionRecord>(all: T[], f: DecisionF
       (!f.decidedBy || d.decidedBy === f.decidedBy) &&
       (!f.status || decisionStatus(d) === f.status) &&
       (!q ||
-        [d.id, d.ticketKey, d.question, d.answer, d.summary, d.rationale, d.decidedBy, ...d.alternatives, ...d.transcript.map((e) => e.text)]
+        [
+          d.id,
+          d.ticketKey,
+          d.question,
+          d.answer,
+          d.summary,
+          d.rationale,
+          d.decidedBy,
+          ...d.alternatives,
+          ...d.transcript.map((e) => e.text),
+        ]
           .join('\n')
           .toLowerCase()
           .includes(q)),
@@ -84,7 +107,8 @@ export function decisionStats(all: DecisionRecord[], now = Date.now()) {
     bySource[d.source.kind]++;
     if (d.supersededBy) superseded++;
     if (now - d.decidedAt < 86_400_000) last24h++;
-    if (d.transcript.some((e) => e.from === 'human') || d.source.kind === 'command-center' || d.source.kind === 'slack') human++;
+    if (d.transcript.some((e) => e.from === 'human') || d.source.kind === 'command-center' || d.source.kind === 'slack')
+      human++;
   }
   return { total: all.length, active: all.length - superseded, superseded, last24h, human, bySource };
 }
