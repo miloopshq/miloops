@@ -1,10 +1,10 @@
-<p align="center">
-  <img src="brand/github-social-preview.png" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="640" />
-</p>
+<img src="brand/github-social-preview.png" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="100%" />
 
 # MILOOPS
 
 > One command center. Every agent. Total operational awareness.
+
+**The name:** MILO is the Mission Intelligence & Logistics Operator. MILOOPS is MILO Operations, the command center where MILO runs your agents' missions.
 
 MILOOPS is a local command center for planning and executing big work with your AI coding agents. You describe a mission; your agents chart it as decision tickets, work through them, and bring the calls that need you to a single inbox. MILO, the command center's operator, briefs you on what changed while you were away and keeps spend and token usage in view.
 
