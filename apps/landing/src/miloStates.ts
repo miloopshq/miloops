@@ -1,7 +1,6 @@
 // Meet MILO: a live preview of every avatar state. Cycles on its own while in view;
 // hovering, focusing or tapping a state takes over, and the cycle resumes after a pause.
-import { TIMING, type MiloState } from './milo/frames';
-import { mountMilo } from './milo/mountMilo';
+import { TIMING, mountMilo, type MiloState } from '@miloops-hq/milo-avatar/mount';
 
 const HOLD_MS = 3200;
 const RESUME_MS = 4000;
