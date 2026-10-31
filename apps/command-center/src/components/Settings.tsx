@@ -1,17 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { AGENT_INTEGRATIONS, BRAND, CONNECTORS, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, type HitlTranscriptMode, type MapDoc, type MapMode } from '@miloops-hq/core';
+import { AGENT_INTEGRATIONS, BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, type HitlTranscriptMode, type MapDoc, type MapMode } from '@miloops-hq/core';
 import { ModeChoice } from './CommandBar';
 import { Tabs } from './Hud';
 import { NEXT, RELEASES } from '../changelog';
 import type { Prefs, TrackerChoice } from '../prefs';
 import { MiloMark } from './MiloMark';
-
-function switchTracker(update: (p: Partial<Prefs>) => void, tracker: TrackerChoice) {
-  update({ tracker });
-  const url = new URL(location.href);
-  url.searchParams.delete('tracker');
-  location.href = url.toString();
-}
+import { TrackerConnectors, switchTracker, trackerApi, useTrackerSettings } from './TrackerSetup';
 
 function TranscriptChoice(props: { value: HitlTranscriptMode; onChange: (v: HitlTranscriptMode) => void }) {
   const opts: { v: HitlTranscriptMode; title: string }[] = [
@@ -101,26 +95,7 @@ export function SettingsPanel(props: {
             )}
 
             <Section title="Tracker">
-              <div className="connectors">
-                {CONNECTORS.map((c) => {
-                  const active = c.id === props.activeTracker;
-                  const available = c.status === 'available';
-                  return (
-                    <div key={c.id} className={`connector ${active ? 'active' : ''} ${available ? '' : 'disabled'}`}>
-                      <div className="c-top">
-                        <b>{c.name}</b>
-                        {active && <span className="tag on">Active</span>}
-                      </div>
-                      {c.id === 'markdown' && active && <div className="c-loc">{props.location}</div>}
-                      {!active && (
-                        <button className="btn" disabled={!available} onClick={() => switchTracker(update, c.id as TrackerChoice)}>
-                          {available ? 'Switch' : 'Connect'}
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              <TrackerConnectors activeTracker={props.activeTracker} location={props.location} update={update} />
             </Section>
 
             <Section title="Labels">
@@ -194,6 +169,30 @@ function Changelog() {
 
 export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) => void; activeTracker: TrackerChoice }) {
   const { prefs, update } = props;
+  const [trackers] = useTrackerSettings();
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  /** One-click GitHub when a token (gh / env) and a GitHub `origin` are already on this machine. */
+  const ghRepo = trackers?.github.auth ? trackers.github.repo ?? trackers.github.detectedRepo : undefined;
+  const choices: { id: TrackerChoice; title: string; sub?: string }[] = [
+    { id: 'markdown', title: 'Local markdown' },
+    ...(ghRepo ? [{ id: 'github' as const, title: 'GitHub Issues', sub: ghRepo }] : []),
+    { id: 'demo', title: 'Demo' },
+  ];
+  const start = async () => {
+    if (prefs.tracker === 'github' && ghRepo) {
+      setBusy(true);
+      try {
+        await trackerApi.connect({ active: 'github', github: { repo: ghRepo } });
+      } catch (e) {
+        setError((e as Error).message);
+        setBusy(false);
+        return;
+      }
+    } else if (prefs.tracker === 'markdown' && trackers) await trackerApi.connect({ active: 'markdown' }).catch(() => {});
+    update({ onboarded: true });
+    if (prefs.tracker !== props.activeTracker) switchTracker(update, prefs.tracker);
+  };
   return (
     <div className="scrim">
       <div className="dialog onboarding">
@@ -212,12 +211,14 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
 
         <Section title="Tracker">
           <div className="choice-row">
-            {(['markdown', 'demo'] as const).map((t) => (
-              <button key={t} type="button" className={`choice ${prefs.tracker === t ? 'on' : ''}`} onClick={() => update({ tracker: t })}>
-                <b>{t === 'markdown' ? 'Local markdown' : 'Demo'}</b>
+            {choices.map((c) => (
+              <button key={c.id} type="button" className={`choice ${prefs.tracker === c.id ? 'on' : ''}`} onClick={() => update({ tracker: c.id })}>
+                <b>{c.title}</b>
+                {c.sub && <span className="c-sub">{c.sub}</span>}
               </button>
             ))}
           </div>
+          {error && <div className="test-line alert">✕ {error}</div>}
         </Section>
 
         <Section title="HITL transcript">
@@ -225,13 +226,7 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
         </Section>
 
         <footer>
-          <button
-            className="btn primary"
-            onClick={() => {
-              update({ onboarded: true });
-              if (prefs.tracker !== props.activeTracker) switchTracker(update, prefs.tracker);
-            }}
-          >
+          <button className="btn primary" disabled={busy} onClick={() => void start()}>
             Get started
           </button>
         </footer>

@@ -1,6 +1,7 @@
 import {
   ActivityStream,
   BRAND,
+  BridgeAdapter,
   callsign,
   runWork,
   Autopilot,
@@ -85,10 +86,12 @@ function localStore(scope: string): KeyValueStore {
 
 const HOUR = 3_600_000;
 
-/** `?tracker=demo|markdown` overrides the saved preference (handy for demos and tests). */
+const KINDS: TrackerKind[] = ['markdown', 'demo', 'github', 'linear'];
+
+/** `?tracker=demo|markdown|github|linear` overrides the saved preference (handy for demos and tests). */
 export function trackerKind(): TrackerKind {
-  const q = new URLSearchParams(location.search).get('tracker');
-  return q === 'demo' || q === 'markdown' ? q : loadPrefs().tracker;
+  const q = new URLSearchParams(location.search).get('tracker') as TrackerKind | null;
+  return q && KINDS.includes(q) ? q : loadPrefs().tracker;
 }
 
 export function createRuntime(kind: TrackerKind) {
@@ -96,7 +99,19 @@ export function createRuntime(kind: TrackerKind) {
   let ready: Promise<unknown>;
   const activity = new ActivityStream();
   const store: { presence?: Presence } = {};
-  if (kind === 'markdown') {
+  if (kind === 'github' || kind === 'linear') {
+    const remote = new BridgeAdapter(kind, BRAND.apiPrefix);
+    raw = remote;
+    ready = fetch(`${BRAND.apiPrefix}/trackers`)
+      .then((r) => r.json() as Promise<{ github: { repo?: string }; linear: { teamKey?: string; projectName?: string } }>)
+      .catch(() => undefined)
+      .then((s) => {
+        remote.location = (kind === 'github' ? s?.github.repo : [s?.linear.teamKey, s?.linear.projectName].filter(Boolean).join(' · ')) || remote.location;
+        const kv = localStore(`${kind}:${remote.location}`);
+        store.presence = new Presence(kv);
+        activity.ledger = new UsageLedger(kv);
+      });
+  } else if (kind === 'markdown') {
     raw = new MarkdownAdapter(httpFs, `./${BRAND.dataDir}`);
     ready = fetch(`${BRAND.apiPrefix}/list`)
       .then((r) => r.json() as Promise<{ root: string }>)
