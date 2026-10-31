@@ -12,7 +12,8 @@ export async function promoteToTicket(
   input: { type: TicketType; hitl?: boolean; title?: string; body?: string; blockedBy?: string[] },
 ) {
   const snap = await adapter.loadMap(mapId);
-  if (!snap.map.sections.unspecified.includes(entry)) throw new OperationError(`"${entry}" is not in Not yet specified`);
+  if (!snap.map.sections.unspecified.includes(entry))
+    throw new OperationError(`"${entry}" is not in Not yet specified`);
   assertTypeAllowed(snap.map.mode, input.type);
   const t = await adapter.createTicket(mapId, {
     title: input.title ?? entry,
@@ -38,7 +39,8 @@ export async function ruleOutOfScope(
   const snap = await adapter.loadMap(mapId);
   const { unspecified, outOfScope } = snap.map.sections;
   if ('unspecified' in target) {
-    if (!unspecified.includes(target.unspecified)) throw new OperationError(`"${target.unspecified}" is not in Not yet specified`);
+    if (!unspecified.includes(target.unspecified))
+      throw new OperationError(`"${target.unspecified}" is not in Not yet specified`);
     await adapter.updateMapSections(mapId, {
       unspecified: unspecified.filter((f) => f !== target.unspecified),
       outOfScope: [...outOfScope, `${target.unspecified} — ${input.reason}`],
@@ -52,7 +54,14 @@ export async function ruleOutOfScope(
   await recordDecision(
     adapter,
     mapId,
-    { ticketId: t.id, ticketKey: t.key, question: t.title, answer: `Out of scope: ${input.reason}`, decidedBy: input.author, source: input.source ?? { kind: 'agent', label: input.author } },
+    {
+      ticketId: t.id,
+      ticketKey: t.key,
+      question: t.title,
+      answer: `Out of scope: ${input.reason}`,
+      decidedBy: input.author,
+      source: input.source ?? { kind: 'agent', label: input.author },
+    },
     { appendToMission: false },
   );
   const fresh = await adapter.loadMap(mapId);

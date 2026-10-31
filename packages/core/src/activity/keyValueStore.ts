@@ -18,4 +18,3 @@ export function readStoredJson<T>(store: KeyValueStore, key: string, fallback: T
     return fallback;
   }
 }
-

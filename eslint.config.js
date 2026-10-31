@@ -1,19 +1,14 @@
 // @ts-check
 import js from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import prettier from 'eslint-config-prettier';
+import importX from 'eslint-plugin-import-x';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
-import importX from 'eslint-plugin-import-x';
 import unusedImports from 'eslint-plugin-unused-imports';
-import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-/**
- * Rules the per-area refactor PRs are still burning down run as warnings; the final refactor PR sets
- * PENDING to 'error'. Everything else is already clean and fails `npm run lint` today.
- * See CONTRIBUTING.md for the standards these rules encode.
- */
-const PENDING = 'warn';
+/** See CONTRIBUTING.md for the standards these rules encode. */
 
 export default tseslint.config(
   {
@@ -44,14 +39,14 @@ export default tseslint.config(
       },
     },
     rules: {
-      'max-lines': [PENDING, { max: 200, skipBlankLines: true, skipComments: true }],
+      'max-lines': ['error', { max: 200, skipBlankLines: true, skipComments: true }],
       'import-x/no-cycle': ['error', { ignoreExternal: true }],
       'import-x/no-self-import': 'error',
       'import-x/no-useless-path-segments': 'error',
-      'no-duplicate-imports': [PENDING, { allowSeparateTypeImports: false }],
-      'import-x/no-duplicates': [PENDING, { 'prefer-inline': true }],
+      'no-duplicate-imports': ['error', { allowSeparateTypeImports: false }],
+      'import-x/no-duplicates': ['error', { 'prefer-inline': true }],
       'import-x/order': [
-        PENDING,
+        'error',
         {
           groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
           'newlines-between': 'never',
@@ -60,8 +55,8 @@ export default tseslint.config(
       ],
       'prefer-const': ['error', { ignoreReadBeforeAssign: true }],
       'no-fallthrough': 'off', // tsc understands `never`-returning calls such as process.exit; ESLint does not.
-      '@typescript-eslint/no-this-alias': PENDING,
-      '@typescript-eslint/no-unused-expressions': [PENDING],
+      '@typescript-eslint/no-this-alias': 'error',
+      '@typescript-eslint/no-unused-expressions': ['error'],
       'unused-imports/no-unused-imports': 'error',
       '@typescript-eslint/no-unused-vars': 'off',
       'unused-imports/no-unused-vars': [
@@ -86,7 +81,7 @@ export default tseslint.config(
     settings: { react: { version: '18.3' } },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'react/no-multi-comp': [PENDING, { ignoreStateless: false }],
+      'react/no-multi-comp': ['error', { ignoreStateless: false }],
       'react/jsx-key': 'error',
       'react/jsx-no-useless-fragment': ['error', { allowExpressions: true }],
       'react/self-closing-comp': 'error',

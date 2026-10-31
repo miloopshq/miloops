@@ -1,10 +1,10 @@
 # Contributing
 
-Run `npm run check` before opening a pull request. It runs lint, typecheck, build, the vitest and node:test suites, and `verify:mcp`. Changes that touch the command center UI should include a before/after screenshot.
+Run `npm run check` before opening a pull request. It runs lint, the Prettier format check, typecheck, build, the vitest and node:test suites, and `verify:mcp`. Changes that touch the command center UI should include a before/after screenshot.
 
 ## Code standards
 
-ESLint (`eslint.config.js`) and Prettier (`.prettierrc.json`) enforce most of these. Rules still marked `PENDING` in the ESLint config warn instead of failing until the restructuring lands.
+ESLint (`eslint.config.js`) and Prettier (`.prettierrc.json`) enforce most of these.
 
 - **One export per file.** Each file exports one component, hook, or class and is named after it (`SessionsList.tsx`, `useNow.ts`, `GitHubAdapter.ts`). Don't put a second component in the same file, even a private one. Give it its own file in the same folder.
 - **Keep kinds apart.** Hooks go in `useX.ts`, pure helpers in `lib/` (apps) or a topic module (core), and shared types in `types.ts`. A component file never exports helpers or constants for other files.

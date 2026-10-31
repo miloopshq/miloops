@@ -39,7 +39,8 @@ export interface SessionHost {
 
 export function createSessionHandle(host: SessionHost, info: SessionInfo, mode: SessionMode): SessionHandle {
   const current = () => host.find(info.id) ?? info;
-  const feed = (e: Omit<FeedEntry, 'id' | 'at' | 'source' | 'sessionId' | 'agent'>) => host.push({ source: 'session', sessionId: info.id, agent: info.agent, ...e });
+  const feed = (e: Omit<FeedEntry, 'id' | 'at' | 'source' | 'sessionId' | 'agent'>) =>
+    host.push({ source: 'session', sessionId: info.id, agent: info.agent, ...e });
   return {
     id: info.id,
     get info() {
@@ -48,7 +49,12 @@ export function createSessionHandle(host: SessionHost, info: SessionInfo, mode: 
     step(n, detail, ticketId) {
       const label = STEPS[mode][n - 1];
       host.patchSession(info.id, { step: n, stepLabel: label, ...(ticketId ? { ticketId } : {}) });
-      feed({ tag: stepTag(mode, n), level: 'step', text: detail ? `${label}: ${detail}` : label, ticketId: ticketId ?? current().ticketId });
+      feed({
+        tag: stepTag(mode, n),
+        level: 'step',
+        text: detail ? `${label}: ${detail}` : label,
+        ticketId: ticketId ?? current().ticketId,
+      });
     },
     log(text, level = 'info') {
       feed({ level, text, ticketId: current().ticketId });
@@ -57,8 +63,24 @@ export function createSessionHandle(host: SessionHost, info: SessionInfo, mode: 
       host.chat({ sessionId: info.id, ticketId: current().ticketId, from: 'agent', author: info.agent, text });
     },
     ask(text, suggestions) {
-      const q: PendingQuestion = { id: uid('q'), sessionId: info.id, mapId: info.mapId, ticketId: current().ticketId, agent: info.agent, text, suggestions, at: Date.now() };
-      host.chat({ sessionId: info.id, ticketId: q.ticketId, from: 'agent', author: info.agent, text, questionId: q.id });
+      const q: PendingQuestion = {
+        id: uid('q'),
+        sessionId: info.id,
+        mapId: info.mapId,
+        ticketId: current().ticketId,
+        agent: info.agent,
+        text,
+        suggestions,
+        at: Date.now(),
+      };
+      host.chat({
+        sessionId: info.id,
+        ticketId: q.ticketId,
+        from: 'agent',
+        author: info.agent,
+        text,
+        questionId: q.id,
+      });
       host.addPending(q);
       host.patchSession(info.id, { waitingOn: q.id });
       feed({ level: 'alert', ticketId: q.ticketId, text: 'Decision request · waiting on you', signal: true });
@@ -67,7 +89,11 @@ export function createSessionHandle(host: SessionHost, info: SessionInfo, mode: 
     done(ok = true, text, opts) {
       host.patchSession(info.id, { status: ok ? 'done' : 'failed', endedAt: Date.now(), waitingOn: undefined });
       host.dropPending(info.id);
-      feed({ level: ok ? 'ok' : 'alert', text: text ?? (ok ? 'Session closed' : 'Session aborted'), signal: opts?.signal });
+      feed({
+        level: ok ? 'ok' : 'alert',
+        text: text ?? (ok ? 'Session closed' : 'Session aborted'),
+        signal: opts?.signal,
+      });
     },
     bindMap(mapId) {
       const used = current().usage;
@@ -87,7 +113,13 @@ export function createSessionHandle(host: SessionHost, info: SessionInfo, mode: 
     setUsage(total) {
       const prev = current().usage;
       const d = subUsage(total, prev);
-      const same = !d.inputTokens && !d.outputTokens && !d.costUsd && !d.cachedInputTokens && prev?.source === total.source && `${prev?.models}` === `${total.models}`;
+      const same =
+        !d.inputTokens &&
+        !d.outputTokens &&
+        !d.costUsd &&
+        !d.cachedInputTokens &&
+        prev?.source === total.source &&
+        `${prev?.models}` === `${total.models}`;
       if (same) return;
       const mapId = current().mapId;
       if (d.inputTokens > 0 || d.outputTokens > 0 || d.costUsd > 0) host.ledger()?.add(mapId, d, info.id);

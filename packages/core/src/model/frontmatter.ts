@@ -16,7 +16,8 @@ export function parseFront(md: string): { front: Front; body: string } {
 }
 
 /** Frontmatter is written as valid YAML: scalars are quoted when YAML would misread them. */
-const needsQuote = (v: string) => v === '' || /^[\s#&*!|>'"%@`[\]{},?:-]|[:#]\s|\s$|,/.test(v) || /^(true|false|null|~|\d[\d.e+-]*)$/i.test(v);
+const needsQuote = (v: string) =>
+  v === '' || /^[\s#&*!|>'"%@`[\]{},?:-]|[:#]\s|\s$|,/.test(v) || /^(true|false|null|~|\d[\d.e+-]*)$/i.test(v);
 const quote = (v: string) => (needsQuote(v) ? JSON.stringify(v) : v);
 function unquote(v: string) {
   if (v.startsWith('"')) {
@@ -45,7 +46,9 @@ function splitList(v: string) {
 }
 
 export function writeFront(front: Front, body: string) {
-  const lines = Object.entries(front).map(([k, v]) => `${k}: ${Array.isArray(v) ? `[${v.map(quote).join(', ')}]` : quote(v)}`);
+  const lines = Object.entries(front).map(
+    ([k, v]) => `${k}: ${Array.isArray(v) ? `[${v.map(quote).join(', ')}]` : quote(v)}`,
+  );
   return `---\n${lines.join('\n')}\n---\n\n${body.trim()}\n`;
 }
 

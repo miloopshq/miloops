@@ -7,16 +7,26 @@ import { OperationError } from './operationError';
  * and, unless `appendToMission` is false, add `missionLine` (default: its summary) to the map's "Decisions so far".
  * Re-recording the same `source.kind` + `source.ref` returns the existing record.
  */
-export async function recordDecision(adapter: TrackerAdapter, mapId: string, input: DecisionInput, opts: { appendToMission?: boolean; missionLine?: string } = {}) {
+export async function recordDecision(
+  adapter: TrackerAdapter,
+  mapId: string,
+  input: DecisionInput,
+  opts: { appendToMission?: boolean; missionLine?: string } = {},
+) {
   if (input.source.ref) {
-    const dup = (await adapter.listDecisions(mapId)).find((d) => d.source.kind === input.source.kind && d.source.ref === input.source.ref);
+    const dup = (await adapter.listDecisions(mapId)).find(
+      (d) => d.source.kind === input.source.kind && d.source.ref === input.source.ref,
+    );
     if (dup) return dup;
   }
   const rec = await adapter.createDecision(mapId, input);
   if (opts.appendToMission ?? true) {
     const fresh = await adapter.loadMap(mapId);
     await adapter.updateMapSections(mapId, {
-      decisions: [...fresh.map.sections.decisions, { ticketId: rec.ticketId, ticketKey: rec.ticketKey, text: opts.missionLine ?? rec.summary }],
+      decisions: [
+        ...fresh.map.sections.decisions,
+        { ticketId: rec.ticketId, ticketKey: rec.ticketKey, text: opts.missionLine ?? rec.summary },
+      ],
     });
   }
   return rec;
@@ -43,7 +53,12 @@ export async function supersedeDecision(
   await adapter.markSuperseded(mapId, old.id, rec.id);
   const fresh = await adapter.loadMap(mapId);
   const ds = fresh.map.sections.decisions;
-  const i = ds.findIndex((x) => x.text === old.summary || (!!old.ticketId && x.ticketId === old.ticketId) || (!!old.ticketKey && x.ticketKey === old.ticketKey));
+  const i = ds.findIndex(
+    (x) =>
+      x.text === old.summary ||
+      (!!old.ticketId && x.ticketId === old.ticketId) ||
+      (!!old.ticketKey && x.ticketKey === old.ticketKey),
+  );
   const line = { ticketId: rec.ticketId, ticketKey: rec.ticketKey, text: rec.summary };
   await adapter.updateMapSections(mapId, { decisions: i < 0 ? [...ds, line] : ds.map((x, j) => (j === i ? line : x)) });
   return rec;

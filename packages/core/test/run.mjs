@@ -12,7 +12,9 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const out = path.resolve(here, '../../../node_modules/.cache/miloops-core-tests');
 const [cmd, ...rest] = process.argv.slice(2);
 const script = { record: 'record.ts', serve: 'serve-fakes.ts' }[cmd];
-const entries = script ? [script] : readdirSync(here).filter((f) => f.endsWith('.node.test.ts') && (!cmd || f.includes(cmd)));
+const entries = script
+  ? [script]
+  : readdirSync(here).filter((f) => f.endsWith('.node.test.ts') && (!cmd || f.includes(cmd)));
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });

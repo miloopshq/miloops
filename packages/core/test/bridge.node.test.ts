@@ -27,7 +27,13 @@ before(async () => {
     if (cmd === 'git') return 'git@github.com:octo-org/launchpad.git';
     throw new Error('unexpected command');
   };
-  bridge = createTrackerBridge(trackerDir, { env: {}, exec, fetch: fake.fetch, configDir, cwd: path.dirname(trackerDir) });
+  bridge = createTrackerBridge(trackerDir, {
+    env: {},
+    exec,
+    fetch: fake.fetch,
+    configDir,
+    cwd: path.dirname(trackerDir),
+  });
   server = http.createServer((req, res) => void bridge.handle(req, res));
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
   base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
@@ -39,7 +45,11 @@ after(() => {
 });
 
 const call = async <T>(method: string, p: string, body?: unknown, headers: Record<string, string> = {}) => {
-  const r = await fetch(base + p, { method, headers: { 'Content-Type': 'application/json', ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
+  const r = await fetch(base + p, {
+    method,
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
   return { status: r.status, text: await r.clone().text(), json: (await r.json().catch(() => undefined)) as T };
 };
 
@@ -54,18 +64,28 @@ test('settings: finds the gh token and the origin repo, and never returns secret
 
 test('test connection uses the detected token and repo with no input', async () => {
   const r = await call<TrackerTestResult>('POST', '/trackers/test', { kind: 'github' });
-  assert.deepEqual([r.json.ok, r.json.account, r.json.target, r.json.canWrite], [true, '@octo-dev', 'octo-org/launchpad', true]);
+  assert.deepEqual(
+    [r.json.ok, r.json.account, r.json.target, r.json.canWrite],
+    [true, '@octo-dev', 'octo-org/launchpad', true],
+  );
 });
 
 test('cross-site requests are refused', async () => {
-  const plain = await fetch(base + '/trackers/test', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: '{"kind":"github"}' });
+  const plain = await fetch(base + '/trackers/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: '{"kind":"github"}',
+  });
   assert.equal(plain.status, 403);
   const evil = await call('POST', '/trackers/test', { kind: 'github' }, { Origin: 'https://evil.example' });
   assert.equal(evil.status, 403);
 });
 
 test('connect: a pasted token goes to the 0600 credentials file, the repo to the project file', async () => {
-  const r = await call<TrackerSettings>('PUT', '/trackers', { active: 'github', github: { repo: 'octo-org/launchpad', token: PASTED } });
+  const r = await call<TrackerSettings>('PUT', '/trackers', {
+    active: 'github',
+    github: { repo: 'octo-org/launchpad', token: PASTED },
+  });
   assert.equal(r.status, 200);
   assert.equal(r.json.active, 'github');
   assert.equal(r.json.github.auth, 'stored');
@@ -80,13 +100,24 @@ test('connect: a pasted token goes to the 0600 credentials file, the repo to the
 test('adapter calls and decisions go to GitHub once connected', async () => {
   const created = await call<{ result: { id: string } }>('POST', '/tracker/github/call', {
     method: 'createMap',
-    args: [{ title: 'Bridge mission', sections: { destination: 'Done.', notes: '', decisions: [], unspecified: [], outOfScope: [] } }],
+    args: [
+      {
+        title: 'Bridge mission',
+        sections: { destination: 'Done.', notes: '', decisions: [], unspecified: [], outOfScope: [] },
+      },
+    ],
   });
   assert.equal(created.status, 200, created.text);
   const id = created.json.result.id;
   assert.ok(fake.issues.get(Number(id))!.labels.includes('miloops:map'));
 
-  const d = await call<{ id: string }>('POST', '/decisions', { mission: id, question: 'Ship?', answer: 'Ship it on Friday.', decidedBy: 'operator', source: { kind: 'command-center', ref: 'cmd-1' } });
+  const d = await call<{ id: string }>('POST', '/decisions', {
+    mission: id,
+    question: 'Ship?',
+    answer: 'Ship it on Friday.',
+    decidedBy: 'operator',
+    source: { kind: 'command-center', ref: 'cmd-1' },
+  });
   assert.equal(d.status, 201, d.text);
   assert.ok(fake.issues.get(Number(id))!.comments.some((c) => c.body.includes(`**Decision ${d.json.id}**`)));
   assert.match(fake.issues.get(Number(id))!.body!, /Ship it on Friday\./);
@@ -108,9 +139,15 @@ test('events stream status and tracker events', async () => {
 });
 
 test('connect rejects a repo the token cannot see and keeps the old config', async () => {
-  const r = await call<TrackerTestResult>('PUT', '/trackers', { active: 'github', github: { repo: 'octo-org/secret' } });
+  const r = await call<TrackerTestResult>('PUT', '/trackers', {
+    active: 'github',
+    github: { repo: 'octo-org/secret' },
+  });
   assert.deepEqual([r.status, r.json.ok, r.json.code], [400, false, 'not_found']);
-  assert.equal(JSON.parse(readFileSync(path.join(trackerDir, 'trackers.json'), 'utf8')).github.repo, 'octo-org/launchpad');
+  assert.equal(
+    JSON.parse(readFileSync(path.join(trackerDir, 'trackers.json'), 'utf8')).github.repo,
+    'octo-org/launchpad',
+  );
 });
 
 test('forgetting the pasted token falls back to gh', async () => {
@@ -120,13 +157,27 @@ test('forgetting the pasted token falls back to gh', async () => {
 
 test('token resolution order and remote parsing', async () => {
   const gh = async () => 'from-gh';
-  assert.deepEqual(await resolveGitHubToken({ github: { token: 's' } }, { GITHUB_TOKEN: 'e' }, gh), { token: 's', source: 'stored' });
-  assert.deepEqual(await resolveGitHubToken({}, { GITHUB_TOKEN: 'e', GH_TOKEN: 'g' }, gh), { token: 'e', source: 'GITHUB_TOKEN' });
+  assert.deepEqual(await resolveGitHubToken({ github: { token: 's' } }, { GITHUB_TOKEN: 'e' }, gh), {
+    token: 's',
+    source: 'stored',
+  });
+  assert.deepEqual(await resolveGitHubToken({}, { GITHUB_TOKEN: 'e', GH_TOKEN: 'g' }, gh), {
+    token: 'e',
+    source: 'GITHUB_TOKEN',
+  });
   assert.deepEqual(await resolveGitHubToken({}, { GH_TOKEN: 'g' }, gh), { token: 'g', source: 'GH_TOKEN' });
   assert.deepEqual(await resolveGitHubToken({}, {}, gh), { token: 'from-gh', source: 'gh' });
   assert.equal(await resolveGitHubToken({}, {}, async () => Promise.reject(new Error('no gh'))), null);
-  assert.deepEqual(resolveLinearKey({}, { LINEAR_API_KEY: 'lin_api_1' }), { token: 'lin_api_1', source: 'LINEAR_API_KEY' });
-  for (const u of ['https://github.com/octo-org/launchpad.git', 'git@github.com:octo-org/launchpad.git', 'ssh://git@github.com/octo-org/launchpad', 'https://x-access-token:abc@github.com/octo-org/launchpad'])
+  assert.deepEqual(resolveLinearKey({}, { LINEAR_API_KEY: 'lin_api_1' }), {
+    token: 'lin_api_1',
+    source: 'LINEAR_API_KEY',
+  });
+  for (const u of [
+    'https://github.com/octo-org/launchpad.git',
+    'git@github.com:octo-org/launchpad.git',
+    'ssh://git@github.com/octo-org/launchpad',
+    'https://x-access-token:abc@github.com/octo-org/launchpad',
+  ])
     assert.equal(parseGitHubRemote(u), 'octo-org/launchpad', u);
   assert.equal(parseGitHubRemote('https://gitlab.com/a/b.git'), undefined);
 });

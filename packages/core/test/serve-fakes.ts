@@ -25,14 +25,18 @@ http
     if (url.pathname.startsWith('/__fake/')) {
       const q = url.searchParams;
       if (url.pathname === '/__fake/offline') offline = q.get('on') === '1';
-      else if (url.pathname === '/__fake/github/close') gh.human.close(Number(q.get('n')), (q.get('reason') as 'completed') ?? 'completed');
-      else if (url.pathname === '/__fake/github/comment') gh.human.comment(Number(q.get('n')), q.get('user') ?? 'mona', q.get('body') ?? '');
+      else if (url.pathname === '/__fake/github/close')
+        gh.human.close(Number(q.get('n')), (q.get('reason') as 'completed') ?? 'completed');
+      else if (url.pathname === '/__fake/github/comment')
+        gh.human.comment(Number(q.get('n')), q.get('user') ?? 'mona', q.get('body') ?? '');
       res.end(JSON.stringify({ ok: true, offline }));
       return;
     }
     if (offline) return void req.socket.destroy();
     const init = { method: req.method, headers: req.headers as Record<string, string>, body: text || undefined };
-    const r = url.pathname.startsWith('/linear') ? await ln.fetch(url.toString(), init) : await gh.fetch(url.toString(), init);
+    const r = url.pathname.startsWith('/linear')
+      ? await ln.fetch(url.toString(), init)
+      : await gh.fetch(url.toString(), init);
     res.writeHead(r.status, Object.fromEntries(r.headers));
     res.end(await r.text());
   })

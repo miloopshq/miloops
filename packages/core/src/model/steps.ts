@@ -7,4 +7,5 @@ export const STEPS: Record<SessionMode, readonly string[]> = {
   research: ['Claim', 'Investigate', 'Record'],
 };
 
-export const stepTag = (mode: SessionMode, n: number) => `${mode[0].toUpperCase()}${mode.slice(1)} ${n}/${STEPS[mode].length}`;
+export const stepTag = (mode: SessionMode, n: number) =>
+  `${mode[0].toUpperCase()}${mode.slice(1)} ${n}/${STEPS[mode].length}`;

@@ -1,7 +1,15 @@
 import { Emitter, uid } from '../lib/emitter';
 import { BRAND } from '../model/brand';
 import { STEPS } from '../model/steps';
-import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo, SessionMode, SessionUsage } from '../model/types';
+import type {
+  AnsweredQuestion,
+  ChatMessage,
+  FeedEntry,
+  PendingQuestion,
+  SessionInfo,
+  SessionMode,
+  SessionUsage,
+} from '../model/types';
 import { createSessionHandle, type SessionHandle, type SessionHost } from './sessionHandle';
 import { addUsage, subUsage } from './usage';
 import type { UsageLedger } from './usageLedger';
@@ -50,7 +58,10 @@ export class ActivityStream {
     },
     awaitAnswer: (questionId) => new Promise<string>((r) => this.resolvers.set(questionId, r)),
     addMapUsage: (mapId, delta) => {
-      this.state = { ...this.state, usageByMap: { ...this.state.usageByMap, [mapId]: addUsage(this.state.usageByMap[mapId], delta) } };
+      this.state = {
+        ...this.state,
+        usageByMap: { ...this.state.usageByMap, [mapId]: addUsage(this.state.usageByMap[mapId], delta) },
+      };
     },
     ledger: () => this.ledger,
   };
@@ -93,10 +104,20 @@ export class ActivityStream {
     this.chat({ sessionId: q.sessionId, ticketId: q.ticketId, from: 'human', author, text });
     this.set({
       pending: this.state.pending.filter((p) => p.id !== questionId),
-      answered: [...this.state.answered, { id: q.id, mapId: q.mapId, sessionId: q.sessionId, agent: q.agent, askedAt: q.at, answeredAt: Date.now() }].slice(-200),
+      answered: [
+        ...this.state.answered,
+        { id: q.id, mapId: q.mapId, sessionId: q.sessionId, agent: q.agent, askedAt: q.at, answeredAt: Date.now() },
+      ].slice(-200),
     });
     this.patchSession(q.sessionId, { waitingOn: undefined });
-    this.push({ source: 'operator', agent: author, level: 'ok', ticketId: q.ticketId, sessionId: q.sessionId, text: `Answered ${q.agent}` });
+    this.push({
+      source: 'operator',
+      agent: author,
+      level: 'ok',
+      ticketId: q.ticketId,
+      sessionId: q.sessionId,
+      text: `Answered ${q.agent}`,
+    });
     if (resolveFn) resolveFn(text);
     else this.remoteAnswer!(q, text, author);
     return true;
@@ -106,7 +127,13 @@ export class ActivityStream {
    * Mirror a session owned by another process: its info, conversation, feed lines
    * and open questions are replaced by the latest report; answers merge in.
    */
-  syncRemote(doc: { session: SessionInfo; chats: ChatMessage[]; pending: PendingQuestion[]; answered: AnsweredQuestion[]; feed: FeedEntry[] }) {
+  syncRemote(doc: {
+    session: SessionInfo;
+    chats: ChatMessage[];
+    pending: PendingQuestion[];
+    answered: AnsweredQuestion[];
+    feed: FeedEntry[];
+  }) {
     const { session } = doc;
     const sid = session.id;
     if (!this.remote.has(sid) && this.state.sessions.some((s) => s.id === sid)) return;
@@ -116,7 +143,8 @@ export class ActivityStream {
     let usageByMap = this.state.usageByMap;
     if (session.usage && session.mapId) {
       const d = subUsage(session.usage, prevUsage);
-      if (d.inputTokens || d.outputTokens || d.costUsd) usageByMap = { ...usageByMap, [session.mapId]: addUsage(usageByMap[session.mapId], d) };
+      if (d.inputTokens || d.outputTokens || d.costUsd)
+        usageByMap = { ...usageByMap, [session.mapId]: addUsage(usageByMap[session.mapId], d) };
       this.ledger?.addTotal(session.mapId, sid, session.usage);
     }
     const others = <T extends { sessionId: string }>(xs: T[]) => xs.filter((x) => x.sessionId !== sid);
@@ -128,8 +156,12 @@ export class ActivityStream {
       sessions,
       chats: [...others(this.state.chats), ...doc.chats].sort((a, b) => a.at - b.at).slice(-600),
       pending: [...others(this.state.pending), ...doc.pending],
-      answered: [...this.state.answered, ...doc.answered.filter((a) => !answeredIds.has(a.id))].sort((a, b) => a.answeredAt - b.answeredAt).slice(-200),
-      feed: [...this.state.feed.filter((f) => f.sessionId !== sid), ...doc.feed].sort((a, b) => a.at - b.at).slice(-this.maxFeed),
+      answered: [...this.state.answered, ...doc.answered.filter((a) => !answeredIds.has(a.id))]
+        .sort((a, b) => a.answeredAt - b.answeredAt)
+        .slice(-200),
+      feed: [...this.state.feed.filter((f) => f.sessionId !== sid), ...doc.feed]
+        .sort((a, b) => a.at - b.at)
+        .slice(-this.maxFeed),
       usageByMap,
     });
   }
@@ -139,7 +171,13 @@ export class ActivityStream {
     return this.remote.has(sessionId);
   }
 
-  startSession(input: { agent: string; mode: SessionMode; mapId: string; ticketId?: string; id?: string }): SessionHandle {
+  startSession(input: {
+    agent: string;
+    mode: SessionMode;
+    mapId: string;
+    ticketId?: string;
+    id?: string;
+  }): SessionHandle {
     const info: SessionInfo = {
       ...input,
       id: input.id ?? uid('s'),
@@ -151,7 +189,13 @@ export class ActivityStream {
     };
     this.set({ sessions: [...this.state.sessions, info].slice(-24) });
     const handle = createSessionHandle(this.host, info, input.mode);
-    this.push({ source: 'session', sessionId: info.id, agent: info.agent, level: 'info', text: `Session opened · ${input.mode}` });
+    this.push({
+      source: 'session',
+      sessionId: info.id,
+      agent: info.agent,
+      level: 'info',
+      text: `Session opened · ${input.mode}`,
+    });
     return handle;
   }
 }

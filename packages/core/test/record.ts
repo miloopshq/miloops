@@ -10,9 +10,19 @@ import { LinearAdapter, testLinear } from '../src/adapters/remote/linear';
 import { fakeGitHub } from './fakes/github';
 import { fakeLinear } from './fakes/linear';
 import { faulty, recorder, type Exchange } from './fixtures';
-import { FROZEN, freezeTime, missionFlow, noSleep, offlineFlow, lateMissionFlow, rateLimitFlow, syncFlow } from './scenarios';
+import {
+  FROZEN,
+  freezeTime,
+  missionFlow,
+  noSleep,
+  offlineFlow,
+  lateMissionFlow,
+  rateLimitFlow,
+  syncFlow,
+} from './scenarios';
 
-const NOTE_FAKE = 'Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema).';
+const NOTE_FAKE =
+  'Recorded against test/fakes; request and response shapes follow the live API (see *-live-* fixtures and the introspected schema).';
 
 async function recordFake() {
   const thaw = freezeTime();
@@ -20,31 +30,49 @@ async function recordFake() {
     {
       const fake = fakeGitHub();
       const rec = recorder(fake.fetch);
-      await missionFlow(() => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }));
+      await missionFlow(
+        () => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }),
+      );
       rec.save('github-flow.json', 'fake', NOTE_FAKE);
     }
     {
       const fake = fakeGitHub();
       const rec = recorder(fake.fetch);
-      await syncFlow(() => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }), {
-        act(id) {
-          fake.human.comment(Number(id), 'mona', 'Closing: Yjs it is.');
-          fake.human.close(Number(id));
+      await syncFlow(
+        () => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }),
+        {
+          act(id) {
+            fake.human.comment(Number(id), 'mona', 'Closing: Yjs it is.');
+            fake.human.close(Number(id));
+          },
         },
-      });
-      rec.save('github-sync.json', 'fake', `${NOTE_FAKE} Between polls, user "mona" comments on and closes the ticket in GitHub.`);
+      );
+      rec.save(
+        'github-sync.json',
+        'fake',
+        `${NOTE_FAKE} Between polls, user "mona" comments on and closes the ticket in GitHub.`,
+      );
     }
     {
       const fake = fakeGitHub();
       const rec = recorder(fake.fetch);
-      await lateMissionFlow(() => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }));
-      rec.save('github-late-mission.json', 'fake', `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`);
+      await lateMissionFlow(
+        () => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }),
+      );
+      rec.save(
+        'github-late-mission.json',
+        'fake',
+        `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`,
+      );
     }
     {
       const fake = fakeGitHub();
       const net = faulty(fake.fetch);
       const rec = recorder(net.fetch);
-      await offlineFlow(() => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }), { offline: (on) => (net.state.fault = on ? 'offline' : undefined) });
+      await offlineFlow(
+        () => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }),
+        { offline: (on) => (net.state.fault = on ? 'offline' : undefined) },
+      );
       rec.save('github-offline.json', 'fake', `${NOTE_FAKE} status 0 = network failure.`);
     }
     {
@@ -52,41 +80,81 @@ async function recordFake() {
       const net = faulty(fake.fetch);
       const rec = recorder(net.fetch);
       const reset = String(Math.floor(FROZEN / 1000) + 1800);
-      await rateLimitFlow(() => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }), {
-        limit(kind) {
-          let once = true;
-          net.state.fault =
-            kind === 'short'
-              ? () => (once ? ((once = false), new Response(JSON.stringify({ message: 'You have exceeded a secondary rate limit.' }), { status: 429, headers: { 'retry-after': '1' } })) : undefined)
-              : kind === 'long'
-                ? () => new Response(JSON.stringify({ message: 'API rate limit exceeded for user ID 4242.' }), { status: 403, headers: { 'x-ratelimit-limit': '5000', 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': reset } })
-                : undefined;
+      await rateLimitFlow(
+        () => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }),
+        {
+          limit(kind) {
+            let once = true;
+            net.state.fault =
+              kind === 'short'
+                ? () =>
+                    once
+                      ? ((once = false),
+                        new Response(JSON.stringify({ message: 'You have exceeded a secondary rate limit.' }), {
+                          status: 429,
+                          headers: { 'retry-after': '1' },
+                        }))
+                      : undefined
+                : kind === 'long'
+                  ? () =>
+                      new Response(JSON.stringify({ message: 'API rate limit exceeded for user ID 4242.' }), {
+                        status: 403,
+                        headers: {
+                          'x-ratelimit-limit': '5000',
+                          'x-ratelimit-remaining': '0',
+                          'x-ratelimit-reset': reset,
+                        },
+                      })
+                  : undefined;
+          },
         },
-      });
-      rec.save('github-ratelimit.json', 'fake', `${NOTE_FAKE} Error bodies and headers as documented for secondary (429 + retry-after) and primary (403 + x-ratelimit-remaining: 0) limits.`);
+      );
+      rec.save(
+        'github-ratelimit.json',
+        'fake',
+        `${NOTE_FAKE} Error bodies and headers as documented for secondary (429 + retry-after) and primary (403 + x-ratelimit-remaining: 0) limits.`,
+      );
     }
     {
       const fake = fakeLinear();
       const rec = recorder(fake.fetch);
-      await missionFlow(() => new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }));
+      await missionFlow(
+        () =>
+          new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }),
+      );
       rec.save('linear-flow.json', 'fake', NOTE_FAKE);
     }
     {
       const fake = fakeLinear();
       const rec = recorder(fake.fetch);
-      await syncFlow(() => new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }), {
-        act(id) {
-          fake.human.comment(id, 'Grace', 'Closing: Yjs it is.');
-          fake.human.complete(id);
+      await syncFlow(
+        () =>
+          new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }),
+        {
+          act(id) {
+            fake.human.comment(id, 'Grace', 'Closing: Yjs it is.');
+            fake.human.complete(id);
+          },
         },
-      });
-      rec.save('linear-sync.json', 'fake', `${NOTE_FAKE} Between polls, "Grace" comments on and completes the ticket in Linear.`);
+      );
+      rec.save(
+        'linear-sync.json',
+        'fake',
+        `${NOTE_FAKE} Between polls, "Grace" comments on and completes the ticket in Linear.`,
+      );
     }
     {
       const fake = fakeLinear();
       const rec = recorder(fake.fetch);
-      await lateMissionFlow(() => new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }));
-      rec.save('linear-late-mission.json', 'fake', `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`);
+      await lateMissionFlow(
+        () =>
+          new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }),
+      );
+      rec.save(
+        'linear-late-mission.json',
+        'fake',
+        `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`,
+      );
     }
   } finally {
     thaw();
@@ -120,12 +188,20 @@ async function recordLive() {
   a.subscribe(() => {});
   await a.tick();
   await a.tick();
-  rec.save('github-live-read.json', 'live', `Read-only, ${repo} on api.github.com: test connection, list missions, two ETag polls (200 then 304). Bodies trimmed to the fields the adapter reads.`);
+  rec.save(
+    'github-live-read.json',
+    'live',
+    `Read-only, ${repo} on api.github.com: test connection, list missions, two ETag polls (200 then 304). Bodies trimmed to the fields the adapter reads.`,
+  );
   console.log('github live:', JSON.stringify({ test, maps, status: a.status }));
 
   const lrec = recorder(fetch);
   const l = await testLinear({ apiKey: 'lin_api_invalid_key_for_recording', fetch: lrec.fetch });
-  lrec.save('linear-live-auth.json', 'live', 'api.linear.app with an invalid personal API key (no Linear key was available for a full live run).');
+  lrec.save(
+    'linear-live-auth.json',
+    'live',
+    'api.linear.app with an invalid personal API key (no Linear key was available for a full live run).',
+  );
   console.log('linear live:', JSON.stringify(l));
 }
 

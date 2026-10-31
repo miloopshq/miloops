@@ -47,6 +47,8 @@ export function serializeTicket(t: Ticket) {
     updated: iso(t.updatedAt),
     ...(t.closedAt ? { closed: iso(t.closedAt) } : {}),
   };
-  const comments = t.comments.length ? `\n\n## Comments\n\n${t.comments.map((c) => `### ${c.author} @ ${iso(c.createdAt)}\n\n${c.body}`).join('\n\n')}` : '';
+  const comments = t.comments.length
+    ? `\n\n## Comments\n\n${t.comments.map((c) => `### ${c.author} @ ${iso(c.createdAt)}\n\n${c.body}`).join('\n\n')}`
+    : '';
   return writeFront(front, t.body + comments);
 }

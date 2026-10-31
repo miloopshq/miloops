@@ -22,13 +22,21 @@ export async function resolve(
   adapter: TrackerAdapter,
   mapId: string,
   ticketId: string,
-  input: { answer: string; author: string; summary?: string; transcript?: string; decision?: DecisionMeta; missionLine?: string },
+  input: {
+    answer: string;
+    author: string;
+    summary?: string;
+    transcript?: string;
+    decision?: DecisionMeta;
+    missionLine?: string;
+  },
 ) {
   const snap = await adapter.loadMap(mapId);
   const t = snap.tickets.find((x) => x.id === ticketId);
   if (!t) throw new OperationError(`ticket ${ticketId} not found`);
   if (t.state === 'closed') throw new OperationError(`${t.key} is already closed`);
-  if (input.transcript) await adapter.comment(mapId, ticketId, input.author, `**HITL transcript**\n\n${input.transcript}`);
+  if (input.transcript)
+    await adapter.comment(mapId, ticketId, input.author, `**HITL transcript**\n\n${input.transcript}`);
   await adapter.comment(mapId, ticketId, input.author, `**Resolution**\n\n${input.answer}`);
   await adapter.close(mapId, ticketId, 'completed');
   const d = input.decision ?? {};

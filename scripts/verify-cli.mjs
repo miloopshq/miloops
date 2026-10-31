@@ -1,8 +1,8 @@
 // Smoke test for an installed `miloops` server: onboarding → new mission → files written to the tracker folder.
 // Usage: node scripts/verify-cli.mjs <url> <trackerDir> [screenshot.png]
-import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
+import { chromium } from 'playwright-core';
 
 const [url = 'http://localhost:7420/', dir, shotPath] = process.argv.slice(2);
 if (!dir) throw new Error('usage: verify-cli.mjs <url> <trackerDir> [screenshot.png]');
@@ -23,7 +23,10 @@ await page.locator('.node').nth(2).waitFor({ timeout: 20000 });
 await page.waitForTimeout(2500);
 if (shotPath) await page.screenshot({ path: shotPath });
 
-const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
+const walk = (d) =>
+  fs
+    .readdirSync(d, { withFileTypes: true })
+    .flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 const files = walk(dir).map((f) => path.relative(dir, f));
 console.log(`title: ${await page.title()}`);
 console.log(`nodes on map: ${await page.locator('.node').count()}`);
