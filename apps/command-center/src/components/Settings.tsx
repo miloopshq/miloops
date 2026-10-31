@@ -5,6 +5,7 @@ import { Tabs } from './Hud';
 import { NEXT, RELEASES } from '../changelog';
 import type { Prefs, TrackerChoice } from '../prefs';
 import { MiloMark } from './MiloMark';
+import { Button, Choice, Label, Meta, Panel } from './ui';
 import { TrackerConnectors, switchTracker, trackerApi, useTrackerSettings } from './TrackerSetup';
 
 function TranscriptChoice(props: { value: HitlTranscriptMode; onChange: (v: HitlTranscriptMode) => void }) {
@@ -15,9 +16,7 @@ function TranscriptChoice(props: { value: HitlTranscriptMode; onChange: (v: Hitl
   return (
     <div className="choice-row">
       {opts.map((o) => (
-        <button key={o.v} type="button" className={`choice ${props.value === o.v ? 'on' : ''}`} onClick={() => props.onChange(o.v)}>
-          <b>{o.title}</b>
-        </button>
+        <Choice key={o.v} on={props.value === o.v} title={o.title} onClick={() => props.onChange(o.v)} />
       ))}
     </div>
   );
@@ -29,13 +28,9 @@ function BriefingChoice(props: { value: Prefs['briefing']; onChange: (v: Prefs['
   const { value } = props;
   return (
     <div className="choice-row compact">
-      <button type="button" className={`choice ${value.enabled ? '' : 'on'}`} onClick={() => props.onChange({ ...value, enabled: false })}>
-        <b>Off</b>
-      </button>
+      <Choice on={!value.enabled} title="Off" onClick={() => props.onChange({ ...value, enabled: false })} />
       {AWAY_MINUTES.map((m) => (
-        <button key={m} type="button" className={`choice ${value.enabled && value.awayMinutes === m ? 'on' : ''}`} onClick={() => props.onChange({ enabled: true, awayMinutes: m })}>
-          <b>Away {m} min</b>
-        </button>
+        <Choice key={m} on={value.enabled && value.awayMinutes === m} title={`Away ${m} min`} onClick={() => props.onChange({ enabled: true, awayMinutes: m })} />
       ))}
     </div>
   );
@@ -44,7 +39,7 @@ function BriefingChoice(props: { value: Prefs['briefing']; onChange: (v: Prefs['
 function Section(props: { title: string; children: ReactNode }) {
   return (
     <section className="set-sec">
-      <h4>{props.title}</h4>
+      <Label as="h4">{props.title}</Label>
       {props.children}
     </section>
   );
@@ -69,7 +64,7 @@ export function SettingsPanel(props: {
   }, [props]);
   return (
     <div className="scrim" onClick={props.onClose}>
-      <div className="dialog settings" onClick={(e) => e.stopPropagation()}>
+      <Panel as="div" className="dialog settings" onClick={(e) => e.stopPropagation()}>
         <header>
           <Tabs
             value={tab}
@@ -79,7 +74,7 @@ export function SettingsPanel(props: {
               { id: 'changelog', label: 'Changelog' },
             ]}
           />
-          <button className="x" onClick={props.onClose} aria-label="Close">
+          <button className="icon-btn" onClick={props.onClose} aria-label="Close">
             ×
           </button>
         </header>
@@ -118,15 +113,13 @@ export function SettingsPanel(props: {
             <Section title="Agent">
               <div className="choice-row">
                 {AGENT_INTEGRATIONS.map((a) => (
-                  <button key={a.id} type="button" className={`choice ${a.status === 'primary' ? 'on' : ''}`} disabled={a.status !== 'primary'}>
-                    <b>{a.name}</b>
-                  </button>
+                  <Choice key={a.id} on={a.status === 'primary'} disabled={a.status !== 'primary'} title={a.name} />
                 ))}
               </div>
             </Section>
           </>
         )}
-      </div>
+      </Panel>
     </div>
   );
 }
@@ -138,14 +131,12 @@ function Changelog() {
         <span className="about-name">{BRAND.name}</span>
         <span className="mono-label">{BRAND.category}</span>
         <p className="onb-tagline">{BRAND.tagline}</p>
-        <p className="dim">
-          {BRAND.assistant.name} · {BRAND.assistant.expansion}
-        </p>
+        <Meta as="p" parts={[BRAND.assistant.name, BRAND.assistant.expansion]} />
       </div>
       <Section title="Next">
         {NEXT.map((n) => (
           <div key={n.area} className="cl-row">
-            <span className="cl-k">{n.area}</span>
+            <span className="mono-label">{n.area}</span>
             <ul>
               {n.items.map((i) => (
                 <li key={i}>{i}</li>
@@ -195,7 +186,7 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
   };
   return (
     <div className="scrim">
-      <div className="dialog onboarding">
+      <Panel as="div" className="dialog onboarding">
         <div className="onb-brand">
           <MiloMark size={40} />
           <div className="onb-title">{BRAND.name}</div>
@@ -203,19 +194,16 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
         <div className="onb-cat mono-label">{BRAND.category}</div>
         <p className="onb-tagline">{BRAND.tagline}</p>
         <p className="milo-line">
-          <span className="chip-label">
+          <Label>
             <MiloMark variant="voice" size={11} /> {BRAND.assistant.name}
-          </span>{' '}
+          </Label>{' '}
           Pick a tracker and how I record HITL conversations.
         </p>
 
         <Section title="Tracker">
           <div className="choice-row">
             {choices.map((c) => (
-              <button key={c.id} type="button" className={`choice ${prefs.tracker === c.id ? 'on' : ''}`} onClick={() => update({ tracker: c.id })}>
-                <b>{c.title}</b>
-                {c.sub && <span className="c-sub">{c.sub}</span>}
-              </button>
+              <Choice key={c.id} on={prefs.tracker === c.id} title={c.title} sub={c.sub} onClick={() => update({ tracker: c.id })} />
             ))}
           </div>
           {error && <div className="test-line alert">✕ {error}</div>}
@@ -226,11 +214,11 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
         </Section>
 
         <footer>
-          <button className="btn primary" disabled={busy} onClick={() => void start()}>
+          <Button variant="primary" disabled={busy} onClick={() => void start()}>
             Get started
-          </button>
+          </Button>
         </footer>
-      </div>
+      </Panel>
     </div>
   );
 }

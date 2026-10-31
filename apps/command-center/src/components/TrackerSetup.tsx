@@ -89,14 +89,14 @@ function Credential(props: { source: CredentialSource | null; value: string; onC
     return (
       <div className="ts-auth">
         <span className="mono-label">{props.label}</span>
-        <span className="tag on">{SOURCE[props.source]}</span>
-        <button type="button" className="btn ghost" onClick={() => setPaste(true)}>
+        <span className="pill on">{SOURCE[props.source]}</span>
+        <button type="button" className="btn ghost sm" onClick={() => setPaste(true)}>
           Use another
         </button>
       </div>
     );
   return (
-    <label>
+    <label className="field">
       <span className="ts-label">
         {props.label}
         {props.link && (
@@ -136,8 +136,8 @@ function GitHubSetup(props: { s: TrackerSettings; onConnected: () => void }) {
     }
   };
   return (
-    <div className="tracker-setup">
-      <label>
+    <div className="card inset tracker-setup">
+      <label className="field">
         Repository
         <input value={repo} placeholder="owner/name" spellCheck={false} onChange={(e) => setRepo(e.target.value.trim())} />
       </label>
@@ -194,11 +194,11 @@ function LinearSetup(props: { s: TrackerSettings; onConnected: () => void }) {
     }
   };
   return (
-    <div className="tracker-setup">
+    <div className="card inset tracker-setup">
       <Credential source={ln.auth} value={apiKey} onChange={setApiKey} label="API key" placeholder="lin_api_…" link={{ href: 'https://linear.app/settings/account/security', text: 'New key' }} />
       {teams.length > 0 && (
         <div className="ts-row">
-          <label>
+          <label className="field">
             Team
             <select
               value={teamId}
@@ -216,7 +216,7 @@ function LinearSetup(props: { s: TrackerSettings; onConnected: () => void }) {
               ))}
             </select>
           </label>
-          <label>
+          <label className="field">
             Project
             <select value={projectId} onChange={(e) => setProjectId(e.target.value)} disabled={!result?.projects}>
               <option value="">All projects</option>
@@ -262,22 +262,22 @@ export function TrackerConnectors(props: { activeTracker: TrackerChoice; locatio
           const remote = isRemote(id);
           const usable = !remote || !!s;
           return (
-            <div key={c.id} className={`connector ${active ? 'active' : ''} ${usable ? '' : 'disabled'} ${open === id ? 'open' : ''}`}>
-              <div className="c-top">
-                <b>{c.name}</b>
-                {active && <span className="tag on">Active</span>}
+            <div key={c.id} className={`card connector ${active ? 'active' : ''} ${usable ? '' : 'disabled'} ${open === id ? 'open' : ''}`}>
+              <div className="card-row">
+                <b className="card-title">{c.name}</b>
+                {active && <span className="pill on">Active</span>}
               </div>
               {(c.id === 'markdown' || remote) && active && <div className="c-loc">{props.location}</div>}
               {remote && !active && configured[id] && <div className="c-loc">{id === 'github' ? s!.github.repo : [s!.linear.teamKey, s!.linear.projectName].filter(Boolean).join(' · ')}</div>}
               {remote && active && <SyncLine status={s?.[id].status} />}
               <div className="c-actions">
                 {!active && (!remote || configured[id]) && (
-                  <button className="btn" disabled={!usable} onClick={() => void select(id)}>
+                  <button className="btn sm" disabled={!usable} onClick={() => void select(id)}>
                     Switch
                   </button>
                 )}
                 {remote && (
-                  <button className={`btn ${open === id ? 'on' : ''}`} disabled={!usable} onClick={() => setOpen(open === id ? null : id)}>
+                  <button className={`btn sm ${open === id ? 'on' : ''}`} disabled={!usable} onClick={() => setOpen(open === id ? null : id)}>
                     {configured[id] ? 'Edit' : 'Connect'}
                   </button>
                 )}

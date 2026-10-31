@@ -51,10 +51,10 @@
   display: flex; align-items: center; gap: 6px;
   height: 30px; margin: 0 calc(var(--milo-u) * -3) calc(var(--milo-u) * 3); padding: 0 10px;
   border-bottom: 1px solid var(--milo-line);
-  font-family: var(--milo-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  font-family: var(--milo-mono); font-size: var(--fs-label, 11px); letter-spacing: var(--ls-label, 0.1em); text-transform: uppercase;
   white-space: nowrap; overflow: hidden;
 }
-.milo-name { font-family: var(--milo-display); font-weight: 600; font-size: 12px; letter-spacing: 0.16em; color: var(--milo-hi); }
+.milo-name { font-family: var(--milo-display); font-weight: 600; font-size: var(--fs-sm, 12px); letter-spacing: 0.16em; color: var(--milo-hi); }
 .milo-sep { color: var(--milo-dim); }
 .milo-status { color: var(--milo-ink); overflow: hidden; text-overflow: ellipsis; }
 .milo-head::after {
@@ -76,7 +76,7 @@
   margin: 10px 0 0;
   min-height: 2.9em;
   max-width: 100%;
-  font-family: var(--milo-sans); font-size: 13px; line-height: 1.45;
+  font-family: var(--milo-sans); font-size: var(--fs-body, 13px); line-height: var(--lh-body, 1.45);
   color: var(--milo-hi);
   text-align: left;
 }

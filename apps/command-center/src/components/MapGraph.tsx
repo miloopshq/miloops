@@ -237,7 +237,7 @@ export function MapGraph(props: {
         </g>
       </svg>
       <button
-        className="fit-btn"
+        className="btn sm fit-btn"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();

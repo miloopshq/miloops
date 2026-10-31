@@ -3,6 +3,7 @@ import type { Briefing, DecisionRecord, MapSnapshot, MissionBriefing, PendingQue
 import { MiloAvatar } from './milo';
 import { MiloMark } from './MiloMark';
 import { dur, tokens, usd, type Breakpoint } from './Hud';
+import { Button, Card, Label, Meta, Panel } from './ui';
 
 const DAY = 86_400_000;
 
@@ -17,11 +18,11 @@ function sinceLabel(since: number, now: number) {
 
 function Tile(props: { label: string; value: ReactNode; sub?: ReactNode; urgent?: boolean; className?: string }) {
   return (
-    <div className={`bf-tile ${props.urgent ? 'urgent' : ''} ${props.className ?? ''}`}>
+    <Card tone={props.urgent ? 'urgent' : undefined} className={`bf-tile ${props.className ?? ''}`}>
       <span className="mono-label">{props.label}</span>
       <b>{props.value}</b>
-      {props.sub && <span className="sub">{props.sub}</span>}
-    </div>
+      {props.sub && <Meta parts={[props.sub]} />}
+    </Card>
   );
 }
 
@@ -41,7 +42,7 @@ function Row(props: { k: string; text: ReactNode; meta?: ReactNode; onClick: () 
       <button className="bf-row" onClick={props.onClick} title={props.title}>
         <span className="key">{props.k}</span>
         <span className="t">{props.text}</span>
-        {props.meta && <span className="meta">{props.meta}</span>}
+        {props.meta && <Meta as="span" parts={[props.meta]} />}
       </button>
     </li>
   );
@@ -112,21 +113,21 @@ export function BriefingDialog(props: { briefing?: Briefing; line: string; snaps
 
   return (
     <div className="scrim" onClick={onClose}>
-      <div className="dialog briefing" role="dialog" aria-label="While you were away" onClick={(e) => e.stopPropagation()}>
+      <Panel as="div" className="dialog briefing" role="dialog" aria-label="While you were away" onClick={(e) => e.stopPropagation()}>
         <header>
-          <h2>While you were away</h2>
-          {b && b.missions.length > 0 && <span className="chip-label bf-since">{sinceLabel(b.since, b.now)}</span>}
-          <button className="x" onClick={onClose} aria-label="Close">
+          <h2 className="t-heading caps">While you were away</h2>
+          {b && b.missions.length > 0 && <Label className="bf-since">{sinceLabel(b.since, b.now)}</Label>}
+          <button className="icon-btn" onClick={onClose} aria-label="Close">
             ×
           </button>
         </header>
-        <div className="bf-milo">
+        <Card className="bf-milo">
           <MiloAvatar size={phone ? 2 : 'sm'} speaking={props.line || 'Nothing new since you were last here.'} caption={false} framed={false} />
           <div>
             <span className="mono-label">MILO</span>
             <p>{props.line || 'Nothing new since you were last here.'}</p>
           </div>
-        </div>
+        </Card>
         {b && t && b.missions.length > 0 && (
           <>
             <div className="bf-tiles">
@@ -144,21 +145,19 @@ export function BriefingDialog(props: { briefing?: Briefing; line: string; snaps
           </>
         )}
         <footer>
-          <button className="btn" onClick={onClose}>
-            Dismiss
-          </button>
+          <Button onClick={onClose}>Dismiss</Button>
           {first ? (
-            <button className="btn urgent" onClick={() => props.onAnswer(first)}>
+            <Button variant="urgent" onClick={() => props.onAnswer(first)}>
               <MiloMark variant="alert" size={13} />
               Answer first decision
-            </button>
+            </Button>
           ) : (
-            <button className="btn primary" onClick={props.onResume}>
+            <Button variant="primary" onClick={props.onResume}>
               Resume mission
-            </button>
+            </Button>
           )}
         </footer>
-      </div>
+      </Panel>
     </div>
   );
 }

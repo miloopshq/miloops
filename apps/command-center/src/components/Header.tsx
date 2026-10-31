@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BRAND, eventPulse, missionProgress, type ActivityState, type MapDoc, type MapSnapshot, type TrackerHealth } from '@miloops-hq/core';
 import { Bars, dur, hms, useNow } from './Hud';
 import { MiloMark, type MarkState } from './MiloMark';
+import { Badge, Button, Label, Panel, Readout } from './ui';
 
 export function Header(props: {
   repo: string;
@@ -26,7 +27,7 @@ export function Header(props: {
   const cur = map && props.snaps[map.id];
   const p = cur && missionProgress(cur);
   return (
-    <header className="header">
+    <Panel as="header" className="header">
       <div className="h-brand">
         <MiloMark size={28} className="logo" title={BRAND.name} />
         <span className="wordmark">{BRAND.name}</span>
@@ -38,29 +39,21 @@ export function Header(props: {
           <MissionSwitcher {...props} />
         </div>
         <div className="h-dest" title={map?.sections.destination}>
-          <span className="chip-label">Destination</span>
+          <Label size="sm">Destination</Label>
           {map?.sections.destination ?? '—'}
         </div>
       </div>
       <div className="h-right">
         {map && p && (
           <span className="mission-meta">
-            <span className="readout" title="Mission elapsed time, since it was charted">
-              <span className="mono-label">Mission T+</span>
-              <b>{hms(now - map.createdAt)}</b>
-            </span>
-            <span className="readout">
-              <span className="mono-label">Decided</span>
-              <b>
-                {p.decided}/{p.total}
-              </b>
-            </span>
+            <Readout label="Mission T+" value={hms(now - map.createdAt)} title="Mission elapsed time, since it was charted" />
+            <Readout label="Decided" value={`${p.decided}/${p.total}`} />
           </span>
         )}
         {map && (
-          <button className="mode-chip" onClick={props.onToggleMode} title="Mission mode">
+          <Button size="sm" className="mode-chip" onClick={props.onToggleMode} title="Mission mode">
             {map.mode === 'plan-only' ? 'Plan only' : 'Plan + execute'}
-          </button>
+          </Button>
         )}
         {waiting > 0 && (
           <span className="waiting-chip" title={`${waiting} waiting on you`}>
@@ -71,18 +64,18 @@ export function Header(props: {
         )}
         <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
         <TrackerPulse health={props.health} now={now} />
-        <button className={`btn ghost briefing-btn ${props.briefingOpen ? 'on' : ''}`} onClick={props.onBriefing} aria-pressed={props.briefingOpen} title="While you were away">
+        <Button variant="ghost" className="briefing-btn" on={props.briefingOpen} onClick={props.onBriefing} aria-pressed={props.briefingOpen} title="While you were away">
           <MiloMark size={14} />
           <span className="bl">Briefing</span>
-        </button>
-        <button className={`btn ghost decisions-btn ${props.decisionsOpen ? 'on' : ''}`} onClick={props.onDecisions} aria-pressed={props.decisionsOpen}>
+        </Button>
+        <Button variant="ghost" className="decisions-btn" on={props.decisionsOpen} onClick={props.onDecisions} aria-pressed={props.decisionsOpen}>
           Decisions <span className="n">{props.decisions}</span>
-        </button>
-        <button className="btn ghost" onClick={props.onSettings}>
+        </Button>
+        <Button variant="ghost" onClick={props.onSettings}>
           Settings
-        </button>
+        </Button>
       </div>
-    </header>
+    </Panel>
   );
 }
 
@@ -97,7 +90,7 @@ function TrackerChip({ label, health, now }: { label: string; health: TrackerHea
   ].filter(Boolean).join('\n');
   return (
     <span className={`tracker-chip sync-${health.status}`} title={title}>
-      <span className="chip-label">Tracker</span>
+      <Label size="sm">Tracker</Label>
       <MiloMark variant="status" state={health.status as MarkState} size={13} className="sync-glyph" />
       <span className="tl">{label}</span>
       <span className="latency">{health.lastWriteMs !== undefined ? dur(health.lastWriteMs) : '—'}</span>
@@ -138,12 +131,12 @@ function MissionSwitcher(props: { snaps: Record<string, MapSnapshot>; map?: MapD
     <div className="mission-switcher" ref={ref}>
       <button className="mission-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}>
         <span className="mission-title">{props.map ? `${props.map.key} ${props.map.title}` : 'No mission'}</span>
-        {otherWaiting > 0 && <span className="badge urgent">{otherWaiting}</span>}
+        {otherWaiting > 0 && <Badge n={otherWaiting} urgent />}
         <span className="caret">▾</span>
       </button>
       {open && (
         <div className="mission-menu" role="menu">
-          <div className="menu-h">Missions</div>
+          <Label variant="plain" className="menu-h">Missions</Label>
           {missions.map((s) => {
             const p = missionProgress(s);
             const w = waitingIn(s.map.id);
@@ -162,7 +155,7 @@ function MissionSwitcher(props: { snaps: Record<string, MapSnapshot>; map?: MapD
                 <span className="mi-progress">
                   {p.decided}/{p.total}
                 </span>
-                <span className={`badge ${w ? 'urgent' : 'zero'}`}>{w || ''}</span>
+                <Badge n={w} urgent={!!w} hideZero />
               </button>
             );
           })}

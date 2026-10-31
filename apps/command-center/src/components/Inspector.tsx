@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   allowedTypes,
   attention,
@@ -12,6 +12,7 @@ import {
 } from '@miloops-hq/core';
 import { OPERATOR, type CommandCenterApi } from '../useCommandCenter';
 import { Empty, Zone } from './Hud';
+import { Button, Card, Field, Meta, Pill } from './ui';
 
 export const STATE_TEXT: Record<NodeState, string> = {
   decided: 'Decided',
@@ -88,10 +89,10 @@ function TicketDetail(props: {
     <div className="detail">
       <div className="d-head">
         <span className="key">{t.key}</span>
-        <span className={`state-pill st-${state}`}>{STATE_TEXT[state]}</span>
-        <span className={`att-tag att-${att}`}>{att === 'hitl' ? 'HITL' : 'AFK'}</span>
+        <Pill tone="state" className={`st-${state}`}>{STATE_TEXT[state]}</Pill>
+        <span className={`meta att-${att}`}>{att === 'hitl' ? 'HITL' : 'AFK'}</span>
       </div>
-      <h3>{t.title}</h3>
+      <h3 className="t-heading">{t.title}</h3>
       <dl className="facts">
         <dt>Type</dt>
         <dd>{label(t.type)}</dd>
@@ -105,41 +106,39 @@ function TicketDetail(props: {
 
       <div className="actions">
         {session && (
-          <button className={`btn ${session.waitingOn ? 'urgent' : ''}`} onClick={() => props.onOpenChat(session.id)}>
+          <Button variant={session.waitingOn ? 'urgent' : 'default'} onClick={() => props.onOpenChat(session.id)}>
             {session.waitingOn ? 'Answer' : 'Conversation'}
-          </button>
+          </Button>
         )}
         {state === 'frontier' && (
           <>
-            <button className="btn primary" onClick={() => actions.work(t.id)}>
+            <Button variant="primary" onClick={() => actions.work(t.id)}>
               Dispatch agent
-            </button>
-            <button className="btn" onClick={() => actions.claim(t.id)}>
-              Claim
-            </button>
+            </Button>
+            <Button onClick={() => actions.claim(t.id)}>Claim</Button>
           </>
         )}
         {(state === 'frontier' || (state === 'claimed' && mine)) && (
-          <button className={`btn ${form === 'resolve' ? 'on' : ''}`} onClick={() => setForm(form === 'resolve' ? null : 'resolve')}>
+          <Button on={form === 'resolve'} onClick={() => setForm(form === 'resolve' ? null : 'resolve')}>
             Resolve…
-          </button>
+          </Button>
         )}
         {mine && state === 'claimed' && (
-          <button className="btn" onClick={() => actions.release(t.id)}>
-            Release
-          </button>
+          <Button onClick={() => actions.release(t.id)}>Release</Button>
         )}
         {(state === 'frontier' || state === 'blocked' || state === 'parked') && (
-          <button className={`btn danger ${form === 'rule' ? 'on' : ''}`} onClick={() => setForm(form === 'rule' ? null : 'rule')}>
+          <Button variant="danger" on={form === 'rule'} onClick={() => setForm(form === 'rule' ? null : 'rule')}>
             Rule out…
-          </button>
+          </Button>
         )}
       </div>
 
       {form === 'resolve' && (
-        <form
+        <Card
+          as="form"
+          tone="inset"
           className="inline-form"
-          onSubmit={(e) => {
+          onSubmit={(e: FormEvent) => {
             e.preventDefault();
             if (!answer.trim()) return;
             void actions.resolve(t.id, answer.trim(), {
@@ -152,46 +151,54 @@ function TicketDetail(props: {
             setAlternatives('');
           }}
         >
-          <label>Resolution</label>
-          <textarea rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)} autoFocus />
-          <label>Rationale</label>
-          <input value={rationale} onChange={(e) => setRationale(e.target.value)} />
-          <label>Alternatives considered</label>
-          <textarea rows={2} value={alternatives} onChange={(e) => setAlternatives(e.target.value)} placeholder="One per line" />
+          <Field label="Resolution">
+            <textarea rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)} autoFocus />
+          </Field>
+          <Field label="Rationale">
+            <input value={rationale} onChange={(e) => setRationale(e.target.value)} />
+          </Field>
+          <Field label="Alternatives considered">
+            <textarea rows={2} value={alternatives} onChange={(e) => setAlternatives(e.target.value)} placeholder="One per line" />
+          </Field>
           <div className="form-actions">
-            <button type="button" className="btn ghost" onClick={() => setForm(null)}>
+            <Button variant="ghost" onClick={() => setForm(null)}>
               Cancel
-            </button>
-            <button className="btn primary" disabled={!answer.trim()}>
+            </Button>
+            <Button type="submit" variant="primary" disabled={!answer.trim()}>
               Resolve
-            </button>
+            </Button>
           </div>
-        </form>
+        </Card>
       )}
       {form === 'rule' && (
-        <form
+        <Card
+          as="form"
+          tone="inset"
           className="inline-form"
-          onSubmit={(e) => {
+          onSubmit={(e: FormEvent) => {
             e.preventDefault();
             void actions.ruleOut({ ticketId: t.id }, reason);
             setForm(null);
           }}
         >
-          <label>Reason</label>
-          <input value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
+          <Field label="Reason">
+            <input value={reason} onChange={(e) => setReason(e.target.value)} autoFocus />
+          </Field>
           <div className="form-actions">
-            <button type="button" className="btn ghost" onClick={() => setForm(null)}>
+            <Button variant="ghost" onClick={() => setForm(null)}>
               Cancel
-            </button>
-            <button className="btn danger">Rule out</button>
+            </Button>
+            <Button type="submit" variant="danger">
+              Rule out
+            </Button>
           </div>
-        </form>
+        </Card>
       )}
 
       {resolution && (
         <div className="resolution">
-          <div className="dim res-head">
-            {resolution.author} · {resolution.body.startsWith('**Ruled') ? 'ruled out' : 'resolution'}
+          <div className="res-head">
+            <Meta parts={[resolution.author, resolution.body.startsWith('**Ruled') ? 'ruled out' : 'resolution']} />
             {decision && props.onOpenDecision && (
               <button className="link" onClick={() => props.onOpenDecision!(decision.id)}>
                 {decision.id}
@@ -205,12 +212,12 @@ function TicketDetail(props: {
       <p className="body">{t.body}</p>
       {others.length > 0 && (
         <details className="comments">
-          <summary>
+          <summary className="mono-label">
             {others.length} other comment{others.length > 1 ? 's' : ''}
           </summary>
           {others.map((c) => (
             <div key={c.id} className="comment">
-              <div className="dim">{c.author}</div>
+              <Meta parts={[c.author]} />
               <div className="c-body">{c.body.replace(/\*\*/g, '')}</div>
             </div>
           ))}
@@ -232,18 +239,21 @@ function UnspecifiedDetail({ snap, item, api }: { snap: MapSnapshot; item: strin
   return (
     <div className="detail">
       <div className="d-head">
-        <span className="state-pill st-unspecified">Not yet specified</span>
+        <Pill tone="state" className="st-unspecified">Not yet specified</Pill>
       </div>
-      <h3>{item}</h3>
-      <form
+      <h3 className="t-heading">{item}</h3>
+      <Card
+        as="form"
+        tone="inset"
         className="inline-form"
-        onSubmit={(e) => {
+        onSubmit={(e: FormEvent) => {
           e.preventDefault();
           void api.actions.graduate(item, type, title, blockedBy, hitl);
         }}
       >
-        <label>Title</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Field label="Title">
+          <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        </Field>
         <div className="chips">
           {types.map((t) => (
             <button type="button" key={t} className={`chip ${type === t ? 'on' : ''}`} onClick={() => setType(t)}>
@@ -256,7 +266,7 @@ function UnspecifiedDetail({ snap, item, api }: { snap: MapSnapshot; item: strin
             </button>
           )}
         </div>
-        <label>Blocked by</label>
+        <span className="field">Blocked by</span>
         <div className="chips">
           {open.map((t) => (
             <button
@@ -270,22 +280,29 @@ function UnspecifiedDetail({ snap, item, api }: { snap: MapSnapshot; item: strin
           ))}
         </div>
         <div className="form-actions">
-          <button className="btn primary">Promote to ticket</button>
+          <Button type="submit" variant="primary">
+            Promote to ticket
+          </Button>
         </div>
-      </form>
-      <form
+      </Card>
+      <Card
+        as="form"
+        tone="inset"
         className="inline-form"
-        onSubmit={(e) => {
+        onSubmit={(e: FormEvent) => {
           e.preventDefault();
           void api.actions.ruleOut({ unspecified: item }, reason);
         }}
       >
-        <label>Reason</label>
-        <input value={reason} onChange={(e) => setReason(e.target.value)} />
+        <Field label="Reason">
+          <input value={reason} onChange={(e) => setReason(e.target.value)} />
+        </Field>
         <div className="form-actions">
-          <button className="btn danger">Rule out</button>
+          <Button type="submit" variant="danger">
+            Rule out
+          </Button>
         </div>
-      </form>
+      </Card>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import { Empty, Spark, Tabs, Zone, clock, hms, tokens, usd, useNow } from './Hud
 const TYPE_CODE: Record<TicketType, string> = { research: 'RSCH', prototype: 'PROT', grilling: 'GRIL', task: 'TASK', execute: 'EXEC' };
 import { STATE_TEXT } from './Inspector';
 import { MiloMark } from './MiloMark';
+import { Card, Label, Panel, Pill, SectionHeader } from './ui';
 
 type Tab = 'unspecified' | 'decisions' | 'oos' | 'notes';
 
@@ -77,7 +78,7 @@ export function MapSections({ snap, selection, onSelect, bare, onAudit }: { snap
     <p className="notes">{s.notes || '—'}</p>
   );
   return (
-    <section className={`zone sections ${bare ? 'bare' : ''}`} style={bare ? undefined : { gridArea: 'plan' }}>
+    <Panel className={`zone sections ${bare ? 'bare' : ''}`} style={bare ? undefined : { gridArea: 'plan' }}>
       <div className="sections-tabs">
         <Tabs className="sub" value={tab} onChange={setTab} items={tabs} />
         {tab === 'decisions' && onAudit && (
@@ -87,7 +88,7 @@ export function MapSections({ snap, selection, onSelect, bare, onAudit }: { snap
         )}
       </div>
       <div className="zone-b">{body}</div>
-    </section>
+    </Panel>
   );
 }
 
@@ -146,7 +147,9 @@ export function Sessions({ snap, activity, onSelect, onOpenChat }: { snap?: MapS
         const att = t ? attention(t) : undefined;
         return (
           <li key={s.id} className={s.waitingOn ? 'waiting' : ''}>
-            <button
+            <Card
+              as="button"
+              tone={s.waitingOn ? 'urgent' : undefined}
               onClick={() => {
                 if (t) onSelect({ kind: 'ticket', id: t.id });
                 if (att === 'hitl') onOpenChat(s.id);
@@ -154,7 +157,7 @@ export function Sessions({ snap, activity, onSelect, onOpenChat }: { snap?: MapS
             >
               <span className="row">
                 <span className="callsign">{s.agent}</span>
-                {att && <span className={`att-chip ${att}`}>{att === 'hitl' ? 'HITL' : 'AFK'}</span>}
+                {att && <Pill tone={att === 'hitl' ? 'fill' : undefined}>{att === 'hitl' ? 'HITL' : 'AFK'}</Pill>}
                 {s.usage && (
                   <span className="usage" title={`${s.usage.inputTokens.toLocaleString()} in · ${s.usage.outputTokens.toLocaleString()} out`}>
                     {tokens(sessionTokens(s))} tok · {usd(s.usage.costUsd)}
@@ -173,23 +176,23 @@ export function Sessions({ snap, activity, onSelect, onOpenChat }: { snap?: MapS
                   </span> : <span className="dim">{s.mode} · {s.stepLabel.toLowerCase()}</span>}
                 <span className="tkt">{t ? `${t.key} ${t.title}` : s.mode === 'chart' ? 'Charting mission' : ''}</span>
               </span>
-            </button>
+            </Card>
           </li>
         );
       })}
       {claims.map((t) => (
         <li key={t.id} className="claim">
-          <button onClick={() => onSelect({ kind: 'ticket', id: t.id })}>
+          <Card as="button" onClick={() => onSelect({ kind: 'ticket', id: t.id })}>
             <span className="row">
               <span className="callsign">{t.assignee}</span>
-              <span className="mono-label dim">claim</span>
+              <Pill>claim</Pill>
             </span>
             <span className="row">
               <span className="tkt">
                 {t.key} {t.title}
               </span>
             </span>
-          </button>
+          </Card>
         </li>
       ))}
     </ul>
@@ -224,14 +227,20 @@ function SessionsHead({ activity, snap, running }: { activity: ActivityState; sn
   const claims = snap ? claimsByAgent(snap) : [];
   return (
     <>
-      <div className="sessions-head">
-        <h3 className="chip-label sub">
-          Sessions // claims <span className="n">{running}</span>
-        </h3>
-        <span className="usage total" title="Model usage for this mission, all sessions">
-          <span className="mono-label">Mission</span> {tokens(u.inputTokens + u.outputTokens)} tok · {usd(u.costUsd)}
-        </span>
-      </div>
+      <SectionHeader
+        sub
+        className="sessions-head"
+        title={
+          <>
+            Sessions // claims <span className="n">{running}</span>
+          </>
+        }
+        right={
+          <span className="usage" title="Model usage for this mission, all sessions">
+            <span className="mono-label">Mission</span> {tokens(u.inputTokens + u.outputTokens)} tok · {usd(u.costUsd)}
+          </span>
+        }
+      />
       {claims.length > 0 && (
         <ul className="claims-bar" aria-label="Claims per agent">
           {claims.map((c) => (
@@ -257,16 +266,14 @@ type ZoneProps = { activity: ActivityState; snap?: MapSnapshot; onTicket: (id: s
 export function StepZone(props: ZoneProps) {
   const running = props.activity.sessions.filter((s) => s.status === 'running').length;
   return (
-    <section className="zone step-zone" style={{ gridArea: 'step' }}>
-      <header className="zone-h">
-        <h2 className="chip-label">Current step</h2>
-      </header>
+    <Panel className="zone step-zone" style={{ gridArea: 'step' }}>
+      <SectionHeader title="Current step" />
       <div className="zone-b">
         <StepTracker activity={props.activity} snap={props.snap} />
         <SessionsHead activity={props.activity} snap={props.snap} running={running} />
         <Sessions snap={props.snap} activity={props.activity} onSelect={(s) => s?.kind === 'ticket' && props.onTicket(s.id)} onOpenChat={props.onOpenChat} />
       </div>
-    </section>
+    </Panel>
   );
 }
 
@@ -286,7 +293,7 @@ export function ActivityStack(props: ZoneProps) {
       <StepTracker activity={props.activity} snap={props.snap} />
       <SessionsHead activity={props.activity} snap={props.snap} running={props.activity.sessions.filter((s) => s.status === 'running').length} />
       <Sessions snap={props.snap} activity={props.activity} onSelect={(s) => s?.kind === 'ticket' && props.onTicket(s.id)} onOpenChat={props.onOpenChat} />
-      <h3 className="chip-label sub">Activity log</h3>
+      <SectionHeader sub title="Activity log" />
       <ActivityLog activity={props.activity} onTicket={props.onTicket} />
     </div>
   );
@@ -315,7 +322,7 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
   return (
     <div className="status-panel">
       <div className="sp-head">
-        <h3 className="chip-label">Status</h3>
+        <Label as="h3">Status</Label>
         <span className="mono-label">{c.total} tickets</span>
       </div>
       <ul>
@@ -349,7 +356,7 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
           <b>{tp.lastHour}</b>
         </div>
         <Spark line={tp.open} bars={tp.decided} height={24} />
-        <div className="sp-axis mono-label">
+        <div className="sp-axis mono-label xs">
           <span>T+0</span>
           <span>now</span>
         </div>
@@ -359,7 +366,7 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
         <ul className="mix">
           {mix.map((m) => (
             <li key={m.type} title={`${m.type}: ${m.closed} closed, ${m.open} open`}>
-              <span className="mono-label">{TYPE_CODE[m.type]}</span>
+              <span className="mono-label xs">{TYPE_CODE[m.type]}</span>
               <span className="mix-bar">
                 <i className="closed" style={{ width: `${(m.closed / mixMax) * 100}%` }} />
                 <i className="open" style={{ width: `${(m.open / mixMax) * 100}%` }} />
@@ -387,15 +394,17 @@ export function UpNext(props: { snap?: MapSnapshot; sessions: ActivityState['ses
   const selId = props.selection?.kind === 'ticket' ? props.selection.id : undefined;
   return (
     <div className="upnext">
-      <header className="part-h">
-        <h2 className="chip-label">Up next</h2>
-        <span className="n mono-label">{items.length}</span>
-        {props.onWork && (
-          <button className="part-h-right link" onClick={props.onWork} disabled={!items.some((t) => states.get(t.id) === 'frontier')}>
-            Work next ›
-          </button>
-        )}
-      </header>
+      <SectionHeader
+        title="Up next"
+        count={<span className="n mono-label">{items.length}</span>}
+        right={
+          props.onWork && (
+            <button className="link" onClick={props.onWork} disabled={!items.some((t) => states.get(t.id) === 'frontier')}>
+              Work next ›
+            </button>
+          )
+        }
+      />
       {!snap ? (
         <Empty>No mission</Empty>
       ) : !items.length ? (
