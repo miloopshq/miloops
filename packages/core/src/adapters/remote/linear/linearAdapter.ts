@@ -1,17 +1,16 @@
 import { cachedUntilFailure } from '../../../lib/cachedUntilFailure';
 import { MAP_LABEL, PLAN_ONLY_LABEL } from '../../../model/brand';
-import { serializeMapBody } from '../../../model/mapBody';
 import type {
   DecisionRecord,
   MapDoc,
   MapMode,
-  MapSections,
   MapSnapshot,
   MapSummary,
   Ticket,
   TicketType,
 } from '../../../model/types';
-import { authoredBody, decisionComment, joinBody, mapLabels, ticketLabels, ticketMeta } from '../format';
+import type { MapInput } from '../../adapter';
+import { authoredBody, decisionComment, joinBody, mapLabels, mapBody, ticketLabels, ticketMeta } from '../format';
 import { HttpClient, TrackerError, linear, type HttpOptions } from '../http';
 import { SyncedAdapter } from '../sync/syncedAdapter';
 import type { SyncOptions } from '../sync/types';
@@ -149,10 +148,10 @@ export class LinearAdapter extends SyncedAdapter {
     return d.commentCreate.comment.id;
   }
 
-  protected async remoteCreateMap(input: { title: string; sections: MapSections; mode: MapMode }): Promise<MapDoc> {
+  protected async remoteCreateMap(input: MapInput & { mode: MapMode }): Promise<MapDoc> {
     const i = await this.create({
       title: input.title,
-      description: serializeMapBody(input.sections),
+      description: mapBody(input),
       labelIds: await this.labelIds(mapLabels(input.mode)),
     });
     return {
@@ -160,6 +159,7 @@ export class LinearAdapter extends SyncedAdapter {
       key: i.identifier,
       title: i.title,
       mode: input.mode,
+      ...(input.verification ? { verification: input.verification } : {}),
       sections: input.sections,
       createdAt: Date.parse(i.createdAt),
       updatedAt: Date.parse(i.updatedAt),
@@ -208,7 +208,7 @@ export class LinearAdapter extends SyncedAdapter {
   }
 
   protected async remoteUpdateMap(map: MapDoc) {
-    await this.update(map.id, { description: serializeMapBody(map.sections) });
+    await this.update(map.id, { description: mapBody(map) });
   }
 
   protected async remoteSetMode(map: MapDoc, mode: MapMode) {

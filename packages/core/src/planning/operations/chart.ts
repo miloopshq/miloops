@@ -1,4 +1,5 @@
 import type { TrackerAdapter } from '../../adapters/adapter';
+import type { VerificationLevel } from '../../model/lifecycle';
 import {
   type TicketType,
   type MapMode,
@@ -21,6 +22,8 @@ export interface ChartPlanTicket {
 export interface ChartPlan {
   title: string;
   mode?: MapMode;
+  /** Level for the new mission; unset means off. */
+  verification?: VerificationLevel;
   sections: MapSections;
   tickets: ChartPlanTicket[];
 }
@@ -34,7 +37,12 @@ export interface ChartHooks {
 /** Create map, then create all tickets, then wire blocking (in that order, as trackers need ids first). */
 export async function chartMap(adapter: TrackerAdapter, input: ChartPlan, hooks: ChartHooks = {}) {
   const plan = withMode(input, input.mode ?? DEFAULT_MAP_MODE);
-  const map = await adapter.createMap({ title: plan.title, mode: plan.mode, sections: plan.sections });
+  const map = await adapter.createMap({
+    title: plan.title,
+    mode: plan.mode,
+    sections: plan.sections,
+    ...(plan.verification ? { verification: plan.verification } : {}),
+  });
   await hooks.onMapCreated?.(map);
   const byRef = new Map<string, Ticket>();
   for (const pt of plan.tickets) {

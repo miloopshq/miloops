@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { DEFAULT_CONFIG } from '../verification/config';
 import { readVerificationConfig, VERIFICATION_FILE } from '../verification/configFile';
 import { sendJson } from './http';
 
@@ -16,7 +15,7 @@ export function handleVerification(root: string, req: IncomingMessage, res: Serv
     exists: read.exists,
     errors: read.errors,
     hash: read.hash,
-    config: read.config ?? (read.exists ? undefined : DEFAULT_CONFIG),
+    config: read.config,
   });
   return true;
 }

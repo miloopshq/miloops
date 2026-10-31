@@ -12,7 +12,13 @@ import {
   type SessionMode,
   type Ticket,
 } from '@miloops-hq/core';
-import { AgentDocWriter, journalFile, readAgentDocs, readCommandCenterLock } from '@miloops-hq/core/agents';
+import {
+  AgentDocWriter,
+  journalFile,
+  readAgentDocs,
+  readCommandCenterLock,
+  type VerifyEnv,
+} from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { AgentLeases } from './agentLeases';
 import { AgentSessions } from './agentSessions';
@@ -162,6 +168,11 @@ export class AgentContext {
   /** Journal options for an operation done by this agent in its running session. */
   actor() {
     return { journal: this.journal, sessionId: this.sessions.running()?.id };
+  }
+
+  /** Where this agent's verification runs read the config, keep evidence and run checks. */
+  verifyEnv(): VerifyEnv {
+    return { adapter: this.adapter, root: this.root, journal: this.journal };
   }
 
   /** End the running session (agent disconnected) and write final state. */

@@ -19,6 +19,13 @@ export interface DecisionMeta {
   transcript?: TranscriptEntry[];
 }
 
+/** How the ticket gets to done: `complete` without verification, else the verdict that passed it. */
+export interface ResolveOptions extends ActorOptions {
+  event?: 'complete' | 'checks.pass' | 'review.pass' | 'approve' | 'accept';
+  /** Who fires the event, when not the author (the engine, the operator). */
+  actor?: string;
+}
+
 /** Resolve: resolution comment, close, decision record + line in the map's "Decisions so far". */
 export async function resolve(
   adapter: TrackerAdapter,
@@ -32,7 +39,7 @@ export async function resolve(
     decision?: DecisionMeta;
     missionLine?: string;
   },
-  opts: ActorOptions = {},
+  opts: ResolveOptions = {},
 ) {
   const snap = await adapter.loadMap(mapId);
   const t = snap.tickets.find((x) => x.id === ticketId);
@@ -45,7 +52,14 @@ export async function resolve(
     adapter,
     mapId,
     ticketId,
-    { event: 'complete', actor: input.author, actorKind: opts.actorKind ?? 'agent', sessionId: opts.sessionId },
+    {
+      event: opts.event ?? 'complete',
+      actor: opts.actor ?? input.author,
+      actorKind: opts.actorKind ?? 'agent',
+      sessionId: opts.sessionId,
+      reason: opts.reason,
+      ...(opts.event && opts.event !== 'complete' ? { to: 'done' as const } : {}),
+    },
     opts,
   );
   const d = input.decision ?? {};

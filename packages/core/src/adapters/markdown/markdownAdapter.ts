@@ -16,7 +16,7 @@ import {
 } from '../../model/types';
 import { parseDecision, serializeDecision } from '../../planning/decisions/decisionFile';
 import { buildDecision, decisionNumber } from '../../planning/decisions/decisionRecord';
-import type { TrackerAdapter } from '../adapter';
+import type { MapInput, TrackerAdapter } from '../adapter';
 import { withMeta } from '../ticketMeta';
 import { ExternalChanges } from './externalChanges';
 import { parseMapFile, serializeMapFile } from './mapFile';
@@ -104,7 +104,7 @@ export class MarkdownAdapter implements TrackerAdapter {
     return Math.max(0, ...nums, ...keys) + 1;
   }
 
-  async createMap(input: { title: string; sections: MapSections; mode?: MapMode }) {
+  async createMap(input: MapInput) {
     const n = await this.nextNumber();
     const slug = missionSlug(input.title, n);
     const map: MapDoc = {
@@ -112,6 +112,7 @@ export class MarkdownAdapter implements TrackerAdapter {
       key: `#${n}`,
       title: input.title,
       mode: input.mode ?? DEFAULT_MAP_MODE,
+      ...(input.verification ? { verification: input.verification } : {}),
       sections: input.sections,
       createdAt: Date.now(),
       updatedAt: Date.now(),

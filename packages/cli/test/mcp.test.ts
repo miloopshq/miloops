@@ -70,11 +70,13 @@ describe('miloops MCP server', () => {
         'next_ticket',
         'record_decision',
         'release_ticket',
+        'report_completion',
         'report_progress',
         'resume_mission',
         'start_mission',
         'status',
         'update_mission',
+        'verification_status',
         'wait_for_answer',
       ].sort(),
     );

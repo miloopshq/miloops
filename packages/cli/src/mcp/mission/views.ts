@@ -82,6 +82,9 @@ export function missionView(
       blocked: count('blocked'),
       parked: count('parked'),
       outOfScope: count('out-of-scope'),
+      ...(snap.map.verification || count('verifying') || count('rework') || count('held')
+        ? { verifying: count('verifying'), rework: count('rework'), waitingOnHuman: count('held') }
+        : {}),
     },
     ready: snap.tickets
       .filter((t) => states.get(t.id) === 'frontier')
@@ -90,6 +93,16 @@ export function missionView(
       .filter((t) => states.get(t.id) === 'claimed')
       .map((t) => ({ key: t.key, title: t.title, assignee: t.assignee })),
     blocked: snap.tickets.filter((t) => states.get(t.id) === 'blocked').map((t) => ({ key: t.key, title: t.title })),
+    ...(snap.map.verification || count('verifying') || count('rework') || count('held')
+      ? {
+          verification: {
+            level: snap.map.verification ?? 'off',
+            verifying: snap.tickets.filter((t) => states.get(t.id) === 'verifying').map((t) => t.key),
+            rework: snap.tickets.filter((t) => states.get(t.id) === 'rework').map((t) => t.key),
+            waitingOnHuman: snap.tickets.filter((t) => states.get(t.id) === 'held').map((t) => t.key),
+          },
+        }
+      : {}),
     runningSessions: mine
       .filter((d) => d.session.status === 'running')
       .map((d) => ({

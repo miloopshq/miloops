@@ -13,7 +13,7 @@ import {
   type MapDoc,
 } from '../model/types';
 import { buildDecision } from '../planning/decisions/decisionRecord';
-import type { TrackerAdapter } from './adapter';
+import type { MapInput, TrackerAdapter } from './adapter';
 import { withMeta } from './ticketMeta';
 
 export interface MemoryAdapterOptions {
@@ -94,7 +94,7 @@ export class MemoryAdapter implements TrackerAdapter {
     return structuredClone({ map, tickets: this.tickets.get(mapId) ?? [] });
   }
 
-  async createMap(input: { title: string; sections: MapSections; mode?: MapMode }) {
+  async createMap(input: MapInput) {
     await this.wait();
     const n = this.next++;
     const map: MapDoc = {
@@ -102,6 +102,7 @@ export class MemoryAdapter implements TrackerAdapter {
       key: `#${n}`,
       title: input.title,
       mode: input.mode ?? DEFAULT_MAP_MODE,
+      ...(input.verification ? { verification: input.verification } : {}),
       sections: structuredClone(input.sections),
       createdAt: Date.now(),
       updatedAt: Date.now(),

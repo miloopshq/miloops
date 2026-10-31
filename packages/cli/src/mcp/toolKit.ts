@@ -40,7 +40,7 @@ function failure(e: unknown) {
   return { isError: true, content: [{ type: 'text' as const, text: msg }] };
 }
 
-export function waitControl(extra: Extra): WaitControl {
+export function waitControl(extra: Extra, message = 'Waiting on the human in the command center'): WaitControl {
   const token = extra._meta?.progressToken;
   return {
     signal: extra.signal,
@@ -51,7 +51,7 @@ export function waitControl(extra: Extra): WaitControl {
             void extra
               .sendNotification({
                 method: 'notifications/progress',
-                params: { progressToken: token, progress: s, message: 'Waiting on the human in the command center' },
+                params: { progressToken: token, progress: s, message },
               })
               .catch(() => {}),
   };

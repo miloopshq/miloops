@@ -1,5 +1,6 @@
-import type { DecisionRecord, MapDoc, MapMode, MapSections, Ticket, TicketType } from '../../../model/types';
+import type { DecisionRecord, MapDoc, MapMode, Ticket, TicketType } from '../../../model/types';
 import { OperationError } from '../../../planning/operations/operationError';
+import type { MapInput } from '../../adapter';
 import { withMeta } from '../../ticketMeta';
 import { isTransient } from '../http';
 import { applyWrite, CHECKED, hasLanded, ticketOf, writeId } from './queuedWrites';
@@ -12,7 +13,7 @@ import type { CacheEntry, EventInit, QueuedChange, QueuedWrite } from './types';
  * unreachable). The public write methods are added by `SyncedAdapter`.
  */
 export abstract class SyncedWriter extends SyncedStore {
-  protected abstract remoteCreateMap(input: { title: string; sections: MapSections; mode: MapMode }): Promise<MapDoc>;
+  protected abstract remoteCreateMap(input: MapInput & { mode: MapMode }): Promise<MapDoc>;
   protected abstract remoteCreateTicket(
     map: MapDoc,
     input: { title: string; type: TicketType; body: string; hitl?: boolean },

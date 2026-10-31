@@ -8,5 +8,5 @@ export { chooseNext, claim, release, type ActorOptions } from './claims';
 export { recordDecision, supersedeDecision } from './decisionOps';
 export { allowedTypes, setMapMode } from './mapMode';
 export { OperationError } from './operationError';
-export { resolve, type DecisionMeta } from './resolve';
+export { resolve, type DecisionMeta, type ResolveOptions } from './resolve';
 export { promoteToTicket, ruleOutOfScope, type ScopeTarget } from './scope';

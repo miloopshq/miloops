@@ -1,6 +1,7 @@
 import { OperationError, type DecisionRecord, type MapSnapshot, type Ticket } from '@miloops-hq/core';
 import { AgentContext } from './mission/agentContext';
-import { closeTicket } from './mission/closeTicket';
+import { closeTicket, type CloseInput } from './mission/closeTicket';
+import { verificationStatus } from './mission/completion';
 import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './mission/hitl';
 import { resumeMission, startMission, status, updateMission } from './mission/missionOps';
 import { recordDecision, report, sessionView } from './mission/reporting';
@@ -89,8 +90,17 @@ export class MissionAgent {
     return addTicket(this.ctx, input);
   }
 
-  closeTicket(input: Input<typeof closeTicket>) {
-    return closeTicket(this.ctx, input);
+  closeTicket(input: CloseInput, ctl: WaitControl = {}) {
+    return closeTicket(this.ctx, input, { seconds: defaultWaitSeconds(this.ctx), ctl });
+  }
+
+  /** Completion as a claim: close_ticket without the out-of-scope outcome. */
+  reportCompletion(input: Omit<CloseInput, 'outcome'>, ctl: WaitControl = {}) {
+    return closeTicket(this.ctx, { ...input, outcome: 'completed' }, { seconds: defaultWaitSeconds(this.ctx), ctl });
+  }
+
+  verificationStatus(input: Input<typeof verificationStatus>, ctl: WaitControl = {}) {
+    return verificationStatus(this.ctx, input, defaultWaitSeconds(this.ctx), ctl);
   }
 
   sessionView() {

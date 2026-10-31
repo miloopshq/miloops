@@ -1,4 +1,4 @@
-import type { TicketMetaPatch } from '../model/lifecycle';
+import type { TicketMetaPatch, VerificationLevel } from '../model/lifecycle';
 import type {
   DecisionInput,
   DecisionRecord,
@@ -27,6 +27,14 @@ import type {
  *   blockedBy      -> native "blocked by" relation
  *   out of scope   -> closed as not planned (+ line in the map's Out of scope)
  */
+/** A new mission. `verification` unset means off. */
+export interface MapInput {
+  title: string;
+  sections: MapSections;
+  mode?: MapMode;
+  verification?: VerificationLevel;
+}
+
 export interface TrackerAdapter {
   readonly kind: 'mock' | 'markdown' | 'github' | 'linear';
   readonly label: string;
@@ -36,7 +44,7 @@ export interface TrackerAdapter {
   listMaps(): Promise<MapSummary[]>;
   loadMap(mapId: string): Promise<MapSnapshot>;
 
-  createMap(input: { title: string; sections: MapSections; mode?: MapMode }): Promise<MapDoc>;
+  createMap(input: MapInput): Promise<MapDoc>;
   /** Real trackers: add/remove the PLAN_ONLY_LABEL on the map issue. */
   setMapMode(mapId: string, mode: MapMode): Promise<void>;
   /** Rewrites the named sections of the map issue body. */
