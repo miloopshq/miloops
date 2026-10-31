@@ -340,10 +340,20 @@ body {
 .wordmark {
   font-family: var(--display);
   font-weight: 700;
-  font-size: calc(var(--u) * 116);
+  font-size: calc(var(--u) * 110);
   line-height: 0.95;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
+  margin-right: -0.12em;
   color: var(--text-hi);
+}
+.lockup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 50%, #0e2228 0%, #04080a 75%);
+}
+.lockup .wordmark {
+  line-height: 1;
 }
 .wordmark-ops {
   color: #c98b5e;

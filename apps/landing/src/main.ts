@@ -1,5 +1,6 @@
 import '@fontsource/chakra-petch/400.css';
 import '@fontsource/chakra-petch/500.css';
+import '@fontsource/chakra-petch/700.css';
 import '@fontsource/share-tech-mono/400.css';
 import '@fontsource/barlow/400.css';
 import '@fontsource/barlow/500.css';

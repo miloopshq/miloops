@@ -9,6 +9,7 @@ export { InputRow } from './InputRow';
 export { Label } from './Label';
 export { MarkSheet } from './MarkSheet';
 export { Meta } from './Meta';
+export { MiloLogo } from './MiloLogo';
 export { type MarkState, MiloMark } from './MiloMark';
 export { Panel } from './Panel';
 export { Pill } from './Pill';

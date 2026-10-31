@@ -18,7 +18,7 @@
   --ls-text: 0.01em; /* Chakra Petch running text (agent voice) */
   --ls-data: 0.06em; /* mono data: keys, timers, ids, caps headings in Chakra Petch */
   --ls-label: 0.1em; /* mono caps labels, buttons, tabs */
-  --ls-brand: 0.32em; /* wordmark only */
+  --ls-brand: 0.12em; /* wordmark only, set in Chakra Petch 700 */
 
   /* Spacing scale (px). --gutter is the inner padding of every zone. */
   --sp-2: 2px;

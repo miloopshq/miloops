@@ -141,6 +141,7 @@ npm run capture              # needs Chrome (CHROME=...) and ffmpeg
 - `github-social-preview.png` (1280×640)
 - `og-image-1200x630.png`
 - `x-header-1500x500.png`
+- `wordmark-lockup.png`: the logo lockup, mini MILO beside the wordmark
 - `x-avatar-400.png`
 - `slack-icon-512.png`
 - `linkedin-discord-avatar-512.png`
