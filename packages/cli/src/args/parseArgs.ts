@@ -7,6 +7,8 @@ export interface ServeOptions {
   portExplicit: boolean;
   host: string;
   open: boolean;
+  /** Open the in-memory demo instead of this project's missions. */
+  demo: boolean;
 }
 
 interface Flag {
@@ -36,6 +38,7 @@ export function parseArgs(argv: string[]): ServeOptions {
     portExplicit: false,
     host: '127.0.0.1',
     open: true,
+    demo: false,
   };
   eachFlag(argv, ({ flag, value, arg }) => {
     switch (flag) {
@@ -49,6 +52,9 @@ export function parseArgs(argv: string[]): ServeOptions {
         process.exit(0);
       case '--no-open':
         o.open = false;
+        break;
+      case '--demo':
+        o.demo = true;
         break;
       case '--dir':
         o.dir = value();
