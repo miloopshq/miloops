@@ -54,16 +54,16 @@
   letter-spacing: var(--ls-data);
 }
 .t-title {
-  font-family: var(--sans);
-  font-weight: 500;
+  font-family: var(--strong);
+  font-weight: 400;
   font-size: var(--fs-title);
   line-height: var(--lh-snug);
   color: var(--text-hi);
 }
 .t-heading {
   margin: 0;
-  font-family: var(--sans);
-  font-weight: 600;
+  font-family: var(--strong);
+  font-weight: 400;
   font-size: var(--fs-heading);
   line-height: var(--lh-tight);
   color: var(--text-hi);
@@ -284,9 +284,9 @@
   border: 1px solid var(--line2);
   background: rgba(var(--accent-rgb), 0.03);
   color: var(--text);
-  font-family: var(--sans);
+  font-family: var(--strong);
   font-size: var(--fs-body);
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   white-space: nowrap;
 }

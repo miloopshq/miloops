@@ -41,6 +41,8 @@
   --mono: 'Geist Pixel', 'Geist Variable', monospace;
   --sans: 'Geist Variable', system-ui, sans-serif;
   --data: 'Geist Variable', system-ui, sans-serif;
+  /* Bold text (titles, buttons, <b>/<strong>) is set in Geist Pixel instead of a heavier Geist. */
+  --strong: var(--display);
   /* Type voices: people and agents both read in Geist (bubbles and colors tell them apart); tracker/system data in the label face. */
   --voice-human: var(--sans);
   --voice-agent: var(--sans);
@@ -83,6 +85,11 @@ input,
 textarea {
   font: inherit;
   color: inherit;
+}
+strong,
+b {
+  font-family: var(--strong);
+  font-weight: 400;
 }
 button {
   -webkit-tap-highlight-color: transparent;

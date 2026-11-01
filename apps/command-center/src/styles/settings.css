@@ -207,7 +207,7 @@
   color: var(--faint);
 }
 .sl-step-h b {
-  font-weight: 500;
+  color: var(--text);
 }
 .sl-step-h .mono-label {
   margin-left: auto;
@@ -326,8 +326,8 @@
 }
 .onb-tagline {
   margin: 0;
-  font-family: var(--sans);
-  font-weight: 500;
+  font-family: var(--strong);
+  font-weight: 400;
   font-size: var(--fs-title);
   color: var(--text-hi);
 }

@@ -198,7 +198,6 @@
 }
 .vf-setup-h {
   font-size: var(--fs-body);
-  font-weight: 600;
   color: var(--text-hi);
 }
 .vf-snippet {

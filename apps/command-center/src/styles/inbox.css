@@ -117,7 +117,6 @@
 .comms-ticket {
   padding: 0 var(--gutter) var(--sp-8);
   flex: 0 0 auto;
-  font-weight: 600;
 }
 .comms-ticket .meta {
   margin-top: var(--sp-6);

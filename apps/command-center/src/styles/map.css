@@ -21,9 +21,9 @@
   border: 1px solid var(--line2);
   background: transparent;
   cursor: pointer;
-  font-family: var(--sans);
+  font-family: var(--strong);
   font-size: var(--fs-body);
-  font-weight: 500;
+  font-weight: 400;
   color: var(--text);
 }
 .toggle i {
