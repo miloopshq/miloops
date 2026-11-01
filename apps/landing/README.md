@@ -8,7 +8,7 @@ Static marketing site for [miloops.app](https://miloops.app): Vite + TypeScript,
 
 Shared markup lives in `partials/` (`sprite`, `nav`, `footer`) and is pasted in at build time by `<!-- @include name -->` (see `vite.config.ts`).
 
-Type is Geist Pixel for headlines and labels and Geist for everything else, both self-hosted through `@fontsource`. JS adds the hero "mission field" animation (`src/heroField.ts`, paused off-screen, a still frame with reduced motion), the badge scramble, scroll reveals, copy buttons, the MILO avatar and the waitlist form. The pages read fine without it.
+Type is Geist Pixel for headlines and labels and Geist for everything else, both self-hosted through `@fontsource`. JS adds the hero "mission field" animation (`src/heroField.ts`, paused off-screen, a still frame with reduced motion), the install box that types through `npx miloops` and the Claude Code and Codex connect commands (`src/cmdCycle.ts`), the looping explainer video (muted, no controls, paused off-screen), the badge scramble, scroll reveals, copy buttons, the MILO avatar and the waitlist form. The pages read fine without it.
 
 ## Run
 
@@ -27,7 +27,7 @@ The `/specialists` form POSTs `{ email, list: "specialists" }` as JSON to `VITE_
 
 ## Product media
 
-Screenshots live in `public/media/`; favicons and the OG image in `public/media/brand/`. `npm run media` re-captures every screenshot from the real command center: it onboards, loads the sample mission, charts a second one, answers a question, and opens the briefing and the Decisions log. Start the command center on an empty local tracker first; the folder name shows as the project name in the header:
+Screenshots and the explainer video (`landing-journey-720.mp4` and its poster) live in `public/media/`; favicons and the OG image in `public/media/brand/`. `npm run media` re-captures every screenshot from the real command center: it onboards, loads the sample mission, charts a second one, answers a question, and opens the briefing and the Decisions log. It never touches the video, which is rendered separately. Start the command center on an empty local tracker first; the folder name shows as the project name in the header:
 
 ```bash
 rm -rf /tmp/fieldnote-app && MILOOPS_DIR=/tmp/fieldnote-app/.miloops npm run dev   # repo root

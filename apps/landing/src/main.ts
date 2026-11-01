@@ -1,9 +1,11 @@
 import { mountMilo } from '@miloops-hq/milo-avatar/mount';
+import { initCmdCycle } from './cmdCycle';
 import { initCopy } from './copy';
 import { $, $$ } from './dom';
 import { mountHeroField } from './heroField';
 import { initScramble } from './scramble';
 import { initNav, initReveal } from './scroll';
+import { initVideo } from './video';
 import { initWaitlist } from './waitlist';
 
 document.documentElement.classList.add('js');
@@ -23,4 +25,6 @@ initNav();
 initReveal(reducedMotion);
 initScramble(reducedMotion);
 initCopy();
+initCmdCycle(reducedMotion);
+initVideo(reducedMotion);
 initWaitlist();

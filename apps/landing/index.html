@@ -39,12 +39,7 @@
             briefed and unblocked, and brings you only the calls that need your judgment.
           </p>
           <div class="hero__actions" id="install">
-            <span class="cmd">
-              <span><span class="prompt" aria-hidden="true">$</span> npx miloops</span>
-              <button class="copy" type="button" data-copy="npx miloops" aria-label="Copy the install command">
-                <svg class="ico" aria-hidden="true"><use href="#i-copy" /></svg>
-              </button>
-            </span>
+            <!-- @include cmd -->
             <a class="btn" href="#how">See how it works <span class="arrow" aria-hidden="true">↓</span></a>
           </div>
           <ul class="hero__meta" role="list">
@@ -57,12 +52,19 @@
 
       <div class="wrap reveal">
         <figure class="shot shot--hero">
-          <img
-            src="/media/command-center-overview.png"
+          <video
+            data-loop
+            src="/media/landing-journey-720.mp4"
+            poster="/media/landing-journey-poster.png"
             width="1680"
-            height="945"
-            alt="The MILOOPS command center: the questions waiting on you, the mission map, the ticket being worked, live sessions with spend, and the activity log."
-          />
+            height="944"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            aria-label="A day with MILOOPS: install it and connect Claude Code, describe an idea, MILO frames the mission, agents pick up the work, MILO briefs you when you come back, every decision lands in the Decisions log, and you answer agent questions in the inbox or from your coding agent."
+          ></video>
         </figure>
       </div>
 
@@ -473,12 +475,7 @@
             One command in your project folder. The command center opens in your browser and MILO walks you through the
             rest.
           </p>
-          <span class="cmd">
-            <span><span class="prompt" aria-hidden="true">$</span> npx miloops</span>
-            <button class="copy" type="button" data-copy="npx miloops" aria-label="Copy the install command">
-              <svg class="ico" aria-hidden="true"><use href="#i-copy" /></svg>
-            </button>
-          </span>
+          <!-- @include cmd -->
         </div>
       </section>
     </main>

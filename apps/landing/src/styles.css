@@ -216,18 +216,51 @@ code {
   flex: none;
 }
 
-/* Install command with a copy button. */
+/* Install command with a copy button; types through start, connect Claude Code, connect Codex. */
 .cmd {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  min-height: 46px;
-  padding: 0 6px 0 16px;
+  column-gap: 14px;
+  row-gap: 2px;
+  width: min(100%, 400px);
+  padding: 8px 8px 9px 16px;
   border: 1px solid var(--line-2);
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--bg);
   font-family: var(--pixel);
   font-size: 16px;
   color: var(--text-hi);
+  text-align: left;
+}
+.cmd__label {
+  grid-column: 1;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.cmd__line {
+  grid-column: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.cmd .copy {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.cmd__caret {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -2px;
+  background: var(--copper);
+  animation: caret 1s steps(1) infinite;
+}
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
 }
 .cmd .prompt {
   color: var(--copper);
@@ -246,6 +279,13 @@ code {
 .copy.is-done {
   color: var(--accent);
   border-color: var(--accent);
+}
+.copy .i-check,
+.copy.is-done .i-copy {
+  display: none;
+}
+.copy.is-done .i-check {
+  display: block;
 }
 
 /* ---------- nav ---------- */
@@ -435,7 +475,11 @@ code {
   border: 1px solid var(--line);
   background: repeating-linear-gradient(90deg, rgba(var(--accent-rgb), 0.07) 0 3px, transparent 3px 9px), var(--bg-2);
 }
-.shot img {
+.shot img,
+.shot video {
+  display: block;
+  width: 100%;
+  height: auto;
   border: 1px solid var(--line-2);
   box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
 }
@@ -935,6 +979,9 @@ code {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  .cmd__caret {
+    animation: none;
   }
   .js .reveal {
     opacity: 1;
