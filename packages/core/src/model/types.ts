@@ -216,7 +216,7 @@ export interface SessionInfo {
   waitingOn?: string;
   startedAt: number;
   endedAt?: number;
-  /** Cumulative model usage: read from the agent's local logs, else as reported by the agent (simulated in demo mode). */
+  /** Cumulative model usage: read from the agent's local logs, else as reported by the agent. */
   usage?: SessionUsage;
 }
 
@@ -284,7 +284,7 @@ export interface PendingQuestion {
   ticketId?: string;
   agent: string;
   text: string;
-  /** Canned replies, offered by simulated agents in demo mode. */
+  /** Suggested replies, shown as one-click answers. */
   suggestions?: string[];
   at: number;
 }

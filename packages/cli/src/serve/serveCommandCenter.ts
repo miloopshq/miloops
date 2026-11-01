@@ -54,8 +54,7 @@ export async function serveCommandCenter(opts: ServeOptions, slackSetup: boolean
       `  Press Ctrl+C to stop.\n\n`,
   );
   if (slackSetup) process.stdout.write(`  Slack setup     ${url}?settings=slack\n\n`);
-  if (opts.demo) process.stdout.write(`  Demo            ${url}?tracker=demo  (nothing is saved)\n\n`);
-  if (opts.open) openBrowser(slackSetup ? `${url}?settings=slack` : opts.demo ? `${url}?tracker=demo` : url);
+  if (opts.open) openBrowser(slackSetup ? `${url}?settings=slack` : url);
   const unlock = writeCommandCenterLock(bridge.root, url);
 
   const stop = () => {

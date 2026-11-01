@@ -54,7 +54,8 @@ Details for both agents are in [`packages/cli/README.md`](packages/cli/README.md
 
 ```bash
 npm install
-npm run dev           # command center with hot reload, http://localhost:5173
+npm run dev           # resets the dev project to the seed, then the command center with hot reload
+npm run dev:agent     # real MCP agents working the dev project (after npm run build -w miloops)
 npm run dev:landing   # landing page
 npm run typecheck     # every workspace
 npm test              # unit and MCP tests (vitest)

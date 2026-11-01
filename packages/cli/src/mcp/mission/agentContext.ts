@@ -14,6 +14,7 @@ import {
 } from '@miloops-hq/core';
 import {
   AgentDocWriter,
+  claimCallsign,
   journalFile,
   readAgentDocs,
   readCommandCenterLock,
@@ -22,7 +23,7 @@ import {
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { AgentLeases } from './agentLeases';
 import { AgentSessions } from './agentSessions';
-import { callsignFamily, freeCallsign } from './callsign';
+import { callsignFamily } from './callsign';
 import type { AgentOptions, AgentTracker } from './types';
 
 /** State of one connected agent shared by its tools: tracker, sessions, the current mission and tickets seen. */
@@ -74,7 +75,7 @@ export class AgentContext {
     const taken = new Set(
       (await readAgentDocs(this.root)).filter((d) => d.session.status === 'running').map((d) => d.session.agent),
     );
-    return (this.callsign = freeCallsign(family, taken));
+    return (this.callsign = claimCallsign(this.root, family, taken));
   }
 
   commandCenter() {

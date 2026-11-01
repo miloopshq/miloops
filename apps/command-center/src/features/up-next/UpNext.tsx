@@ -8,7 +8,6 @@ export function UpNext(props: {
   sessions: ActivityState['sessions'];
   selection: Selection;
   onSelect: (s: Selection) => void;
-  onWork?: () => void;
 }) {
   const { snap } = props;
   const states = snap ? deriveStates(snap.tickets, snap.map.mode) : new Map<string, NodeState>();
@@ -20,21 +19,7 @@ export function UpNext(props: {
   const selId = props.selection?.kind === 'ticket' ? props.selection.id : undefined;
   return (
     <div className="upnext">
-      <SectionHeader
-        title="Up next"
-        count={<span className="n mono-label">{items.length}</span>}
-        right={
-          props.onWork && (
-            <button
-              className="link"
-              onClick={props.onWork}
-              disabled={!items.some((t) => states.get(t.id) === 'frontier')}
-            >
-              Work next ›
-            </button>
-          )
-        }
-      />
+      <SectionHeader title="Up next" count={<span className="n mono-label">{items.length}</span>} />
       {!snap ? (
         <Empty>No mission</Empty>
       ) : !items.length ? (

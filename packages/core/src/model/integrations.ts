@@ -1,6 +1,6 @@
 /** Tracker connectors and agent integrations, as surfaced in Settings. */
 
-export type ConnectorId = 'markdown' | 'demo' | 'github' | 'linear';
+export type ConnectorId = 'markdown' | 'github' | 'linear';
 
 export interface ConnectorInfo {
   id: ConnectorId;
@@ -10,7 +10,6 @@ export interface ConnectorInfo {
 
 export const CONNECTORS: ConnectorInfo[] = [
   { id: 'markdown', name: 'Local markdown', status: 'available' },
-  { id: 'demo', name: 'Demo tracker', status: 'available' },
   { id: 'github', name: 'GitHub Issues', status: 'available' },
   { id: 'linear', name: 'Linear', status: 'available' },
 ];

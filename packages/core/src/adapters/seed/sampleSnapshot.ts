@@ -1,8 +1,8 @@
 import type { MapSnapshot, Ticket } from '../../model/types';
 import { SEED_TICKETS } from './seedTickets';
 
-/** A mid-flight demo map: some decisions made, one ticket claimed, a live frontier and unspecified items. */
-export function demoSnapshot(now = Date.now()): MapSnapshot {
+/** A mid-flight sample map: some decisions made, one ticket claimed, a live frontier and unspecified items. */
+export function sampleSnapshot(now = Date.now()): MapSnapshot {
   const id = (n: number) => `t-${n}`;
   const tickets: Ticket[] = SEED_TICKETS.map((s, i) => {
     const createdAt = now - (SEED_TICKETS.length - i) * 3_600_000;

@@ -6,7 +6,6 @@ export { STATE_LABEL, STATE_TEXT, TYPE_CODE } from './labels';
 export { heldLeases } from './leases';
 export { OPERATOR } from './operator';
 export { prSync, type PrSyncSnapshot, worstFlag } from './prSync';
-export { leaveDemo, startDemo } from './mode';
 export { loadPrefs, type Prefs, type TrackerChoice } from './prefs';
 export { createRuntime, type Runtime, trackerKind } from './runtime';
 export type { Selection } from './selection';

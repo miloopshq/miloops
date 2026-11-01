@@ -16,13 +16,12 @@ export function AppHeader(props: {
 }) {
   const { api, rt, brief } = props;
   const { snap, actions } = api;
-  const [slack] = useSlackStatus(rt.kind === 'demo' ? 0 : 15000);
+  const [slack] = useSlackStatus(15000);
   const slackAlert =
     slack?.enabled && slack.state === 'auth-error' ? (slack.error ?? 'Slack rejected the tokens') : undefined;
   return (
     <Header
       repo={props.repo}
-      demo={api.isDemo}
       snaps={api.allSnaps}
       map={snap?.map}
       activity={api.activity}

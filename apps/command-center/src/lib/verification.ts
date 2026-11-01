@@ -65,7 +65,7 @@ async function json<T>(r: Response): Promise<T> {
 const api = `${BRAND.apiPrefix}/verification`;
 
 export const verificationApi = {
-  /** Undefined without a local server (the static demo). */
+  /** Undefined without a local server (a static build). */
   ticket: (mapId: string, ticketId: string) =>
     fetch(`${api}/ticket?mapId=${encodeURIComponent(mapId)}&ticketId=${encodeURIComponent(ticketId)}`).then(
       (r) => (r.ok ? (r.json() as Promise<TicketVerification>) : undefined),

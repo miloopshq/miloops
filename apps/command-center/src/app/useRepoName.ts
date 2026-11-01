@@ -3,9 +3,8 @@ import { useState, useEffect } from 'react';
 
 /** Repo name shown in the header: the folder that contains the tracker data. */
 export function useRepoName(kind: string) {
-  const [name, setName] = useState(kind === 'demo' ? 'demo' : '…');
+  const [name, setName] = useState('…');
   useEffect(() => {
-    if (kind === 'demo') return;
     fetch(`${BRAND.apiPrefix}/list`)
       .then((r) => r.json())
       .then((j: { root: string }) => {

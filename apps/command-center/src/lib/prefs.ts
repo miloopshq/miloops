@@ -1,7 +1,7 @@
 import { type HitlTranscriptMode, PRIMARY_AGENT, PREFS_KEY } from '@miloops-hq/core';
 
 /** GitHub and Linear are configured on the local server (repo/team and credentials); prefs only pick which one this browser shows. */
-export type TrackerChoice = 'markdown' | 'demo' | 'github' | 'linear';
+export type TrackerChoice = 'markdown' | 'github' | 'linear';
 
 export interface Prefs {
   onboarded: boolean;
@@ -26,7 +26,10 @@ export const DEFAULT_PREFS: Prefs = {
 
 export function loadPrefs(): Prefs {
   try {
-    return { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') };
+    const saved = { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') } as Prefs;
+    // The in-memory demo tracker is gone; anyone who had picked it lands on local markdown.
+    if (!['markdown', 'github', 'linear'].includes(saved.tracker)) saved.tracker = 'markdown';
+    return saved;
   } catch {
     return DEFAULT_PREFS;
   }
