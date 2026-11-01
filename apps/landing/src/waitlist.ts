@@ -1,40 +1,36 @@
 import { $ } from './dom';
 
-/**
- * Specialists waitlist. With VITE_WAITLIST_URL set, the form POSTs { email } as JSON there;
- * without it, it opens a prefilled email so no signup is lost before a list service is chosen.
- */
-const ENDPOINT = import.meta.env.VITE_WAITLIST_URL as string | undefined;
-const FALLBACK_TO = 'hello@miloops.app';
+/** Specialists waitlist: POSTs { email } to the landing's /api/waitlist function, which adds it to Resend. */
+const ENDPOINT = (import.meta.env.VITE_WAITLIST_URL as string | undefined) ?? '/api/waitlist';
 
 export function initWaitlist() {
   const form = $<HTMLFormElement>('[data-waitlist]');
   if (!form) return;
   const status = $('[data-waitlist-status]', form);
+  const button = $<HTMLButtonElement>('button[type="submit"]', form);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = new FormData(form).get('email')?.toString().trim() ?? '';
+    const data = new FormData(form);
+    const email = data.get('email')?.toString().trim() ?? '';
     if (!email) return;
-    if (!ENDPOINT) {
-      const subject = encodeURIComponent('MILOOPS specialists waitlist');
-      const body = encodeURIComponent(`Please add ${email} to the specialists waitlist.`);
-      location.href = `mailto:${FALLBACK_TO}?subject=${subject}&body=${body}`;
-      return;
-    }
     form.classList.add('is-busy');
+    if (button) button.disabled = true;
+    if (status) status.textContent = '';
     try {
       const r = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ email, list: 'specialists' }),
+        body: JSON.stringify({ email, company: data.get('company')?.toString() ?? '' }),
       });
-      if (!r.ok) throw new Error(String(r.status));
+      const body = (await r.json().catch(() => ({}))) as { error?: string };
+      if (!r.ok) throw new Error(body.error ?? 'That didn’t go through. Please try again.');
       form.classList.add('is-done');
       if (status) status.textContent = 'You’re on the list. We’ll email you when specialists open.';
-    } catch {
-      if (status) status.textContent = 'That didn’t go through. Please try again.';
+    } catch (err) {
+      if (status) status.textContent = (err as Error).message;
     } finally {
       form.classList.remove('is-busy');
+      if (button) button.disabled = false;
     }
   });
 }
