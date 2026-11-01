@@ -12,10 +12,3 @@ export function callsignFamily(client?: string) {
       ?.slice(0, 12) || 'agent'
   );
 }
-
-/** First free `<family>-NN` callsign. */
-export function freeCallsign(family: string, taken: Set<string>) {
-  let n = 1;
-  while (taken.has(`${family}-${String(n).padStart(2, '0')}`)) n++;
-  return `${family}-${String(n).padStart(2, '0')}`;
-}

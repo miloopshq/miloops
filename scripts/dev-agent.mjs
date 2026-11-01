@@ -38,8 +38,6 @@ const ASK = {
 const askFor = (t) => (ASK[t.type] ?? ASK.grilling)(t);
 
 async function agent(n) {
-  // Start one at a time: two processes picking a callsign in the same instant both get the first free one.
-  await pause((n - 1) * 4000);
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [cli, 'mcp'],
