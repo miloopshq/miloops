@@ -23,7 +23,7 @@
 }
 .bf-milo p {
   margin: var(--sp-2) 0 0;
-  font-family: var(--voice-agent);
+  font-family: var(--voice-milo);
   font-size: var(--fs-title);
   letter-spacing: var(--ls-text);
   color: var(--text-hi);

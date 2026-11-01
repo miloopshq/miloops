@@ -47,6 +47,8 @@
   --voice-human: var(--sans);
   --voice-agent: var(--sans);
   --voice-data: var(--mono);
+  /* MILO's own lines (briefing, onboarding) speak in Geist Pixel. */
+  --voice-milo: var(--display);
 
   /* Map graph text is in SVG units and scales with zoom; these sizes are tuned to NODE_W/NODE_H. */
   --fs-node-title: 11.5px;

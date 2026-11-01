@@ -336,6 +336,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-10);
+  font-family: var(--voice-milo);
   font-size: var(--fs-body);
   color: var(--text);
 }
