@@ -126,7 +126,11 @@ export function DecisionDetail(props: {
 
       <div className="actions">
         {status === 'active' && (
-          <Button on={form} onClick={() => setForm((f) => !f)}>
+          <Button
+            on={form}
+            onClick={() => setForm((f) => !f)}
+            data-tip="Replace this decision with a new answer. Both stay on record"
+          >
             Supersede…
           </Button>
         )}

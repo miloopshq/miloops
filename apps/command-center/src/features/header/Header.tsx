@@ -73,7 +73,16 @@ export function Header(props: {
           </span>
         )}
         {map && (
-          <Button size="sm" className="mode-chip" onClick={props.onToggleMode} title="Mission mode">
+          <Button
+            size="sm"
+            className="mode-chip"
+            onClick={props.onToggleMode}
+            data-tip={
+              map.mode === 'plan-only'
+                ? 'Plan only: agents research and decide, but no execute tickets run. Click to switch to Plan + execute.'
+                : 'Plan + execute: agents decide, then build what was decided. Click to switch to Plan only, which parks execute tickets.'
+            }
+          >
             {map.mode === 'plan-only' ? 'Plan only' : 'Plan + execute'}
           </Button>
         )}
@@ -107,13 +116,14 @@ export function Header(props: {
         <Button
           variant="ghost"
           className="decisions-btn"
+          data-tip="Every decision across your missions, with its reasoning. Search, filter and export"
           on={props.decisionsOpen}
           onClick={props.onDecisions}
           aria-pressed={props.decisionsOpen}
         >
           Decisions <span className="n">{props.decisions}</span>
         </Button>
-        <Button variant="ghost" onClick={props.onSettings}>
+        <Button variant="ghost" onClick={props.onSettings} data-tip="Tracker, verification, briefing and integrations">
           Settings
         </Button>
       </div>

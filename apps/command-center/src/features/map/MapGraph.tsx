@@ -166,6 +166,7 @@ export function MapGraph(props: {
       </svg>
       <button
         className="btn sm fit-btn"
+        data-tip="Fit the whole mission in view"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();

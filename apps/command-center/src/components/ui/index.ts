@@ -18,5 +18,6 @@ export { SectionHeader } from './SectionHeader';
 export { Select, type SelectOption } from './Select';
 export { Spark } from './Spark';
 export { Tabs } from './Tabs';
+export { TooltipLayer } from './TooltipLayer';
 export { Wordmark } from './Wordmark';
 export { Zone } from './Zone';

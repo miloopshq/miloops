@@ -33,20 +33,43 @@ export function VerificationActions(props: { state: NodeState; submitted: boolea
     <>
       <div className="actions vf-actions">
         {state === 'verifying' && submitted && (
-          <Button variant="primary" onClick={() => void act({ action: 'approve' })}>
+          <Button
+            variant="primary"
+            onClick={() => void act({ action: 'approve' })}
+            data-tip="Checks passed: approve and close the ticket"
+          >
             Approve
           </Button>
         )}
-        {submitted && <Button onClick={() => void act({ action: 'rerun' })}>Re-run checks</Button>}
-        <Button on={form === 'rework'} onClick={() => open('rework')}>
+        {submitted && (
+          <Button
+            onClick={() => void act({ action: 'rerun' })}
+            data-tip="Run the repo's checks again on the current code"
+          >
+            Re-run checks
+          </Button>
+        )}
+        <Button
+          on={form === 'rework'}
+          onClick={() => open('rework')}
+          data-tip="Send it back to an agent with what to fix"
+        >
           Rework…
         </Button>
         {state === 'held' && (
           <>
-            <Button on={form === 'accept'} onClick={() => open('accept')}>
+            <Button
+              on={form === 'accept'}
+              onClick={() => open('accept')}
+              data-tip="Close it as done despite the failing checks"
+            >
               Accept anyway…
             </Button>
-            <Button on={form === 'unblock'} onClick={() => open('unblock')}>
+            <Button
+              on={form === 'unblock'}
+              onClick={() => open('unblock')}
+              data-tip="Put it back in the queue without running checks"
+            >
               Unblock…
             </Button>
           </>

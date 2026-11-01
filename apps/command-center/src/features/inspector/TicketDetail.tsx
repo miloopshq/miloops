@@ -6,6 +6,7 @@ import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
 import { PrFlagBadges } from '../pr-sync';
 import { VerificationPanel } from '../verification';
 import { LeaseFacts } from './LeaseFacts';
+import { TicketActions } from './TicketActions';
 import type { Form } from './types';
 
 export function TicketDetail(props: {
@@ -74,32 +75,16 @@ export function TicketDetail(props: {
       {lease && <LeaseFacts lease={lease} onRelease={() => actions.releaseLease(t.id)} />}
       <VerificationPanel mapId={snap.map.id} mission={snap.map.verification} ticket={t} state={state} />
 
-      <div className="actions">
-        {session && (
-          <Button variant={session.waitingOn ? 'urgent' : 'default'} onClick={() => props.onOpenChat(session.id)}>
-            {session.waitingOn ? 'Answer' : 'Conversation'}
-          </Button>
-        )}
-        {state === 'frontier' && (
-          <>
-            <Button variant="primary" onClick={() => actions.work(t.id)}>
-              Dispatch agent
-            </Button>
-            <Button onClick={() => actions.claim(t.id)}>Claim</Button>
-          </>
-        )}
-        {(state === 'frontier' || (state === 'claimed' && mine)) && (
-          <Button on={form === 'resolve'} onClick={() => setForm(form === 'resolve' ? null : 'resolve')}>
-            Resolve…
-          </Button>
-        )}
-        {mine && state === 'claimed' && <Button onClick={() => actions.release(t.id)}>Release</Button>}
-        {(state === 'frontier' || state === 'blocked' || state === 'parked') && (
-          <Button variant="danger" on={form === 'rule'} onClick={() => setForm(form === 'rule' ? null : 'rule')}>
-            Rule out…
-          </Button>
-        )}
-      </div>
+      <TicketActions
+        t={t}
+        state={state}
+        session={session}
+        mine={mine}
+        form={form}
+        setForm={setForm}
+        actions={actions}
+        onOpenChat={props.onOpenChat}
+      />
 
       {form === 'resolve' && (
         <Card
