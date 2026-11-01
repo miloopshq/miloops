@@ -11,7 +11,6 @@ import { hms } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
 import { MissionSwitcher } from './MissionSwitcher';
 import { TrackerChip } from './TrackerChip';
-import { TrackerPulse } from './TrackerPulse';
 
 const BRIEFING_TITLE: Record<BriefingStatus, string> = {
   new: 'While you were away: a new briefing from MILO',
@@ -92,7 +91,6 @@ export function Header(props: {
         )}
         <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
         <PrSyncIndicator now={now} />
-        <TrackerPulse health={props.health} now={now} />
         <Button
           variant="ghost"
           className={`briefing-btn ${props.briefingStatus === 'new' ? 'has-new' : ''}`}

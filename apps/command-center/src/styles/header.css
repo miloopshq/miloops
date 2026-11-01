@@ -98,14 +98,6 @@
 .sync-error .tl {
   color: var(--urgent);
 }
-.pulse {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-6);
-}
-.pulse .mono-label {
-  min-width: 5ch;
-}
 .bars rect.on {
   fill: var(--accent);
   opacity: 0.75;
@@ -115,10 +107,6 @@
 }
 .bars rect.hot {
   fill: var(--amber);
-}
-.bp-laptop .pulse,
-.bp-mobile .pulse {
-  display: none;
 }
 .waiting-chip {
   height: var(--h-sm);
@@ -189,11 +177,6 @@
   }
   .bp-wide .h-brand {
     padding-right: var(--sp-12);
-  }
-}
-@media (max-width: 1599px) {
-  .bp-wide .pulse {
-    display: none;
   }
 }
 .bp-mobile .briefing-btn .bl {
