@@ -1,8 +1,8 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
-import { MiloAvatar } from '@miloops-hq/milo-avatar';
 import { useState, useRef, useEffect } from 'react';
 import { SectionHeader, Empty, Meta, InputRow } from '../../components/ui';
 import { clock, isRunning } from '../../lib';
+import { QuestionAvatar } from './QuestionAvatar';
 
 export function Conversation(props: {
   activity: ActivityState;
@@ -84,7 +84,7 @@ export function Conversation(props: {
                   key={m.id}
                   className={`msg from-${m.from} voice-${m.from === 'human' ? 'human' : 'agent'} ${open ? 'open-q' : ''}`}
                 >
-                  {open && <MiloAvatar size="xs" state="alert" className="q-avatar" />}
+                  {open && <QuestionAvatar id={m.id} text={m.text} />}
                   <Meta parts={[m.author, clock(m.at)]} />
                   <div className="msg-text">{m.text}</div>
                 </div>

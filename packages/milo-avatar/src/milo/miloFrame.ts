@@ -42,8 +42,9 @@ export function resolveMilo(o: MiloInput, prefersReduced: boolean) {
 export const speechDuration = (text: string) => text.length * TIMING.msPerChar;
 
 /** Idle and speaking heads blink, when animated and framed. */
+/** Blinks while idle, speaking or waiting on a decision (alert), framed or bare; xs never animates. */
 export const blinks = (m: ResolvedMilo, animate: boolean) =>
-  animate && m.framed && (m.effective === 'idle' || m.effective === 'speaking');
+  animate && (m.effective === 'idle' || m.effective === 'speaking' || m.effective === 'alert');
 
 /** Eyes, mouth and status light `t` ms into the current state, and the index of the character being spoken. */
 export function miloFace(m: ResolvedMilo, t: number, blinking: boolean, speaking: boolean) {

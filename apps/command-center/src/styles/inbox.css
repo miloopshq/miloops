@@ -218,6 +218,16 @@
   height: 5px;
   background: var(--urgent);
 }
+@media (prefers-reduced-motion: no-preference) {
+  .msg.open-q .q-avatar::after {
+    animation: q-dot 1.2s steps(1) infinite;
+  }
+}
+@keyframes q-dot {
+  50% {
+    opacity: 0.25;
+  }
+}
 .suggest {
   display: flex;
   flex-direction: column;
