@@ -6,15 +6,22 @@ import {
   missionProgress,
 } from '@miloops-hq/core';
 import { Panel, MiloLogo, MiloMark, Wordmark, Label, Readout, Button } from '../../components/ui';
-import { useNow } from '../../hooks';
-import { hms } from '../../lib';
+import { type BriefingStatus, useNow } from '../../hooks';
+import { hms, leaveDemo } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
 import { MissionSwitcher } from './MissionSwitcher';
 import { TrackerChip } from './TrackerChip';
-import { TrackerPulse } from './TrackerPulse';
+
+const BRIEFING_TITLE: Record<BriefingStatus, string> = {
+  new: 'While you were away: a new briefing from MILO',
+  seen: 'Reopen the last briefing',
+  none: 'No briefing yet. MILO briefs you when you come back after being away.',
+};
 
 export function Header(props: {
   repo: string;
+  /** In-memory demo: shows the DEMO badge and a way out. */
+  demo: boolean;
   snaps: Record<string, MapSnapshot>;
   map?: MapDoc;
   activity: ActivityState;
@@ -31,6 +38,7 @@ export function Header(props: {
   decisionsOpen: boolean;
   onDecisions: () => void;
   briefingOpen: boolean;
+  briefingStatus: BriefingStatus;
   onBriefing: () => void;
 }) {
   const { map } = props;
@@ -67,7 +75,16 @@ export function Header(props: {
           </span>
         )}
         {map && (
-          <Button size="sm" className="mode-chip" onClick={props.onToggleMode} title="Mission mode">
+          <Button
+            size="sm"
+            className="mode-chip"
+            onClick={props.onToggleMode}
+            data-tip={
+              map.mode === 'plan-only'
+                ? 'Plan only: agents research and decide, but no execute tickets run. Click to switch to Plan + execute.'
+                : 'Plan + execute: agents decide, then build what was decided. Click to switch to Plan only, which parks execute tickets.'
+            }
+          >
             {map.mode === 'plan-only' ? 'Plan only' : 'Plan + execute'}
           </Button>
         )}
@@ -78,6 +95,16 @@ export function Header(props: {
             <span className="wl">&nbsp;waiting on you</span>
           </span>
         )}
+        {props.demo && (
+          <span className="demo-badge">
+            <span data-tip="A ready-made mission with simulated agents. Nothing here is saved, and reloading starts over.">
+              Demo
+            </span>
+            <Button size="sm" variant="ghost" onClick={leaveDemo} data-tip="Leave the demo and set up your own project">
+              Exit demo
+            </Button>
+          </span>
+        )}
         {props.slackAlert && (
           <Button size="sm" variant="urgent" onClick={props.onSlack} title={props.slackAlert}>
             Slack disconnected
@@ -85,28 +112,30 @@ export function Header(props: {
         )}
         <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
         <PrSyncIndicator now={now} />
-        <TrackerPulse health={props.health} now={now} />
         <Button
           variant="ghost"
-          className="briefing-btn"
+          className={`briefing-btn ${props.briefingStatus === 'new' ? 'has-new' : ''}`}
           on={props.briefingOpen}
           onClick={props.onBriefing}
+          disabled={props.briefingStatus === 'none' && !props.briefingOpen}
           aria-pressed={props.briefingOpen}
-          title="While you were away"
+          title={BRIEFING_TITLE[props.briefingStatus]}
         >
           <MiloMark size={14} />
           <span className="bl">Briefing</span>
+          {props.briefingStatus === 'new' && <span className="new-dot" aria-label="new" />}
         </Button>
         <Button
           variant="ghost"
           className="decisions-btn"
+          data-tip="Every decision across your missions, with its reasoning. Search, filter and export"
           on={props.decisionsOpen}
           onClick={props.onDecisions}
           aria-pressed={props.decisionsOpen}
         >
           Decisions <span className="n">{props.decisions}</span>
         </Button>
-        <Button variant="ghost" onClick={props.onSettings}>
+        <Button variant="ghost" onClick={props.onSettings} data-tip="Tracker, verification, briefing and integrations">
           Settings
         </Button>
       </div>

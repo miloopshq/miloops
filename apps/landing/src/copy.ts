@@ -34,14 +34,9 @@ export function initCopy() {
       const text = button.dataset.copy ?? '';
       const ok = await writeClipboard(text);
       toast(ok ? `Copied: ${text}` : 'Copy failed');
-      const use = button.querySelector('use');
-      if (!ok || !use) return;
+      if (!ok) return;
       button.classList.add('is-done');
-      use.setAttribute('href', '#i-check');
-      window.setTimeout(() => {
-        button.classList.remove('is-done');
-        use.setAttribute('href', '#i-copy');
-      }, 1600);
+      window.setTimeout(() => button.classList.remove('is-done'), 1600);
     });
   }
 }

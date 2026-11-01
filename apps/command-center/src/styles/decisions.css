@@ -146,7 +146,7 @@
   border-right: 0;
   overflow: visible;
 }
-.dv-filters.compact select {
+.dv-filters.compact .select {
   flex: 1 1 140px;
   min-width: 0;
 }
@@ -221,8 +221,8 @@
   min-width: 0;
 }
 .dv-row .q {
-  font-family: var(--sans);
-  font-weight: 500;
+  font-family: var(--strong);
+  font-weight: 400;
   font-size: var(--fs-body);
   color: var(--text-hi);
   white-space: nowrap;

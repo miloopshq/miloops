@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   AppBriefing,
   AppHeader,
+  AppNewMission,
   AppSettings,
   LaptopSide,
   MapZone,
@@ -18,7 +19,6 @@ import { StepZone, LogZone, ActivityStack } from './features/activity';
 import { DecisionsView } from './features/decisions';
 import { InboxPane } from './features/inbox';
 import { Inspector } from './features/inspector';
-import { NewMissionDialog } from './features/mission';
 import { MapSections } from './features/plan';
 import { Onboarding } from './features/settings';
 import { UpNext } from './features/up-next';
@@ -65,7 +65,7 @@ export function App() {
           sessions={scoped.sessions}
           selection={selection}
           onSelect={nav.select}
-          onWork={() => actions.work()}
+          onWork={api.simulated ? () => actions.work() : undefined}
         />
       }
     />
@@ -200,9 +200,7 @@ export function App() {
           onClose={() => setSettingsOpen(false)}
         />
       )}
-      {newMission && (
-        <NewMissionDialog onClose={() => setNewMission(false)} onSubmit={actions.chart} tracker={rt.adapter.label} />
-      )}
+      {newMission && <AppNewMission api={api} rt={rt} onClose={() => setNewMission(false)} />}
       {!prefs.onboarded && <Onboarding prefs={prefs} update={updatePrefs} activeTracker={rt.kind} />}
     </div>
   );

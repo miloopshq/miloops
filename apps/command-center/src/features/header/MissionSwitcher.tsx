@@ -28,7 +28,13 @@ export function MissionSwitcher(props: {
   const otherWaiting = props.activity.pending.filter((q) => q.mapId !== props.map?.id).length;
   return (
     <div className="mission-switcher" ref={ref}>
-      <button className="mission-btn" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}>
+      <button
+        className="mission-btn"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        data-tip="Switch mission, or start a new one"
+      >
         <span className="mission-title">{props.map ? `${props.map.key} ${props.map.title}` : 'No mission'}</span>
         {otherWaiting > 0 && <Badge n={otherWaiting} urgent />}
         <span className="caret">▾</span>

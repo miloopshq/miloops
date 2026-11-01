@@ -25,6 +25,7 @@ Options:
   --port <n>     Port to listen on (default: 7420; the next free port is used if taken)
   --host <addr>  Interface to bind (default: 127.0.0.1)
   --no-open      Don't open the browser
+  --demo         Open a sample mission with simulated agents; nothing is saved
   -v, --version  Print the version
   -h, --help     Show this help
 `;

@@ -1,5 +1,6 @@
 import type { TrackerSettings, TrackerTestResult } from '@miloops-hq/core';
 import { useState, useCallback, useEffect } from 'react';
+import { Select } from '../../components/ui';
 import { Credential } from './Credential';
 import { TestLine } from './TestLine';
 import { trackerApi } from './trackerApi';
@@ -68,32 +69,32 @@ export function LinearSetup(props: { s: TrackerSettings; onConnected: () => void
         <div className="ts-row">
           <label className="field">
             Team
-            <select
+            <Select
+              aria-label="Team"
               value={teamId}
-              onChange={(e) => {
-                setTeamId(e.target.value);
+              onChange={(id) => {
+                setTeamId(id);
                 setProjectId('');
-                void test(e.target.value);
+                void test(id);
               }}
-            >
-              {!teamId && <option value="">Choose…</option>}
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.key} · {t.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                ...(teamId ? [] : [{ value: '', label: 'Choose…' }]),
+                ...teams.map((t) => ({ value: t.id, label: `${t.key} · ${t.name}` })),
+              ]}
+            />
           </label>
           <label className="field">
             Project
-            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} disabled={!result?.projects}>
-              <option value="">All projects</option>
-              {result?.projects?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            <Select
+              aria-label="Project"
+              value={projectId}
+              onChange={setProjectId}
+              disabled={!result?.projects}
+              options={[
+                { value: '', label: 'All projects' },
+                ...(result?.projects ?? []).map((p) => ({ value: p.id, label: p.name })),
+              ]}
+            />
           </label>
         </div>
       )}

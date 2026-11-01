@@ -1,13 +1,13 @@
-import { BRAND, type MapDoc } from '@miloops-hq/core';
+import { BRAND, DEFAULT_CONFIG, VERIFICATION_LEVELS, type MapDoc } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Meta } from '../../components/ui';
+import { Choice, Meta } from '../../components/ui';
 import { OPERATOR } from '../../lib';
-import { verificationApi } from '../../lib/verification';
-import { LevelControl } from '../verification';
+import { LEVEL_HELP, LEVEL_TEXT, verificationApi } from '../../lib/verification';
 import { SettingsSection } from './SettingsSection';
 import { useVerificationConfig } from './useVerificationConfig';
+import { VerificationSetup } from './VerificationSetup';
 
-/** Read-only: checks are changed in the repo, so an agent cannot edit what verifies its own work. */
+/** The mission's level is picked here; checks are changed in the repo, so an agent cannot edit what verifies its own work. */
 export function VerificationSection(props: { map?: MapDoc }) {
   const view = useVerificationConfig();
   const [error, setError] = useState<string>();
@@ -15,45 +15,68 @@ export function VerificationSection(props: { map?: MapDoc }) {
   const map = props.map;
   const c = view.config;
   const file = `${BRAND.dataDir}/${view.file}`;
-  const [cls, text] = view.errors.length
-    ? ['alert', `${file} has errors · completions that need checks wait on you`]
-    : view.exists
-      ? ['ok', `${file} · ${c?.run.length ?? 0} checks on every completion`]
-      : ['', `No ${file} · completing a ticket closes it`];
+  const level = map?.verification ?? 'off';
+  const types = (c ?? DEFAULT_CONFIG).appliesTo.join(' and ');
   return (
     <SettingsSection title="Verification">
-      <div className={`sync-line ${cls}`} title={view.hash}>
-        <span className="dot" />
-        <span>{text}</span>
-      </div>
+      <p className="vf-intro">
+        When an agent says a ticket is done, MILOOPS can check the work before the ticket closes. This applies to{' '}
+        {types} tickets. Research, grilling and prototype tickets close as soon as they are answered.
+      </p>
       {map && (
-        <div className="vf-mission">
-          <span className="mono-label">Mission {map.key}</span>
-          <LevelControl
-            value={map.verification}
-            onChange={(level) => {
-              setError(undefined);
-              verificationApi
-                .act({ action: 'level', mapId: map.id, level, by: OPERATOR })
-                .catch((e: Error) => setError(e.message));
-            }}
-          />
+        <>
+          <span className="mono-label">How much checking for mission {map.key}</span>
+          <div className="choice-row vf-levels">
+            {VERIFICATION_LEVELS.map((l) => (
+              <Choice
+                key={l}
+                on={level === l}
+                title={LEVEL_TEXT[l]}
+                sub={LEVEL_HELP[l]}
+                onClick={() => {
+                  setError(undefined);
+                  verificationApi
+                    .act({ action: 'level', mapId: map.id, level: l, by: OPERATOR })
+                    .catch((e: Error) => setError(e.message));
+                }}
+              />
+            ))}
+          </div>
+          {level !== 'off' && !c && (
+            <div className="sync-line alert">
+              <span className="dot" />
+              <span>No working checks yet, so completions at this level stop and wait for you.</span>
+            </div>
+          )}
           {error && <span className="vf-err">{error}</span>}
-        </div>
+        </>
       )}
       {view.errors.length > 0 && (
-        <ul className="vf-errors">
-          {view.errors.map((e) => (
-            <li key={e}>{e}</li>
-          ))}
-        </ul>
+        <>
+          <div className="sync-line alert" title={view.hash}>
+            <span className="dot" />
+            <span>{file} has errors. Completions that need checks wait for you until it is fixed.</span>
+          </div>
+          <ul className="vf-errors">
+            {view.errors.map((e) => (
+              <li key={e}>{e}</li>
+            ))}
+          </ul>
+        </>
       )}
+      {!view.exists && <VerificationSetup file={file} />}
       {c && view.exists && (
         <>
+          <div className="sync-line ok" title={view.hash}>
+            <span className="dot" />
+            <span>
+              {file} · {c.run.length} checks run on every completion
+            </span>
+          </div>
           <Meta
             parts={[
-              `New missions: ${c.default}`,
-              `${c.maxAttempts} attempts`,
+              `New missions start at ${LEVEL_TEXT[c.default]}`,
+              `${c.maxAttempts} attempts before it waits for you`,
               c.failFast && 'Stops at the first failure',
             ]}
           />
@@ -70,7 +93,9 @@ export function VerificationSection(props: { map?: MapDoc }) {
           </div>
         </>
       )}
-      <span className="dim vf-hint">Edit {file} in the repo to change checks. It is never changed from here.</span>
+      <span className="dim vf-hint">
+        MILOOPS never edits {file}. Change checks in the repo, so no agent can change what verifies its own work.
+      </span>
     </SettingsSection>
   );
 }

@@ -2,1112 +2,498 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MILOOPS: Autonomous Agent Command Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MILOOPS: Mission control for your AI coding agents</title>
     <meta
       name="description"
-      content="MILOOPS is a local-first command center for planning and executing big work with your AI coding agents. Missions, a human-in-the-loop inbox, a decision log, live spend, and two-way GitHub Issues and Linear sync."
+      content="MILOOPS turns big work into a mission your AI coding agents work through together. MILO keeps every specialist briefed and brings you only the calls that need your judgment. Runs on your machine."
     />
-    <meta name="theme-color" content="#05090b" />
-    <meta property="og:title" content="MILOOPS · Autonomous Agent Command Center" />
-    <meta property="og:description" content="One command center. Every agent. Total operational awareness." />
+    <meta property="og:title" content="MILOOPS: Mission control for your AI coding agents" />
+    <meta property="og:description" content="You run the mission. MILO runs the crew." />
+    <meta property="og:type" content="website" />
     <meta property="og:image" content="https://miloops.app/media/brand/og-image-1200x630.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="MILO, the MILOOPS operator, next to the MILOOPS wordmark." />
     <meta property="og:url" content="https://miloops.app" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://miloops.app/media/brand/og-image-1200x630.png" />
+    <meta name="theme-color" content="#05090b" />
     <link rel="icon" href="/media/brand/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="icon" href="/media/brand/favicon-64.png" type="image/png" sizes="64x64" />
     <link rel="apple-touch-icon" href="/media/brand/slack-icon-512.png" />
-    <link rel="preload" as="image" href="/media/command-center-overview.png" />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
-
-    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
-      <symbol id="mark" viewBox="0 0 32 32">
-        <path d="M25.53 10.5A11 11 0 1 1 16 5" fill="none" stroke="currentColor" stroke-width="2.4" />
-        <path d="M20 5 14.6 1.6 14.6 8.4Z" fill="currentColor" />
-        <circle cx="16" cy="16" r="3.4" fill="currentColor" />
-      </symbol>
-      <symbol id="milo-mini" viewBox="0 0 16 14" shape-rendering="crispEdges">
-        <rect x="7" y="0" width="2" height="1" fill="#0b151a" />
-        <rect x="4" y="1" width="3" height="1" fill="#0b151a" />
-        <rect x="7" y="1" width="2" height="1" fill="#c98b5e" />
-        <rect x="9" y="1" width="3" height="1" fill="#0b151a" />
-        <rect x="3" y="2" width="1" height="1" fill="#0b151a" />
-        <rect x="4" y="2" width="8" height="1" fill="#66828d" />
-        <rect x="12" y="2" width="1" height="1" fill="#0b151a" />
-        <rect x="2" y="3" width="1" height="1" fill="#0b151a" />
-        <rect x="3" y="3" width="1" height="1" fill="#66828d" />
-        <rect x="4" y="3" width="8" height="1" fill="#0b151a" />
-        <rect x="12" y="3" width="1" height="1" fill="#66828d" />
-        <rect x="13" y="3" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="4" width="1" height="1" fill="#0b151a" />
-        <rect x="2" y="4" width="1" height="1" fill="#66828d" />
-        <rect x="3" y="4" width="1" height="1" fill="#0b151a" />
-        <rect x="4" y="4" width="8" height="1" fill="#c7d5da" />
-        <rect x="12" y="4" width="1" height="1" fill="#0b151a" />
-        <rect x="13" y="4" width="1" height="1" fill="#66828d" />
-        <rect x="14" y="4" width="1" height="1" fill="#0b151a" />
-        <rect x="0" y="5" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="5" width="2" height="1" fill="#66828d" />
-        <rect x="3" y="5" width="10" height="1" fill="#c7d5da" />
-        <rect x="13" y="5" width="2" height="1" fill="#66828d" />
-        <rect x="15" y="5" width="1" height="1" fill="#0b151a" />
-        <rect x="0" y="6" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="6" width="2" height="1" fill="#66828d" />
-        <rect x="3" y="6" width="1" height="1" fill="#c7d5da" />
-        <rect x="4" y="6" width="8" height="1" fill="#16303a" />
-        <rect x="12" y="6" width="1" height="1" fill="#c7d5da" />
-        <rect x="13" y="6" width="2" height="1" fill="#66828d" />
-        <rect x="15" y="6" width="1" height="1" fill="#0b151a" />
-        <rect x="0" y="7" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="7" width="2" height="1" fill="#66828d" />
-        <rect x="3" y="7" width="1" height="1" fill="#c7d5da" />
-        <rect x="4" y="7" width="1" height="1" fill="#16303a" />
-        <rect x="5" y="7" width="2" height="1" fill="#a6dce8" />
-        <rect x="7" y="7" width="2" height="1" fill="#16303a" />
-        <rect x="9" y="7" width="2" height="1" fill="#a6dce8" />
-        <rect x="11" y="7" width="1" height="1" fill="#16303a" />
-        <rect x="12" y="7" width="1" height="1" fill="#c7d5da" />
-        <rect x="13" y="7" width="2" height="1" fill="#66828d" />
-        <rect x="15" y="7" width="1" height="1" fill="#0b151a" />
-        <rect x="0" y="8" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="8" width="2" height="1" fill="#66828d" />
-        <rect x="3" y="8" width="1" height="1" fill="#c7d5da" />
-        <rect x="4" y="8" width="8" height="1" fill="#16303a" />
-        <rect x="12" y="8" width="1" height="1" fill="#c7d5da" />
-        <rect x="13" y="8" width="2" height="1" fill="#66828d" />
-        <rect x="15" y="8" width="1" height="1" fill="#0b151a" />
-        <rect x="0" y="9" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="9" width="2" height="1" fill="#66828d" />
-        <rect x="3" y="9" width="1" height="1" fill="#c7d5da" />
-        <rect x="4" y="9" width="3" height="1" fill="#16303a" />
-        <rect x="7" y="9" width="2" height="1" fill="#5d9fb1" />
-        <rect x="9" y="9" width="3" height="1" fill="#16303a" />
-        <rect x="12" y="9" width="1" height="1" fill="#c7d5da" />
-        <rect x="13" y="9" width="2" height="1" fill="#66828d" />
-        <rect x="15" y="9" width="1" height="1" fill="#0b151a" />
-        <rect x="0" y="10" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="10" width="2" height="1" fill="#66828d" />
-        <rect x="3" y="10" width="1" height="1" fill="#c7d5da" />
-        <rect x="4" y="10" width="8" height="1" fill="#16303a" />
-        <rect x="12" y="10" width="1" height="1" fill="#c7d5da" />
-        <rect x="13" y="10" width="2" height="1" fill="#66828d" />
-        <rect x="15" y="10" width="1" height="1" fill="#0b151a" />
-        <rect x="1" y="11" width="2" height="1" fill="#0b151a" />
-        <rect x="3" y="11" width="10" height="1" fill="#c7d5da" />
-        <rect x="13" y="11" width="2" height="1" fill="#0b151a" />
-        <rect x="3" y="12" width="1" height="1" fill="#0b151a" />
-        <rect x="4" y="12" width="8" height="1" fill="#c7d5da" />
-        <rect x="12" y="12" width="1" height="1" fill="#0b151a" />
-        <rect x="4" y="13" width="8" height="1" fill="#0b151a" />
-      </symbol>
-      <symbol id="voice" viewBox="0 0 32 32">
-        <path d="M25.53 10.5A11 11 0 1 1 16 5" fill="none" stroke="currentColor" stroke-width="3" />
-        <circle cx="16" cy="16" r="4" fill="currentColor" />
-      </symbol>
-      <symbol id="i-copy" viewBox="0 0 20 20">
-        <rect x="6.5" y="6.5" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5" />
-        <path d="M13.5 3.5h-10v10" fill="none" stroke="currentColor" stroke-width="1.5" />
-      </symbol>
-      <symbol id="i-check" viewBox="0 0 20 20">
-        <path d="m4 10.5 4 4 8-9" fill="none" stroke="currentColor" stroke-width="1.8" />
-      </symbol>
-      <symbol id="i-github" viewBox="0 0 16 16">
-        <path
-          fill="currentColor"
-          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-        />
-      </symbol>
-    </svg>
-
-    <header class="nav" id="nav">
-      <div class="wrap nav__inner">
-        <a class="brand" href="#top" aria-label="MILOOPS home">
-          <svg class="brand__mark" width="32" height="28" viewBox="0 0 16 14" aria-hidden="true">
-            <use href="#milo-mini" />
-          </svg>
-          <span class="brand__name">MILO<span class="wordmark-ops">OPS</span></span>
-        </a>
-        <nav class="nav__links" aria-label="Primary">
-          <a href="#how">How it works</a>
-          <a href="#features">Features</a>
-          <a href="#open-source">Open source</a>
-          <a href="#faq">FAQ</a>
-        </nav>
-        <div class="nav__actions">
-          <a class="btn btn--ghost btn--sm" href="https://github.com/miloopshq/miloops" rel="noopener">
-            <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-github" /></svg
-            ><span class="hide-sm">GitHub</span>
-          </a>
-          <a class="btn btn--primary btn--sm" href="#install">Install</a>
-        </div>
-      </div>
-    </header>
+    <!-- @include sprite -->
+    <!-- @include nav -->
 
     <main id="main">
       <!-- HERO -->
-      <section class="hero" id="top">
-        <div class="wrap">
-          <div class="hero__grid">
-            <div class="hero__copy">
-              <p class="chip reveal"><span class="dot" aria-hidden="true"></span>Autonomous Agent Command Center</p>
-              <h1 class="hero__title reveal"><span>Observe.</span> <span>Coordinate.</span> <span>Execute.</span></h1>
-            </div>
-            <p class="hero__lede reveal">
-              One command center. Every agent. Total operational awareness.
-              <span
-                >Plan big work as a mission. Your AI coding agents pick up the work. You answer only what needs
-                you.</span
-              >
-            </p>
-
-            <div class="hero__start reveal" id="install">
-              <div class="install" role="group" aria-label="Start MILOOPS">
-                <div class="install__head">
-                  <span class="label">Start in your project</span>
-                  <div class="seg" role="group" aria-label="Your coding agent" data-agent-picker>
-                    <button type="button" data-agent="claude" aria-pressed="true">Claude Code</button>
-                    <button type="button" data-agent="codex" aria-pressed="false">Codex</button>
-                  </div>
-                </div>
-                <div class="install__line">
-                  <span class="install__n" aria-hidden="true">1</span>
-                  <div class="install__cmd">
-                    <code><span class="prompt" aria-hidden="true">$</span> npx miloops</code>
-                    <span class="install__hint">Opens the command center</span>
-                  </div>
-                  <button class="copy" type="button" data-copy="npx miloops" aria-label="Copy start command">
-                    <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-copy" /></svg>
-                  </button>
-                </div>
-                <div class="install__line">
-                  <span class="install__n" aria-hidden="true">2</span>
-                  <div class="install__cmd">
-                    <code
-                      ><span class="prompt" aria-hidden="true">$</span>
-                      <span data-agent-cmd>npx miloops connect claude</span></code
-                    >
-                    <span class="install__hint">Adds the /milo command to your agent</span>
-                  </div>
-                  <button
-                    class="copy"
-                    type="button"
-                    data-copy="npx miloops connect claude"
-                    data-agent-copy
-                    aria-label="Copy connect command"
-                  >
-                    <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-copy" /></svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="hero__buttons reveal">
-              <a class="btn btn--primary" href="#how">See how it works</a>
-              <a class="btn btn--ghost" href="https://github.com/miloopshq/miloops" rel="noopener">
-                <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-github" /></svg>Star on GitHub
-              </a>
-              <p class="hero__demo">
-                New here? Pick <strong>Demo</strong> during setup to look around a ready-made mission first, then switch
-                to your own plans in Settings.
-              </p>
-            </div>
+      <section class="hero" aria-labelledby="hero-title">
+        <canvas class="field" data-field="hero" aria-hidden="true"></canvas>
+        <div class="wrap hero__inner">
+          <span class="hero__badge" data-scramble>Mission control for AI coding agents</span>
+          <h1 id="hero-title" class="hero__title">
+            <span class="line">You run the mission.</span> <span class="line">MILO runs the crew.</span>
+          </h1>
+          <p class="hero__lede">
+            Turn big work into a mission your coding agents finish together. MILO keeps every specialist briefed and
+            unblocked, and only asks you for the calls that need your judgment.
+          </p>
+          <div class="hero__actions" id="install">
+            <!-- @include cmd -->
+            <a class="btn" href="#how">See how it works <span class="arrow" aria-hidden="true">↓</span></a>
           </div>
+        </div>
+      </section>
 
-          <figure class="frame hero__media reveal">
-            <div class="frame__bar">
-              <span class="label">A day with MILOOPS</span>
+      <div class="wrap reveal">
+        <figure class="shot shot--hero">
+          <video
+            data-loop
+            src="/media/landing-journey-720.mp4"
+            poster="/media/landing-journey-poster.png"
+            width="1680"
+            height="944"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            aria-label="A day with MILOOPS: install it and connect Claude Code, describe an idea, MILO frames the mission, agents pick up the work, MILO briefs you when you come back, every decision lands in the Decisions log, and you answer agent questions in the inbox or from your coding agent."
+          ></video>
+        </figure>
+      </div>
+
+      <!-- PROBLEM -->
+      <section class="section section--flush" id="why" aria-labelledby="why-title" style="padding-top: var(--section)">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Why MILOOPS</span>
+              <h2 id="why-title">Big work doesn't fit in one chat.</h2>
             </div>
-            <video
-              class="hero__video"
-              src="/media/landing-journey-720.mp4"
-              poster="/media/landing-journey-poster.png"
-              autoplay
-              muted
-              loop
-              playsinline
-              controls
-              preload="metadata"
-              aria-label="A day with MILOOPS: install it and connect Claude Code, describe an idea, MILO frames the mission, agents pick up the work, MILO briefs you when you come back, every decision lands in the Decisions log, and you answer agent questions in the inbox or from your coding agent."
-            ></video>
-            <span class="corner corner--tl" aria-hidden="true"></span>
-            <span class="corner corner--tr" aria-hidden="true"></span>
-            <span class="corner corner--bl" aria-hidden="true"></span>
-            <span class="corner corner--br" aria-hidden="true"></span>
-          </figure>
-
-          <ul class="facts reveal" aria-label="At a glance">
-            <li><span class="label label--dim">Setup</span>One command</li>
-            <li><span class="label label--dim">Runs</span>On your computer</li>
-            <li><span class="label label--dim">Plans</span>In your project, GitHub or Linear</li>
-            <li><span class="label label--dim">Account</span>None needed</li>
-            <li><span class="label label--dim">Connects via</span>MCP</li>
+            <p>
+              One agent in one chat handles a task. A real project needs dozens of decisions, several agents and you,
+              over days.
+            </p>
+          </header>
+          <ul class="trio reveal" role="list">
+            <li>
+              <span class="n">01</span>
+              <h3>Context evaporates</h3>
+              <p>
+                Every new session starts from zero. What was tried, what was decided and why gets lost between chats.
+              </p>
+            </li>
+            <li>
+              <span class="n">02</span>
+              <h3>Agents wait on you, silently</h3>
+              <p>
+                An agent needs a call from you and stops. You find out an hour later, in a terminal you weren't
+                watching.
+              </p>
+            </li>
+            <li>
+              <span class="n">03</span>
+              <h3>Nobody can say what's done</h3>
+              <p>Agents say “done”. Without checks and a record, you re-read everything before you can trust it.</p>
+            </li>
           </ul>
         </div>
       </section>
 
-      <!-- WHY -->
-      <section class="section" id="why" aria-labelledby="why-title">
+      <!-- CAST -->
+      <section class="section" id="crew" aria-labelledby="cast-title">
         <div class="wrap">
-          <header class="section__head reveal">
-            <p class="eyebrow">// What it is</p>
-            <h2 id="why-title">Big work doesn't fit in one chat.</h2>
-            <p class="section__lede">
-              A migration, a new product area, a rewrite. Agents can do the work, but the plan, the open decisions and
-              the blockers end up scattered across sessions. MILOOPS keeps them in one mission you can see.
-            </p>
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">The crew</span>
+              <h2 id="cast-title">A mission, a crew, and a sidekick that keeps them in step.</h2>
+            </div>
+            <p>Every part of the work has a clear owner, so you steer the outcome instead of babysitting chats.</p>
           </header>
-          <div class="why">
-            <article class="why__card reveal">
-              <p class="label">01 · Plan</p>
-              <h3>A mission, not a prompt</h3>
+          <div class="cast">
+            <article class="role reveal">
+              <div class="role__visual" aria-hidden="true">
+                <div class="mini-map">
+                  <i class="d"></i><i class="d"></i><i class="w"></i><i class="d"></i><i class="q"></i><i></i><i></i
+                  ><i></i><i></i>
+                </div>
+              </div>
+              <span class="role__kicker">The mission</span>
+              <h3>Big work, mapped as decisions</h3>
               <p>
-                A mission holds the destination, decisions so far, what's not yet specified and what's out of scope.
-                Work is split into tickets, and each one knows what it's waiting on.
+                Describe an idea and it becomes a map of tickets: what to research, what to decide, what to build, and
+                what blocks what.
               </p>
             </article>
-            <article class="why__card reveal">
-              <p class="label">02 · Delegate</p>
-              <h3>Agents take what's unblocked</h3>
-              <p>Agents pick up tasks that are ready, one at a time, and write down what they did when they finish.</p>
-            </article>
-            <article class="why__card reveal">
-              <p class="label">03 · Decide</p>
-              <h3>You keep the calls that matter</h3>
+            <article class="role reveal">
+              <div class="role__visual" aria-hidden="true">
+                <div class="chips"><span>Claude Code</span><span>Codex</span><span>Reviewer</span><span>QA</span></div>
+              </div>
+              <span class="role__kicker">The specialists</span>
+              <h3>Your agents, each on the right job</h3>
               <p>
-                Decision tickets ask you directly. An agent can't close one without your answer, and every answer lands
-                in the mission's decisions.
+                Claude Code, Codex or any agent that speaks MCP picks up whatever is unblocked. A second agent reviews
+                the work.
               </p>
+            </article>
+            <article class="role reveal">
+              <div class="role__visual"><div data-milo aria-label="MILO"></div></div>
+              <span class="role__kicker">MILO</span>
+              <h3>The sidekick that keeps everyone briefed</h3>
+              <p>
+                MILO hands out work, keeps each specialist up to date, records every decision, and briefs you when you
+                come back.
+              </p>
+            </article>
+            <article class="role role--you reveal">
+              <div class="role__visual" aria-hidden="true">
+                <div class="mini-ask">
+                  <small>WAITING ON YOU</small>What outcome would make this a clear yes for you?
+                </div>
+              </div>
+              <span class="role__kicker">You, the operator</span>
+              <h3>Only the calls that need you</h3>
+              <p>Questions from every agent land in one inbox with suggested answers. Decide, and the crew moves on.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <!-- MEET MILO -->
-      <section class="section" id="milo" aria-labelledby="milo-title">
-        <div class="wrap meet">
-          <div class="meet__avatar reveal" data-milo></div>
-          <div class="meet__body reveal">
-            <p class="eyebrow">// Meet MILO</p>
-            <h2 id="milo-title">Your operator.</h2>
-            <p class="label label--dim">Mission Intelligence &amp; Logistics Operator</p>
-            <p class="section__lede">
-              One operator between you and every agent. Hover or tap a moment below to watch MILO live.
-            </p>
-            <ul class="meet__states" data-milo-states>
-              <li>
-                <button type="button" data-state="idle" aria-pressed="true">
-                  <strong>Watching</strong>
-                  <span>Keeps an eye on every agent while the work runs.</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  data-state="speaking"
-                  data-line="Welcome back. 5 tickets are done and 1 decision is waiting on you."
-                  aria-pressed="false"
-                >
-                  <strong>Briefing you</strong>
-                  <span>Tells you what changed while you were away.</span>
-                </button>
-              </li>
-              <li>
-                <button type="button" data-state="thinking" aria-pressed="false">
-                  <strong>Sorting the work</strong>
-                  <span>Hands each agent the next ticket that's ready.</span>
-                </button>
-              </li>
-              <li>
-                <button type="button" data-state="alert" aria-pressed="false">
-                  <strong>Asking you</strong>
-                  <span>Brings you a call only you can make, then waits for your answer.</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- HOW IT WORKS -->
+      <!-- HOW -->
       <section class="section" id="how" aria-labelledby="how-title">
         <div class="wrap">
-          <header class="section__head reveal">
-            <p class="eyebrow">// How it works</p>
-            <h2 id="how-title">From install to your first decision.</h2>
-          </header>
-
-          <div class="steps reveal" data-tabs>
-            <div class="steps__list" role="tablist" aria-label="Walkthrough steps">
-              <button role="tab" id="tab-1" aria-controls="panel-1" aria-selected="true">
-                <span class="steps__n">01</span>
-                <span class="steps__t">Run it</span>
-                <span class="steps__d"
-                  >One command in your project folder. The command center opens in your browser and MILO walks you
-                  through setup.</span
-                >
-              </button>
-              <button role="tab" id="tab-2" aria-controls="panel-2" aria-selected="false" tabindex="-1">
-                <span class="steps__n">02</span>
-                <span class="steps__t">Connect your agent</span>
-                <span class="steps__d"
-                  >One more command hooks up Claude Code or Codex and adds the /milo command to its chat.</span
-                >
-              </button>
-              <button role="tab" id="tab-3" aria-controls="panel-3" aria-selected="false" tabindex="-1">
-                <span class="steps__n">03</span>
-                <span class="steps__t">Launch a mission</span>
-                <span class="steps__d"
-                  >Type /milo new with your idea, or give it a title and what "done" looks like in the command
-                  center.</span
-                >
-              </button>
-              <button role="tab" id="tab-4" aria-controls="panel-4" aria-selected="false" tabindex="-1">
-                <span class="steps__n">04</span>
-                <span class="steps__t">Agents get to work</span>
-                <span class="steps__d">The work is broken into tickets, and agents start on whatever is ready.</span>
-              </button>
-              <button role="tab" id="tab-5" aria-controls="panel-5" aria-selected="false" tabindex="-1">
-                <span class="steps__n">05</span>
-                <span class="steps__t">Answer what needs you</span>
-                <span class="steps__d"
-                  >A question lands in Waiting on you. Reply there or in your agent's chat, confirm the resolution, and
-                  blocked work moves.</span
-                >
-              </button>
-              <div class="steps__progress" aria-hidden="true"><span></span></div>
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">How a mission runs</span>
+              <h2 id="how-title">From an idea to verified work.</h2>
             </div>
-            <div class="steps__panels">
-              <div class="frame steps__panel" role="tabpanel" id="panel-1" aria-labelledby="tab-1">
-                <div
-                  class="term"
-                  data-term
-                  role="img"
-                  aria-label="A terminal: cd my-app, npx miloops (or npm i -g miloops, then miloops). MILOOPS starts and prints the command center address."
-                >
-                  <div class="term__bar" aria-hidden="true"><i></i><i></i><i></i><span>my-app — zsh</span></div>
-                  <pre
-                    class="term__body"
-                    aria-hidden="true"
-                  ><span class="term__ps">~ $</span> <span class="term__cmd">cd my-app</span>
-<span class="term__ps">~/my-app $</span> <span class="term__cmd">npx miloops</span>
-
-  <b>MILOOPS</b> <i>0.7.0 ·</i> MILO online
-  Command center  <u>http://localhost:7420/</u>
-  Tracker         .miloops/
-  <i>Press Ctrl+C to stop.</i>
-<span class="term__cur"></span></pre>
-                </div>
-              </div>
-              <div class="frame steps__panel" role="tabpanel" id="panel-2" aria-labelledby="tab-2" hidden>
-                <div
-                  class="term term--wrap"
-                  role="img"
-                  aria-label="A terminal: npx miloops connect claude registers MILOOPS with Claude Code and adds the /milo command: /milo new, /milo resume, /milo status and /milo inbox."
-                >
-                  <div class="term__bar" aria-hidden="true"><i></i><i></i><i></i><span>my-app — zsh</span></div>
-                  <pre
-                    class="term__body"
-                    aria-hidden="true"
-                  ><span class="term__ps">~/my-app $</span> <span class="term__cmd">npx miloops connect claude</span>
-
-  <b>MILOOPS</b> <i>·</i> connect Claude Code
-
-  /milo command   added <i>·</i> .claude/commands/milo.md
-  MCP server      registered <i>·</i> claude mcp add miloops -- npx -y miloops mcp
-
-  In Claude Code: <u>/milo new "&lt;idea&gt;"</u>, <u>/milo resume</u>, <u>/milo status</u>, <u>/milo inbox</u>
-
-<span class="term__ps">~/my-app $</span> <i># Using Codex? npx miloops connect codex</i>
-<span class="term__cur"></span></pre>
-                </div>
-              </div>
-              <div class="frame steps__panel" role="tabpanel" id="panel-3" aria-labelledby="tab-3" hidden>
+            <p>Four steps, in one command center that runs next to your code.</p>
+          </header>
+          <div class="runs">
+            <article class="run reveal">
+              <figure class="shot">
                 <img
                   src="/media/flow-05-new-mission.png"
                   width="1576"
                   height="984"
                   loading="lazy"
                   decoding="async"
-                  alt="New mission form with title, destination, notes and mode."
+                  alt="The New mission form with title, destination, notes and mode."
                 />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">01</span>
+                <h3>Describe the mission</h3>
+                <p>
+                  Give it a title, where it should end up and any notes. MILO charts it into tickets with dependencies,
+                  so the order of work is clear before anyone starts.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Research, decisions and build work in one map</li>
+                  <li data-n="02">Plan only, or plan and execute</li>
+                  <li data-n="03">Plain files in your repo, or GitHub Issues and Linear</li>
+                </ul>
               </div>
-              <div class="frame steps__panel" role="tabpanel" id="panel-4" aria-labelledby="tab-4" hidden>
+            </article>
+            <article class="run reveal">
+              <figure class="shot">
                 <img
                   src="/media/flow-06-first-tickets.png"
                   width="1962"
                   height="1226"
                   loading="lazy"
                   decoding="async"
-                  alt="Mission map with the first tickets charted and agents starting on them."
+                  alt="The mission map with the first tickets charted and agents working on them."
                 />
-              </div>
-              <div class="frame steps__panel" role="tabpanel" id="panel-5" aria-labelledby="tab-5" hidden>
-                <img
-                  src="/media/flow-07-waiting-on-you.png"
-                  width="1350"
-                  height="844"
-                  loading="lazy"
-                  decoding="async"
-                  alt="An agent's question in the Waiting on you inbox with suggested replies."
-                />
-              </div>
-            </div>
-          </div>
-
-          <!-- ZONES -->
-          <div class="zones" id="zones">
-            <header class="zones__head reveal">
-              <p class="eyebrow">// Fixed zones</p>
-              <h3 class="h2-sm">Each component crafted for observability and total control.</h3>
-              <p class="section__lede">
-                Learn the layout once and scan it in a second. Pick a zone to see where it lives.
-              </p>
-            </header>
-            <div class="zones__grid reveal">
-              <figure class="frame zones__shot">
-                <img
-                  src="/media/command-center-overview.png"
-                  width="1680"
-                  height="945"
-                  loading="lazy"
-                  decoding="async"
-                  alt="The MILOOPS command center with all zones visible."
-                />
-                <div class="zones__overlay" aria-hidden="true">
-                  <span class="zone" data-zone="inbox" style="--x: 0.7; --y: 8.7; --w: 21.4; --h: 90.3"><b>1</b></span>
-                  <span class="zone" data-zone="mission" style="--x: 5.2; --y: 1.5; --w: 49; --h: 5.7"><b>2</b></span>
-                  <span class="zone" data-zone="map" style="--x: 22.7; --y: 8.7; --w: 52.1; --h: 61.5"><b>3</b></span>
-                  <span class="zone" data-zone="ticket" style="--x: 75.5; --y: 8.7; --w: 23.8; --h: 61.5"
-                    ><b>4</b></span
-                  >
-                  <span class="zone" data-zone="activity" style="--x: 50.3; --y: 71.2; --w: 24.5; --h: 27.7"
-                    ><b>5</b></span
-                  >
-                  <span class="zone" data-zone="sessions" style="--x: 22.7; --y: 71.2; --w: 27; --h: 27.7"
-                    ><b>6</b></span
-                  >
-                  <span class="zone" data-zone="plan" style="--x: 75.5; --y: 71.2; --w: 23.8; --h: 27.7"><b>7</b></span>
-                  <span class="zone" data-zone="spend" style="--x: 23.6; --y: 86.3; --w: 25.2; --h: 12.7"
-                    ><b>8</b></span
-                  >
-                </div>
               </figure>
-              <ol class="zones__list">
-                <li>
-                  <button type="button" data-zone="inbox" aria-pressed="true">
-                    <span class="zones__n">1</span
-                    ><span class="zones__t"
-                      ><strong>Waiting on you</strong
-                      ><span class="zones__d"
-                        >Every open question from every agent, oldest first, with the conversation right below. Top
-                        left, always.</span
-                      ></span
-                    >
-                  </button>
-                </li>
-                <li>
-                  <button type="button" data-zone="mission" aria-pressed="false">
-                    <span class="zones__n">2</span
-                    ><span class="zones__t"
-                      ><strong>Project, mission and switcher</strong
-                      ><span class="zones__d"
-                        >Your project, the current mission and its destination. Click the title to switch or start a new
-                        one.</span
-                      ></span
-                    >
-                  </button>
-                </li>
-                <li>
-                  <button type="button" data-zone="map" aria-pressed="false">
-                    <span class="zones__n">3</span
-                    ><span class="zones__t"
-                      ><strong>Map</strong
-                      ><span class="zones__d"
-                        >Every ticket and what it's waiting on, with progress at a glance.</span
-                      ></span
-                    >
-                  </button>
-                </li>
-                <li>
-                  <button type="button" data-zone="ticket" aria-pressed="false">
-                    <span class="zones__n">4</span
-                    ><span class="zones__t"
-                      ><strong>Ticket</strong
-                      ><span class="zones__d"
-                        >Who's on it, what it depends on, and an answer button when it needs you.</span
-                      ></span
-                    >
-                  </button>
-                </li>
-                <li>
-                  <button type="button" data-zone="activity" aria-pressed="false">
-                    <span class="zones__n">5</span
-                    ><span class="zones__t"
-                      ><strong>Activity</strong
-                      ><span class="zones__d">Everything your agents and MILO do, as it happens.</span></span
-                    >
-                  </button>
-                </li>
-                <li>
-                  <button type="button" data-zone="sessions" aria-pressed="false">
-                    <span class="zones__n">6</span
-                    ><span class="zones__t"
-                      ><strong>Current step and sessions</strong
-                      ><span class="zones__d"
-                        >What each agent is doing right now, step by step, and which tickets each one holds.</span
-                      ></span
-                    >
-                  </button>
-                </li>
-                <li>
-                  <button type="button" data-zone="plan" aria-pressed="false">
-                    <span class="zones__n">7</span
-                    ><span class="zones__t"
-                      ><strong>Plan</strong
-                      ><span class="zones__d"
-                        >Not yet specified, decisions so far, and out of scope. The mission's memory.</span
-                      ></span
-                    >
-                  </button>
-                </li>
-                <li>
-                  <button type="button" data-zone="spend" aria-pressed="false">
-                    <span class="zones__n">8</span
-                    ><span class="zones__t"
-                      ><strong>Tokens and spend</strong
-                      ><span class="zones__d"
-                        >Usage for every agent and the whole mission, always on screen, so costs never surprise
-                        you.</span
-                      ></span
-                    >
-                  </button>
-                </li>
-              </ol>
-            </div>
+              <div class="run__copy">
+                <span class="run__n">02</span>
+                <h3>Specialists take what's ready</h3>
+                <p>
+                  Agents claim unblocked tickets and work in parallel. You see who is on what, live, with tokens and
+                  cost per agent.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Start from your agent's chat with /milo</li>
+                  <li data-n="02">A quiet agent's claim expires and the work returns to the queue</li>
+                  <li data-n="03">Spend per session and for the whole mission</li>
+                </ul>
+              </div>
+            </article>
+            <article class="run reveal">
+              <figure class="shot">
+                <img
+                  src="/media/command-center-hitl-conversation.png"
+                  width="1140"
+                  height="712"
+                  loading="lazy"
+                  decoding="async"
+                  alt="An agent's draft resolution waiting for the operator, with suggested replies."
+                />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">03</span>
+                <h3>You make the calls that matter</h3>
+                <p>
+                  When an agent needs your judgment, it asks in one inbox with suggested answers. Reply in a click, or
+                  from your agent's chat with /milo inbox.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Every question from every agent in one place</li>
+                  <li data-n="02">Suggested answers, or your own words</li>
+                  <li data-n="03">No agent can make the decision for you</li>
+                </ul>
+              </div>
+            </article>
+            <article class="run reveal">
+              <figure class="shot">
+                <img
+                  src="/media/command-center-decisions.png"
+                  width="1276"
+                  height="798"
+                  loading="lazy"
+                  decoding="async"
+                  alt="A decision record with the answer, the alternatives considered, the rationale and the transcript."
+                />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">04</span>
+                <h3>Done means verified, and on the record</h3>
+                <p>
+                  Your checks run before a ticket closes, a different agent reviews the change, and every decision is
+                  written down with its reasoning.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Tests, lint and typecheck from your repo</li>
+                  <li data-n="02">Independent review, plus your approval when you want it</li>
+                  <li data-n="03">A searchable decision log you can export</li>
+                </ul>
+              </div>
+            </article>
           </div>
         </div>
       </section>
 
-      <!-- FEATURES -->
-      <section class="section" id="features" aria-labelledby="features-title">
+      <!-- ROADMAP -->
+      <section class="section" id="next" aria-labelledby="next-title">
         <div class="wrap">
-          <header class="section__head reveal">
-            <p class="eyebrow">// Features</p>
-            <h2 id="features-title">Built for operators, not spectators.</h2>
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Where it's going</span>
+              <h2 id="next-title">Built for missions that run for weeks.</h2>
+            </div>
+            <p>
+              What ships today is the foundation. Next, MILOOPS takes on more of the coordination, so you can supervise
+              more work with less babysitting.
+            </p>
           </header>
-          <ul class="features">
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <path d="M5 7h22v18H5z" />
-                <path d="m9 13 4 3-4 3M15 20h7" />
-              </svg>
-              <h3>Connect any agent in one command</h3>
-              <p>Works with the AI coding agents you already use, through MCP.</p>
-            </li>
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <path d="M6 8h20v12H6z" />
-                <path d="M10 25h12M16 20v5" />
-                <path d="m10 12 3 2-3 2M15 16h5" />
-              </svg>
-              <h3>Run it from your agent's chat</h3>
+          <div class="cards">
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">Attention</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>Only what needs you, in the right order</h3>
               <p>
-                /milo new turns an idea into a mission. /milo resume, status and inbox pick up work, report progress and
-                answer questions without leaving the chat.
+                One ranked queue of everything waiting on you, with the reason it matters: “blocks 4 tickets”, “agent
+                idle for 12 min”. Related questions arrive together, and only urgent ones interrupt.
               </p>
-            </li>
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <rect x="4" y="5" width="9" height="6" />
-                <rect x="19" y="5" width="9" height="6" />
-                <rect x="11.5" y="21" width="9" height="6" />
-                <path d="M8.5 11v5h15v-5M16 16v5" />
-              </svg>
-              <h3>Live map and sessions</h3>
+            </article>
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">Project knowledge</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>A project that remembers</h3>
               <p>
-                See what's in progress, what's stuck and what's done, and what every agent is doing right now. Unblocked
-                work moves up on its own.
+                Conventions, gotchas and dead ends outlive agent sessions. Agents propose what they learn, you approve
+                it, and every new session starts with what matters.
               </p>
-            </li>
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <path d="M5 25h22" />
-                <path d="M8 25V17M13 25V11M18 25v-6M23 25V7" />
-              </svg>
-              <h3>Spend and tokens</h3>
-              <p>What each agent costs and uses, and the running total for the mission. Always on screen.</p>
-            </li>
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <path d="M5 8h22v14H13l-6 5v-5H5z" />
-                <path d="M16 12v4M16 18.5v.5" />
-              </svg>
-              <h3>Human-in-the-loop inbox</h3>
+            </article>
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">Adaptive missions</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>Plans that change when the facts do</h3>
               <p>
-                Questions from every agent and every mission in one place, oldest first. Reply in your own words or pick
-                a suggested answer.
+                When an assumption turns out wrong, the mission proposes a new plan with a clear before and after.
+                Nothing changes until you approve it.
               </p>
-            </li>
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <path d="M8 4h11l5 5v19H8z" />
-                <path d="M19 4v5h5" />
-                <path d="m12 18 3 3 5-6" />
-              </svg>
-              <h3>Decision log with export</h3>
+            </article>
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">Every repo</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>All your projects, one view</h3>
               <p>
-                Every decision, by you or an agent, with the reasoning, the options and who made the call. Search,
-                filter and export it.
+                Ten agents across five projects in one overview: what's running, what's blocked and what needs you,
+                ranked across every repo. Still all on your machine.
               </p>
+            </article>
+          </div>
+          <div class="more reveal">
+            <a class="btn" href="/features/">See every feature <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- SPECIALISTS -->
+      <section class="section" id="specialists" aria-labelledby="spec-title">
+        <div class="wrap split">
+          <div class="split__copy reveal">
+            <div><span class="eyebrow">Specialist marketplace</span> <span class="tag tag--soon">Coming</span></div>
+            <h2 id="spec-title">Hire specialists for your missions.</h2>
+            <p>
+              Every mission needs different expertise. Add a security reviewer, a QA lead or a docs writer to your crew,
+              and any agent that picks up their tickets works to their checklist.
+            </p>
+            <div>
+              <a class="btn" href="/specialists/"
+                >Meet the specialists <span class="arrow" aria-hidden="true">→</span></a
+              >
+            </div>
+          </div>
+          <ul class="roster reveal" role="list">
+            <li>
+              <span class="spec spec--reviewer" data-spec="thinking" aria-hidden="true"></span><b>Reviewer</b
+              ><span>Checks the change against what was claimed</span>
             </li>
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <use href="#voice" />
-              </svg>
-              <h3>While you were away</h3>
-              <p>
-                Come back after a break and MILO briefs you: what got done, what's blocked, what's waiting on you and
-                what it cost.
-              </p>
+            <li>
+              <span class="spec spec--qa" data-spec="idle" aria-hidden="true"></span><b>QA</b
+              ><span>Tests the edges before it ships</span>
             </li>
-            <li class="feature reveal">
-              <svg class="feature__ico" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
-                <path d="M6 10h15l-4-4M26 22H11l4 4" />
-              </svg>
-              <h3>GitHub Issues and Linear, two-way</h3>
-              <p>
-                Keep missions as files in your project, or sync them with GitHub Issues or Linear in both directions.
-                Your keys never leave your computer, and offline changes send when you're back.
-              </p>
+            <li>
+              <span class="spec spec--security" data-spec="alert" aria-hidden="true"></span><b>Security</b
+              ><span>Looks for what an attacker would</span>
+            </li>
+            <li>
+              <span class="spec spec--docs" data-spec="idle" aria-hidden="true"></span><b>Docs</b
+              ><span>Keeps the docs true to the code</span>
+            </li>
+            <li>
+              <span class="spec spec--architect" data-spec="thinking" aria-hidden="true"></span><b>Architect</b
+              ><span>Guards the shape of the system</span>
+            </li>
+            <li class="add">
+              <span class="spec spec--you" data-spec="idle" aria-hidden="true"></span><b>+ Your own</b
+              ><span>Write a role for your team</span>
             </li>
           </ul>
         </div>
       </section>
 
-      <!-- AGENTS -->
-      <section class="section section--tight" id="agents" aria-labelledby="agents-title">
+      <!-- TRUST -->
+      <section class="section" id="trust" aria-labelledby="trust-title">
         <div class="wrap">
-          <div class="agents frame reveal">
-            <div class="agents__field">
-              <ul class="agents__grid" aria-label="Coding agents">
-                <li class="tile tile--agent tile--on">
-                  <svg class="tile__logo" width="52" height="52" aria-hidden="true">
-                    <use href="/media/agents/agent-logos.svg#claude" />
-                  </svg>
-                  <span class="tile__name">Claude Code</span>
-                </li>
-                <li class="tile tile--agent tile--on">
-                  <svg class="tile__logo" width="52" height="52" aria-hidden="true">
-                    <use href="/media/agents/agent-logos.svg#openai" />
-                  </svg>
-                  <span class="tile__name">Codex</span>
-                </li>
-                <li class="tile tile--agent">
-                  <span class="tile__plus" aria-hidden="true">+</span>
-                  <span class="tile__name">Your agent next</span>
-                </li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-                <li class="tile tile--soon" aria-hidden="true"></li>
-              </ul>
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Yours to run</span>
+              <h2 id="trust-title">Runs on your machine. Works with your agents.</h2>
             </div>
-            <div class="agents__copy">
-              <p class="eyebrow">// Agents</p>
-              <h2 id="agents-title" class="agents__title">
-                Bring the agent you already use.
-                <span>Two are supported now, with more coming soon. Uses MCP? Yours can already connect today.</span>
-              </h2>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SHOWCASE -->
-      <section class="section section--tight" aria-label="Product details">
-        <div class="wrap showcase">
-          <article class="row reveal">
-            <div class="row__copy">
-              <p class="eyebrow">// Comms</p>
-              <h3>The agent asks. You decide.</h3>
-              <p>
-                The whole conversation happens next to the inbox, or right in your agent's chat with /milo inbox. The
-                agent drafts a resolution, you confirm it, and the decision is written to the ticket as a summary or the
-                full transcript.
-              </p>
-            </div>
-            <figure class="frame row__media">
-              <img
-                src="/media/command-center-hitl-conversation.png"
-                width="1140"
-                height="712"
-                loading="lazy"
-                decoding="async"
-                alt="An agent's draft resolution in the conversation panel, waiting for the operator to record it."
-              />
-            </figure>
-          </article>
-          <article class="row row--flip reveal">
-            <div class="row__copy">
-              <p class="eyebrow">// Briefing</p>
-              <h3>While you were away.</h3>
-              <p>
-                Open the command center after a break and MILO tells you what changed: tickets done, work now blocked,
-                decisions waiting on you, what agents decided and what it cost. One click takes you to the first answer
-                you owe.
-              </p>
-            </div>
-            <figure class="frame row__media">
-              <img
-                src="/media/command-center-briefing.png"
-                width="1524"
-                height="952"
-                loading="lazy"
-                decoding="async"
-                alt="The While you were away briefing: tickets done, blocked, waiting on you, agent decisions and spend since you left."
-              />
-            </figure>
-          </article>
-          <article class="row reveal">
-            <div class="row__copy">
-              <p class="eyebrow">// Decisions</p>
-              <h3>Every call, on the record.</h3>
-              <p>
-                One log of every decision across your missions: the question, the answer, the options considered, the
-                reasoning, who decided and the full conversation. Filter it, search it, and export it to share with your
-                team.
-              </p>
-            </div>
-            <figure class="frame row__media">
-              <img
-                src="/media/command-center-decisions.png"
-                width="1276"
-                height="798"
-                loading="lazy"
-                decoding="async"
-                alt="The Decisions log listing every decision with its source and who decided, with one decision open showing its rationale and transcript."
-              />
-            </figure>
-          </article>
-          <article class="row row--flip reveal">
-            <div class="row__copy">
-              <p class="eyebrow">// Missions</p>
-              <h3>Run several missions at once.</h3>
-              <p>
-                Switch from the title. Open questions stay tagged with their mission, so the inbox never loses context.
-              </p>
-            </div>
-            <figure class="frame row__media">
-              <img
-                src="/media/command-center-missions.png"
-                width="1112"
-                height="696"
-                loading="lazy"
-                decoding="async"
-                alt="The mission switcher open over the command center, listing two missions."
-              />
-            </figure>
-          </article>
-          <article class="row reveal">
-            <div class="row__copy">
-              <p class="eyebrow">// Any screen</p>
-              <h3>Answer from your phone.</h3>
-              <p>
-                Small screens open on the inbox. Map, ticket, activity and plan are one tap away. More appears as the
-                screen grows.
-              </p>
-            </div>
-            <figure class="frame row__media row__media--phone">
-              <img
-                src="/media/command-center-phone.png"
-                width="780"
-                height="860"
-                loading="lazy"
-                decoding="async"
-                alt="The command center on a phone, opened on the Waiting on you inbox."
-              />
-            </figure>
-          </article>
-        </div>
-      </section>
-
-      <!-- OPEN SOURCE -->
-      <section class="section" id="open-source" aria-labelledby="os-title">
-        <div class="wrap">
-          <header class="section__head reveal">
-            <p class="eyebrow">// Open source</p>
-            <h2 id="os-title">Yours to run.</h2>
-            <p class="section__lede">
-              Free and open source. MILOOPS runs on your computer, and your plans, decisions and keys stay with you.
-            </p>
           </header>
-          <div class="plans">
-            <article class="plan plan--now reveal">
-              <div class="plan__head">
-                <h3>What you get</h3>
-                <span class="label label--ok">Free</span>
-              </div>
-              <ul>
-                <li>The full command center, on any screen</li>
-                <li>Any coding agent over MCP, with first-class Claude Code and Codex support</li>
-                <li>The /milo command in your agent's chat</li>
-                <li>Decision log with export, and a briefing when you come back</li>
-              </ul>
-              <a class="btn btn--primary" href="#install">Install</a>
-            </article>
-            <article class="plan reveal">
-              <div class="plan__head">
-                <h3>What stays yours</h3>
-                <span class="label label--dim">Your machine</span>
-              </div>
-              <ul>
-                <li>Missions saved as files in your project, or in your GitHub Issues or Linear</li>
-                <li>GitHub and Linear keys kept on your computer, never sent anywhere else</li>
-                <li>Work keeps going offline; tracker changes send in order when you're back</li>
-                <li>No account, no MILOOPS servers in between</li>
-              </ul>
-              <a class="btn btn--ghost" href="https://github.com/miloopshq/miloops" rel="noopener"
-                >Read the code on GitHub</a
-              >
-            </article>
-          </div>
+          <ul class="facts reveal" role="list">
+            <li>
+              <h3>Local-first</h3>
+              <p>MILOOPS runs on your computer. There is no MILOOPS server and no account.</p>
+            </li>
+            <li>
+              <h3>Plain files</h3>
+              <p>Missions and decisions are markdown in your repo, or issues in GitHub or Linear.</p>
+            </li>
+            <li>
+              <h3>Any agent</h3>
+              <p>Claude Code and Codex today, and any agent that connects over MCP.</p>
+            </li>
+            <li>
+              <h3>Evidence over claims</h3>
+              <p>Checks run in your repo and every verdict is kept, so “done” means done.</p>
+            </li>
+          </ul>
         </div>
       </section>
 
       <!-- FAQ -->
       <section class="section" id="faq" aria-labelledby="faq-title">
         <div class="wrap faq">
-          <header class="section__head faq__head reveal">
-            <p class="eyebrow">// FAQ</p>
+          <div class="faq__head reveal">
+            <span class="eyebrow">Questions</span>
             <h2 id="faq-title">Questions, answered.</h2>
-            <p class="section__lede">Something missing? Open an issue on GitHub.</p>
-          </header>
+          </div>
           <div class="faq__list reveal">
             <details>
               <summary>What is MILOOPS?</summary>
               <div>
-                <p>
-                  A command center for planning and finishing big projects with AI coding agents. It runs on your
-                  computer and shows every mission, task, agent and open question in one window.
-                </p>
+                A command center for planning and finishing big projects with AI coding agents. It runs on your computer
+                and shows every mission, ticket, agent and open question in one window.
               </div>
             </details>
             <details>
               <summary>Who is MILO?</summary>
               <div>
-                <p>
-                  MILO, the Mission Intelligence &amp; Logistics Operator, is the voice of the command center. It
-                  reports status, relays agents' questions to you and briefs you on the mission. It never answers on
-                  your behalf.
-                </p>
+                MILO, the Mission Intelligence &amp; Logistics Operator, is your sidekick in the command center. It
+                hands out work, relays agents' questions to you and briefs you on the mission. It never answers on your
+                behalf.
               </div>
             </details>
             <details>
               <summary>Which agents does it work with?</summary>
               <div>
-                <p>
-                  Any AI coding agent that connects through MCP. Claude Code and Codex have first-class support: one
-                  command connects them and adds the /milo command to their chat.
-                </p>
+                Any AI coding agent that connects through MCP. Claude Code and Codex have first-class support: one
+                command connects them and adds the <code>/milo</code> command to their chat.
               </div>
             </details>
             <details>
               <summary>Can I stay in my agent's chat?</summary>
               <div>
-                <p>
-                  Yes. /milo new frames an idea with you and turns it into a mission. /milo resume picks up the work,
-                  /milo status tells you where things stand, and /milo inbox lets you answer waiting questions right in
-                  the chat. The command center shows it all live.
-                </p>
+                Yes. <code>/milo new</code> turns an idea into a mission, <code>/milo resume</code> picks up the work,
+                <code>/milo status</code> tells you where things stand, and <code>/milo inbox</code> lets you answer
+                waiting questions in the chat. The command center shows it all live.
               </div>
             </details>
             <details>
               <summary>Does my data leave my machine?</summary>
               <div>
-                <p>
-                  MILOOPS runs on your computer and keeps your plans in your project folder. If you connect GitHub or
-                  Linear, your computer talks to them directly, and your keys stay on your computer. Your agents still
-                  use their own AI services.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>Do I need GitHub or Linear?</summary>
-              <div>
-                <p>
-                  No. Plans are saved in your project by default, with no account. If your team already works in GitHub
-                  Issues or Linear, connect it in Settings: missions, tickets, decisions and comments sync both ways,
-                  and changes made there show up within seconds.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>What happens if I go offline?</summary>
-              <div>
-                <p>
-                  Work keeps going. Changes headed for GitHub or Linear wait in a queue and are sent in order as soon as
-                  the connection is back.
-                </p>
+                MILOOPS keeps your plans in your project folder. If you connect GitHub or Linear, your computer talks to
+                them directly and your keys stay on your computer. Your agents still use their own AI services.
               </div>
             </details>
             <details>
               <summary>Can an agent make a decision for me?</summary>
               <div>
-                <p>
-                  No. A decision can't be closed until you've answered it. The agent drafts a summary, and you confirm
-                  it. Every decision lands in the Decisions log, which you can export.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>How is spend tracked?</summary>
-              <div>
-                <p>
-                  Each agent reports the tokens it uses and what they cost. You see both per agent and for the whole
-                  mission, always on screen.
-                </p>
+                No. A decision can't be closed until you've answered it. The agent drafts a summary, you confirm it, and
+                it lands in the decision log.
               </div>
             </details>
             <details>
               <summary>Is it free?</summary>
-              <div><p>Yes. MILOOPS is free and open source, and it runs on your computer.</p></div>
+              <div>Yes. MILOOPS is free to use and runs on your computer.</div>
             </details>
             <details>
-              <summary>Technical details</summary>
+              <summary>How do I install it?</summary>
               <div>
-                <ul>
-                  <li>
-                    <strong>Install:</strong> <code>npx miloops</code> in your project folder runs the latest version
-                    without installing anything. To keep it installed, use <code>npm i -g miloops</code>, then
-                    <code>miloops</code>. Requires Node.js 20 or newer.
-                  </li>
-                  <li>
-                    <strong>Demo:</strong> pick Demo in setup, or add <code>?tracker=demo</code> to the command center
-                    address. The demo mission lives in memory and resets on reload; switch trackers in Settings.
-                  </li>
-                  <li>
-                    <strong>Local server:</strong> starts on <code>localhost:7420</code> (the next free port if that one
-                    is busy) and opens your browser. Flags: <code>--port</code>, <code>--dir</code> for the data folder,
-                    <code>--no-open</code> to skip the browser.
-                  </li>
-                  <li>
-                    <strong>Agents:</strong> connect through MCP (Model Context Protocol).
-                    <code>npx miloops connect claude</code> registers the MCP server with Claude Code and adds
-                    <code>.claude/commands/milo.md</code>; <code>npx miloops connect codex</code> does the same for
-                    Codex (<code>~/.codex/prompts/milo.md</code>, plus a <code>config.toml</code> entry). Any other MCP
-                    client can run <code>npx -y miloops mcp</code> over stdio in your project.
-                  </li>
-                  <li>
-                    <strong>Data:</strong> missions, tickets and decisions are markdown files in
-                    <code>.miloops/</code> inside your project. Nothing is sent to MILOOPS servers.
-                  </li>
-                  <li>
-                    <strong>GitHub and Linear:</strong> connect in Settings. GitHub reuses your <code>gh</code> login or
-                    <code>GITHUB_TOKEN</code>; Linear takes a personal API key. Keys are kept by the local server in
-                    <code>~/.config/miloops</code>, never sent to the browser. Missions are labelled issues, tickets are
-                    sub-issues, and blocking uses native dependencies (GitHub) or "blocks" relations (Linear). Writes
-                    made offline or while rate limited queue and send in order.
-                  </li>
-                </ul>
+                Run <code>npx miloops</code> in your project folder (Node.js 20 or newer). Then connect your agent with
+                <code>npx miloops connect claude</code> or <code>npx miloops connect codex</code>. Pick Demo in setup to
+                look around a ready-made mission first.
               </div>
             </details>
           </div>
         </div>
       </section>
 
-      <!-- FINAL CTA -->
-      <section class="section final" aria-labelledby="final-title">
-        <div class="wrap">
-          <div class="final__card frame reveal">
-            <svg class="final__mark" width="48" height="48" aria-hidden="true"><use href="#mark" /></svg>
-            <h2 id="final-title">Autonomous operations. Under control.</h2>
-            <div class="install install--inline">
-              <div class="install__line">
-                <code><span class="prompt" aria-hidden="true">$</span> npx miloops</code>
-                <button class="copy" type="button" data-copy="npx miloops" aria-label="Copy start command">
-                  <svg class="ico" width="16" height="16" aria-hidden="true"><use href="#i-copy" /></svg>
-                </button>
-              </div>
-            </div>
-            <span class="corner corner--tl" aria-hidden="true"></span>
-            <span class="corner corner--tr" aria-hidden="true"></span>
-            <span class="corner corner--bl" aria-hidden="true"></span>
-            <span class="corner corner--br" aria-hidden="true"></span>
-          </div>
+      <!-- FINAL -->
+      <section class="final" aria-labelledby="final-title">
+        <canvas class="field" data-field="final" data-intensity="0.55" aria-hidden="true"></canvas>
+        <div class="wrap final__inner reveal">
+          <h2 id="final-title">Ready for your first mission?</h2>
+          <p>
+            One command in your project folder. The command center opens in your browser and MILO walks you through the
+            rest.
+          </p>
+          <!-- @include cmd -->
         </div>
       </section>
     </main>
 
-    <footer class="footer">
-      <div class="wrap footer__grid">
-        <div class="footer__brand">
-          <a class="brand" href="#top" aria-label="MILOOPS home">
-            <svg class="brand__mark" width="32" height="28" viewBox="0 0 16 14" aria-hidden="true">
-              <use href="#milo-mini" />
-            </svg>
-            <span class="brand__name">MILO<span class="wordmark-ops">OPS</span></span>
-          </a>
-          <p>One command center. Every agent. Total operational awareness.</p>
-        </div>
-        <nav aria-label="Product">
-          <p class="label label--dim">Product</p>
-          <a href="#how">How it works</a>
-          <a href="#features">Features</a>
-          <a href="#open-source">Open source</a>
-          <a href="#faq">FAQ</a>
-        </nav>
-        <nav aria-label="Project">
-          <p class="label label--dim">Project</p>
-          <a href="https://github.com/miloopshq/miloops" rel="noopener">GitHub</a>
-          <a href="https://www.npmjs.com/package/miloops" rel="noopener">npm</a>
-          <a href="https://github.com/miloopshq/miloops/blob/main/LICENSE" rel="noopener">MIT License</a>
-        </nav>
-      </div>
-      <div class="wrap footer__base">
-        <span>© 2026 MILOOPS</span>
-        <span class="label label--dim">miloops.app</span>
-      </div>
-    </footer>
-
-    <div class="toast" role="status" aria-live="polite"></div>
+    <!-- @include footer -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

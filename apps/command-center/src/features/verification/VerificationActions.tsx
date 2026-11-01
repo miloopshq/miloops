@@ -1,6 +1,6 @@
 import type { NodeState } from '@miloops-hq/core';
 import { useState, type FormEvent } from 'react';
-import { Button, Card, Field } from '../../components/ui';
+import { Button, Card, Field, Select } from '../../components/ui';
 import type { ActionRequest, OperatorAction } from '../../lib/verification';
 
 type Act = (req: Omit<ActionRequest, 'mapId' | 'ticketId'>) => Promise<unknown>;
@@ -33,20 +33,43 @@ export function VerificationActions(props: { state: NodeState; submitted: boolea
     <>
       <div className="actions vf-actions">
         {state === 'verifying' && submitted && (
-          <Button variant="primary" onClick={() => void act({ action: 'approve' })}>
+          <Button
+            variant="primary"
+            onClick={() => void act({ action: 'approve' })}
+            data-tip="Checks passed: approve and close the ticket"
+          >
             Approve
           </Button>
         )}
-        {submitted && <Button onClick={() => void act({ action: 'rerun' })}>Re-run checks</Button>}
-        <Button on={form === 'rework'} onClick={() => open('rework')}>
+        {submitted && (
+          <Button
+            onClick={() => void act({ action: 'rerun' })}
+            data-tip="Run the repo's checks again on the current code"
+          >
+            Re-run checks
+          </Button>
+        )}
+        <Button
+          on={form === 'rework'}
+          onClick={() => open('rework')}
+          data-tip="Send it back to an agent with what to fix"
+        >
           Rework…
         </Button>
         {state === 'held' && (
           <>
-            <Button on={form === 'accept'} onClick={() => open('accept')}>
+            <Button
+              on={form === 'accept'}
+              onClick={() => open('accept')}
+              data-tip="Close it as done despite the failing checks"
+            >
               Accept anyway…
             </Button>
-            <Button on={form === 'unblock'} onClick={() => open('unblock')}>
+            <Button
+              on={form === 'unblock'}
+              onClick={() => open('unblock')}
+              data-tip="Put it back in the queue without running checks"
+            >
               Unblock…
             </Button>
           </>
@@ -59,10 +82,15 @@ export function VerificationActions(props: { state: NodeState; submitted: boolea
           </Field>
           {form === 'unblock' && (
             <Field label="Back to">
-              <select value={to} onChange={(e) => setTo(e.target.value as 'ready' | 'rework')}>
-                <option value="rework">Rework (keeps the feedback)</option>
-                <option value="ready">Ready</option>
-              </select>
+              <Select<'ready' | 'rework'>
+                aria-label="Back to"
+                value={to}
+                onChange={setTo}
+                options={[
+                  { value: 'rework', label: 'Rework', hint: 'Keeps the feedback for the next agent.' },
+                  { value: 'ready', label: 'Ready', hint: 'Back in the queue as a fresh ticket.' },
+                ]}
+              />
             </Field>
           )}
           <span className="dim vf-hint">{FORM[form].hint}</span>

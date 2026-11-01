@@ -15,10 +15,10 @@
   --lh-body: 1.55;
 
   --ls-0: 0;
-  --ls-text: 0.01em; /* Chakra Petch running text (agent voice) */
-  --ls-data: 0.06em; /* mono data: keys, timers, ids, caps headings in Chakra Petch */
+  --ls-text: 0.01em; /* slight tracking for small running text */
+  --ls-data: 0.06em; /* label-face data: keys, ids, caps headings in Geist Pixel */
   --ls-label: 0.1em; /* mono caps labels, buttons, tabs */
-  --ls-brand: 0.12em; /* wordmark only, set in Chakra Petch 700 */
+  --ls-brand: 0.12em; /* wordmark only, set in Geist Pixel */
 
   /* Spacing scale (px). --gutter is the inner padding of every zone. */
   --sp-2: 2px;
@@ -50,26 +50,27 @@
   font-size: var(--fs-xs);
 }
 .t-data {
-  font-family: var(--mono);
+  font-family: var(--data);
   letter-spacing: var(--ls-data);
 }
 .t-title {
-  font-family: var(--sans);
-  font-weight: 500;
+  font-family: var(--strong);
+  font-weight: 400;
   font-size: var(--fs-title);
   line-height: var(--lh-snug);
   color: var(--text-hi);
 }
 .t-heading {
   margin: 0;
-  font-family: var(--sans);
-  font-weight: 600;
+  font-family: var(--strong);
+  font-weight: 400;
   font-size: var(--fs-heading);
   line-height: var(--lh-tight);
   color: var(--text-hi);
 }
 .t-heading.caps {
   font-family: var(--display);
+  -webkit-text-stroke: var(--heavy);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
 }
@@ -250,7 +251,7 @@
   font-size: var(--fs-xs);
 }
 .readout > b {
-  font-family: var(--mono);
+  font-family: var(--data);
   font-weight: 400;
   font-size: var(--fs-title);
   color: var(--text-hi);
@@ -284,9 +285,9 @@
   border: 1px solid var(--line2);
   background: rgba(var(--accent-rgb), 0.03);
   color: var(--text);
-  font-family: var(--sans);
+  font-family: var(--strong);
   font-size: var(--fs-body);
-  font-weight: 500;
+  font-weight: 400;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -400,7 +401,7 @@
 /* ---------- Inputs ---------- */
 input,
 textarea,
-select {
+.select {
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--line2);
   padding: 6px var(--sp-8);
@@ -413,22 +414,93 @@ select {
   color: var(--text);
 }
 input,
-select {
+.select {
   height: var(--h-md);
-}
-select {
-  padding: 0 var(--sp-6);
-}
-select.mono {
-  font-family: var(--mono);
-  font-size: var(--fs-label);
-  letter-spacing: var(--ls-data);
-  text-transform: uppercase;
 }
 input:focus,
 textarea:focus,
-select:focus {
+.select:focus-visible,
+.select.open {
   border-color: var(--accent);
+}
+
+/* Select: our dropdown (components/ui/Select.tsx) instead of the browser's native one. */
+.select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-8);
+  min-width: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.select:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.select:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.select-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.select-caret {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--dim);
+}
+.select.open .select-caret {
+  transform: rotate(180deg);
+}
+.select.compact {
+  width: auto;
+  height: var(--h-sm);
+  font-size: var(--fs-sm);
+}
+.select-menu {
+  position: fixed;
+  z-index: 60;
+  max-width: min(420px, calc(100vw - 16px));
+  max-height: 320px;
+  overflow: auto;
+  margin: 0;
+  padding: var(--sp-4);
+  list-style: none;
+  background: var(--panel2);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--accent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+}
+.select-menu li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-6) var(--sp-10);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.select-menu li.active {
+  background: rgba(var(--accent-rgb), 0.1);
+}
+.select-menu li[aria-selected='true'] {
+  border-left-color: var(--accent);
+}
+.select-menu li[aria-selected='true'] .select-label {
+  color: var(--accent);
+}
+.select-label {
+  font-size: var(--fs-body);
+  color: var(--text-hi);
+}
+.select-hint {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  color: var(--dim);
 }
 textarea {
   resize: none;
@@ -545,4 +617,60 @@ button.card.urgent:hover,
 }
 .card.on .card-title {
   color: var(--accent);
+}
+
+/* ---------- Needs you: a ring that expands and fades on anything waiting for the operator's action ---------- */
+.btn.urgent,
+.waiting-chip {
+  --ping-rgb: 255, 77, 66;
+}
+.briefing-btn.has-new {
+  --ping-rgb: var(--accent-rgb);
+}
+.btn.urgent:not(:disabled),
+.waiting-chip,
+.briefing-btn.has-new {
+  animation: needs-you 1.8s ease-out infinite;
+}
+@keyframes needs-you {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--ping-rgb), 0.55);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 8px rgba(var(--ping-rgb), 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn.urgent:not(:disabled),
+  .waiting-chip,
+  .briefing-btn.has-new {
+    animation: none;
+    box-shadow: 0 0 0 2px rgba(var(--ping-rgb), 0.35);
+  }
+}
+
+/* ---------- Tooltip (components/ui/TooltipLayer.tsx) ---------- */
+.tooltip {
+  position: fixed;
+  z-index: 90;
+  max-width: 280px;
+  padding: var(--sp-6) var(--sp-10);
+  border: 1px solid var(--line2);
+  background: var(--panel2);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  font-family: var(--sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  color: var(--text-hi);
+  white-space: pre-line;
+  text-align: left;
+  pointer-events: none;
+  animation: tip-in 0.12s ease-out;
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+  }
 }

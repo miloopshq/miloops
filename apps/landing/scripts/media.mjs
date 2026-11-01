@@ -1,14 +1,13 @@
 // Re-captures the command-center screenshots in public/media/ from the real app.
-// The hero video (landing-journey-720.mp4 + poster) is a separately rendered journey and is not touched here.
 // Start the command center on an empty local tracker first, e.g. from the repo root:
 //   rm -rf /tmp/fieldnote-app && MILOOPS_DIR=/tmp/fieldnote-app/.miloops npm run dev
 // then `npm run media` here. The folder name shows as the project name in the header.
 // Env: CC_URL (default http://localhost:5173/), CHROME_PATH (default /usr/local/bin/google-chrome).
-// Prints the "Fixed zones" overlay boxes (`--x/--y/--w/--h`) for index.html.
 import { writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+import { realChrome, simClick } from './lib/realChrome.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const media = join(root, 'public/media');
@@ -68,61 +67,24 @@ const zoom = async (name, sels, { aspect = 4 / 3, pad = 16 } = {}) => {
   console.log('saved', `${name}.png`, `${clip.width * 2}x${clip.height * 2}`);
 };
 
-/** Overlay boxes for the landing's "Fixed zones" figure, as % of the viewport. */
-const zoneBoxes = () =>
-  page.evaluate(() => {
-    const sel = {
-      inbox: '.inbox',
-      mission: '.h-title',
-      map: '.map-zone',
-      ticket: '.inspector',
-      activity: '.log-zone',
-      sessions: '.step-zone',
-      plan: '.sections',
-      // A list of selectors is measured as one box around all of them.
-      spend: ['.step-zone .sessions-head', '.step-zone .sessions-list'],
-    };
-    /** Boxes that scroll inside a panel are cut to that panel. */
-    const within = { spend: '.step-zone' };
-    const pct = (v, d) => +((v / d) * 100).toFixed(1);
-    const box = (s, clip) => {
-      const rs = [s].flat().map((x) => document.querySelector(x)?.getBoundingClientRect());
-      if (rs.some((r) => !r)) return undefined;
-      const c = (clip && document.querySelector(clip)?.getBoundingClientRect()) || {
-        left: 0,
-        top: 0,
-        right: innerWidth,
-        bottom: innerHeight,
-      };
-      const left = Math.max(c.left, Math.min(...rs.map((r) => r.left)));
-      const top = Math.max(c.top, Math.min(...rs.map((r) => r.top)));
-      const right = Math.min(c.right, Math.max(...rs.map((r) => r.right)));
-      const bottom = Math.min(c.bottom, Math.max(...rs.map((r) => r.bottom)));
-      return { left, top, width: right - left, height: bottom - top };
-    };
-    return Object.fromEntries(
-      Object.entries(sel).map(([k, s]) => {
-        const r = box(s, within[k]);
-        return [
-          k,
-          r &&
-            `--x:${pct(r.left, innerWidth)};--y:${pct(r.top, innerHeight)};--w:${pct(r.width, innerWidth)};--h:${pct(r.height, innerHeight)}`,
-        ];
-      }),
-    );
-  });
-
-// Autopilot is hidden outside the demo tracker unless the URL opts in.
-const withAutopilot = new URL(url);
-withAutopilot.searchParams.set('autopilot', '');
-await page.goto(withAutopilot.href);
+// Simulated agents (sample mission, Autopilot, Dispatch agent) only run with ?simulate outside the demo.
+const withSimulate = new URL(url);
+withSimulate.searchParams.set('simulate', '');
+await realChrome(page);
+// A briefing needs time away: shrink the away threshold so coming back after the run opens one.
+await page.addInitScript(() => {
+  const key = 'miloops.prefs';
+  const prefs = JSON.parse(localStorage.getItem(key) || '{}');
+  localStorage.setItem(key, JSON.stringify({ ...prefs, briefing: { enabled: true, awayMinutes: 0.05 } }));
+});
+await page.goto(withSimulate.href);
 await page.locator('.dialog.onboarding').waitFor({ timeout: 20000 });
 await wait(800);
 await page.getByRole('button', { name: 'Get started' }).click();
 await wait(1200);
 await page.getByRole('button', { name: 'Load sample mission' }).click();
 await page.locator('.node').first().waitFor({ timeout: 15000 });
-await page.getByRole('button', { name: /Autopilot/ }).click();
+await simClick(page, '.command-bar .toggle');
 // Away from here on (tab hidden), so the Briefing button later covers everything the agents decided.
 await setVisible(false);
 await page.locator('.inbox-list li').first().waitFor({ timeout: 30000 });
@@ -130,7 +92,6 @@ await wait(4000);
 await page.locator('.node', { hasText: 'silent auto-merge' }).first().click();
 await wait(1500);
 await shot('command-center-overview');
-console.log('zones', await zoneBoxes());
 
 await page.locator('.mission-btn').click();
 await wait(800);
@@ -160,7 +121,7 @@ await wait(600);
 
 await page.locator('.node', { hasText: 'Who is the primary' }).first().click();
 await wait(800);
-await page.locator('.inspector').getByRole('button', { name: 'Dispatch agent' }).click();
+await simClick(page, '.inspector button', 'Dispatch agent');
 await page.locator('.inbox-list li', { hasText: 'Who is the primary' }).first().waitFor({ timeout: 20000 });
 await page.locator('.inbox-list li button', { hasText: 'Who is the primary' }).first().click();
 await chip().waitFor({ timeout: 20000 });
@@ -192,7 +153,7 @@ await chip().click();
 await page.locator('.comms .status', { hasText: 'Resolved' }).waitFor({ timeout: 20000 });
 await wait(2500);
 
-await page.locator('.briefing-btn').click();
+await setVisible(true);
 await page.locator('.bf-tile').first().waitFor({ timeout: 10000 });
 await wait(2500);
 // Top of the briefing: MILO's summary and the stat tiles.

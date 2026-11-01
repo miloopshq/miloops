@@ -117,7 +117,6 @@
 .comms-ticket {
   padding: 0 var(--gutter) var(--sp-8);
   flex: 0 0 auto;
-  font-weight: 600;
 }
 .comms-ticket .meta {
   margin-top: var(--sp-6);
@@ -218,6 +217,16 @@
   width: 5px;
   height: 5px;
   background: var(--urgent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .msg.open-q .q-avatar::after {
+    animation: q-dot 1.2s steps(1) infinite;
+  }
+}
+@keyframes q-dot {
+  50% {
+    opacity: 0.25;
+  }
 }
 .suggest {
   display: flex;

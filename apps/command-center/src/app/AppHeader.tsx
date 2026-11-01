@@ -22,6 +22,7 @@ export function AppHeader(props: {
   return (
     <Header
       repo={props.repo}
+      demo={api.isDemo}
       snaps={api.allSnaps}
       map={snap?.map}
       activity={api.activity}
@@ -37,6 +38,7 @@ export function AppHeader(props: {
       decisionsOpen={props.decisionsOpen}
       onDecisions={props.onDecisions}
       briefingOpen={brief.shown}
+      briefingStatus={brief.status}
       onBriefing={() => (brief.shown ? brief.dismiss() : brief.open())}
     />
   );

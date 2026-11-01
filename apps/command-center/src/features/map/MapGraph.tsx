@@ -5,6 +5,8 @@ import { type Selection, heldLeases, isRunning, prSync, worstFlag } from '../../
 import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
+import { useFocusSelected } from './useFocusSelected';
+import { useWheelZoom } from './useWheelZoom';
 
 export const PAD = 32;
 
@@ -71,11 +73,17 @@ export function MapGraph(props: {
     return { k: nk, x: p.x - ((p.x - v.x) * nk) / v.k, y: p.y - ((p.y - v.y) * nk) / v.k };
   };
 
+  useWheelZoom(box, (factor, at) => {
+    touched.current = true;
+    setView((v) => zoomAt(v, v.k * factor, at));
+  });
+
   const now = useNow(5000);
   const held = heldLeases(props.leases, snap.map.id);
   const sync = usePrSync();
   const live = new Map(props.sessions.filter((s) => isRunning(s) && s.ticketId).map((s) => [s.ticketId!, s]));
   const selId = selection?.kind === 'ticket' ? selection.id : undefined;
+  useFocusSelected({ selId, nodes: L.nodes, size, pad: PAD, view, setView, onFocus: () => (touched.current = true) });
 
   return (
     <div
@@ -112,10 +120,6 @@ export function MapGraph(props: {
         if (pointers.current.size) startGesture();
       }}
       onPointerCancel={(e) => pointers.current.delete(e.pointerId)}
-      onWheel={(e) => {
-        touched.current = true;
-        setView((v) => zoomAt(v, v.k * Math.exp(-e.deltaY * 0.0015), local(e)));
-      }}
       onClickCapture={(e) => {
         if (gesture.current?.moved) {
           e.stopPropagation();
@@ -162,6 +166,7 @@ export function MapGraph(props: {
       </svg>
       <button
         className="btn sm fit-btn"
+        data-tip="Fit the whole mission in view"
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();

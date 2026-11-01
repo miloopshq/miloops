@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MILOOPS: Hire specialists for your missions</title>
+    <meta
+      name="description"
+      content="The MILOOPS specialist marketplace: add a reviewer, QA lead, security expert or docs writer to your mission's crew. Any agent that picks up their tickets works to their checklist. Join the waitlist."
+    />
+    <meta property="og:title" content="MILOOPS: Hire specialists for your missions" />
+    <meta property="og:image" content="https://miloops.app/media/brand/og-image-1200x630.png" />
+    <meta name="theme-color" content="#05090b" />
+    <link rel="icon" href="/media/brand/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/media/brand/favicon-64.png" type="image/png" sizes="64x64" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <!-- @include sprite -->
+    <!-- @include nav -->
+
+    <main id="main">
+      <section class="hero hero--page" aria-labelledby="page-title">
+        <canvas class="field" data-field="hero" data-intensity="0.7" aria-hidden="true"></canvas>
+        <div class="hero__crew" aria-hidden="true">
+          <span class="float spec spec--reviewer" data-spec="thinking" data-size="2.5"></span>
+          <span class="float spec spec--qa" data-spec="idle" data-size="2.5"></span>
+          <span class="float spec spec--security" data-spec="alert" data-size="2.5"></span>
+          <span class="float spec spec--docs" data-spec="idle" data-size="2.5"></span>
+          <span class="float spec spec--architect" data-spec="thinking" data-size="2.5"></span>
+          <span class="float spec spec--you" data-spec="idle" data-size="2.5"></span>
+        </div>
+
+        <div class="wrap hero__inner">
+          <span class="hero__badge" data-scramble>Specialist marketplace · Coming</span>
+          <h1 id="page-title">Hire specialists for your missions.</h1>
+          <p class="hero__lede">
+            Every mission needs different expertise. Give your crew a reviewer, a QA lead, a security expert or a docs
+            writer. Any agent that picks up their tickets works to their role, and MILO makes sure the checklist gets
+            done.
+          </p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="#waitlist"
+              >Join the waitlist <span class="arrow" aria-hidden="true">↓</span></a
+            >
+            <a class="btn" href="#how">How hiring works</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- WHY -->
+      <section class="section" aria-labelledby="s-why">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Why specialists</span>
+              <h2 id="s-why">A general-purpose agent is a generalist. Your mission isn't.</h2>
+            </div>
+            <p>
+              The same agent that writes the code shouldn't be the one that signs it off, and a security pass needs a
+              different eye than a docs pass. Specialists give each kind of work its own instructions and its own bar.
+            </p>
+          </header>
+        </div>
+      </section>
+
+      <!-- HOW -->
+      <section class="section section--flush" id="how" aria-labelledby="s-how">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">How hiring works</span>
+              <h2 id="s-how">Pick them, staff the mission, and they work to the checklist.</h2>
+            </div>
+          </header>
+          <ul class="trio reveal" role="list">
+            <li>
+              <span class="n">01</span>
+              <h3>Pick a specialist</h3>
+              <p>
+                Browse a moderated catalog of roles, or write your own. Each one is a short file: instructions, a
+                checklist and the checks it needs.
+              </p>
+            </li>
+            <li>
+              <span class="n">02</span>
+              <h3>Add them to the mission</h3>
+              <p>
+                Tickets say which role they need, and the mission lists its crew. MILO routes each ticket to an agent
+                that can take it.
+              </p>
+            </li>
+            <li>
+              <span class="n">03</span>
+              <h3>They work to their checklist</h3>
+              <p>
+                The agent that claims the ticket gets the role's instructions and checklist, and can't finish until
+                every item is answered.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ROSTER -->
+      <section class="section" aria-labelledby="s-roster">
+        <div class="wrap split">
+          <div class="split__copy reveal">
+            <span class="eyebrow">The first crew</span>
+            <h2 id="s-roster">Five built-in roles, and room for yours.</h2>
+            <p>
+              The reviewer builds on the independent review MILOOPS already runs today: a different agent checks every
+              change before it counts as done. The others follow the same pattern.
+            </p>
+          </div>
+          <ul class="roster reveal" role="list">
+            <li>
+              <span class="spec spec--reviewer" data-spec="thinking" aria-hidden="true"></span><b>Reviewer</b
+              ><span>Checks the change against what was claimed, with findings and a verdict</span>
+            </li>
+            <li>
+              <span class="spec spec--qa" data-spec="idle" aria-hidden="true"></span><b>QA</b
+              ><span>Tries the edges and failure paths before it ships</span>
+            </li>
+            <li>
+              <span class="spec spec--security" data-spec="alert" aria-hidden="true"></span><b>Security</b
+              ><span>Reads the change the way an attacker would</span>
+            </li>
+            <li>
+              <span class="spec spec--docs" data-spec="idle" aria-hidden="true"></span><b>Docs</b
+              ><span>Keeps docs and examples true to the code</span>
+            </li>
+            <li>
+              <span class="spec spec--architect" data-spec="thinking" aria-hidden="true"></span><b>Architect</b
+              ><span>Guards boundaries and the shape of the system</span>
+            </li>
+            <li class="add">
+              <span class="spec spec--you" data-spec="idle" aria-hidden="true"></span><b>+ Community</b
+              ><span>Roles from the catalog, or one you write for your team</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- SAFETY -->
+      <section class="section" aria-labelledby="s-safe">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Safe by design</span>
+              <h2 id="s-safe">A specialist can raise the bar. Never lower it.</h2>
+            </div>
+            <p>
+              Hiring someone from a catalog has to be safe by default. These rules are enforced by MILOOPS, not by the
+              role.
+            </p>
+          </header>
+          <ul class="facts reveal" role="list">
+            <li>
+              <h3>No code in a role</h3>
+              <p>Roles are instructions and checklists. No scripts, no hooks, nothing that runs on install.</p>
+            </li>
+            <li>
+              <h3>You approve every check</h3>
+              <p>A command a role proposes runs only after you approve it, and it goes into your repo's config.</p>
+            </li>
+            <li>
+              <h3>Pinned and verified</h3>
+              <p>
+                Each installed role is pinned to a version and fingerprint. A file that changes is switched off until
+                you look.
+              </p>
+            </li>
+            <li>
+              <h3>Roles only add rules</h3>
+              <p>
+                A role can add checks and checklist items. It can't skip review, lower verification or decide for you.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ANY AGENT -->
+      <section class="section" aria-labelledby="s-agent">
+        <div class="wrap">
+          <header class="head head--center reveal">
+            <div class="head__title">
+              <span class="eyebrow">Any agent can wear the role</span>
+              <h2 id="s-agent">Specialists aren't tied to a model.</h2>
+            </div>
+            <p>
+              A role is plain text that travels with the ticket. Claude Code, Codex or any agent that connects over MCP
+              picks it up when it claims the work. No vendor lock-in, no hosted agents, and still all on your machine.
+            </p>
+          </header>
+        </div>
+      </section>
+
+      <!-- WAITLIST -->
+      <section class="final" id="waitlist" aria-labelledby="s-wait">
+        <canvas class="field" data-field="final" data-intensity="0.55" aria-hidden="true"></canvas>
+        <div class="wrap final__inner reveal">
+          <span class="tag tag--soon">Coming</span>
+          <h2 id="s-wait">Be first to hire specialists.</h2>
+          <p>
+            We'll email you once, when the marketplace opens. Until then, MILOOPS and its built-in review work today.
+          </p>
+          <form class="waitlist" data-waitlist>
+            <input
+              type="email"
+              name="email"
+              placeholder="you@company.com"
+              aria-label="Email address"
+              required
+              autocomplete="email"
+            />
+            <button class="btn btn--primary" type="submit">Join the waitlist</button>
+            <span class="waitlist__status" data-waitlist-status role="status" aria-live="polite"></span>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- @include footer -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

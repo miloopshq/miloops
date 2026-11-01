@@ -44,6 +44,16 @@ export const LEVEL_TEXT: Record<VerificationLevel, string> = {
   'checks+review+human': 'Checks + review + you',
 };
 
+/** What each level does when an agent reports a ticket done. */
+export const LEVEL_HELP: Record<VerificationLevel, string> = {
+  off: 'The agent saying “done” closes the ticket right away.',
+  checks:
+    'Your checks (tests, lint, typecheck…) run in the repo first. A failure goes back to the agent with the output.',
+  'checks+review':
+    'After the checks pass, a different agent reviews the change. It is never the agent that did the work.',
+  'checks+review+human': 'After checks and review, you approve it in the inbox before the ticket closes.',
+};
+
 export const checkOk = (c: CheckResult) => c.exitCode === 0 && !c.timedOut && !c.error;
 
 async function json<T>(r: Response): Promise<T> {
