@@ -98,10 +98,6 @@
 .sync-error .tl {
   color: var(--urgent);
 }
-.tracker-chip .latency {
-  color: var(--text-hi);
-  min-width: 4.5ch;
-}
 .pulse {
   display: inline-flex;
   align-items: center;
@@ -156,8 +152,7 @@
 .bp-laptop .mission-meta,
 .bp-laptop .tracker-chip .chip-label,
 .bp-laptop .tracker-chip .tl,
-.bp-laptop .waiting-chip .wl,
-.bp-laptop .briefing-btn .bl {
+.bp-laptop .waiting-chip .wl {
   display: none;
 }
 .bp-laptop .h-brand {
@@ -178,8 +173,7 @@
 @media (max-width: 1799px) {
   .bp-wide .wordmark,
   .bp-wide .tracker-chip .chip-label,
-  .bp-wide .waiting-chip .wl,
-  .bp-wide .briefing-btn .bl {
+  .bp-wide .waiting-chip .wl {
     display: none;
   }
   .bp-wide .h-brand {

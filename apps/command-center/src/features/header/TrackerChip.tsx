@@ -9,7 +9,7 @@ export const SYNC_TEXT: Record<TrackerHealth['status'], string> = {
   error: 'Sync error',
 };
 
-/** `metrics.trackerHealth`: sync status and last-write latency. */
+/** `metrics.trackerHealth`: sync status; write counts and last-write latency are in the tooltip. */
 export function TrackerChip({ label, health, now }: { label: string; health: TrackerHealth; now: number }) {
   const title = [
     `${SYNC_TEXT[health.status]} · ${health.writes} writes · ${health.errors} errors`,
@@ -25,7 +25,6 @@ export function TrackerChip({ label, health, now }: { label: string; health: Tra
       <Label size="sm">Tracker</Label>
       <MiloMark variant="status" state={health.status as MarkState} size={13} className="sync-glyph" />
       <span className="tl">{label}</span>
-      <span className="latency">{health.lastWriteMs !== undefined ? dur(health.lastWriteMs) : '—'}</span>
     </span>
   );
 }
