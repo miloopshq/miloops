@@ -1,0 +1,33 @@
+# Every PR and every push to main runs the full project check: lint, format, typecheck, build, unit and node
+# tests, and the MCP end-to-end test (a real MCP client drives a mission while Chrome shows the command center).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - id: chrome
+        uses: browser-actions/setup-chrome@v1
+      # Git evidence and verification tests commit in temp repos.
+      - run: |
+          git config --global user.name "MILOOPS CI"
+          git config --global user.email "ci@miloops.app"
+      - run: npm ci
+      - run: npm run check
+        env:
+          CHROME: ${{ steps.chrome.outputs.chrome-path }}

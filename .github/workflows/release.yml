@@ -1,0 +1,41 @@
+# Stable release: push a tag vX.Y.Z (matching packages/cli/package.json) to publish miloops@X.Y.Z as `latest`
+# on npm and create the GitHub release. See docs/releasing.md.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - id: chrome
+        uses: browser-actions/setup-chrome@v1
+      - run: |
+          git config --global user.name "MILOOPS CI"
+          git config --global user.email "ci@miloops.app"
+      - name: Tag matches the package version
+        run: |
+          v=$(node -p "require('./packages/cli/package.json').version")
+          test "v$v" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME != package version v$v"; exit 1; }
+      - run: npm ci
+      - run: npm run check
+        env:
+          CHROME: ${{ steps.chrome.outputs.chrome-path }}
+      - run: npm publish -w miloops --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}

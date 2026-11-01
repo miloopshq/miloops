@@ -4,8 +4,8 @@ import { existsSync, mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
-import { claimCallsign, CALLSIGNS_DIR } from '../src/agents/callsignClaim';
 import { AGENTS_DIR } from '../src/agents/agentLink';
+import { claimCallsign, CALLSIGNS_DIR } from '../src/agents/callsignClaim';
 
 // Child mode: this same bundled file, re-run with CLAIM_ROOT, claims one callsign and prints it.
 if (process.env.CLAIM_ROOT) {
