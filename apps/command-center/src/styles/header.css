@@ -98,10 +98,6 @@
 .sync-error .tl {
   color: var(--urgent);
 }
-.tracker-chip .latency {
-  color: var(--text-hi);
-  min-width: 4.5ch;
-}
 .pulse {
   display: inline-flex;
   align-items: center;
@@ -123,11 +119,6 @@
 .bp-laptop .pulse,
 .bp-mobile .pulse {
   display: none;
-}
-@media (max-width: 1599px) {
-  .bp-wide .tracker-chip .tl {
-    display: none;
-  }
 }
 .waiting-chip {
   height: var(--h-sm);
@@ -155,9 +146,12 @@
 .bp-laptop .h-line1 .sep,
 .bp-laptop .mission-meta,
 .bp-laptop .tracker-chip .chip-label,
-.bp-laptop .tracker-chip .tl,
-.bp-laptop .waiting-chip .wl,
-.bp-laptop .briefing-btn .bl {
+.bp-laptop .waiting-chip .wl {
+  display: none;
+}
+/* Below 1800px the tracker and PR sync chips only show (with their text) when something is wrong;
+ * a bare status dot said nothing. Their full state stays in Settings. */
+.bp-laptop .tracker-chip:not(.sync-error, .tone-stale, .tone-failed) {
   display: none;
 }
 .bp-laptop .h-brand {
@@ -179,7 +173,7 @@
   .bp-wide .wordmark,
   .bp-wide .tracker-chip .chip-label,
   .bp-wide .waiting-chip .wl,
-  .bp-wide .briefing-btn .bl {
+  .bp-wide .tracker-chip:not(.sync-error, .tone-stale, .tone-failed) {
     display: none;
   }
   .bp-wide .h-brand {

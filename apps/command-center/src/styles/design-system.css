@@ -4,15 +4,15 @@
   /* Type scale. Six UI steps plus one display step for the brand and hero numerals. */
   --fs-xs: 10px; /* micro: readout captions, step labels, pills, axis ticks */
   --fs-label: 11px; /* mono caps labels, chip labels, tabs, badges, meta lines, small buttons */
-  --fs-sm: 12px; /* secondary text: list rows, log, facts, mono data, buttons */
-  --fs-body: 13px; /* body copy, messages, inputs */
-  --fs-title: 16px; /* card titles: HITL question, ticket on the HITL line, readout values */
+  --fs-sm: 13px; /* secondary text: list rows, log, facts, mono data, buttons */
+  --fs-body: 14px; /* body copy, messages, inputs */
+  --fs-title: 17px; /* card titles: HITL question, ticket on the HITL line, readout values */
   --fs-heading: 20px; /* zone heroes: mission title, ticket title, dialog titles, current step */
   --fs-display: 28px; /* wordmark, empty-state hero, briefing tiles */
 
   --lh-tight: 1.1;
-  --lh-snug: 1.25;
-  --lh-body: 1.45;
+  --lh-snug: 1.3;
+  --lh-body: 1.55;
 
   --ls-0: 0;
   --ls-text: 0.01em; /* Chakra Petch running text (agent voice) */
@@ -54,7 +54,7 @@
   letter-spacing: var(--ls-data);
 }
 .t-title {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-weight: 500;
   font-size: var(--fs-title);
   line-height: var(--lh-snug);
@@ -62,13 +62,14 @@
 }
 .t-heading {
   margin: 0;
-  font-family: var(--display);
+  font-family: var(--sans);
   font-weight: 600;
   font-size: var(--fs-heading);
   line-height: var(--lh-tight);
   color: var(--text-hi);
 }
 .t-heading.caps {
+  font-family: var(--display);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
 }
@@ -128,13 +129,13 @@
   white-space: nowrap;
 }
 
-/* ---------- Label (chip) ---------- */
+/* ---------- Label: section names. Plain text, never boxed, so only buttons look clickable. ---------- */
 .chip-label {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-6);
   margin: 0;
-  padding: var(--sp-2) 7px;
+  padding: 0;
   font-family: var(--mono);
   font-size: var(--fs-label);
   font-weight: 400;
@@ -142,8 +143,6 @@
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.06);
-  border: 1px solid var(--line2);
   white-space: nowrap;
   align-self: center;
 }
@@ -152,12 +151,15 @@
   letter-spacing: var(--ls-data);
 }
 .chip-label.hot {
-  color: #fff;
+  color: var(--urgent);
+}
+.chip-label.hot::before {
+  content: '';
+  width: 7px;
+  height: 7px;
   background: var(--urgent);
-  border-color: var(--urgent);
 }
 .chip-label.sm {
-  padding: 0 5px;
   font-size: var(--fs-xs);
 }
 .set-sec > .chip-label {
@@ -282,10 +284,9 @@
   border: 1px solid var(--line2);
   background: rgba(var(--accent-rgb), 0.03);
   color: var(--text);
-  font-family: var(--mono);
-  font-size: var(--fs-sm);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -300,7 +301,7 @@
 .btn.sm {
   height: var(--h-sm);
   padding: 0 var(--sp-8);
-  font-size: var(--fs-label);
+  font-size: var(--fs-sm);
 }
 .btn.primary {
   background: var(--st-claimed);
@@ -312,9 +313,8 @@
   color: #1a0a02;
 }
 .btn.ghost {
-  border-color: transparent;
   background: transparent;
-  color: var(--dim);
+  color: var(--text);
 }
 .btn.danger {
   color: var(--urgent);
@@ -330,7 +330,7 @@
   color: var(--accent);
 }
 .btn.ghost.on {
-  border-color: var(--line2);
+  border-color: var(--accent);
 }
 .btn .n {
   font-size: var(--fs-label);
@@ -349,6 +349,10 @@
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   padding: 0;
+}
+.link:hover:not(:disabled) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .link:disabled {
   color: var(--faint);

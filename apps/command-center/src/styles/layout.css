@@ -73,7 +73,7 @@
   cursor: pointer;
   font-family: var(--mono);
   font-size: var(--fs-label);
-  letter-spacing: var(--ls-label);
+  letter-spacing: var(--ls-data);
   text-transform: uppercase;
   color: var(--dim);
   border-bottom: 2px solid transparent;
@@ -81,6 +81,15 @@
 }
 .tab:hover {
   color: var(--text);
+}
+/* Zone sub-tabs wrap to a second row instead of scrolling, so the last tab is never cut off. */
+.tabs.sub {
+  flex-wrap: wrap;
+  overflow: visible;
+  row-gap: 0;
+}
+.tabs.sub .tab {
+  height: var(--h-lg);
 }
 .tab.on {
   color: var(--accent);

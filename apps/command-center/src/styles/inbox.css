@@ -120,29 +120,30 @@
   font-weight: 600;
 }
 .comms-ticket .meta {
-  margin-top: 3px;
+  margin-top: var(--sp-6);
 }
 .comms-log {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: var(--sp-4) var(--gutter) var(--sp-10);
+  padding: var(--sp-8) var(--gutter) var(--sp-14);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-10);
+  gap: var(--sp-14);
 }
 .msg {
-  max-width: 88%;
+  max-width: 92%;
 }
 .msg .meta {
-  margin-bottom: 3px;
+  margin-bottom: var(--sp-6);
   letter-spacing: var(--ls-label);
-  font-size: var(--fs-xs);
+  font-size: var(--fs-label);
 }
 .msg-text {
   white-space: pre-wrap;
-  padding: var(--sp-6) var(--sp-10);
+  padding: var(--sp-10) var(--sp-12);
   font-size: var(--fs-body);
+  line-height: var(--lh-body);
   background: rgba(var(--accent-rgb), 0.04);
   border: 1px solid var(--line2);
   border-left: 2px solid var(--accent);
@@ -167,9 +168,8 @@
   background: var(--urgent-bg);
   color: var(--text-hi);
 }
-/* Open question: 32px MILO beside the text column; suggestions and the answer row share that column. */
+/* Open question: 32px MILO beside the text column; suggestions and the answer row use the full width below. */
 .comms {
-  --q-col: 46px;
   container-type: inline-size;
 }
 .comms-ticket .meta > span {
@@ -221,11 +221,13 @@
 }
 .suggest {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-6);
+  flex-direction: column;
+  gap: var(--sp-4);
   padding: 0 var(--gutter) var(--sp-8);
 }
 .suggest .chip {
+  width: 100%;
+  padding: var(--sp-4) var(--sp-12);
   border-color: rgba(var(--amber-rgb), 0.4);
 }
 .suggest .chip:hover {
@@ -235,11 +237,6 @@
 .comms-input {
   padding: var(--sp-8) var(--gutter) var(--sp-12);
 }
-.comms.asking .suggest,
-.comms.asking .comms-input {
-  padding-left: calc(var(--gutter) + var(--q-col));
-}
-
 .upnext {
   display: flex;
   flex-direction: column;

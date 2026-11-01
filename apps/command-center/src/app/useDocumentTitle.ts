@@ -1,9 +1,9 @@
 import { BRAND } from '@miloops-hq/core';
 import { useEffect } from 'react';
 
-/** Tab title: waiting count, then the mission. */
+/** Tab title: the brand first, then the waiting count and the mission. */
 export function useDocumentTitle(pending: number, mission: string | undefined) {
   useEffect(() => {
-    document.title = `${pending ? `(${pending}) ` : ''}${mission ?? 'No mission'} · ${BRAND.name}`;
+    document.title = `${BRAND.name}: ${pending ? `(${pending}) ` : ''}${mission ?? 'No mission'}`;
   }, [pending, mission]);
 }

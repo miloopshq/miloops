@@ -2,7 +2,7 @@ import { BRAND } from '@miloops-hq/core';
 import { useState } from 'react';
 import { Panel, MiloLogo, MiloMark, Wordmark, Label, Choice, Button } from '../../components/ui';
 import type { Prefs, TrackerChoice } from '../../lib';
-import { useTrackerSettings, trackerApi, switchTracker } from '../trackers';
+import { GitHubSetup, LinearSetup, useTrackerSettings, trackerApi, switchTracker } from '../trackers';
 import { SettingsSection } from './SettingsSection';
 import { TranscriptChoice } from './TranscriptChoice';
 
@@ -15,9 +15,16 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
   const ghRepo = trackers?.github.auth ? (trackers.github.repo ?? trackers.github.detectedRepo) : undefined;
   const choices: { id: TrackerChoice; title: string; sub?: string }[] = [
     { id: 'markdown', title: 'Local markdown' },
-    ...(ghRepo ? [{ id: 'github' as const, title: 'GitHub Issues', sub: ghRepo }] : []),
+    { id: 'github', title: 'GitHub Issues', sub: ghRepo },
+    { id: 'linear', title: 'Linear' },
     { id: 'demo', title: 'Demo' },
   ];
+  /** GitHub without a detected repo, and Linear, need setup first; their Connect button finishes onboarding. */
+  const needsSetup = (prefs.tracker === 'github' && !ghRepo) || prefs.tracker === 'linear';
+  const finish = (tracker: TrackerChoice) => {
+    update({ onboarded: true });
+    switchTracker(update, tracker);
+  };
   const start = async () => {
     if (prefs.tracker === 'github' && ghRepo) {
       setBusy(true);
@@ -61,6 +68,10 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
               />
             ))}
           </div>
+          {trackers && prefs.tracker === 'github' && !ghRepo && (
+            <GitHubSetup s={trackers} onConnected={() => finish('github')} />
+          )}
+          {trackers && prefs.tracker === 'linear' && <LinearSetup s={trackers} onConnected={() => finish('linear')} />}
           {error && <div className="test-line alert">✕ {error}</div>}
         </SettingsSection>
 
@@ -69,7 +80,7 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
         </SettingsSection>
 
         <footer>
-          <Button variant="primary" disabled={busy} onClick={() => void start()}>
+          <Button variant="primary" disabled={busy || needsSetup} onClick={() => void start()}>
             Get started
           </Button>
         </footer>

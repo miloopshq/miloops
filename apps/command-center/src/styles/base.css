@@ -10,7 +10,7 @@
   --line2: rgba(var(--line-rgb), 0.28);
   --text: #b6c8cb;
   --text-hi: #e1e9ea;
-  --dim: #66797c;
+  --dim: #7d9195;
   --faint: #3d4c4f;
 
   --accent-rgb: 132, 182, 194;
@@ -35,16 +35,13 @@
   /* "OPS" half of the wordmark: MILO's antenna copper, shared with the brand kit. */
   --brand-ops: #c98b5e;
 
-  /* Option C "Hardware HUD" (src/fonts.ts). --display: headings; --mono: caps labels and readouts; --sans: body. */
+  /* Option C "Hardware HUD" (src/fonts.ts). --display: caps headings and the wordmark; --mono: labels, ids and readouts; --sans: everything read. */
   --display: 'Chakra Petch', sans-serif;
   --mono: 'Share Tech Mono', ui-monospace, monospace;
   --sans: 'Barlow', system-ui, sans-serif;
-  /* Dot-matrix accent for signal moments only (a decision request arriving, a mission launch). */
-  --dot: 'Doto', var(--mono);
-
-  /* Type voices: humans write in Barlow, agents and MILO speak in Chakra Petch, tracker/system data in mono. */
+  /* Type voices: people and agents both read in Barlow (bubbles and colors tell them apart); tracker/system data in mono. */
   --voice-human: var(--sans);
-  --voice-agent: var(--display);
+  --voice-agent: var(--sans);
   --voice-data: var(--mono);
 
   /* Map graph text is in SVG units and scales with zoom; these sizes are tuned to NODE_W/NODE_H. */

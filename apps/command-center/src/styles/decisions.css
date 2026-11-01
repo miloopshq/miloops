@@ -221,7 +221,7 @@
   min-width: 0;
 }
 .dv-row .q {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-weight: 500;
   font-size: var(--fs-body);
   color: var(--text-hi);
