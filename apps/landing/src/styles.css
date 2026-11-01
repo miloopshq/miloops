@@ -771,17 +771,43 @@ code {
   background: var(--bg);
 }
 .roster li > b,
-.roster li > span {
+.roster li > span:not(.spec) {
   grid-column: 2;
 }
 /* Each specialist is MILO in its own colour (the reviewer keeps MILO's). */
 .spec {
   grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
   width: 48px;
   height: 48px;
-  image-rendering: pixelated;
-  border: 1px solid var(--line);
-  background: var(--bg-2);
+  animation: spec-bob 3.2s ease-in-out infinite;
+}
+.roster li:nth-child(2) .spec {
+  animation-delay: -0.6s;
+}
+.roster li:nth-child(3) .spec {
+  animation-delay: -1.3s;
+}
+.roster li:nth-child(4) .spec {
+  animation-delay: -1.9s;
+}
+.roster li:nth-child(5) .spec {
+  animation-delay: -2.4s;
+}
+.roster li:nth-child(6) .spec {
+  animation-delay: -2.9s;
+}
+.spec .milo {
+  margin: 0;
+}
+.spec .milo-sprite {
+  outline: none !important;
+}
+@keyframes spec-bob {
+  50% {
+    transform: translateY(-3px);
+  }
 }
 .spec--qa {
   filter: sepia(1) saturate(3.2) hue-rotate(75deg) brightness(0.95);
@@ -798,8 +824,6 @@ code {
 .spec--you {
   filter: grayscale(1) brightness(0.7);
   opacity: 0.55;
-  border-style: dashed;
-  border-color: var(--line-2);
 }
 .roster b {
   font-family: var(--pixel);
@@ -1027,6 +1051,9 @@ code {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+  .spec {
+    animation: none;
   }
 }
 

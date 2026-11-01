@@ -1,4 +1,4 @@
-import { mountMilo } from '@miloops-hq/milo-avatar/mount';
+import { type MiloState, mountMilo } from '@miloops-hq/milo-avatar/mount';
 import { initCmdCycle } from './cmdCycle';
 import { initCopy } from './copy';
 import { $, $$ } from './dom';
@@ -20,6 +20,8 @@ for (const canvas of $$<HTMLCanvasElement>('canvas[data-field]')) {
 
 const milo = $('[data-milo]');
 if (milo) mountMilo(milo, { size: 'sm', state: 'idle', framed: false });
+// Specialists: MILO in each role's colour (CSS), each in its own state so the roster feels alive.
+for (const el of $$('[data-spec]')) mountMilo(el, { size: 1.5, state: el.dataset.spec as MiloState, framed: false });
 
 initNav();
 initReveal(reducedMotion);
