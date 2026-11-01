@@ -140,6 +140,17 @@
 .briefing-btn .milo-mark {
   color: var(--accent);
 }
+/* A briefing not opened yet: accent outline plus a dot. */
+.briefing-btn.has-new {
+  border-color: var(--accent);
+  color: var(--text-hi);
+}
+.briefing-btn .new-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2);
+}
 /* Laptop: the mission title gets the room; secondary readouts collapse to glyph + number. */
 .bp-laptop .wordmark,
 .bp-laptop .repo,

@@ -6,12 +6,18 @@ import {
   missionProgress,
 } from '@miloops-hq/core';
 import { Panel, MiloLogo, MiloMark, Wordmark, Label, Readout, Button } from '../../components/ui';
-import { useNow } from '../../hooks';
+import { type BriefingStatus, useNow } from '../../hooks';
 import { hms } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
 import { MissionSwitcher } from './MissionSwitcher';
 import { TrackerChip } from './TrackerChip';
 import { TrackerPulse } from './TrackerPulse';
+
+const BRIEFING_TITLE: Record<BriefingStatus, string> = {
+  new: 'While you were away: a new briefing from MILO',
+  seen: 'Reopen the last briefing',
+  none: 'No briefing yet. MILO briefs you when you come back after being away.',
+};
 
 export function Header(props: {
   repo: string;
@@ -31,6 +37,7 @@ export function Header(props: {
   decisionsOpen: boolean;
   onDecisions: () => void;
   briefingOpen: boolean;
+  briefingStatus: BriefingStatus;
   onBriefing: () => void;
 }) {
   const { map } = props;
@@ -88,14 +95,16 @@ export function Header(props: {
         <TrackerPulse health={props.health} now={now} />
         <Button
           variant="ghost"
-          className="briefing-btn"
+          className={`briefing-btn ${props.briefingStatus === 'new' ? 'has-new' : ''}`}
           on={props.briefingOpen}
           onClick={props.onBriefing}
+          disabled={props.briefingStatus === 'none' && !props.briefingOpen}
           aria-pressed={props.briefingOpen}
-          title="While you were away"
+          title={BRIEFING_TITLE[props.briefingStatus]}
         >
           <MiloMark size={14} />
           <span className="bl">Briefing</span>
+          {props.briefingStatus === 'new' && <span className="new-dot" aria-label="new" />}
         </Button>
         <Button
           variant="ghost"

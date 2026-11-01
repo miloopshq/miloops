@@ -37,6 +37,7 @@ export function AppHeader(props: {
       decisionsOpen={props.decisionsOpen}
       onDecisions={props.onDecisions}
       briefingOpen={brief.shown}
+      briefingStatus={brief.status}
       onBriefing={() => (brief.shown ? brief.dismiss() : brief.open())}
     />
   );

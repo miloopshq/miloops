@@ -7,6 +7,9 @@ export const TICK_MS = 15_000;
 
 export const INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'] as const;
 
+/** Header button: `new` is a briefing not opened yet, `seen` can be reopened, `none` means no briefing this session. */
+export type BriefingStatus = 'new' | 'seen' | 'none';
+
 /**
  * "While you were away". While the tab is visible the operator was last present
  * at their last input; hiding the tab while active counts as present until then.
@@ -16,6 +19,9 @@ export const INPUT_EVENTS = ['pointerdown', 'pointermove', 'keydown', 'wheel', '
  */
 export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['briefing']) {
   const [since, setSince] = useState<Record<string, number> | null>(null);
+  /** A briefing was built this session (so the button can reopen it), and whether it has been opened. */
+  const [available, setAvailable] = useState(false);
+  const [unread, setUnread] = useState(false);
   /** Last-seen times the most recent briefing was built from, for the header button. */
   const lastSince = useRef<{ seen: Record<string, number>; any?: number }>();
   const lastInput = useRef(Date.now());
@@ -55,8 +61,13 @@ export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['br
     const any = p.lastSeenAny();
     if (any !== undefined && Date.now() - any >= awayMs) {
       const seen = p.snapshot();
-      lastSince.current = { seen, any };
-      if (prefs.enabled && compute(seen, any).changed) setSince(seen);
+      if (compute(seen, any).changed) {
+        lastSince.current = { seen, any };
+        setAvailable(true);
+        // With auto-open off, the briefing waits behind the header button, marked new.
+        if (prefs.enabled) setSince(seen);
+        else setUnread(true);
+      }
     }
     markSeen();
   }, [rt, awayMs, prefs.enabled, compute, markSeen]);
@@ -102,14 +113,20 @@ export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['br
   );
   const line = useMemo(() => (briefing ? briefingLine(briefing) : ''), [briefing]);
 
+  useEffect(() => {
+    if (since) setUnread(false);
+  }, [since]);
+  const status: BriefingStatus = unread ? 'new' : available ? 'seen' : 'none';
+
   return {
     shown: since !== null,
+    status,
     briefing,
     line,
-    /** Header button: the last briefing again, or everything since this session started. */
+    /** Header button: the last briefing again. */
     open: () => {
       const l = lastSince.current;
-      setSince(l?.seen ?? rt.presence?.snapshot() ?? {});
+      if (l) setSince(l.seen);
     },
     dismiss: () => setSince(null),
   };
