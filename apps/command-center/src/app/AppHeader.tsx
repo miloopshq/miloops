@@ -22,6 +22,7 @@ export function AppHeader(props: {
   return (
     <Header
       repo={props.repo}
+      demo={api.isDemo}
       snaps={api.allSnaps}
       map={snap?.map}
       activity={api.activity}

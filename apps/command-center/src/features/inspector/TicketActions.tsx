@@ -12,9 +12,11 @@ export function TicketActions(props: {
   form: Form;
   setForm: (f: Form) => void;
   actions: CommandCenterApi['actions'];
+  /** Demo only: a simulated agent can be dispatched from here. */
+  simulated: boolean;
   onOpenChat: (id: string) => void;
 }) {
-  const { t, state, session, mine, form, setForm, actions, onOpenChat } = props;
+  const { t, state, session, mine, form, setForm, actions, simulated, onOpenChat } = props;
   return (
     <div className="actions">
       {session && (
@@ -30,9 +32,11 @@ export function TicketActions(props: {
       )}
       {state === 'frontier' && (
         <>
-          <Button variant="primary" onClick={() => actions.work(t.id)} data-tip="Send an agent to work this ticket">
-            Dispatch agent
-          </Button>
+          {simulated && (
+            <Button variant="primary" onClick={() => actions.work(t.id)} data-tip="Send an agent to work this ticket">
+              Dispatch agent
+            </Button>
+          )}
           <Button onClick={() => actions.claim(t.id)} data-tip="Take this ticket yourself, so no agent picks it up">
             Claim
           </Button>

@@ -1,5 +1,6 @@
 export { AppBriefing } from './AppBriefing';
 export { AppHeader } from './AppHeader';
+export { AppNewMission } from './AppNewMission';
 export { AppSettings } from './AppSettings';
 export { LaptopSide } from './LaptopSide';
 export { MapZone } from './MapZone';

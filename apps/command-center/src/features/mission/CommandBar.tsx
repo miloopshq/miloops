@@ -1,10 +1,19 @@
 import { frontier } from '@miloops-hq/core';
 import { Button, MiloMark } from '../../components/ui';
 import type { CommandCenterApi } from '../../hooks';
+import { AgentCommand } from './AgentCommand';
 
 export function CommandBar({ api }: { api: CommandCenterApi }) {
   const { snap, actions } = api;
   const hasFrontier = !!snap && frontier(snap.tickets, snap.map.mode).length > 0;
+  // Real missions: agents work from their own chat; MILOOPS never starts an agent itself.
+  if (!api.simulated)
+    return (
+      <div className="command-bar real">
+        <span className="dim">Agents pick up ready work from their chat</span>
+        <AgentCommand command="/milo resume" />
+      </div>
+    );
   return (
     <div className="command-bar">
       <Button
@@ -20,7 +29,7 @@ export function CommandBar({ api }: { api: CommandCenterApi }) {
         <MiloMark variant="action" size={14} />
         Work next
       </Button>
-      {api.autopilotAvailable && (
+      {api.simulated && (
         <button
           className={`toggle ${api.autopilot ? 'on' : ''}`}
           onClick={actions.toggleAutopilot}

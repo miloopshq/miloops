@@ -66,10 +66,10 @@ const zoom = async (name, sels, { aspect = 4 / 3, pad = 16 } = {}) => {
   console.log('saved', `${name}.png`, `${clip.width * 2}x${clip.height * 2}`);
 };
 
-// Autopilot is hidden outside the demo tracker unless the URL opts in.
-const withAutopilot = new URL(url);
-withAutopilot.searchParams.set('autopilot', '');
-await page.goto(withAutopilot.href);
+// Simulated agents (sample mission, Autopilot, Dispatch agent) only run with ?simulate outside the demo.
+const withSimulate = new URL(url);
+withSimulate.searchParams.set('simulate', '');
+await page.goto(withSimulate.href);
 await page.locator('.dialog.onboarding').waitFor({ timeout: 20000 });
 await wait(800);
 await page.getByRole('button', { name: 'Get started' }).click();

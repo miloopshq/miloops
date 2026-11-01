@@ -526,3 +526,38 @@
   letter-spacing: var(--ls-label);
   fill: var(--urgent);
 }
+
+/* ---------- Real missions: agents work from their chat, so the UI hands over agent commands ---------- */
+.command-bar.real {
+  font-size: var(--fs-sm);
+}
+.agent-cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  max-width: 100%;
+  padding: 3px 3px 3px var(--sp-10);
+  border: 1px solid var(--line2);
+  background: rgba(0, 0, 0, 0.35);
+}
+.agent-cmd code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  color: var(--text-hi);
+}
+.nomap-lede {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--dim);
+  line-height: var(--lh-body);
+}
+.agent-draft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}

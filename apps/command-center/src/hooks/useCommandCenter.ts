@@ -189,8 +189,13 @@ export function useCommandCenter(rt: Runtime) {
     selection,
     setSelection,
     autopilot,
-    /** Autopilot runs simulated agents that close real tickets, so it's offered on the demo tracker only; `?autopilot` opts in (capture scripts). */
-    autopilotAvailable: rt.kind === 'demo' || new URLSearchParams(location.search).has('autopilot'),
+    /**
+     * Demo vs real: simulated agents (Work next, Autopilot, Dispatch agent, charting from the dialog, the
+     * sample mission) only run on the demo tracker. Real missions start and move in the agent's chat.
+     * `?simulate` (or the older `?autopilot`) opts a local tracker in, for the capture scripts only.
+     */
+    simulated: rt.kind === 'demo' || ['simulate', 'autopilot'].some((k) => new URLSearchParams(location.search).has(k)),
+    isDemo: rt.kind === 'demo',
     error,
     chatSession,
     decisions,

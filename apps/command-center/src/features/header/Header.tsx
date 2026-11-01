@@ -7,7 +7,7 @@ import {
 } from '@miloops-hq/core';
 import { Panel, MiloLogo, MiloMark, Wordmark, Label, Readout, Button } from '../../components/ui';
 import { type BriefingStatus, useNow } from '../../hooks';
-import { hms } from '../../lib';
+import { hms, leaveDemo } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
 import { MissionSwitcher } from './MissionSwitcher';
 import { TrackerChip } from './TrackerChip';
@@ -20,6 +20,8 @@ const BRIEFING_TITLE: Record<BriefingStatus, string> = {
 
 export function Header(props: {
   repo: string;
+  /** In-memory demo: shows the DEMO badge and a way out. */
+  demo: boolean;
   snaps: Record<string, MapSnapshot>;
   map?: MapDoc;
   activity: ActivityState;
@@ -91,6 +93,16 @@ export function Header(props: {
             <MiloMark variant="alert" size={14} />
             <b>{waiting}</b>
             <span className="wl">&nbsp;waiting on you</span>
+          </span>
+        )}
+        {props.demo && (
+          <span className="demo-badge">
+            <span data-tip="A ready-made mission with simulated agents. Nothing here is saved, and reloading starts over.">
+              Demo
+            </span>
+            <Button size="sm" variant="ghost" onClick={leaveDemo} data-tip="Leave the demo and set up your own project">
+              Exit demo
+            </Button>
           </span>
         )}
         {props.slackAlert && (

@@ -13,11 +13,12 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
   const [busy, setBusy] = useState(false);
   /** One-click GitHub when a token (gh / env) and a GitHub `origin` are already on this machine. */
   const ghRepo = trackers?.github.auth ? (trackers.github.repo ?? trackers.github.detectedRepo) : undefined;
+  /** Demo and real use never mix: pick one first; trackers are only for your own project. */
+  const demo = prefs.tracker === 'demo';
   const choices: { id: TrackerChoice; title: string; sub?: string }[] = [
-    { id: 'markdown', title: 'Local markdown' },
+    { id: 'markdown', title: 'Local markdown', sub: 'Files in .miloops/ in this repo' },
     { id: 'github', title: 'GitHub Issues', sub: ghRepo },
     { id: 'linear', title: 'Linear' },
-    { id: 'demo', title: 'Demo' },
   ];
   /** GitHub without a detected repo, and Linear, need setup first; their Connect button finishes onboarding. */
   const needsSetup = (prefs.tracker === 'github' && !ghRepo) || prefs.tracker === 'linear';
@@ -53,27 +54,48 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
           <Label>
             <MiloMark variant="voice" size={11} /> {BRAND.assistant.name}
           </Label>{' '}
-          Pick a tracker and how I record HITL conversations.
+          {demo ? 'Explore a ready-made mission first, or set up your project.' : 'Where should your missions live?'}
         </p>
 
-        <SettingsSection title="Tracker">
+        <SettingsSection title="Start with">
           <div className="choice-row">
-            {choices.map((c) => (
-              <Choice
-                key={c.id}
-                on={prefs.tracker === c.id}
-                title={c.title}
-                sub={c.sub}
-                onClick={() => update({ tracker: c.id })}
-              />
-            ))}
+            <Choice
+              on={!demo}
+              title="My project"
+              sub="Your real missions. Agents work from Claude Code or Codex."
+              onClick={() => demo && update({ tracker: 'markdown' })}
+            />
+            <Choice
+              on={demo}
+              title="The demo"
+              sub="A sample mission with simulated agents. Nothing is saved."
+              onClick={() => update({ tracker: 'demo' })}
+            />
           </div>
-          {trackers && prefs.tracker === 'github' && !ghRepo && (
-            <GitHubSetup s={trackers} onConnected={() => finish('github')} />
-          )}
-          {trackers && prefs.tracker === 'linear' && <LinearSetup s={trackers} onConnected={() => finish('linear')} />}
-          {error && <div className="test-line alert">✕ {error}</div>}
         </SettingsSection>
+
+        {!demo && (
+          <SettingsSection title="Tracker">
+            <div className="choice-row">
+              {choices.map((c) => (
+                <Choice
+                  key={c.id}
+                  on={prefs.tracker === c.id}
+                  title={c.title}
+                  sub={c.sub}
+                  onClick={() => update({ tracker: c.id })}
+                />
+              ))}
+            </div>
+            {trackers && prefs.tracker === 'github' && !ghRepo && (
+              <GitHubSetup s={trackers} onConnected={() => finish('github')} />
+            )}
+            {trackers && prefs.tracker === 'linear' && (
+              <LinearSetup s={trackers} onConnected={() => finish('linear')} />
+            )}
+            {error && <div className="test-line alert">✕ {error}</div>}
+          </SettingsSection>
+        )}
 
         <SettingsSection title="HITL transcript">
           <TranscriptChoice value={prefs.hitlTranscript} onChange={(hitlTranscript) => update({ hitlTranscript })} />
@@ -81,7 +103,7 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
 
         <footer>
           <Button variant="primary" disabled={busy || needsSetup} onClick={() => void start()}>
-            Get started
+            {demo ? 'Open the demo' : 'Get started'}
           </Button>
         </footer>
       </Panel>

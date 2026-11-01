@@ -91,10 +91,10 @@ const annotate = (zones) =>
     document.body.appendChild(layer);
   }, zones);
 
-// Autopilot is hidden outside the demo tracker unless the URL opts in.
-const withAutopilot = new URL(url);
-withAutopilot.searchParams.set('autopilot', '');
-await page.goto(withAutopilot.href);
+// Simulated agents (sample mission, Autopilot, Dispatch agent) only run with ?simulate outside the demo.
+const withSimulate = new URL(url);
+withSimulate.searchParams.set('simulate', '');
+await page.goto(withSimulate.href);
 await wait(1500);
 
 // First run: onboarding. Keep local markdown, choose full HITL transcripts.

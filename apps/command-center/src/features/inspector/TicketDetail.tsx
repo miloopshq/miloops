@@ -83,6 +83,7 @@ export function TicketDetail(props: {
         form={form}
         setForm={setForm}
         actions={actions}
+        simulated={api.simulated}
         onOpenChat={props.onOpenChat}
       />
 
