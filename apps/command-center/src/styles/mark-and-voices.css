@@ -22,7 +22,7 @@
   color: var(--accent);
 }
 
-/* ---------- Type voices: people and agents (Barlow) vs tracker data (mono) ---------- */
+/* ---------- Type voices: people and agents (Geist) vs tracker data (label face) ---------- */
 .msg.voice-agent .msg-text {
   font-family: var(--voice-agent);
   letter-spacing: var(--ls-text);

@@ -15,10 +15,10 @@
   --lh-body: 1.55;
 
   --ls-0: 0;
-  --ls-text: 0.01em; /* Chakra Petch running text (agent voice) */
-  --ls-data: 0.06em; /* mono data: keys, timers, ids, caps headings in Chakra Petch */
+  --ls-text: 0.01em; /* slight tracking for small running text */
+  --ls-data: 0.06em; /* label-face data: keys, ids, caps headings in Geist Pixel */
   --ls-label: 0.1em; /* mono caps labels, buttons, tabs */
-  --ls-brand: 0.12em; /* wordmark only, set in Chakra Petch 700 */
+  --ls-brand: 0.12em; /* wordmark only, set in Geist Pixel */
 
   /* Spacing scale (px). --gutter is the inner padding of every zone. */
   --sp-2: 2px;
@@ -50,7 +50,7 @@
   font-size: var(--fs-xs);
 }
 .t-data {
-  font-family: var(--mono);
+  font-family: var(--data);
   letter-spacing: var(--ls-data);
 }
 .t-title {
@@ -250,7 +250,7 @@
   font-size: var(--fs-xs);
 }
 .readout > b {
-  font-family: var(--mono);
+  font-family: var(--data);
   font-weight: 400;
   font-size: var(--fs-title);
   color: var(--text-hi);

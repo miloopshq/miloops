@@ -74,7 +74,7 @@
 .mi-progress {
   color: var(--dim);
   font-size: var(--fs-sm);
-  font-family: var(--mono);
+  font-family: var(--data);
 }
 .mission-item.new {
   display: block;

@@ -39,7 +39,7 @@
   background: transparent;
 }
 .bf-tile b {
-  font-family: var(--mono);
+  font-family: var(--data);
   font-weight: 400;
   font-size: var(--fs-display);
   line-height: var(--lh-tight);

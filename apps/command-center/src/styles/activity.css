@@ -110,7 +110,7 @@
 }
 .timer {
   margin-left: auto;
-  font-family: var(--mono);
+  font-family: var(--data);
   font-size: var(--fs-body);
   color: var(--text-hi);
   letter-spacing: var(--ls-data);
@@ -124,7 +124,7 @@
   flex: 1;
 }
 .usage {
-  font-family: var(--mono);
+  font-family: var(--data);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-text);
   color: var(--dim);
@@ -186,7 +186,7 @@
   background: var(--st-claimed);
 }
 .claims-bar b {
-  font-family: var(--mono);
+  font-family: var(--data);
   font-weight: 400;
   font-size: var(--fs-label);
   color: var(--text-hi);

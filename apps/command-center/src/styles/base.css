@@ -35,11 +35,13 @@
   /* "OPS" half of the wordmark: MILO's antenna copper, shared with the brand kit. */
   --brand-ops: #c98b5e;
 
-  /* Option C "Hardware HUD" (src/fonts.ts). --display: caps headings and the wordmark; --mono: labels, ids and readouts; --sans: everything read. */
-  --display: 'Chakra Petch', sans-serif;
-  --mono: 'Share Tech Mono', ui-monospace, monospace;
-  --sans: 'Barlow', system-ui, sans-serif;
-  /* Type voices: people and agents both read in Barlow (bubbles and colors tell them apart); tracker/system data in mono. */
+  /* Two fonts (src/fonts.ts). Geist Pixel: --display (caps headings, wordmark) and --mono (HUD labels, tags, ids).
+   * Geist: --sans for everything read, and --data for numbers that change (timers, counts, spend), with tabular digits. */
+  --display: 'Geist Pixel', 'Geist Variable', sans-serif;
+  --mono: 'Geist Pixel', 'Geist Variable', monospace;
+  --sans: 'Geist Variable', system-ui, sans-serif;
+  --data: 'Geist Variable', system-ui, sans-serif;
+  /* Type voices: people and agents both read in Geist (bubbles and colors tell them apart); tracker/system data in the label face. */
   --voice-human: var(--sans);
   --voice-agent: var(--sans);
   --voice-data: var(--mono);
@@ -72,6 +74,8 @@ body {
   line-height: var(--lh-body);
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
+  /* Geist Pixel has one weight; a synthesized bold smears its pixels. */
+  font-synthesis: none;
   -webkit-text-size-adjust: 100%;
 }
 button,
@@ -102,7 +106,7 @@ button {
   font-size: var(--fs-sm);
 }
 code {
-  font-family: var(--mono);
+  font-family: var(--data);
   font-size: var(--fs-sm);
   color: var(--text-hi);
   background: var(--panel2);
