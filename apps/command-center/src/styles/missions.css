@@ -17,7 +17,8 @@
 }
 .mission-title {
   font-family: var(--display);
-  font-weight: 600;
+  font-weight: 400;
+  -webkit-text-stroke: var(--heavy);
   font-size: var(--fs-heading);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;

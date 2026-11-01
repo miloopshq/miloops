@@ -70,6 +70,7 @@
 }
 .t-heading.caps {
   font-family: var(--display);
+  -webkit-text-stroke: var(--heavy);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
 }
