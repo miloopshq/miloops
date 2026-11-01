@@ -5,6 +5,7 @@ import { type Selection, heldLeases, isRunning, prSync, worstFlag } from '../../
 import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
+import { useFocusSelected } from './useFocusSelected';
 import { useWheelZoom } from './useWheelZoom';
 
 export const PAD = 32;
@@ -82,6 +83,7 @@ export function MapGraph(props: {
   const sync = usePrSync();
   const live = new Map(props.sessions.filter((s) => isRunning(s) && s.ticketId).map((s) => [s.ticketId!, s]));
   const selId = selection?.kind === 'ticket' ? selection.id : undefined;
+  useFocusSelected({ selId, nodes: L.nodes, size, pad: PAD, view, setView, onFocus: () => (touched.current = true) });
 
   return (
     <div
