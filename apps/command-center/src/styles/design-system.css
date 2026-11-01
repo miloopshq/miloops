@@ -618,3 +618,34 @@ button.card.urgent:hover,
 .card.on .card-title {
   color: var(--accent);
 }
+
+/* ---------- Needs you: a ring that expands and fades on anything waiting for the operator's action ---------- */
+.btn.urgent,
+.waiting-chip {
+  --ping-rgb: 255, 77, 66;
+}
+.briefing-btn.has-new {
+  --ping-rgb: var(--accent-rgb);
+}
+.btn.urgent:not(:disabled),
+.waiting-chip,
+.briefing-btn.has-new {
+  animation: needs-you 1.8s ease-out infinite;
+}
+@keyframes needs-you {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--ping-rgb), 0.55);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 8px rgba(var(--ping-rgb), 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn.urgent:not(:disabled),
+  .waiting-chip,
+  .briefing-btn.has-new {
+    animation: none;
+    box-shadow: 0 0 0 2px rgba(var(--ping-rgb), 0.35);
+  }
+}
