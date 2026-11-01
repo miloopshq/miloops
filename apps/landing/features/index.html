@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MILOOPS: Features</title>
+    <meta
+      name="description"
+      content="Everything in the MILOOPS command center: missions, the Waiting on you inbox, verification and review, the decision log, briefings, live spend, and GitHub Issues and Linear sync. Plus what's coming next."
+    />
+    <meta property="og:title" content="MILOOPS: Features" />
+    <meta property="og:image" content="https://miloops.app/media/brand/og-image-1200x630.png" />
+    <meta name="theme-color" content="#05090b" />
+    <link rel="icon" href="/media/brand/favicon-32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/media/brand/favicon-64.png" type="image/png" sizes="64x64" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <!-- @include sprite -->
+    <!-- @include nav -->
+
+    <main id="main">
+      <section class="hero hero--page" aria-labelledby="page-title">
+        <canvas class="field" data-field="hero" data-intensity="0.6" aria-hidden="true"></canvas>
+        <div class="wrap hero__inner">
+          <span class="hero__badge" data-scramble>Features</span>
+          <h1 id="page-title">Everything the command center does.</h1>
+          <p class="hero__lede">
+            What ships today, and where MILOOPS is going next. Every screenshot is the real app, running a real mission.
+          </p>
+        </div>
+      </section>
+
+      <!-- MISSIONS -->
+      <section class="section" aria-labelledby="f-missions">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Missions</span>
+              <h2 id="f-missions">Plan big work as a map, not a to-do list.</h2>
+            </div>
+            <p>
+              A mission is the objective. Tickets are the decisions and work that get you there, with what blocks what.
+            </p>
+          </header>
+          <div class="runs">
+            <article class="run reveal">
+              <figure class="shot">
+                <img
+                  src="/media/flow-06-first-tickets.png"
+                  width="1962"
+                  height="1226"
+                  loading="lazy"
+                  decoding="async"
+                  alt="The mission map with tickets, their state and their dependencies."
+                />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">01</span>
+                <h3>A live mission map</h3>
+                <p>
+                  See what's done, what's being worked, what's blocked and what's waiting on you, with the critical path
+                  and progress at a glance.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Research, grilling, prototype, task and execute tickets</li>
+                  <li data-n="02">Unblocked work moves up on its own</li>
+                  <li data-n="03">Out-of-scope work is set aside, not lost</li>
+                </ul>
+              </div>
+            </article>
+            <article class="run reveal">
+              <figure class="shot">
+                <img
+                  src="/media/command-center-missions.png"
+                  width="1112"
+                  height="696"
+                  loading="lazy"
+                  decoding="async"
+                  alt="The mission switcher listing two missions with progress and open questions."
+                />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">02</span>
+                <h3>Several missions at once</h3>
+                <p>
+                  Switch from the title. Open questions stay tagged with their mission, so the inbox never loses
+                  context.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Plan only, or plan and execute, per mission</li>
+                  <li data-n="02">Destination, notes, decisions so far and out of scope</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- HUMAN IN THE LOOP -->
+      <section class="section" aria-labelledby="f-hitl">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Waiting on you</span>
+              <h2 id="f-hitl">One inbox for every call that needs you.</h2>
+            </div>
+            <p>
+              Agents ask, you decide, and the decision is written down. No agent can close a decision on your behalf.
+            </p>
+          </header>
+          <div class="runs">
+            <article class="run reveal">
+              <figure class="shot">
+                <img
+                  src="/media/command-center-hitl-conversation.png"
+                  width="1140"
+                  height="712"
+                  loading="lazy"
+                  decoding="async"
+                  alt="An agent's draft resolution with suggested replies."
+                />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">03</span>
+                <h3>Answer in a click</h3>
+                <p>
+                  Every question from every agent, oldest first, with suggested answers and the conversation right
+                  below.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Reply from the command center or with /milo inbox</li>
+                  <li data-n="02">A summary or the full transcript goes on the ticket</li>
+                </ul>
+              </div>
+            </article>
+            <article class="run reveal">
+              <figure class="shot">
+                <img
+                  src="/media/command-center-briefing.png"
+                  width="1524"
+                  height="952"
+                  loading="lazy"
+                  decoding="async"
+                  alt="The While you were away briefing with tickets done, blocked, waiting on you, agent decisions and spend."
+                />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">04</span>
+                <h3>While you were away</h3>
+                <p>
+                  Come back after a break and MILO tells you what changed: work done, work now blocked, what agents
+                  decided and what it cost.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">One click to the first answer you owe</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRUST THE OUTCOME -->
+      <section class="section" aria-labelledby="f-verify">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Verification</span>
+              <h2 id="f-verify">“Done” is a claim. MILOOPS checks it.</h2>
+            </div>
+            <p>
+              Pick how much checking each mission gets. The commands come from your repo, so no agent can change what
+              verifies its own work.
+            </p>
+          </header>
+          <div class="cards">
+            <article class="card reveal">
+              <div class="card__top"><span class="card__n">Checks</span><span class="tag tag--now">Now</span></div>
+              <h3>Your tests run before a ticket closes</h3>
+              <p>
+                Typecheck, lint and tests from <code>.miloops/verification.json</code>. A failure goes back to the agent
+                with the output.
+              </p>
+            </article>
+            <article class="card reveal">
+              <div class="card__top"><span class="card__n">Review</span><span class="tag tag--now">Now</span></div>
+              <h3>A different agent reviews the change</h3>
+              <p>The agent that did the work can never review it. The verdict, findings and evidence are kept.</p>
+            </article>
+            <article class="card reveal">
+              <div class="card__top"><span class="card__n">Approval</span><span class="tag tag--now">Now</span></div>
+              <h3>You sign off when it matters</h3>
+              <p>For the work you care most about, the ticket closes only after you approve it in the inbox.</p>
+            </article>
+            <article class="card reveal">
+              <div class="card__top"><span class="card__n">Evidence</span><span class="tag tag--now">Now</span></div>
+              <h3>Git and CI, not just words</h3>
+              <p>
+                Changes since the claim, the pull request and its CI checks, with flags when they don't match the claim.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- RECORD AND SPEND -->
+      <section class="section" aria-labelledby="f-record">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">On the record</span>
+              <h2 id="f-record">Every decision and every dollar, visible.</h2>
+            </div>
+          </header>
+          <div class="runs">
+            <article class="run reveal">
+              <figure class="shot">
+                <img
+                  src="/media/command-center-decisions.png"
+                  width="1276"
+                  height="798"
+                  loading="lazy"
+                  decoding="async"
+                  alt="A decision record with alternatives, rationale and transcript."
+                />
+              </figure>
+              <div class="run__copy">
+                <span class="run__n">05</span>
+                <h3>The decision log</h3>
+                <p>
+                  Every call across your missions: the question, the answer, the options considered, the reasoning, who
+                  decided and the full conversation.
+                </p>
+                <ul class="ticks">
+                  <li data-n="01">Filter, search and supersede</li>
+                  <li data-n="02">Export to markdown to share with your team</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+          <div class="cards cards--3" style="margin-top: 1px">
+            <article class="card reveal">
+              <span class="card__n">Spend</span>
+              <h3>Tokens and cost, always on screen</h3>
+              <p>Per agent session and for the whole mission, as your agents report them.</p>
+            </article>
+            <article class="card reveal">
+              <span class="card__n">Trackers</span>
+              <h3>Local files, GitHub Issues or Linear</h3>
+              <p>Missions sync both ways. Offline changes queue and send in order when you're back.</p>
+            </article>
+            <article class="card reveal">
+              <span class="card__n">Any screen</span>
+              <h3>Answer from your phone</h3>
+              <p>Small screens open on the inbox. Map, ticket, activity and plan are one tap away.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMING -->
+      <section class="section" id="next" aria-labelledby="f-next">
+        <div class="wrap">
+          <header class="head reveal">
+            <div class="head__title">
+              <span class="eyebrow">Coming next</span>
+              <h2 id="f-next">Less babysitting, not less judgment.</h2>
+            </div>
+            <p>Each of these keeps you in charge: MILOOPS proposes and ranks, and you decide.</p>
+          </header>
+          <div class="cards">
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">01 · Attention</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>A ranked queue of what needs you</h3>
+              <p>
+                Questions, approvals, stalled work and CI mismatches in one list, ranked by what they block and how long
+                agents have waited.
+              </p>
+              <ul class="ticks">
+                <li data-n="01">Reasons on every item: “blocks 4 tickets”</li>
+                <li data-n="02">Related questions batched to answer together</li>
+                <li data-n="03">Only urgent items interrupt; focus hours and snooze</li>
+              </ul>
+            </article>
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">02 · Project knowledge</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>A memory that outlives sessions</h3>
+              <p>
+                Conventions, gotchas, dead ends and decisions, kept as files in your repo and handed to each new
+                session.
+              </p>
+              <ul class="ticks">
+                <li data-n="01">Agents propose, only you accept</li>
+                <li data-n="02">Each entry says why it was included</li>
+                <li data-n="03">Save a decision as knowledge in one click</li>
+              </ul>
+            </article>
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">03 · Adaptive missions</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>Replans you approve</h3>
+              <p>
+                Missions list the assumptions they rely on. When one breaks, an agent proposes a new plan with a
+                before-and-after on the map.
+              </p>
+              <ul class="ticks">
+                <li data-n="01">Affected tickets pause while you review</li>
+                <li data-n="02">Nothing changes until you approve</li>
+              </ul>
+            </article>
+            <article class="card reveal">
+              <div class="card__top">
+                <span class="card__n">04 · Every repo</span><span class="tag tag--soon">Coming</span>
+              </div>
+              <h3>One view across projects</h3>
+              <p>
+                An overview card per repo and one queue of what needs you across all of them, answerable from one place.
+              </p>
+              <ul class="ticks">
+                <li data-n="01">Aggregated on your machine, no server</li>
+                <li data-n="02">Agents stay confined to their own repo</li>
+              </ul>
+            </article>
+          </div>
+          <div class="more reveal">
+            <a class="btn" href="/specialists/"
+              >05 · The specialist marketplace <span class="arrow" aria-hidden="true">→</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="final" aria-labelledby="final-title">
+        <canvas class="field" data-field="final" data-intensity="0.55" aria-hidden="true"></canvas>
+        <div class="wrap final__inner reveal">
+          <h2 id="final-title">Try it on your next project.</h2>
+          <p>One command in your project folder, or pick Demo in setup to explore a ready-made mission first.</p>
+          <span class="cmd">
+            <span><span class="prompt" aria-hidden="true">$</span> npx miloops</span>
+            <button class="copy" type="button" data-copy="npx miloops" aria-label="Copy the install command">
+              <svg class="ico" aria-hidden="true"><use href="#i-copy" /></svg>
+            </button>
+          </span>
+        </div>
+      </section>
+    </main>
+
+    <!-- @include footer -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

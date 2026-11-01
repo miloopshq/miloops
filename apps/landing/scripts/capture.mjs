@@ -72,7 +72,6 @@ if (want('mobile')) {
   await revealAll(page);
   await page.evaluate(() => {
     document.querySelector('#nav')?.setAttribute('style', 'position:relative');
-    document.querySelector('.zones__shot')?.setAttribute('style', 'position:relative;top:0');
   });
   await sleep(300);
   await page.screenshot({ path: join(out, 'landing-mobile.png'), fullPage: true });
@@ -124,26 +123,18 @@ if (want('video')) {
       ms,
     );
 
-  await scrollTo('#why', 1800);
-  await sleep(1600);
-  await scrollTo('#how', 1600);
-  await sleep(1200);
-  await page.click('#tab-3');
-  await sleep(1400);
-  await page.click('#tab-4');
-  await sleep(1400);
-  await scrollTo('#zones', 1600);
-  await sleep(800);
-  for (const zone of ['inbox', 'mission', 'map', 'sessions']) {
-    await page.hover(`.zones__list button[data-zone="${zone}"]`);
-    await sleep(1000);
+  for (const [section, hold] of [
+    ['#why', 1600],
+    ['#crew', 2000],
+    ['#how', 1400],
+    ['#how .run:nth-child(3)', 1600],
+    ['#next', 2000],
+    ['#specialists', 2000],
+    ['#trust', 1600],
+  ]) {
+    await scrollTo(section, 1800);
+    await sleep(hold);
   }
-  await scrollTo('#features', 1800);
-  await sleep(2000);
-  await scrollTo('.showcase', 1600);
-  await sleep(1600);
-  await scrollTo('#open-source', 2200);
-  await sleep(2000);
   await scrollTo('#faq', 1600);
   await page.click('#faq details:nth-of-type(2) summary');
   await sleep(1600);
