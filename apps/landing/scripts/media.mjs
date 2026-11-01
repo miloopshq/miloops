@@ -7,6 +7,7 @@ import { writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+import { realChrome, simClick } from './lib/realChrome.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const media = join(root, 'public/media');
@@ -69,6 +70,13 @@ const zoom = async (name, sels, { aspect = 4 / 3, pad = 16 } = {}) => {
 // Simulated agents (sample mission, Autopilot, Dispatch agent) only run with ?simulate outside the demo.
 const withSimulate = new URL(url);
 withSimulate.searchParams.set('simulate', '');
+await realChrome(page);
+// A briefing needs time away: shrink the away threshold so coming back after the run opens one.
+await page.addInitScript(() => {
+  const key = 'miloops.prefs';
+  const prefs = JSON.parse(localStorage.getItem(key) || '{}');
+  localStorage.setItem(key, JSON.stringify({ ...prefs, briefing: { enabled: true, awayMinutes: 0.05 } }));
+});
 await page.goto(withSimulate.href);
 await page.locator('.dialog.onboarding').waitFor({ timeout: 20000 });
 await wait(800);
@@ -76,7 +84,7 @@ await page.getByRole('button', { name: 'Get started' }).click();
 await wait(1200);
 await page.getByRole('button', { name: 'Load sample mission' }).click();
 await page.locator('.node').first().waitFor({ timeout: 15000 });
-await page.getByRole('button', { name: /Autopilot/ }).click();
+await simClick(page, '.command-bar .toggle');
 // Away from here on (tab hidden), so the Briefing button later covers everything the agents decided.
 await setVisible(false);
 await page.locator('.inbox-list li').first().waitFor({ timeout: 30000 });
@@ -113,7 +121,7 @@ await wait(600);
 
 await page.locator('.node', { hasText: 'Who is the primary' }).first().click();
 await wait(800);
-await page.locator('.inspector').getByRole('button', { name: 'Dispatch agent' }).click();
+await simClick(page, '.inspector button', 'Dispatch agent');
 await page.locator('.inbox-list li', { hasText: 'Who is the primary' }).first().waitFor({ timeout: 20000 });
 await page.locator('.inbox-list li button', { hasText: 'Who is the primary' }).first().click();
 await chip().waitFor({ timeout: 20000 });
@@ -145,7 +153,7 @@ await chip().click();
 await page.locator('.comms .status', { hasText: 'Resolved' }).waitFor({ timeout: 20000 });
 await wait(2500);
 
-await page.locator('.briefing-btn').click();
+await setVisible(true);
 await page.locator('.bf-tile').first().waitFor({ timeout: 10000 });
 await wait(2500);
 // Top of the briefing: MILO's summary and the stat tiles.

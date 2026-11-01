@@ -333,10 +333,19 @@ code {
 .brand .ops {
   color: var(--copper);
 }
+.nav__inner {
+  position: relative;
+}
+/* Menu centred on the page, independent of the logo's width. */
 .nav__links {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 28px;
+  gap: 32px;
+  font-family: var(--pixel);
   font-size: var(--fs-small);
+  letter-spacing: 0.02em;
   color: var(--dim);
 }
 .nav__links a:hover,
@@ -406,7 +415,16 @@ code {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: stretch;
   gap: 12px;
+}
+@media (min-width: 640px) {
+  .hero__actions {
+    flex-wrap: nowrap;
+  }
+  .hero__actions > .cmd {
+    width: 400px;
+  }
 }
 .hero__meta {
   display: flex;

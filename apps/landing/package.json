@@ -14,6 +14,7 @@
     "preview": "vite preview --port 4173",
     "capture": "node scripts/capture.mjs",
     "media": "node scripts/media.mjs",
+    "journey": "node scripts/journey.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
