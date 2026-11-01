@@ -16,9 +16,7 @@ export { eventPulse, monitorTracker, type TrackerHealth, type TrackerMonitor } f
 /*
  * Named metrics behind every HUD widget. Each one is a pure function of
  * tracker state (MapSnapshot), the activity stream (ActivityState) or the
- * tracker monitor (TrackerHealth). Demo mode feeds simulated sessions and an
- * in-memory tracker through the same inputs, so widgets go live unchanged
- * once real agents and trackers are wired in.
+ * tracker monitor (TrackerHealth).
  */
 
 const HOUR = 3_600_000;

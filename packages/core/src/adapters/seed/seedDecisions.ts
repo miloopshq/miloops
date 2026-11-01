@@ -13,18 +13,18 @@ const OP = 'operator';
 export async function seedDecisions(
   adapter: TrackerAdapter,
   mapId: string,
-  demo: MapSnapshot,
-  ticket: (demoId: string) => { id: string; key: string } | undefined = (id) => {
-    const t = demo.tickets.find((x) => x.id === id);
+  sample: MapSnapshot,
+  ticket: (sampleId: string) => { id: string; key: string } | undefined = (id) => {
+    const t = sample.tickets.find((x) => x.id === id);
     return t && { id: t.id, key: t.key };
   },
 ) {
-  const at = (n: number) => demo.tickets.find((t) => t.key === `#${n}`)?.closedAt ?? demo.map.createdAt;
+  const at = (n: number) => sample.tickets.find((t) => t.key === `#${n}`)?.closedAt ?? sample.map.createdAt;
   const tk = (n: number) => {
     const t = ticket(`t-${n}`);
     return t ? { ticketId: t.id, ticketKey: t.key } : {};
   };
-  const line = (n: number) => demo.map.sections.decisions.find((d) => d.ticketKey === `#${n}`)?.text;
+  const line = (n: number) => sample.map.sections.decisions.find((d) => d.ticketKey === `#${n}`)?.text;
   const say = (from: TranscriptEntry['from'], author: string, text: string, t: number): TranscriptEntry => ({
     from,
     author,
@@ -135,7 +135,7 @@ export async function seedDecisions(
     { appendToMission: false },
   );
 
-  const t0 = demo.map.createdAt + 3_000_000;
+  const t0 = sample.map.createdAt + 3_000_000;
   await recordDecision(adapter, mapId, {
     question: 'Measure the current conflict rate before changing the protocol?',
     answer: 'Yes. Ship conflict telemetry first and keep the current protocol until we have a 30-day baseline.',

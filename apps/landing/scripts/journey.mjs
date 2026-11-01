@@ -2,9 +2,9 @@
 // The command center is the real app, driven live; terminal and Claude Code scenes, chapter labels and
 // captions are an overlay in the same page (journey/stage.mjs). Frames come from a CDP screencast and
 // are encoded with ffmpeg (needed on PATH).
-// Start the command center on an empty local tracker first, as for `npm run media`:
-//   rm -rf /tmp/fieldnote-app && MILOOPS_DIR=/tmp/fieldnote-app/.miloops npm run dev   # repo root
-// Env: CC_URL (default http://localhost:5173/), CHROME_PATH (default /usr/local/bin/google-chrome).
+// It runs on a real project (lib/realProject.mjs): the dev seed, the built `miloops` server and real MCP agents.
+// Run: npm run build -w miloops (once), then `npm run journey` here.
+// Env: CHROME_PATH (default /usr/local/bin/google-chrome).
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -12,14 +12,18 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 import { AGAIN, CHECK_IN, FRAME, RESUME, SETUP } from './journey/scenes.mjs';
 import { installStage } from './journey/stage.mjs';
-import { realChrome, simClick } from './lib/realChrome.mjs';
+import { realProject } from './lib/realProject.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const media = join(root, 'public/media');
 const framesDir = join(root, 'capture-frames');
 const size = { width: 1680, height: 945 };
-const url = new URL(process.env.CC_URL ?? 'http://localhost:5173/');
-url.searchParams.set('simulate', '');
+const project = await realProject();
+process.on('exit', () => project.stop());
+/** Waits until the agents' output shows `text` `times` times. */
+const agentStep = async (text, times = 1) => {
+  for (let t = 0; t < 240 && project.agentLog().split(text).length - 1 < times; t++) await wait(500);
+};
 const milo = `data:image/png;base64,${readFileSync(join(root, '../../brand/slack-icon-512.png')).toString('base64')}`;
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/local/bin/google-chrome' });
@@ -41,20 +45,19 @@ const setVisible = (v) =>
     document.dispatchEvent(new Event('visibilitychange'));
   }, v);
 
-// Pre-roll (not recorded): onboard, load the sample mission, let agents run while "away".
-await realChrome(page);
-// A briefing needs time away: shrink the away threshold so coming back after the run opens one.
+// Pre-roll (not recorded): onboard on the seeded project, then the tab is "away" while the agents work.
+// A briefing needs time away: a short away threshold, applied once.
 await page.addInitScript(() => {
+  if (sessionStorage.getItem('journey-init')) return;
+  sessionStorage.setItem('journey-init', '1');
   const key = 'miloops.prefs';
   const prefs = JSON.parse(localStorage.getItem(key) || '{}');
   localStorage.setItem(key, JSON.stringify({ ...prefs, briefing: { enabled: true, awayMinutes: 0.05 } }));
 });
-await page.goto(url.href);
+await page.goto(project.url);
 await page.locator('.dialog.onboarding').waitFor({ timeout: 20000 });
 await page.getByRole('button', { name: 'Get started' }).click();
-await page.getByRole('button', { name: 'Load sample mission' }).click();
 await page.locator('.node').first().waitFor({ timeout: 15000 });
-await simClick(page, '.command-bar .toggle');
 await setVisible(false);
 await stage('card', 'title');
 
@@ -79,34 +82,31 @@ await term(
   'Type your idea in Claude Code. MILO asks a few questions to frame the mission.',
 );
 
-// New mission in the command center, charted live.
+// The mission MILO charted, live: agents working, one waiting on you.
 await stage('hide');
-await caption('New project · command center', 'Or start it here. Describe the mission and MILO charts it.');
-await wait(900);
-await page.locator('.mission-btn').click();
-await wait(600);
-await page.getByRole('menuitem', { name: '+ New mission' }).click();
-const fields = page.locator('.dialog input[type="text"], .dialog input:not([type]), .dialog textarea');
-await fields.nth(0).pressSequentially('Ship team workspaces', { delay: 35 });
-await fields.nth(1).pressSequentially('Teams share notebooks with roles; admins manage members.', { delay: 22 });
-await wait(700);
-await page.locator('.dialog footer .btn.primary').click();
-await caption('New project · mission map', 'MILO maps the mission. Open decisions wait for you.');
-await page.locator('.node').nth(3).waitFor({ timeout: 20000 });
-await wait(6500);
+// The away threshold is seconds long here: keep the operator "present" while the tab is visible. Hiding the
+// tab still counts as away, which is what opens the briefing later.
+await page.evaluate(() => setInterval(() => window.dispatchEvent(new Event('pointermove')), 1500));
+await setVisible(true);
+await page
+  .getByRole('button', { name: 'Dismiss' })
+  .click({ timeout: 3000 })
+  .catch(() => {});
+await agentStep('asking:');
+await caption('New project · mission map', 'MILO maps the mission. Agents pick up every ticket that isn’t blocked.');
+await wait(5000);
 await page.screenshot({ path: join(framesDir, 'poster.png') });
 
 // An agent asks; answer in the inbox.
-await page.locator('.node', { hasText: 'Who is the primary' }).first().click();
-await wait(500);
-await simClick(page, '.inspector button', 'Dispatch agent');
 await caption('During the day · an agent asks', 'When an agent needs you, its ticket turns red. Answer in the inbox.');
-await page.locator('.inbox-list li button', { hasText: 'Who is the primary' }).first().click({ timeout: 20000 });
+await page.locator('.inbox-list li button').first().click({ timeout: 20000 });
 await chip().waitFor({ timeout: 20000 });
-await wait(2400);
+await wait(2600);
 await chip().click();
-await caption('Running', 'Specialists pick up every ticket that isn’t blocked.');
-await wait(4200);
+await caption('Running', 'The agent records the decision and moves on to the next ticket.');
+await wait(1200);
+// Away now, so the next scene's briefing covers what the agents do meanwhile.
+await setVisible(false);
 
 await term(
   'fieldnote-app — zsh',
@@ -115,12 +115,25 @@ await term(
   'Come back later and run the same command.',
 );
 await stage('hide');
+await agentStep('asking:', 2);
+await wait(1500);
 await setVisible(true);
 await caption('Existing project · briefing', 'Back after a break? MILO briefs you on what’s done and what needs you.');
 await wait(4500);
-await page.getByRole('button', { name: 'Dismiss' }).click();
+await page
+  .getByRole('button', { name: 'Dismiss' })
+  .click({ timeout: 5000 })
+  .catch((e) => {
+    console.log(project.agentLog());
+    throw e;
+  });
+// Keep the briefing closed for the rest of the run.
+await page.evaluate(() => {
+  const prefs = JSON.parse(localStorage.getItem('miloops.prefs') || '{}');
+  localStorage.setItem('miloops.prefs', JSON.stringify({ ...prefs, briefing: { enabled: false, awayMinutes: 15 } }));
+});
 await page.locator('.decisions-btn').click();
-await page.locator('.dv-row').first().click();
+await page.locator('.dv-row button').first().click();
 await caption('Existing project · decisions', 'Every answer is logged with its reasoning.');
 await wait(4000);
 await page.locator('.decisions-btn').click();
@@ -167,3 +180,4 @@ ff([
 ]);
 rmSync(framesDir, { recursive: true, force: true });
 console.log(`saved landing-journey-720.mp4 (${frames.length} frames) and landing-journey-poster.png`);
+process.exit(0);

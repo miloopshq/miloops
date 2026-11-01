@@ -1,4 +1,4 @@
-/** Minimal synchronous key-value storage: `localStorage` in the browser, a JSON file in a CLI, a Map in tests and demo. */
+/** Minimal synchronous key-value storage: `localStorage` in the browser, a JSON file in a CLI, a Map in tests. */
 export interface KeyValueStore {
   get(key: string): string | null;
   set(key: string, value: string): void;

@@ -111,6 +111,13 @@ const call = async (name, args = {}) => {
   return JSON.parse(r.content[0].text);
 };
 
+/** Opening a ticket zooms the map onto it, so other tickets can be out of view: Fit first, as a user would. */
+async function clickNode(node) {
+  await page.locator('.fit-btn').click();
+  await page.waitForTimeout(500);
+  await node.click();
+}
+
 /** Answer the open question in the command center inbox, by suggestion chip or by typing. */
 async function answerInUi(text, { chip = false } = {}) {
   await page.locator('.inbox-list li button').first().waitFor({ timeout: 15_000 });
@@ -256,7 +263,7 @@ process.kill(crashTransport.pid, 'SIGKILL');
 log(`claude-09 claimed ${crashed.claimed.key} (lease ${crashed.lease.length}) and was killed`);
 const stalledNode = page.locator('.node.stalled', { hasText: 'Which date format?' });
 await stalledNode.waitFor({ timeout: 15_000 });
-await stalledNode.click();
+await clickNode(stalledNode);
 await page.locator('.lease-stalled, .lease-expired').waitFor({ timeout: 10_000 });
 await shot('05-stalled-claim');
 const returnedLog = page.locator('.log-row', {
@@ -274,7 +281,7 @@ log(
 );
 
 // Manual release from the inspector; the agent learns on its next call and its session on the ticket ends.
-await page.locator('.node', { hasText: 'Which date format?' }).click();
+await clickNode(page.locator('.node', { hasText: 'Which date format?' }));
 await page.getByRole('button', { name: 'Release to queue' }).click();
 const releasedLog = page.locator('.log-row', {
   hasText: `${added.ticket.key} returned to queue · claim of ${resumed.claimed.assignee} released by operator`,
@@ -301,7 +308,7 @@ log(
 );
 const reworkNode = page.locator('.node.st-rework', { hasText: /Add the \/changelog/ });
 await reworkNode.waitFor({ timeout: 15_000 });
-await reworkNode.click();
+await clickNode(reworkNode);
 const reworkPill = await page
   .locator('.pill.st-rework, .st-rework .pill, [class*="st-rework"]', { hasText: 'Rework' })
   .count();

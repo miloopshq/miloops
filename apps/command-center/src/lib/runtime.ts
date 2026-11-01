@@ -11,22 +11,12 @@ import {
   BridgeAdapter,
   UsageLedger,
   MarkdownAdapter,
-  MemoryAdapter,
-  demoSnapshot,
-  memoryStore,
-  seedUsage,
-  seedDecisions,
   monitorTracker,
-  type ProcedureContext,
-  simulatedBrain,
-  Autopilot,
-  runWork,
-  callsign,
   httpJournal,
   type Journal,
 } from '@miloops-hq/core';
 import { LeaseBoard } from './leaseBoard';
-import { type TrackerChoice, loadPrefs, currentPrefs } from './prefs';
+import { type TrackerChoice, loadPrefs } from './prefs';
 
 /** File API served by the Vite dev server (see plugins/trackerFs.ts). */
 export const httpFs: MarkdownFs = {
@@ -103,11 +93,9 @@ export function localStore(scope: string): KeyValueStore {
   };
 }
 
-export const HOUR = 3_600_000;
+export const KINDS: TrackerKind[] = ['markdown', 'github', 'linear'];
 
-export const KINDS: TrackerKind[] = ['markdown', 'demo', 'github', 'linear'];
-
-/** `?tracker=demo|markdown|github|linear` overrides the saved preference (handy for demos and tests). */
+/** `?tracker=markdown|github|linear` overrides the saved preference (handy for tests). */
 export function trackerKind(): TrackerKind {
   const q = new URLSearchParams(location.search).get('tracker') as TrackerKind | null;
   return q && KINDS.includes(q) ? q : loadPrefs().tracker;
@@ -119,8 +107,8 @@ export function createRuntime(kind: TrackerKind) {
   const activity = new ActivityStream();
   const leases = new LeaseBoard(activity);
   const store: { presence?: Presence } = {};
-  /** Demo missions keep no history; real trackers append to `.events/` through the local server. */
-  const journal: Journal | undefined = kind === 'demo' ? undefined : httpJournal(BRAND.apiPrefix);
+  /** Every tracker appends history to `.events/` through the local server. */
+  const journal: Journal = httpJournal(BRAND.apiPrefix);
   if (kind === 'github' || kind === 'linear') {
     const remote = new BridgeAdapter(kind, BRAND.apiPrefix);
     raw = remote;
@@ -139,7 +127,7 @@ export function createRuntime(kind: TrackerKind) {
         activity.ledger = new UsageLedger(kv);
         linkAgents(activity, leases);
       });
-  } else if (kind === 'markdown') {
+  } else {
     raw = new MarkdownAdapter(httpFs, `./${BRAND.dataDir}`);
     ready = fetch(`${BRAND.apiPrefix}/list`)
       .then((r) => r.json() as Promise<{ root: string }>)
@@ -150,40 +138,13 @@ export function createRuntime(kind: TrackerKind) {
         activity.ledger = new UsageLedger(kv);
         linkAgents(activity, leases);
       });
-  } else {
-    const mem = new MemoryAdapter({ label: 'Demo', location: 'in-memory · resets on reload' });
-    const demo = demoSnapshot();
-    mem.seed(demo);
-    const latency = mem.latency;
-    mem.latency = [0, 0];
-    const kv = memoryStore();
-    const ledger = new UsageLedger(kv);
-    seedUsage(ledger, demo);
-    activity.ledger = ledger;
-    // The demo operator was last here 14 hours ago.
-    store.presence = new Presence(kv);
-    store.presence.markSeen([demo.map.id], Date.now() - 14 * HOUR);
-    ready = seedDecisions(mem, demo.map.id, demo).finally(() => (mem.latency = latency));
-    raw = mem;
   }
   /** Every read/write goes through the monitor so sync status and latency are measured, not invented. */
   const monitor = monitorTracker(raw);
   const adapter = monitor.adapter;
-  const pace = Number(new URLSearchParams(location.search).get('pace') ?? 1) || 1;
-  const ctx: ProcedureContext = {
-    adapter,
-    activity,
-    brain: simulatedBrain(),
-    pace,
-    operator: 'operator',
-    hitlTranscript: () => currentPrefs().hitlTranscript,
-    journal,
-  };
-  let currentMap: string | undefined;
-  const autopilot = new Autopilot(ctx, () => currentMap, { maxParallel: 2, interval: 4200 * pace });
   return {
     kind,
-    /** Resolves once storage is scoped to the tracker and demo data is seeded. */
+    /** Resolves once storage is scoped to the tracker. */
     ready,
     /** Last seen per mission; set once `ready` resolves. */
     get presence() {
@@ -194,26 +155,6 @@ export function createRuntime(kind: TrackerKind) {
     monitor,
     activity,
     leases,
-    ctx,
-    autopilot,
-    setCurrentMap(id: string | undefined) {
-      currentMap = id;
-    },
-    /** Sample map only: a parallel HITL session that is already waiting on the operator. */
-    startDemoScenario(mapId: string) {
-      setTimeout(async () => {
-        if (currentMap !== mapId) return;
-        const snap = await adapter.loadMap(mapId);
-        const t = snap.tickets.find(
-          (x) =>
-            x.state === 'open' &&
-            !x.assignee &&
-            x.type === 'grilling' &&
-            x.blockedBy.every((b) => snap.tickets.find((y) => y.id === b)?.state === 'closed'),
-        );
-        if (t) void runWork(ctx, { mapId, agent: callsign(7), ticketId: t.id });
-      }, 2500 * pace);
-    },
   };
 }
 

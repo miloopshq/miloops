@@ -31,7 +31,7 @@ export { Emitter, sleep, uid } from './lib/emitter';
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memoryAdapter';
 export { MarkdownAdapter } from './adapters/markdown/markdownAdapter';
 export type { MarkdownFs } from './adapters/markdown/markdownFs';
-export { demoSnapshot, seedDecisions, seedSnapshot, seedUsage } from './adapters/seed';
+export { sampleSnapshot, seedDecisions, seedSnapshot } from './adapters/seed';
 export { GitHubAdapter, testGitHub, type GitHubOptions } from './adapters/remote/github';
 export { LinearAdapter, testLinear, type LinearOptions } from './adapters/remote/linear';
 export { SyncedAdapter } from './adapters/remote/sync/syncedAdapter';
@@ -47,7 +47,3 @@ export { TrackerError, isTransient, type RateInfo, type TrackerErrorCode } from 
 export { BridgeAdapter, trackerSettingsApi } from './adapters/remote/bridgeClient';
 export type * from './adapters/remote/types';
 export * from './model/integrations';
-
-export { simulatedBrain, type AgentBrain, type Conversation } from './sim/brain';
-export { runChart, runWork, runResearch, type ProcedureContext } from './sim/procedures';
-export { Autopilot } from './sim/autopilot';

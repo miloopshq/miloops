@@ -1,7 +1,7 @@
 import { BRAND, type PrSyncStatus, type TicketSync, type VerificationSyncEvent } from '@miloops-hq/core';
 
 export interface PrSyncSnapshot {
-  /** The server answered at least once; false in the static demo, where nothing is shown. */
+  /** The server answered at least once; false in a static build, where nothing is shown. */
   reached: boolean;
   /** The event stream is connected; while it is not, the status is unknown rather than its last value. */
   live: boolean;

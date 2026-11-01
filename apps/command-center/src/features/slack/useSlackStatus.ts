@@ -2,7 +2,7 @@ import type { SlackStatus } from '@miloops-hq/connector-slack';
 import { useState, useCallback, useEffect } from 'react';
 import { slackApi } from './slackApi';
 
-/** Slack status from the local server; undefined while loading, null when there is no server (static demo). */
+/** Slack status from the local server; undefined while loading, null when there is no server (static build). */
 export function useSlackStatus(pollMs = 0) {
   const [s, setS] = useState<SlackStatus | null>();
   const load = useCallback(() => slackApi.get().then(setS, () => setS(null)), []);

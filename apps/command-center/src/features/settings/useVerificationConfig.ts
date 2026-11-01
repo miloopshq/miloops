@@ -9,7 +9,7 @@ export interface VerificationConfigView {
   config?: VerificationConfig;
 }
 
-/** `verification.json` as the local server reads it; undefined while loading, null without a server (static demo). */
+/** `verification.json` as the local server reads it; undefined while loading, null without a server (static build). */
 export function useVerificationConfig() {
   const [view, setView] = useState<VerificationConfigView | null>();
   useEffect(() => {

@@ -26,7 +26,6 @@ export function useCommandCenter(rt: Runtime) {
   const leases = useLeases(rt);
   useEffect(() => rt.monitor.subscribe(setHealth), [rt]);
   const [selection, setSelection] = useState<Selection>(null);
-  const [autopilot, setAutopilot] = useState(false);
   const [error, setError] = useState<string>();
   /** Session whose conversation is open in the dock. */
   const [chatSession, setChatSession] = useState<string>();
@@ -36,17 +35,12 @@ export function useCommandCenter(rt: Runtime) {
   const followed = useRef(new Set<string>());
   const snapRef = useRef<MapSnapshot>();
   snapRef.current = snap;
-  const workN = useRef(0);
 
-  const setMapId = useCallback(
-    (id: string | undefined) => {
-      mapIdRef.current = id;
-      rt.setCurrentMap(id);
-      setMapIdState(id);
-      setSelection(null);
-    },
-    [rt],
-  );
+  const setMapId = useCallback((id: string | undefined) => {
+    mapIdRef.current = id;
+    setMapIdState(id);
+    setSelection(null);
+  }, []);
 
   const refresh = useCallback(async () => {
     const list = await rt.adapter.listMaps();
@@ -105,7 +99,6 @@ export function useCommandCenter(rt: Runtime) {
         text: `Online · tracker ${rt.adapter.label.toLowerCase()} · ${rt.adapter.location}`,
       });
       void refresh().catch((e) => setError(String(e)));
-      if (rt.kind === 'demo') rt.startDemoScenario('map-142');
     });
     return () => {
       alive = false;
@@ -159,15 +152,12 @@ export function useCommandCenter(rt: Runtime) {
         rt,
         guard,
         setMapId,
-        refresh,
         mapIdRef,
         snapRef,
-        workN,
         setChatSession,
         setSelection,
-        setAutopilot,
       }),
-    [guard, rt, setMapId, refresh],
+    [guard, rt, setMapId],
   );
 
   /** Every mission's decisions, newest first, including derived entries for decided tickets without a record. */
@@ -188,14 +178,6 @@ export function useCommandCenter(rt: Runtime) {
     health,
     selection,
     setSelection,
-    autopilot,
-    /**
-     * Demo vs real: simulated agents (Work next, Autopilot, Dispatch agent, charting from the dialog, the
-     * sample mission) only run on the demo tracker. Real missions start and move in the agent's chat.
-     * `?simulate` (or the older `?autopilot`) opts a local tracker in, for the capture scripts only.
-     */
-    simulated: rt.kind === 'demo' || ['simulate', 'autopilot'].some((k) => new URLSearchParams(location.search).has(k)),
-    isDemo: rt.kind === 'demo',
     error,
     chatSession,
     decisions,

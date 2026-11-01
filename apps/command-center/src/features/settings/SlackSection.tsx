@@ -1,7 +1,7 @@
 import { useSlackStatus, SlackSettings } from '../slack';
 import { SettingsSection } from './SettingsSection';
 
-/** No local server (the static demo): no Slack section. */
+/** No local server (a static build): no Slack section. */
 export function SlackSection(props: { focus: boolean }) {
   const [s] = useSlackStatus();
   if (!s) return null;

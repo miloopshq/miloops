@@ -182,20 +182,3 @@
 .bp-mobile .briefing-btn .bl {
   display: none;
 }
-/* In-memory demo: always visible, with a way out. */
-.demo-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-6);
-  padding-left: var(--sp-8);
-  border: 1px solid rgba(var(--amber-rgb), 0.5);
-  font-family: var(--mono);
-  font-size: var(--fs-label);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  color: var(--amber);
-}
-.demo-badge .btn {
-  border: 0;
-  border-left: 1px solid rgba(var(--amber-rgb), 0.5);
-}

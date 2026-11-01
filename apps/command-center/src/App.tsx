@@ -59,15 +59,7 @@ export function App() {
       onOpen={nav.openChat}
       onAnswer={actions.answer}
       onOpenTicket={nav.openTicket}
-      below={
-        <UpNext
-          snap={snap}
-          sessions={scoped.sessions}
-          selection={selection}
-          onSelect={nav.select}
-          onWork={api.simulated ? () => actions.work() : undefined}
-        />
-      }
+      below={<UpNext snap={snap} sessions={scoped.sessions} selection={selection} onSelect={nav.select} />}
     />
   );
   const map = (
@@ -200,7 +192,7 @@ export function App() {
           onClose={() => setSettingsOpen(false)}
         />
       )}
-      {newMission && <AppNewMission api={api} rt={rt} onClose={() => setNewMission(false)} />}
+      {newMission && <AppNewMission rt={rt} onClose={() => setNewMission(false)} />}
       {!prefs.onboarded && <Onboarding prefs={prefs} update={updatePrefs} activeTracker={rt.kind} />}
     </div>
   );

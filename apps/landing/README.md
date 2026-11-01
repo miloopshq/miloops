@@ -27,11 +27,12 @@ The `/specialists` form POSTs `{ email, list: "specialists" }` as JSON to `VITE_
 
 ## Product media
 
-Screenshots and the explainer video (`landing-journey-720.mp4` and its poster) live in `public/media/`; favicons and the OG image in `public/media/brand/`. `npm run media` re-captures every screenshot from the real command center: it onboards, loads the sample mission, charts a second one, answers a question, and opens the briefing and the Decisions log. It never touches the video, which is rendered separately. Start the command center on an empty local tracker first; the folder name shows as the project name in the header:
+Screenshots and the explainer video (`landing-journey-720.mp4` and its poster) live in `public/media/`; favicons and the OG image in `public/media/brand/`. Both come from the real product on a real project (`scripts/lib/realProject.mjs`): the dev seed in a temp folder, the built `miloops` server, and real MCP agents (`scripts/dev-agent.mjs`) that the scripts answer in the inbox. Nothing is simulated.
 
 ```bash
-rm -rf /tmp/fieldnote-app && MILOOPS_DIR=/tmp/fieldnote-app/.miloops npm run dev   # repo root
-npm run media                                                                       # here
+npm run build -w miloops   # repo root, once and after CLI or app changes
+npm run media              # here: every screenshot
+npm run journey            # here: the hero video and poster (needs ffmpeg)
 ```
 
 Uses Playwright with the system Chrome (`CHROME_PATH`).

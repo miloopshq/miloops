@@ -9,7 +9,7 @@ import { SlackStateLine, EVENT_LABEL } from './SlackStateLine';
 import { UserPicker } from './UserPicker';
 import { useSlackStatus } from './useSlackStatus';
 
-/** Settings → Slack. Hidden when there is no local server (the static demo). */
+/** Settings → Slack. Hidden when there is no local server (a static build). */
 export function SlackSettings(props: { focus?: boolean }) {
   const [s, setS] = useSlackStatus(3000);
   const [setup, setSetup] = useState(false);

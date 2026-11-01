@@ -28,7 +28,7 @@ export interface MemoryAdapterOptions {
 
 /**
  * In-memory tracker that behaves like a GitHub-style issue tracker
- * (numbered issues, assignment, comments, blocking). Used for demos and tests.
+ * (numbered issues, assignment, comments, blocking). Used by tests.
  */
 export class MemoryAdapter implements TrackerAdapter {
   readonly kind = 'mock' as const;
@@ -40,13 +40,13 @@ export class MemoryAdapter implements TrackerAdapter {
   private decisions = new Map<string, DecisionRecord[]>();
   private nextDecision = 1;
   private next: number;
-  /** Mutable so demo seeding can run through the normal operations without the simulated delay. */
+  /** Mutable so seeding can run through the normal operations without the delay. */
   latency: [number, number];
 
   constructor(opts: MemoryAdapterOptions = {}) {
     this.latency = opts.latency ?? [40, 160];
     this.next = opts.startNumber ?? 1;
-    this.label = opts.label ?? 'Demo';
+    this.label = opts.label ?? 'Memory';
     this.location = opts.location ?? 'mock://demo';
   }
 

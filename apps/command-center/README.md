@@ -26,8 +26,7 @@ miloops
 `miloops --help` and `miloops --version` work as usual. `miloops` is published on npm; to try an unreleased build, `npm run pack` from the repo root and `npm i -g ./miloops-<version>.tgz`.
 
 - On first run, onboarding asks for a tracker (local markdown is the default) and whether to post **full HITL transcripts** or a **summary** to tickets. Both choices can be changed later in Settings.
-- An empty tracker offers **Load sample mission**. The mission switcher (top left) lists every mission with progress and waiting count, and holds **New mission**.
-- `?tracker=demo` (or Settings → Demo tracker) gives an in-memory mission that resets on reload. `?pace=0.5` speeds up simulated agents.
+- An empty tracker explains that missions start in the agent's chat and offers `/milo new "your idea"` to copy. The mission switcher (top left) lists every mission with progress and waiting count, and holds **New mission**, which drafts that command. MILOOPS never runs an agent itself.
 
 ## Develop
 
@@ -35,15 +34,18 @@ From the repo root:
 
 ```bash
 npm install
-npm run dev                 # Vite dev server with hot reload, http://localhost:5173
+npm run dev                 # resets the dev project (npm run seed), then Vite with hot reload, http://localhost:5173
+npm run dev:keep            # the same server without reseeding, keeping what you changed
+npm run dev:agent           # real MCP agents working the dev project (after npm run build -w miloops)
 npm run build               # every workspace; the command-center bundle + CLI land in packages/cli/dist
 npm start                   # run the built CLI from the repo (same as `miloops`)
 npm run pack                # → ./miloops-<version>.tgz, installable with `npm i -g ./miloops-<version>.tgz`
 ```
 
-- In dev, missions go to `.miloops/` at the repo root. Point dev at another project with `MILOOPS_DIR=/abs/path/to/your-repo/.miloops npm run dev`. Env var names come from `brand.ts`.
-- `npm run seed:markdown` writes the sample mission into the tracker folder.
-- `npm run typecheck` typechecks every workspace. `npm run capture` re-records the screenshots and demo video (it needs a running dev server and Chrome at `/usr/local/bin/google-chrome`, or `$CHROME`). `node scripts/verify-cli.mjs <url> <trackerDir>` smoke-tests a running `miloops`: onboarding, new mission, files written.
+- Local development works on real data only, never a demo. `npm run seed` (run by `npm run dev`) resets `.miloops/` at the repo root to a fixed project: a mission mid-flight (decisions made and superseded, done, blocked and ruled-out work) and a plan-only mission, written as plain files through the same adapters a user's install uses. It only wipes a folder it created (marked `.dev-seed`).
+- `npm run dev:agent [agents=2] [mission=#1]` connects real agents over MCP (`miloops mcp`, as Claude Code does). They claim ready tickets, report progress and usage, close agent-only work, and ask you on tickets that need a human, waiting for your answer in the command center.
+- Use `MILOOPS_DIR=/abs/path/.miloops npm run dev:keep` to open another folder without reseeding. Env var names come from `brand.ts`.
+- `npm run typecheck` typechecks every workspace. `node scripts/verify-cli.mjs <url> <trackerDir>` smoke-tests a running `miloops`. The landing screenshots and video (`apps/landing`: `npm run media`, `npm run journey`) run on the same seed with real agents.
 
 ### How the package is built
 
@@ -54,7 +56,7 @@ npm run pack                # → ./miloops-<version>.tgz, installable with `npm
 Layers by priority. Smaller screens show fewer layers by default; larger screens add zones around the existing ones and never move them.
 
 | # | Layer | Phone (<1024px) | Laptop (1024–1439px) | Wide (≥1440px) |
-| --- | --- | --- | --- | --- |
+| --- | --- | --- |
 | 1 | Waiting on you inbox + answer (all missions) | Home view (default) | Left column | Left column |
 | 2 | Repo / mission title + destination | Header | Header | Header (+ elapsed, progress, tracker pulse) |
 | 3 | Up next: frontier + claimed tickets | Home view, under the inbox | Left column, under the inbox | Left column, under the inbox |
@@ -89,28 +91,27 @@ The MILO mark (`src/components/ui/MiloMark.tsx`) is an open ring with an arrow t
 
 ## HUD widgets → metrics
 
-Rule: every number on screen is either a raw field of the tracker / activity stream or a named metric in `packages/core/src/planning/metrics.ts`. Demo mode does not fake widgets; it feeds simulated sessions and an in-memory tracker through the same inputs, so the widgets go live unchanged when real agents and trackers are wired in.
+Rule: every number on screen is either a raw field of the tracker / activity stream or a named metric in `packages/core/src/planning/metrics.ts`. Nothing is simulated: in development the same inputs come from the seeded project and `npm run dev:agent`.
 
-| Widget (zone) | Metric (`@miloops-hq/core`) | Source | Demo feed |
-| --- | --- | --- | --- |
-| Header: Mission T+ | raw `map.createdAt` | tracker | in-memory map |
-| Header: Decided x/y; switcher progress | `missionProgress` | tracker | in-memory map |
-| Header: tracker chip (sync dot, last-write latency) | `monitorTracker` → `TrackerHealth` | every adapter write, timed by the monitor proxy | memory adapter's simulated latency (40–160 ms) |
-| Header: event pulse (events/min, external in amber) | `eventPulse(TrackerHealth)` | adapter event stream; `external.changed` = file watcher / webhook | memory adapter events (no external edits) |
-| Header / inbox: waiting count | raw `activity.pending` | HITL `ask()` | simulated sessions |
-| Inbox: Oldest, Avg wait | `hitlStats` | `activity.pending`, `activity.answered` (ask/answer times) | simulated sessions, real answer times |
-| Status panel: decided … ruled out, resolution % | `stateCounts` | tracker | in-memory map |
-| Status panel: Critical path | `criticalPath` (longest open blocking chain) | tracker blocking edges | in-memory map |
-| Status panel: Decided / h + burndown sparkline | `throughput` (rolling hour; decided per bucket; open tickets per bucket) | ticket `createdAt` / `closedAt` | in-memory map (sample has backdated times) |
-| Status panel: Type mix bars | `typeMix` | tracker | in-memory map |
-| Briefing: done, ruled out, blocked, waiting, agent decisions, active, MILO line | `buildBriefing`, `briefingLine` (`briefing.ts`) | tracker tickets (`closedAt`, `createdAt`), decision records, `activity.pending/sessions`, each since `Presence.lastSeen(mission)` | in-memory map, seeded decisions, presence marked 14 h ago |
-| Briefing: spend · tokens · sessions since | `UsageLedger.since` (`activity/usageLedger.ts`) | agent usage reports via `ActivityStream`, 5-minute buckets kept 14 days | `seedUsage` at ticket close times, then live sessions |
-| Decisions: Active, Superseded, Last 24h, Human %, per-source counts | `decisionStats` | decision records + derived tracker entries | `seedDecisions` through `recordDecision` / `supersedeDecision`, then live sessions |
-| Current step: `WORK 3/5 : RESOLVE #7` + pipeline | raw `SessionInfo.step/total/stepLabel` | session step events | simulated procedures |
-| Sessions: live timer | raw `SessionInfo.startedAt` | session start | simulated procedures |
-| Sessions: tokens · cost per session; Mission total | raw `SessionInfo.usage`; `missionUsage` | agent usage reports via `SessionHandle.usage()` | `meter()` in `sim/procedures.ts` (accrues only while working, at fixed simulated rates) |
-| Sessions: claims per agent | `claimsByAgent` | tracker assignees | in-memory map |
-| Activity log: time / source / message | raw `FeedEntry` (system lines attributed to MILO) | activity stream + tracker events | simulated procedures |
+| Widget (zone) | Metric (`@miloops-hq/core`) | Source |
+| --- | --- | --- |
+| Header: Mission T+ | raw `map.createdAt` | tracker |
+| Header: Decided x/y; switcher progress | `missionProgress` | tracker |
+| Header: tracker chip (sync dot, last-write latency) | `monitorTracker` → `TrackerHealth` | every adapter write, timed by the monitor proxy |
+| Header / inbox: waiting count | raw `activity.pending` | HITL `ask()` |
+| Inbox: Oldest, Avg wait | `hitlStats` | `activity.pending`, `activity.answered` (ask/answer times) |
+| Status panel: decided … ruled out, resolution % | `stateCounts` | tracker |
+| Status panel: Critical path | `criticalPath` (longest open blocking chain) | tracker blocking edges |
+| Status panel: Decided / h + burndown sparkline | `throughput` (rolling hour; decided per bucket; open tickets per bucket) | ticket `createdAt` / `closedAt` |
+| Status panel: Type mix bars | `typeMix` | tracker |
+| Briefing: done, ruled out, blocked, waiting, agent decisions, active, MILO line | `buildBriefing`, `briefingLine` (`briefing.ts`) | tracker tickets (`closedAt`, `createdAt`), decision records, `activity.pending/sessions`, each since `Presence.lastSeen(mission)` |
+| Briefing: spend · tokens · sessions since | `UsageLedger.since` (`activity/usageLedger.ts`) | agent usage reports via `ActivityStream`, 5-minute buckets kept 14 days |
+| Decisions: Active, Superseded, Last 24h, Human %, per-source counts | `decisionStats` | decision records + derived tracker entries |
+| Current step: `WORK 3/5 : RESOLVE #7` + pipeline | raw `SessionInfo.step/total/stepLabel` | session step events |
+| Sessions: live timer | raw `SessionInfo.startedAt` | session start |
+| Sessions: tokens · cost per session; Mission total | raw `SessionInfo.usage`; `missionUsage` | agent usage reports via `SessionHandle.usage()` |
+| Sessions: claims per agent | `claimsByAgent` | tracker assignees |
+| Activity log: time / source / message | raw `FeedEntry` (system lines attributed to MILO) | activity stream + tracker events |
 
 `activity.answered` and per-mission usage live in the in-memory activity stream, so they reset on reload until the CLI or an MCP server persists session reports.
 
@@ -123,9 +124,8 @@ packages/core            UI-free engine (@miloops-hq/core). No React, no DOM.
                          operations/ (chartMap, chooseNext, claim, resolve, promoteToTicket, ruleOutOfScope, setMapMode),
                          decisions/ (record file format, source registry, audit merge, filters, chain, export, stats)
   src/adapters/          adapter.ts (TrackerAdapter: tracker = source of truth; only primitives), markdown/ (real, plus node:fs MarkdownFs),
-                         memoryAdapter (demo), seed/, remote/ (sync engine, github, linear, bridge client)
+                         memoryAdapter (tests), seed/ (dev seed), remote/ (sync engine, github, linear, bridge client)
   src/activity/          ActivityStream (sessions, step events, usage, HITL ask/answer, feed), Presence and UsageLedger on a KeyValueStore
-  src/sim/               simulated agent brain, chart/work/research procedures, usage meter, autopilot
   src/server/            HTTP tracker API (tracker routes, decisions, agents, SSE), used by the CLI and the dev server
   src/agents/            agent link: session docs + answers shared between MCP agent processes and the command center; doc writer, server lock
   src/lib/               small shared helpers (emitter, keyed lock, JSON files)
@@ -143,7 +143,7 @@ packages/cli             the `miloops` npm package: src/cli.ts (subcommand dispa
   src/mcp/               `miloops mcp`: MCP server (server.ts, tools/ by area) over the agent controller (agent.ts, mission/)
   src/usage/             real token and cost usage read from Claude Code and Codex logs
   src/connect.ts         `miloops connect claude|codex`; commands/milo.md is the /milo command
-scripts/                 capture.mjs (media), flow.mjs (user-flow shots), verify-cli.mjs (CLI smoke test), verify-mcp.mjs (MCP end-to-end), seed-markdown.ts, check-markdown.mjs, shot.mjs
+scripts/                 seed-dev.ts (dev seed), dev-agent.mjs (real MCP agents for dev), verify-cli.mjs (CLI smoke test), verify-mcp.mjs (MCP end-to-end), check-markdown.mjs
 THIRD_PARTY_NOTICES.md   credit and MIT licence for the reused skill concepts
 ```
 
@@ -151,7 +151,7 @@ Every UI write goes through `planning/operations/`, then through the monitored a
 
 ## While you were away
 
-`Presence` (`packages/core/src/activity/presence.ts`) stores when the operator was last present, per mission, in a `KeyValueStore` (localStorage scoped by tracker root; memory in demo). `apps/command-center/src/hooks/useBriefing.ts` decides presence: while the tab is visible, the operator was present at their last input; hiding the tab while active counts as present until then. The briefing opens when the app loads, the tab becomes visible, or input arrives after an idle stretch, if the operator was away at least the threshold (Settings → Briefing, default 15 min, or Off) and `buildBriefing(...).changed`. A first run, with no presence yet, shows none. Header → Briefing reopens the last one.
+`Presence` (`packages/core/src/activity/presence.ts`) stores when the operator was last present, per mission, in a `KeyValueStore` (localStorage scoped by tracker root). `apps/command-center/src/hooks/useBriefing.ts` decides presence: while the tab is visible, the operator was present at their last input; hiding the tab while active counts as present until then. The briefing opens when the app loads, the tab becomes visible, or input arrives after an idle stretch, if the operator was away at least the threshold (Settings → Briefing, default 15 min, or Off) and `buildBriefing(...).changed`. A first run, with no presence yet, shows none. Header → Briefing reopens the last one.
 
 ## Decision records
 
@@ -179,16 +179,9 @@ Every resolve, ticket rule-out and supersede writes a `DecisionRecord` (`package
 - Mission mode: new missions default to **plan + execute**. **Plan-only** disables new execute tickets and parks existing ones. Switch it per mission with the header chip or in Settings.
 - HITL: a session calls `ask()` and blocks until the operator answers in the inbox conversation. The inbox collects questions from every mission, tagged with the mission name. The ticket shows red "waiting on you" meanwhile. On resolve it posts the resolution, plus the transcript in full mode, then closes the ticket (recording `closedAt`), writes a decision record and appends to Decisions so far.
 
-## Mocked vs real
+## Real only
 
-| Real | Mocked / stubbed |
-| --- | --- |
-| Local-markdown tracker (read/write/watch, YAML frontmatter) | Dispatch / Work next / Autopilot agents: canned questions and answers (`sim/brain.ts`) |
-| Agents connected over MCP (Claude Code, Codex): sessions, steps, questions, decisions, reported usage | Autopilot fleet (MILO's dispatcher) and demo HITL scenario |
-| Frontier, blocking, claim-race check, all map operations | Token / cost reports of simulated sessions (simulated meter) |
-| HITL ask/answer plumbing, transcript posting, response times | |
-| Tracker write latency, sync status, event pulse | GitHub / Linear adapters (throw "not implemented") |
-| Settings and onboarding persistence (localStorage) | |
+Everything the command center shows comes from a real tracker (local markdown, GitHub Issues, Linear) and real agents over MCP. There is no demo tracker and no simulated agent; work starts and moves in the agent's chat (`/milo new`, `/milo resume`). For development, `npm run seed` and `npm run dev:agent` provide the data and the agents.
 
 ## Renaming
 
