@@ -950,6 +950,13 @@ code {
 .waitlist.is-done .btn {
   display: none;
 }
+.waitlist .hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
 .waitlist__status {
   flex-basis: 100%;
   font-size: var(--fs-small);

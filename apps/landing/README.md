@@ -23,7 +23,16 @@ Requires Node 20+.
 
 ## Waitlist
 
-The `/specialists` form POSTs `{ email, list: "specialists" }` as JSON to `VITE_WAITLIST_URL` when that is set at build time. Without it, the form opens a prefilled email to `hello@miloops.app`.
+The `/specialists` form posts `{ email }` to `/api/waitlist`, a Vercel serverless function (`api/waitlist.ts`) that adds the address to a Resend audience. It validates the email, ignores bots that fill the hidden honeypot field, and treats an address already on the list as success. `npm run dev` serves the same function locally.
+
+It needs two server-side env vars (never exposed to the browser):
+
+| Variable | Value |
+| --- | --- |
+| `RESEND_API_KEY` | A Resend API key with access to Audiences |
+| `RESEND_AUDIENCE_ID` | The id of the audience that collects signups (Resend → Audiences) |
+
+Set them in Vercel (project → Settings → Environment Variables, for Production and Preview) and, for local dev, in `apps/landing/.env.local` (git-ignored). Without them the form says the waitlist isn't configured.
 
 ## Product media
 
