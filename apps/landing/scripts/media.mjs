@@ -58,10 +58,11 @@ const zoom = async (name, sels, { aspect = 4 / 3, pad = 16 } = {}) => {
     const lo = Math.min(Math.max(0, c - len / 2), max - len);
     return [Math.max(0, lo), Math.min(max, Math.max(0, lo) + len)];
   };
-  if ((x1 - x0) / (y1 - y0) < aspect) [x0, x1] = grow(x0, x1, (y1 - y0) * aspect, size.width);
-  else [y0, y1] = grow(y0, y1, (x1 - x0) / aspect, size.height);
+  const vp = page.viewportSize();
+  if ((x1 - x0) / (y1 - y0) < aspect) [x0, x1] = grow(x0, x1, (y1 - y0) * aspect, vp.width);
+  else [y0, y1] = grow(y0, y1, (x1 - x0) / aspect, vp.height);
   [x0, y0] = [Math.max(0, x0), Math.max(0, y0)];
-  [x1, y1] = [Math.min(size.width, x1), Math.min(size.height, y1)];
+  [x1, y1] = [Math.min(vp.width, x1), Math.min(vp.height, y1)];
   const clip = { x: Math.round(x0), y: Math.round(y0), width: Math.round(x1 - x0), height: Math.round(y1 - y0) };
   await page.screenshot({ path: join(media, `${name}.png`), clip });
   console.log('saved', `${name}.png`, `${clip.width * 2}x${clip.height * 2}`);
@@ -181,7 +182,12 @@ await wait(800);
 await chip().click();
 await page.locator('.msg-text', { hasText: 'Draft resolution' }).waitFor({ timeout: 20000 });
 await wait(1500);
+// The draft resolution is taller than the log at 945px; a taller window shows it whole.
+await page.setViewportSize({ ...size, height: 1200 });
+await wait(800);
 await zoom('command-center-hitl-conversation', ['.comms .msg.open-q', '.comms .suggest'], { aspect: 16 / 10 });
+await page.setViewportSize(size);
+await wait(500);
 await chip().click();
 await page.locator('.comms .status', { hasText: 'Resolved' }).waitFor({ timeout: 20000 });
 await wait(2500);
