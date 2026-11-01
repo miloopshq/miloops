@@ -762,11 +762,44 @@ code {
   border: 1px solid var(--line);
 }
 .roster li {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 4px;
+  align-content: start;
   padding: 22px;
   background: var(--bg);
+}
+.roster li > b,
+.roster li > span {
+  grid-column: 2;
+}
+/* Each specialist is MILO in its own colour (the reviewer keeps MILO's). */
+.spec {
+  grid-row: 1 / span 2;
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+}
+.spec--qa {
+  filter: sepia(1) saturate(3.2) hue-rotate(75deg) brightness(0.95);
+}
+.spec--security {
+  filter: sepia(1) saturate(4.5) hue-rotate(-38deg) brightness(0.9);
+}
+.spec--docs {
+  filter: sepia(1) saturate(3) hue-rotate(5deg);
+}
+.spec--architect {
+  filter: sepia(1) saturate(3) hue-rotate(225deg) brightness(1.05);
+}
+.spec--you {
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.55;
+  border-style: dashed;
+  border-color: var(--line-2);
 }
 .roster b {
   font-family: var(--pixel);
