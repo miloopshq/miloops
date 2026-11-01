@@ -7,6 +7,7 @@ import {
   DECISION_SOURCES,
   type DecisionStatus,
 } from '@miloops-hq/core';
+import { Select } from '../../components/ui';
 import { DecisionOption } from './DecisionOption';
 
 export function DecisionFilters(props: {
@@ -22,53 +23,44 @@ export function DecisionFilters(props: {
   if (props.compact)
     return (
       <div className="dv-filters compact">
-        <select
-          className="mono"
-          value={filter.mapId ?? ''}
-          onChange={(e) => set({ mapId: e.target.value || undefined })}
+        <Select
+          compact
           aria-label="Mission"
-        >
-          <option value="">All missions</option>
-          {props.missions.map((s) => (
-            <option key={s.map.id} value={s.map.id}>
-              {s.map.key} {s.map.title}
-            </option>
-          ))}
-        </select>
-        <select
-          className="mono"
-          value={filter.source ?? ''}
-          onChange={(e) => set({ source: (e.target.value || undefined) as DecisionSourceKind | undefined })}
+          value={filter.mapId ?? ''}
+          onChange={(v) => set({ mapId: v || undefined })}
+          options={[
+            { value: '', label: 'All missions' },
+            ...props.missions.map((s) => ({ value: s.map.id, label: `${s.map.key} ${s.map.title}` })),
+          ]}
+        />
+        <Select<DecisionSourceKind | ''>
+          compact
           aria-label="Source"
-        >
-          <option value="">All sources</option>
-          {DECISION_SOURCE_KINDS.map((k) => (
-            <option key={k} value={k}>
-              {DECISION_SOURCES[k].label}
-            </option>
-          ))}
-        </select>
-        <select
-          className="mono"
-          value={filter.decidedBy ?? ''}
-          onChange={(e) => set({ decidedBy: e.target.value || undefined })}
+          value={filter.source ?? ''}
+          onChange={(v) => set({ source: v || undefined })}
+          options={[
+            { value: '', label: 'All sources' },
+            ...DECISION_SOURCE_KINDS.map((k) => ({ value: k, label: DECISION_SOURCES[k].label })),
+          ]}
+        />
+        <Select
+          compact
           aria-label="Decided by"
-        >
-          <option value="">Anyone</option>
-          {props.people.map((p) => (
-            <option key={p}>{p}</option>
-          ))}
-        </select>
-        <select
-          className="mono"
-          value={filter.status ?? ''}
-          onChange={(e) => set({ status: (e.target.value || undefined) as DecisionStatus | undefined })}
+          value={filter.decidedBy ?? ''}
+          onChange={(v) => set({ decidedBy: v || undefined })}
+          options={[{ value: '', label: 'Anyone' }, ...props.people.map((p) => ({ value: p, label: p }))]}
+        />
+        <Select<DecisionStatus | ''>
+          compact
           aria-label="Status"
-        >
-          <option value="">Any status</option>
-          <option value="active">Active</option>
-          <option value="superseded">Superseded</option>
-        </select>
+          value={filter.status ?? ''}
+          onChange={(v) => set({ status: v || undefined })}
+          options={[
+            { value: '', label: 'Any status' },
+            { value: 'active', label: 'Active' },
+            { value: 'superseded', label: 'Superseded' },
+          ]}
+        />
       </div>
     );
   return (

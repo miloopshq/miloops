@@ -15,6 +15,7 @@ export { Panel } from './Panel';
 export { Pill } from './Pill';
 export { Readout } from './Readout';
 export { SectionHeader } from './SectionHeader';
+export { Select, type SelectOption } from './Select';
 export { Spark } from './Spark';
 export { Tabs } from './Tabs';
 export { Wordmark } from './Wordmark';

@@ -146,7 +146,7 @@
   border-right: 0;
   overflow: visible;
 }
-.dv-filters.compact select {
+.dv-filters.compact .select {
   flex: 1 1 140px;
   min-width: 0;
 }
