@@ -5,6 +5,7 @@ import { type Selection, heldLeases, isRunning, prSync, worstFlag } from '../../
 import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
+import { useWheelZoom } from './useWheelZoom';
 
 export const PAD = 32;
 
@@ -71,6 +72,11 @@ export function MapGraph(props: {
     return { k: nk, x: p.x - ((p.x - v.x) * nk) / v.k, y: p.y - ((p.y - v.y) * nk) / v.k };
   };
 
+  useWheelZoom(box, (factor, at) => {
+    touched.current = true;
+    setView((v) => zoomAt(v, v.k * factor, at));
+  });
+
   const now = useNow(5000);
   const held = heldLeases(props.leases, snap.map.id);
   const sync = usePrSync();
@@ -112,10 +118,6 @@ export function MapGraph(props: {
         if (pointers.current.size) startGesture();
       }}
       onPointerCancel={(e) => pointers.current.delete(e.pointerId)}
-      onWheel={(e) => {
-        touched.current = true;
-        setView((v) => zoomAt(v, v.k * Math.exp(-e.deltaY * 0.0015), local(e)));
-      }}
       onClickCapture={(e) => {
         if (gesture.current?.moved) {
           e.stopPropagation();
