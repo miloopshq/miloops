@@ -115,7 +115,12 @@ await wait(1500);
 
 await page.locator('.node', { hasText: 'silent auto-merge' }).first().click();
 await wait(1500);
+// MILO explaining the map from its info icon: the speech-bubble hint, mid-sentence.
+await page.locator('.map-zone .info-tip').hover();
+await wait(1400);
 await shot('command-center-overview');
+await page.mouse.move(size.width / 2, size.height - 4);
+await wait(600);
 await zoom('flow-06-first-tickets', ['.map-zone'], { aspect: 16 / 10 });
 
 await page.locator('.mission-btn').click();
