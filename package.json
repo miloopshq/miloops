@@ -20,6 +20,7 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run && npm run test --workspaces --if-present",
     "verify:mcp": "node scripts/verify-mcp.mjs",
+    "registry:local": "node scripts/registry-local.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
