@@ -338,6 +338,16 @@ code {
 .brand .ops {
   color: var(--copper);
 }
+/* The nav mark: the detailed MILO (40px), mounted by main.ts. */
+.brand__milo {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+.brand__milo > .milo {
+  display: block;
+  margin: 0;
+}
 .nav__inner {
   position: relative;
 }
@@ -360,6 +370,14 @@ code {
 }
 .nav__cta {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nav__cta .gh {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
 }
 
 /* ---------- hero ---------- */

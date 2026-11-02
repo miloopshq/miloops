@@ -36,7 +36,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          if [ -n "$TOKEN" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "::warning::VERCEL_TOKEN is not set; skipping the deploy (see docs/releasing.md)."; fi
+          if [ -n "$TOKEN" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "::warning::VERCEL_TOKEN is not set; skipping the deploy."; fi
         working-directory: .
       - if: steps.ready.outputs.ok
         uses: actions/checkout@v4

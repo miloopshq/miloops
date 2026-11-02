@@ -20,3 +20,6 @@ capture-frames/
 .env.*
 .DS_Store
 *.log
+
+# Internal docs stay local.
+docs/

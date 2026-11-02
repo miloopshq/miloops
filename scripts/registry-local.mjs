@@ -1,6 +1,6 @@
 // A private npm registry on this machine (Verdaccio), for trying MILOOPS exactly as a user would install it,
 // without publishing anything to npmjs.com. Only `miloops` lives here; every other package is proxied from
-// npmjs.com, so installs behave normally. See docs/end-user-test.md → "Private trial".
+// npmjs.com, so installs behave normally.
 //
 //   npm run registry:local              start the registry (http://127.0.0.1:4873), leave it running
 //   npm run registry:local -- publish   build and publish the current miloops to it (as <version>-local.<time>)

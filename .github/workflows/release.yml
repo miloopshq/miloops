@@ -1,5 +1,5 @@
 # Stable release: push a tag vX.Y.Z (matching packages/cli/package.json) to publish miloops@X.Y.Z as `latest`
-# on npm and create the GitHub release. See docs/releasing.md.
+# on npm and create the GitHub release.
 name: Release
 
 on:

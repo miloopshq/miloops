@@ -18,6 +18,23 @@ for (const canvas of $$<HTMLCanvasElement>('canvas[data-field]')) {
   });
 }
 
+// Nav mark: the detailed MILO, blinking, with a short line every few seconds.
+const navMilo = $('[data-milo-nav]');
+if (navMilo) {
+  const lines = ['Standing by', 'Agents on the line', 'Ready when you are'];
+  let i = 0;
+  const h = mountMilo(navMilo, { size: 1.25, state: 'idle', framed: false });
+  const talk = () =>
+    h.update({
+      speaking: lines[i++ % lines.length],
+      onSpeakEnd: () => {
+        h.update({ speaking: undefined });
+        setTimeout(talk, 7000);
+      },
+    });
+  if (!reducedMotion) setTimeout(talk, 2500);
+}
+
 const milo = $('[data-milo]');
 if (milo) mountMilo(milo, { size: 'sm', state: 'idle', framed: false });
 // Specialists: MILO in each role's colour (CSS), each in its own state so the roster feels alive.

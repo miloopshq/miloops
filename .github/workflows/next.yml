@@ -1,6 +1,6 @@
 # Preview release: run by hand on any branch (Actions → Publish next → Run workflow) to publish it as
 # miloops@<version>-next.<run> under the `next` tag, so `npm i -g miloops@next` tries it before it is merged.
-# `latest` is never touched. See docs/releasing.md.
+# `latest` is never touched.
 name: Publish next
 
 on:
