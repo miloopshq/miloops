@@ -8,11 +8,25 @@ function partials(): Plugin {
   return {
     name: 'partials',
     transformIndexHtml: (html) =>
-      html.replace(/<!-- @include (\w+) -->/g, (_, name: string) =>
-        readFileSync(resolve(__dirname, 'partials', `${name}.html`), 'utf8'),
-      ),
+      html
+        .replaceAll('%SITE_URL%', SITE_URL)
+        .replace(/<!-- @include (\w+) -->/g, (_, name: string) =>
+          readFileSync(resolve(__dirname, 'partials', `${name}.html`), 'utf8'),
+        ),
   };
 }
+
+/**
+ * Absolute base for share cards (og:image must be an absolute URL): $SITE_URL, else the production URL Vercel
+ * provides at build time, else the current production address. Switch it to https://miloops.app once that
+ * domain points at Vercel (or set SITE_URL in the Vercel project).
+ */
+const SITE_URL = (
+  process.env.SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : 'https://miloops-landing.vercel.app')
+).replace(/\/$/, '');
 
 /** Serves api/waitlist.ts in `vite dev` the way Vercel does in production, with env from .env.local. */
 function devApi(): Plugin {

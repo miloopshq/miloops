@@ -1,0 +1,70 @@
+# Deploys apps/landing to Vercel with the Vercel CLI, since the Vercel GitHub app can't connect this private
+# org repo on the Hobby plan. Pushes to main deploy production; PRs get a preview URL posted as a comment.
+# Secrets: VERCEL_TOKEN (vercel.com/account/tokens), VERCEL_ORG_ID, VERCEL_PROJECT_ID (apps/landing/.vercel/project.json).
+name: Landing
+
+on:
+  push:
+    branches: [main]
+    paths: ['apps/landing/**', 'packages/milo-avatar/**', 'package-lock.json', '.github/workflows/landing.yml']
+  pull_request:
+    paths: ['apps/landing/**', 'packages/milo-avatar/**', 'package-lock.json', '.github/workflows/landing.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: landing-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/landing
+    steps:
+      - name: Vercel token set?
+        id: ready
+        env:
+          TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "::warning::VERCEL_TOKEN is not set; skipping the deploy (see docs/releasing.md)."; fi
+        working-directory: .
+      - if: steps.ready.outputs.ok
+        uses: actions/checkout@v4
+      - if: steps.ready.outputs.ok
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.ready.outputs.ok
+        run: npm ci
+        working-directory: .
+      - if: steps.ready.outputs.ok
+        name: Target
+        id: target
+        run: echo "env=${{ github.event_name == 'pull_request' && 'preview' || 'production' }}" >> "$GITHUB_OUTPUT"
+      - if: steps.ready.outputs.ok
+        run: npx vercel@latest pull --yes --environment=${{ steps.target.outputs.env }} --token=${{ secrets.VERCEL_TOKEN }}
+      - if: steps.ready.outputs.ok
+        run: npx vercel@latest build ${{ steps.target.outputs.env == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+      - if: steps.ready.outputs.ok
+        name: Deploy
+        id: deploy
+        run: |
+          url=$(npx vercel@latest deploy --prebuilt ${{ steps.target.outputs.env == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed ($url)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Comment the preview URL
+        if: steps.ready.outputs.ok && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --edit-last --create-if-none --body "Landing preview → ${{ steps.deploy.outputs.url }}"
