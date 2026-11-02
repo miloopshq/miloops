@@ -3,7 +3,7 @@
 MILOOPS, the Autonomous Agent Command Center. One command opens a local command center for the agents working in your repo.
 
 ```bash
-npm i -g miloops      # or skip the install: npx miloops
+npm i -g miloops-cli      # or skip the install: npx miloops-cli
 cd your-repo
 miloops
 ```
@@ -26,13 +26,13 @@ The same package ships an MCP server, `miloops mcp`, that your agent starts over
 ### Claude Code
 
 ```bash
-claude mcp add miloops -- npx -y miloops mcp
+claude mcp add miloops -- npx -y miloops-cli mcp
 ```
 
 Or let `miloops` do it and add the `/milo` command to the repo (`.claude/commands/milo.md`):
 
 ```bash
-npx miloops connect claude
+npx miloops-cli connect claude
 ```
 
 Then, in Claude Code:
@@ -47,7 +47,7 @@ Then, in Claude Code:
 ### Codex
 
 ```bash
-codex mcp add miloops -- npx -y miloops mcp
+codex mcp add miloops -- npx -y miloops-cli mcp
 ```
 
 or in `~/.codex/config.toml`:
@@ -55,16 +55,16 @@ or in `~/.codex/config.toml`:
 ```toml
 [mcp_servers.miloops]
 command = "npx"
-args = ["-y", "miloops", "mcp"]
+args = ["-y", "miloops-cli", "mcp"]
 # ask_human waits for your answer; Codex cancels tool calls after 60 s by default.
 tool_timeout_sec = 900
 ```
 
-`npx miloops connect codex` prints this and installs the same command as a Codex prompt (`~/.codex/prompts/milo.md`): `/prompts:milo new "<idea>"`, `/prompts:milo resume`, and so on.
+`npx miloops-cli connect codex` prints this and installs the same command as a Codex prompt (`~/.codex/prompts/milo.md`): `/prompts:milo new "<idea>"`, `/prompts:milo resume`, and so on.
 
 ### Other agents
 
-Any MCP client works: run `npx -y miloops mcp` over stdio in the repo. `--dir <path>` (or `$MILOOPS_DIR`) picks another tracker folder; `--agent <callsign>` fixes the session name, which otherwise comes from the client (`claude-01`, `codex-01`).
+Any MCP client works: run `npx -y miloops-cli mcp` over stdio in the repo. `--dir <path>` (or `$MILOOPS_DIR`) picks another tracker folder; `--agent <callsign>` fixes the session name, which otherwise comes from the client (`claude-01`, `codex-01`).
 
 ### Tools
 

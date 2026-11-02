@@ -1,5 +1,5 @@
 {
-  "name": "miloops",
+  "name": "miloops-cli",
   "version": "0.7.0",
   "author": "MILOOPS",
   "description": "MILOOPS — Autonomous Agent Command Center. One command opens a local command center for the agents working in your repo.",

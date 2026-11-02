@@ -89,5 +89,5 @@ await setMapMode(adapter, second.id, 'plan-only');
 console.log(`seeded ${root}`);
 console.log(`  ${main.key} ${main.title} · mid-flight`);
 console.log(`  ${second.key} ${second.title} · plan only`);
-console.log('Live agents: npm run dev:agent (needs npm run build -w miloops once).');
+console.log('Live agents: npm run dev:agent (needs npm run build -w miloops-cli once).');
 process.exit(0);

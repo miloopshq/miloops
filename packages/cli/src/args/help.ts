@@ -11,7 +11,7 @@ Starts the command center for the current folder and opens it in your browser.
 
 Commands:
   mcp            Serve the MCP server for coding agents over stdio
-                 (claude mcp add ${BRAND.slug} -- npx -y ${BRAND.slug} mcp)
+                 (claude mcp add ${BRAND.slug} -- npx -y ${BRAND.npm} mcp)
                  A claimed ticket returns to the queue after --lease-minutes without a
                  tool call from its agent (default: ${DEFAULT_LEASE_MINUTES}, or $${LEASE_MINUTES_ENV})
   connect <agent>  Register the MCP server with Claude Code or Codex and add the /milo command

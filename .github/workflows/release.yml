@@ -1,5 +1,5 @@
 # Publishes the `miloops` CLI to npm. Run it from Actions → Release → Run workflow, or:
-#   gh workflow run release.yml -f channel=next                    a prerelease to try: npx miloops@next
+#   gh workflow run release.yml -f channel=next                    a prerelease to try: npx miloops-cli@next
 #   gh workflow run release.yml -f channel=latest                  a stable release of packages/cli/package.json's version
 #   gh workflow run release.yml -f channel=latest -f version=0.8.0 a stable release of a version you name
 # next:   <upcoming>-next.<run>, where <upcoming> is the package.json version (or the patch after npm's latest
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-        description: 'next: a prerelease for testing (npx miloops@next). latest: a stable release.'
+        description: 'next: a prerelease for testing (npx miloops-cli@next). latest: a stable release.'
         type: choice
         options: [next, latest]
         default: next
@@ -56,12 +56,12 @@ jobs:
         run: node .github/scripts/release-version.mjs >> "$GITHUB_OUTPUT"
       - run: npm ci
       - name: Set the package version
-        run: npm version "${{ steps.version.outputs.version }}" -w miloops --no-git-tag-version --allow-same-version
+        run: npm version "${{ steps.version.outputs.version }}" -w miloops-cli --no-git-tag-version --allow-same-version
       - run: npm run check
         env:
           CHROME: ${{ steps.chrome.outputs.chrome-path }}
       - name: Publish to npm
-        run: npm publish -w miloops --tag "${{ inputs.channel }}" --access public --provenance
+        run: npm publish -w miloops-cli --tag "${{ inputs.channel }}" --access public --provenance
       - name: Tag and GitHub release
         if: inputs.channel == 'latest'
         env:
@@ -71,5 +71,5 @@ jobs:
       - name: Summary
         run: |
           v="${{ steps.version.outputs.version }}"
-          echo "Published miloops@$v as \`${{ inputs.channel }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Try it: \`npx miloops@$v\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Published miloops-cli@$v as \`${{ inputs.channel }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "Try it: \`npx miloops-cli@$v\`" >> "$GITHUB_STEP_SUMMARY"

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import {
   ActivityStream,
+  BRAND,
   describeTrackerEvent,
   LEASE_MINUTES_ENV,
   leaseMs,
@@ -84,7 +85,7 @@ export class AgentContext {
       ? { running: true, url: lock.url }
       : {
           running: false,
-          hint: `Run \`npx miloops --dir ${path.relative(process.cwd(), this.root) || '.'}\` in this folder to watch live.`,
+          hint: `Run \`npx ${BRAND.npm} --dir ${path.relative(process.cwd(), this.root) || '.'}\` in this folder to watch live.`,
         };
   }
 

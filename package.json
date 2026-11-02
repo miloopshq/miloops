@@ -28,7 +28,7 @@
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run build && npm test && npm run verify:mcp",
     "seed": "esbuild scripts/seed-dev.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/seed-dev.mjs && node node_modules/.cache/seed-dev.mjs",
     "start": "node packages/cli/dist/cli.js",
-    "pack": "npm pack -w miloops --pack-destination .",
+    "pack": "npm pack -w miloops-cli --pack-destination .",
     "dev:avatar": "npm run dev -w @miloops-hq/milo-avatar"
   },
   "devDependencies": {

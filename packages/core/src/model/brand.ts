@@ -1,12 +1,14 @@
 /**
  * The product name lives here and nowhere else. Renaming the product means
- * editing this file (plus the npm package scope, which npm cannot read from code).
+ * editing this file (plus the package.json names, which npm cannot read from code).
  * Changing `slug` also changes tracker labels, so existing maps would need relabelling.
  */
 const slug = 'miloops';
 
 export const BRAND = {
   slug,
+  /** The npm package (`npx miloops-cli`, `npm i -g miloops-cli`). Its command is still `miloops`. */
+  npm: 'miloops-cli',
   /** Display name for HUD headings. */
   name: 'MILOOPS',
   /** Two-tone wordmark: `lead + ops` spells `name`; `ops` renders in the brand amber. */

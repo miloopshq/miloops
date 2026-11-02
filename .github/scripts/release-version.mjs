@@ -27,7 +27,7 @@ const npmView = (spec) => {
 
 const channel = process.env.CHANNEL;
 const pkg = JSON.parse(readFileSync('packages/cli/package.json', 'utf8')).version;
-const latest = npmView('miloops@latest') || '0.0.0';
+const latest = npmView('miloops-cli@latest') || '0.0.0';
 if (!parse(pkg)) fail(`packages/cli/package.json version ${pkg} is not x.y.z`);
 
 let version;
@@ -35,7 +35,7 @@ if (channel === 'latest') {
   version = process.env.REQUESTED?.trim() || pkg;
   if (!parse(version)) fail(`version ${version} is not x.y.z`);
   if (cmp(version, latest) <= 0) fail(`version ${version} must be higher than npm's latest (${latest})`);
-  if (npmView(`miloops@${version}`)) fail(`miloops@${version} is already on npm`);
+  if (npmView(`miloops-cli@${version}`)) fail(`miloops-cli@${version} is already on npm`);
 } else if (channel === 'next') {
   const [a, b, c] = parse(latest);
   const afterLatest = `${a}.${b}.${c + 1}`;
