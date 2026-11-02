@@ -35,17 +35,18 @@
   /* "OPS" half of the wordmark: MILO's antenna copper, shared with the brand kit. */
   --brand-ops: #c98b5e;
 
-  /* Two fonts (src/fonts.ts). Geist Pixel: --display (caps headings, wordmark) and --mono (HUD labels, tags, ids).
-   * Geist: --sans for everything read, and --data for numbers that change (timers, counts, spend), with tabular digits. */
-  --display: 'Geist Pixel', 'Geist Variable', sans-serif;
-  --mono: 'Geist Pixel', 'Geist Variable', monospace;
-  --sans: 'Geist Variable', system-ui, sans-serif;
-  --data: 'Geist Variable', system-ui, sans-serif;
-  /* Bold text (titles, buttons, <b>/<strong>) is set in Geist Pixel instead of a heavier Geist. */
-  --strong: var(--display);
+  /* Three fonts (src/fonts.ts), as on the landing page. Geist Pixel is the accent: --display for caps headings
+   * and the wordmark. IBM Plex Sans: --sans for everything read, --label for uppercase HUD labels, --strong for bold
+   * text and buttons, --data for numbers that change (tabular digits). Geist Mono: --mono for keys, ids, timers, code. */
+  --display: 'Geist Pixel', 'IBM Plex Sans Variable', sans-serif;
+  --sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
+  --label: var(--sans);
+  --strong: var(--sans);
+  --data: var(--sans);
+  --mono: 'Geist Mono Variable', ui-monospace, monospace;
   /* Geist Pixel has one weight: caps headings get a thin same-color stroke to read heavier. */
   --heavy: 0.6px currentColor;
-  /* Type voices: people and agents both read in Geist (bubbles and colors tell them apart); tracker/system data in the label face. */
+  /* Type voices: people and agents both read in Plex Sans (bubbles and colors tell them apart); tracker/system data in mono. */
   --voice-human: var(--sans);
   --voice-agent: var(--sans);
   --voice-data: var(--mono);
@@ -93,7 +94,7 @@ textarea {
 strong,
 b {
   font-family: var(--strong);
-  font-weight: 400;
+  font-weight: 600;
 }
 button {
   -webkit-tap-highlight-color: transparent;

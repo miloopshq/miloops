@@ -67,7 +67,7 @@
   box-shadow: 0 0 6px rgba(var(--claimed-rgb), 0.7);
 }
 .pipeline span {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
@@ -75,6 +75,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 500;
 }
 .pipeline li.done span {
   color: var(--dim);
@@ -102,11 +103,12 @@
   font-size: var(--fs-sm);
 }
 .callsign {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
   color: var(--text-hi);
+  font-weight: 500;
 }
 .timer {
   margin-left: auto;
@@ -208,11 +210,12 @@
 }
 .urgent-text {
   color: var(--urgent);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 /* ---------- Activity log ---------- */
@@ -238,7 +241,7 @@
   color: var(--faint);
 }
 .log-row .src {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
@@ -246,6 +249,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 .log-row.src-operator .src {
   color: var(--amber);
@@ -264,10 +268,11 @@
 }
 .log-row .tag {
   color: var(--st-claimed);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
+  font-weight: 500;
 }
 .log-row.lv-warn .msg {
   color: var(--amber);
