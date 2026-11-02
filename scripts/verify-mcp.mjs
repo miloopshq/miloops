@@ -1,6 +1,6 @@
 // End-to-end check of the MCP server against the built CLI: a stdio MCP client drives a mission while the
 // command center (in Chrome) shows it live, and every HITL question is answered in the command center inbox.
-// Usage: npm run build -w miloops && node scripts/verify-mcp.mjs [screenshotDir]
+// Usage: npm run build -w miloops-cli && node scripts/verify-mcp.mjs [screenshotDir]
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -13,7 +13,7 @@ import { chromium } from 'playwright-core';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const cli = path.resolve(here, '../packages/cli/dist/cli.js');
 const shots = process.argv[2];
-if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w miloops');
+if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w miloops-cli');
 if (shots) fs.mkdirSync(shots, { recursive: true });
 
 const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-e2e-'));
@@ -63,7 +63,7 @@ const shot = async (name) => {
   if (shots) await page.screenshot({ path: path.join(shots, `${name}.png`) });
 };
 
-// 2. The agent, as Claude Code starts it (`claude mcp add miloops -- npx miloops mcp`): Claude Code passes
+// 2. The agent, as Claude Code starts it (`claude mcp add miloops -- npx miloops-cli mcp`): Claude Code passes
 // CLAUDE_PROJECT_DIR and tags each call with its tool_use id; the transcript holds the API usage of every message.
 const claudeConfig = path.join(repo, '.claude-config');
 const transcript = path.join(claudeConfig, 'projects', repo.replace(/[^a-zA-Z0-9]/g, '-'), 'verify-session.jsonl');

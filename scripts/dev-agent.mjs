@@ -2,7 +2,7 @@
 // Claude Code or Codex connect, working the seeded missions in ./<dataDir>. They claim ready tickets, report
 // progress with token usage, close agent-only work with a resolution, and ask you (with suggested replies) on
 // tickets that need a human, waiting for your answer in the command center. Nothing is simulated.
-// Usage: npm run build -w miloops   (once, and after CLI changes)
+// Usage: npm run build -w miloops-cli   (once, and after CLI changes)
 //        npm run dev                (seeds and starts the command center)
 //        npm run dev:agent [agents=2] [mission=#1]
 import fs from 'node:fs';
@@ -13,7 +13,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cli = path.join(repo, 'packages/cli/dist/cli.js');
-if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w miloops');
+if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w miloops-cli');
 const count = Number(process.argv[2] ?? 2);
 const mission = process.argv[3] ?? '#1';
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));

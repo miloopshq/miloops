@@ -1,5 +1,5 @@
 {
-  "name": "miloops",
+  "name": "miloops-cli",
   "version": "0.7.0",
   "author": "MILOOPS",
   "description": "MILOOPS — Autonomous Agent Command Center. One command opens a local command center for the agents working in your repo.",
@@ -9,7 +9,8 @@
   },
   "files": [
     "dist",
-    "THIRD_PARTY_NOTICES.md"
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=20"

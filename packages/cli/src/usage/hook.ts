@@ -61,7 +61,7 @@ export function hookCommand(dir?: string) {
   return [
     'npx',
     '-y',
-    BRAND.slug,
+    BRAND.npm,
     'hook',
     'claude',
     ...(dir && dir !== BRAND.dataDir ? ['--dir', JSON.stringify(dir)] : []),

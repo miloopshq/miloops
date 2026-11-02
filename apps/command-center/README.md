@@ -9,7 +9,7 @@ A sci-fi-inspired HUD for planning with agents: a live map of decision tickets, 
 Requires Node 20+. One package, one command:
 
 ```bash
-npm i -g miloops            # or, without installing: npx miloops
+npm i -g miloops-cli            # or, without installing: npx miloops-cli
 cd your-repo
 miloops
 ```
@@ -36,7 +36,7 @@ From the repo root:
 npm install
 npm run dev                 # resets the dev project (npm run seed), then Vite with hot reload, http://localhost:5173
 npm run dev:keep            # the same server without reseeding, keeping what you changed
-npm run dev:agent           # real MCP agents working the dev project (after npm run build -w miloops)
+npm run dev:agent           # real MCP agents working the dev project (after npm run build -w miloops-cli)
 npm run build               # every workspace; the command-center bundle + CLI land in packages/cli/dist
 npm start                   # run the built CLI from the repo (same as `miloops`)
 npm run pack                # → ./miloops-<version>.tgz, installable with `npm i -g ./miloops-<version>.tgz`

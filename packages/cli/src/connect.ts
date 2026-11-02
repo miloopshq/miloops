@@ -13,7 +13,7 @@ const has = (bin: string) =>
 
 /** The command an agent runs to start the server; `--dir` only when the tracker folder is not the default. */
 export function serverArgs(dir?: string) {
-  return ['-y', BRAND.slug, 'mcp', ...(dir && dir !== BRAND.dataDir ? ['--dir', dir] : [])];
+  return ['-y', BRAND.npm, 'mcp', ...(dir && dir !== BRAND.dataDir ? ['--dir', dir] : [])];
 }
 
 /** `miloops connect claude|codex`: register the MCP server with the agent and install the `/milo` command. */

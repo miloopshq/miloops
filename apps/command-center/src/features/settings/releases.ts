@@ -81,7 +81,7 @@ export const RELEASES: Release[] = [
     version: '0.10.0',
     date: '2026-10-31',
     items: [
-      'MCP server in the miloops package: `claude mcp add miloops -- npx -y miloops mcp`, or the same for Codex',
+      'MCP server in the miloops package: `claude mcp add miloops -- npx -y miloops-cli mcp`, or the same for Codex',
       'Connected agents start and resume missions, claim ready tickets, report steps, tokens and spend, close tickets and record decisions, live in the command center',
       'Agent questions land in Waiting on you and the agent waits for your answer; answer in the command center or in the agent chat',
       '/milo new, resume, status and inbox commands for Claude Code (and as a Codex prompt); `miloops connect claude|codex` sets them up',
@@ -119,7 +119,7 @@ export const RELEASES: Release[] = [
       'MILO mark, also used for status, action and alert glyphs',
       'Dot-matrix signals for new decision requests and mission launches',
       'Separate type voices for operators and agents',
-      'One-command install: npm i -g miloops, then miloops in any repo',
+      'One-command install: npm i -g miloops-cli, then miloops in any repo',
       'Packages renamed to @miloops-hq/core and @miloops-hq/command-center',
     ],
   },

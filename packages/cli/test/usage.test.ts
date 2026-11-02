@@ -345,7 +345,7 @@ describe('connect claude', () => {
             {
               hooks: [
                 { type: 'command', command: 'echo hi' },
-                { type: 'command', command: 'npx miloops hook claude --dir old' },
+                { type: 'command', command: 'npx miloops-cli hook claude --dir old' },
               ],
             },
           ],
@@ -360,11 +360,11 @@ describe('connect claude', () => {
     expect(s.hooks.Stop).toHaveLength(1);
     expect(s.hooks.SessionStart).toEqual([
       { hooks: [{ type: 'command', command: 'echo hi' }] },
-      { hooks: [{ type: 'command', command: 'npx -y miloops hook claude', timeout: 30 }] },
+      { hooks: [{ type: 'command', command: 'npx -y miloops-cli hook claude', timeout: 30 }] },
     ]);
     installClaudeHook(file, 'plans');
     expect(JSON.parse(fs.readFileSync(file, 'utf8')).hooks.SessionStart[1].hooks[0].command).toBe(
-      'npx -y miloops hook claude --dir "plans"',
+      'npx -y miloops-cli hook claude --dir "plans"',
     );
   });
 });
