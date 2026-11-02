@@ -27,7 +27,9 @@ const npmView = (spec) => {
 
 const channel = process.env.CHANNEL;
 const pkg = JSON.parse(readFileSync('packages/cli/package.json', 'utf8')).version;
-const latest = npmView('miloops-cli@latest') || '0.0.0';
+// npm's latest can be a placeholder or prerelease (e.g. 0.0.0-stage from staged publishing): count that as nothing released.
+const npmLatest = npmView('miloops-cli@latest');
+const latest = parse(npmLatest) ? npmLatest : '0.0.0';
 if (!parse(pkg)) fail(`packages/cli/package.json version ${pkg} is not x.y.z`);
 
 let version;
