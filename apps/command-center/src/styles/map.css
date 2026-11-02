@@ -106,7 +106,7 @@
 }
 .bp-wide .graph-box,
 .bp-laptop .graph-box {
-  left: 196px;
+  bottom: var(--status-h);
 }
 .graph-box:active {
   cursor: grabbing;
@@ -146,19 +146,84 @@
 }
 
 /* Status counters: the legend and the numbers in one panel. */
+/* Status strip under the map: the graph gets the full width. */
+.map-area {
+  --status-h: 124px;
+  container-type: inline-size;
+}
 .status-panel {
   position: absolute;
   left: 0;
-  top: 0;
+  right: 0;
   bottom: 0;
-  width: 196px;
+  height: var(--status-h);
   z-index: 1;
-  padding: var(--sp-12) var(--gutter);
-  border-right: 1px solid var(--line);
+  padding: var(--sp-10) var(--gutter);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(150px, 1fr) minmax(130px, 0.9fr) minmax(230px, 1.4fr);
+  gap: var(--sp-14);
+  overflow: hidden;
+}
+.status-panel .sp-col {
   display: flex;
   flex-direction: column;
   gap: var(--sp-6);
-  overflow: auto;
+  min-width: 0;
+}
+.status-panel .sp-col + .sp-col {
+  padding-left: var(--sp-14);
+  border-left: 1px solid var(--line);
+}
+/* Status counts flow into as many columns as fit. */
+.status-panel .sp-status ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0 var(--sp-14);
+}
+.status-panel .sp-status li {
+  line-height: 1.3;
+}
+.status-panel .sp-status li span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Type mix in two columns, so all five types fit the strip. */
+.status-panel .mix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--sp-12);
+  row-gap: 3px;
+}
+.status-panel .mix li {
+  line-height: 1.3;
+}
+/* Every node carries its HITL / AFK tag, so the strip leaves the key out. */
+.status-panel .legend-extra {
+  display: none;
+}
+/* Mid-size maps drop the done-per-hour chart so the status counts keep their full labels. */
+@container (max-width: 1000px) {
+  .status-panel {
+    grid-template-columns: minmax(0, 2.4fr) minmax(140px, 1fr) minmax(220px, 1.3fr);
+  }
+  .status-panel > :nth-child(3) {
+    display: none;
+  }
+}
+/* Narrow maps keep status, resolution and critical path; the charts go. */
+@container (max-width: 760px) {
+  .status-panel {
+    grid-template-columns: minmax(0, 2fr) minmax(140px, 1fr);
+  }
+  .status-panel > .sp-block {
+    display: none;
+  }
+  .status-panel .sp-status ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .status-panel ul {
   list-style: none;
@@ -262,8 +327,6 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding-top: var(--sp-6);
-  border-top: 1px solid var(--line);
 }
 @media (max-height: 960px) {
   .bp-wide .status-panel .legend-extra,
@@ -329,11 +392,7 @@
   gap: var(--sp-6);
 }
 .bp-laptop .status-panel {
-  width: 160px;
   padding: var(--sp-10);
-}
-.bp-laptop .graph-box {
-  left: 160px;
 }
 .bp-laptop .status-panel li {
   font-size: var(--fs-label);

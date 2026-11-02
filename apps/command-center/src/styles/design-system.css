@@ -69,6 +69,17 @@
   line-height: var(--lh-tight);
   color: var(--text-hi);
 }
+/* Geist Pixel for the zone heroes (ticket title, HITL ticket line); mission title and current step set it directly. */
+.t-pixel {
+  font-family: var(--display);
+  font-weight: 400;
+  -webkit-text-stroke: var(--heavy);
+  letter-spacing: var(--ls-data);
+}
+.t-pixel .meta {
+  -webkit-text-stroke: 0;
+  letter-spacing: normal;
+}
 .t-heading.caps {
   font-family: var(--display);
   -webkit-text-stroke: var(--heavy);

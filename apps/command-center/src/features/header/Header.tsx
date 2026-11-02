@@ -5,10 +5,11 @@ import {
   type TrackerHealth,
   missionProgress,
 } from '@miloops-hq/core';
-import { Panel, MiloLogo, MiloMark, Wordmark, Label, Readout, Button } from '../../components/ui';
+import { Panel, MiloMark, Label, Readout, Button } from '../../components/ui';
 import { type BriefingStatus, useNow } from '../../hooks';
 import { hms } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
+import { HeaderMilo } from './HeaderMilo';
 import { MissionSwitcher } from './MissionSwitcher';
 import { TrackerChip } from './TrackerChip';
 
@@ -47,8 +48,7 @@ export function Header(props: {
   return (
     <Panel as="header" className="header">
       <div className="h-brand">
-        <MiloLogo className="logo" />
-        <Wordmark className="wordmark" />
+        <HeaderMilo />
       </div>
       <div className="h-title">
         <div className="h-line1">
@@ -62,6 +62,8 @@ export function Header(props: {
         </div>
       </div>
       <div className="h-right">
+        <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
+        <PrSyncIndicator now={now} />
         {map && p && (
           <span className="mission-meta">
             <Readout
@@ -71,20 +73,6 @@ export function Header(props: {
             />
             <Readout label="Done" value={`${p.decided}/${p.total}`} />
           </span>
-        )}
-        {map && (
-          <Button
-            size="sm"
-            className="mode-chip"
-            onClick={props.onToggleMode}
-            data-tip={
-              map.mode === 'plan-only'
-                ? 'Plan only: agents research and decide, but no execute tickets run. Click to switch to Plan + execute.'
-                : 'Plan + execute: agents decide, then build what was decided. Click to switch to Plan only, which parks execute tickets.'
-            }
-          >
-            {map.mode === 'plan-only' ? 'Plan only' : 'Plan + execute'}
-          </Button>
         )}
         {waiting > 0 && (
           <span className="waiting-chip" title={`${waiting} waiting on you`}>
@@ -98,8 +86,20 @@ export function Header(props: {
             Slack disconnected
           </Button>
         )}
-        <TrackerChip label={props.trackerLabel} health={props.health} now={now} />
-        <PrSyncIndicator now={now} />
+        {map && (
+          <Button
+            variant="ghost"
+            className="mode-chip"
+            onClick={props.onToggleMode}
+            data-tip={
+              map.mode === 'plan-only'
+                ? 'Plan only: agents research and decide, but no execute tickets run. Click to switch to Plan + execute.'
+                : 'Plan + execute: agents decide, then build what was decided. Click to switch to Plan only, which parks execute tickets.'
+            }
+          >
+            {map.mode === 'plan-only' ? 'Plan only' : 'Plan + execute'}
+          </Button>
+        )}
         <Button
           variant="ghost"
           className={`briefing-btn ${props.briefingStatus === 'new' ? 'has-new' : ''}`}

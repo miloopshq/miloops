@@ -15,7 +15,7 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
   const ghRepo = trackers?.github.auth ? (trackers.github.repo ?? trackers.github.detectedRepo) : undefined;
   const choices: { id: TrackerChoice; title: string; sub?: string }[] = [
     { id: 'markdown', title: 'Local markdown', sub: 'Files in .miloops/ in this repo' },
-    { id: 'github', title: 'GitHub Issues', sub: ghRepo },
+    { id: 'github', title: 'GitHub Issues' },
     { id: 'linear', title: 'Linear' },
   ];
   /** GitHub without a detected repo, and Linear, need setup first; their Connect button finishes onboarding. */

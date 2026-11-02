@@ -48,7 +48,7 @@ export function TicketDetail(props: {
         </Pill>
         <span className={`meta att-${att}`}>{att === 'hitl' ? 'HITL' : 'AFK'}</span>
       </div>
-      <h3 className="t-heading">{t.title}</h3>
+      <h3 className="t-heading t-pixel">{t.title}</h3>
       <dl className="facts">
         <dt>Type</dt>
         <dd>{label(t.type)}</dd>

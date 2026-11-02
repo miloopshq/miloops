@@ -18,6 +18,28 @@ MILOOPS is a local command center for planning and executing big work with your 
 
 Works with any coding agent that connects over MCP. Claude Code and Codex are the primary supported agents.
 
+## Why MILOOPS
+
+Your agents can already write the code. What's missing is a place to run them like a team: one where you set the direction, they do the work, and you make the calls that matter.
+
+- **Bring any agent.** Everything runs through MCP tools. Claude Code today, Codex tomorrow, both at once. MILOOPS never calls a model itself and never locks you into a vendor.
+- **Local-first, for real.** Missions live as plain files in your repo's `.miloops/` folder, or in the GitHub Issues or Linear tracker you already use. There is no MILOOPS server, and there never will be.
+- **A deterministic core.** Lifecycle, state and ranking are code, not prompts. The same inputs always give the same result, so you can trust what the map tells you.
+- **Evidence over claims.** Agents bring the decisions that matter to you, with the alternatives and the reasoning, and you decide. Less babysitting, not less judgment.
+- **Not another activity feed.** MILOOPS isn't a prettier log of what agents did. It's where work gets steered.
+
+## Roadmap
+
+Where MILOOPS is heading, in the order we plan to build it:
+
+1. **Attention management.** One ranked queue of everything that needs you, so the most important call always comes first. Every later feature reaches you through it.
+2. **Project knowledge.** MILOOPS remembers what your missions learned, including the dead ends, so agents stop re-trying what already failed. New knowledge waits in your queue for review.
+3. **Adaptive missions.** When an assumption breaks, agents propose a replan instead of pushing on. You approve it from your queue, and the broken assumption becomes project knowledge.
+4. **Multi-repository supervision.** Run missions across all your repos from one command center, with a single merged queue.
+5. **Agent roles and specialists.** Give agents roles (reviewer, researcher, builder) and bring in specialists for focused jobs, starting with a built-in reviewer that wraps today's independent review.
+
+Coming alongside: **model-aware claiming**, a per-mission switch that sends hard decisions to stronger models and routine work to cheaper ones. With roles, a role can set its own model tier.
+
 ## Install
 
 Requires Node 20+.

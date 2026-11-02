@@ -42,40 +42,44 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
   const rows = verifies ? [...ORDER.slice(0, 2), ...VERIFY_ORDER, ...ORDER.slice(2)] : ORDER;
   return (
     <div className="status-panel">
-      <div className="sp-head">
-        <Label as="h3">Status</Label>
-        <span className="mono-label">{c.total} tickets</span>
-      </div>
-      <ul>
-        {rows.map(([s, label]) => (
-          <li key={s} className={`st-${s} ${n(s) ? '' : 'zero'}`}>
+      <div className="sp-col sp-status">
+        <div className="sp-head">
+          <Label as="h3">Status</Label>
+          <span className="mono-label">{c.total} tickets</span>
+        </div>
+        <ul>
+          {rows.map(([s, label]) => (
+            <li key={s} className={`st-${s} ${n(s) ? '' : 'zero'}`}>
+              <i />
+              <span>{label}</span>
+              <b>{String(n(s)).padStart(2, '0')}</b>
+            </li>
+          ))}
+          <li className={`st-waiting ${waiting ? '' : 'zero'}`}>
             <i />
-            <span>{label}</span>
-            <b>{String(n(s)).padStart(2, '0')}</b>
+            <span>Waiting on you</span>
+            <b>{String(waiting).padStart(2, '0')}</b>
           </li>
-        ))}
-        <li className={`st-waiting ${waiting ? '' : 'zero'}`}>
-          <i />
-          <span>Waiting on you</span>
-          <b>{String(waiting).padStart(2, '0')}</b>
-        </li>
-      </ul>
-      <div className="resolution">
-        <span className="mono-label">Resolution</span>
-        <span className="bar">
-          <i style={{ width: `${pct}%` }} />
-        </span>
-        <b>{pct}%</b>
+        </ul>
+      </div>
+      <div className="sp-col">
+        <div className="resolution">
+          <span className="mono-label">Resolution</span>
+          <span className="bar">
+            <i style={{ width: `${pct}%` }} />
+          </span>
+          <b>{pct}%</b>
+        </div>
+        <div
+          className="sp-row"
+          title={path.length ? `Longest open blocking chain: ${path.map((t) => t.key).join(' → ')}` : 'No open tickets'}
+        >
+          <span className="mono-label">Critical path</span>
+          <b>{String(path.length).padStart(2, '0')}</b>
+        </div>
       </div>
       <div
-        className="sp-row"
-        title={path.length ? `Longest open blocking chain: ${path.map((t) => t.key).join(' → ')}` : 'No open tickets'}
-      >
-        <span className="mono-label">Critical path</span>
-        <b>{String(path.length).padStart(2, '0')}</b>
-      </div>
-      <div
-        className="sp-block"
+        className="sp-block sp-col"
         title="Bars: decided per interval since the mission started. Line: open tickets (burndown)."
       >
         <div className="sp-row">
@@ -88,7 +92,7 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
           <span>now</span>
         </div>
       </div>
-      <div className="sp-block">
+      <div className="sp-block sp-col">
         <span className="mono-label">Type mix</span>
         <ul className="mix">
           {mix.map((m) => (
