@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Label } from '../../components/ui';
+import { InfoTip, Label } from '../../components/ui';
 import { AgentCommand } from './AgentCommand';
 
 /** Rotating hints: the agent-chat commands people need most, plus how to move around the map. */
@@ -27,6 +27,7 @@ export function CommandBar() {
       <Label as="h2" className="zone-title-label">
         Mission map
       </Label>
+      <InfoTip text="Every decision ticket in this mission and what blocks what. Click a ticket to see it in Mission step. The strip below sums up progress." />
       <div
         className="hint"
         key={i}

@@ -162,7 +162,7 @@
   border-top: 1px solid var(--line);
   background: var(--panel);
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(150px, 1fr) minmax(130px, 0.9fr) minmax(230px, 1.4fr);
+  grid-template-columns: minmax(0, 2.4fr) minmax(230px, 1fr);
   gap: var(--sp-14);
   overflow: hidden;
 }
@@ -204,19 +204,10 @@
 .status-panel .legend-extra {
   display: none;
 }
-/* Mid-size maps drop the done-per-hour chart so the status counts keep their full labels. */
-@container (max-width: 1000px) {
+/* Narrow maps keep the status counts; the type mix goes. */
+@container (max-width: 640px) {
   .status-panel {
-    grid-template-columns: minmax(0, 2.4fr) minmax(140px, 1fr) minmax(220px, 1.3fr);
-  }
-  .status-panel > :nth-child(3) {
-    display: none;
-  }
-}
-/* Narrow maps keep status, resolution and critical path; the charts go. */
-@container (max-width: 760px) {
-  .status-panel {
-    grid-template-columns: minmax(0, 2fr) minmax(140px, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
   .status-panel > .sp-block {
     display: none;
@@ -281,76 +272,15 @@
 .status-panel li.st-waiting:not(.zero) b {
   color: var(--urgent);
 }
-.status-panel .resolution {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--sp-4) var(--sp-8);
-  align-items: center;
-  margin-top: var(--sp-4);
-}
-.status-panel .resolution .bar {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  height: 4px;
-  background: var(--line);
-}
-.status-panel .resolution .bar i {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.6);
-  transition: width 0.4s ease;
-}
-.status-panel .resolution b {
-  font-family: var(--data);
-  font-weight: 400;
-  color: var(--accent);
-}
 .legend-extra {
   display: flex;
   gap: var(--sp-14);
   margin-top: auto;
 }
-.sp-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--sp-6);
-}
-.sp-row b {
-  font-family: var(--data);
-  font-weight: 400;
-  font-size: var(--fs-body);
-  color: var(--text-hi);
-}
 .sp-block {
   display: flex;
   flex-direction: column;
   gap: 3px;
-}
-@media (max-height: 960px) {
-  .bp-wide .status-panel .legend-extra,
-  .bp-wide .sp-axis {
-    display: none;
-  }
-}
-.spark {
-  display: block;
-}
-.spark .sp-line {
-  stroke: var(--accent);
-  stroke-width: 1.2;
-  vector-effect: non-scaling-stroke;
-}
-.spark .sp-bar {
-  fill: var(--st-decided);
-  opacity: 0.7;
-}
-.sp-axis {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--fs-xs);
-  color: var(--faint);
 }
 .mix {
   list-style: none;

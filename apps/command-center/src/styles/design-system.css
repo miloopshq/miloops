@@ -705,3 +705,70 @@ button.card.urgent:hover,
   color: var(--text-hi);
   white-space: nowrap;
 }
+
+/* Info icon next to a zone title: a pixel "i" in a HUD square; explains the zone on hover or focus. */
+.info-tip {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(var(--accent-rgb), 0.55);
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent);
+  cursor: help;
+}
+.info-tip svg {
+  display: block;
+  fill: currentColor;
+}
+.info-tip:hover,
+.info-tip:focus-visible {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.2);
+  color: var(--text-hi);
+  outline: none;
+}
+
+/* Info-icon tooltip: MILO says it. A small animated MILO with a speech bubble beside him. */
+.milo-tip {
+  position: fixed;
+  z-index: 90;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-10);
+  max-width: 340px;
+  pointer-events: none;
+  animation: tip-in 0.12s ease-out;
+}
+.milo-tip-face {
+  flex: 0 0 auto;
+  margin-top: var(--sp-2);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6));
+}
+.milo-tip-bubble {
+  position: relative;
+  margin: 0;
+  padding: var(--sp-8) var(--sp-12);
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+  background: var(--panel2);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  font-family: var(--sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  color: var(--text-hi);
+}
+/* The tail: a square notch pointing at MILO's mouth, pixel style. */
+.milo-tip-bubble::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 12px;
+  width: 9px;
+  height: 9px;
+  background: var(--panel2);
+  border-left: 1px solid rgba(var(--accent-rgb), 0.5);
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.5);
+  transform: rotate(45deg);
+}

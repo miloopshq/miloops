@@ -5,6 +5,8 @@ import {
   type TrackerHealth,
   missionProgress,
   missionUsage,
+  missionUsageSources,
+  USAGE_SOURCE,
 } from '@miloops-hq/core';
 import { Panel, MiloMark, Label, Readout, Button } from '../../components/ui';
 import { type BriefingStatus, useNow } from '../../hooks';
@@ -79,7 +81,10 @@ export function Header(props: {
                 className="spend"
                 label="Spent"
                 value={`${usd(u.costUsd)} · ${tokens(u.inputTokens + u.outputTokens)} tok`}
-                title="Model spend and tokens for this mission, across every session"
+                title={[
+                  'Model spend and tokens for this mission, across every session',
+                  ...missionUsageSources(props.activity, map.id).map((x) => USAGE_SOURCE[x].text),
+                ].join('\n')}
               />
             )}
           </span>
