@@ -28,4 +28,5 @@ await build({
 fs.chmodSync(path.join(dist, 'cli.js'), 0o755);
 fs.cpSync(appDist, path.join(dist, 'app'), { recursive: true });
 fs.copyFileSync(path.resolve(here, '../../THIRD_PARTY_NOTICES.md'), path.join(here, 'THIRD_PARTY_NOTICES.md'));
+fs.copyFileSync(path.resolve(here, '../../LICENSE'), path.join(here, 'LICENSE'));
 console.log(`built miloops ${version} → ${path.relative(process.cwd(), dist)}`);
