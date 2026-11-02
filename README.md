@@ -69,8 +69,9 @@ Details for both agents are in [`packages/cli/README.md`](packages/cli/README.md
 | [`packages/cli`](packages/cli) | [`miloops`](https://www.npmjs.com/package/miloops) | The `miloops` command: serves the command center and the tracker API |
 | [`packages/milo-avatar`](packages/milo-avatar) | `@miloops-hq/milo-avatar` | Pixel-art MILO avatar (React component and framework-free renderer) |
 | [`apps/command-center`](apps/command-center) | private | The command-center web UI bundled into the CLI |
-| [`apps/landing`](apps/landing) | private | The [miloops.app](https://miloops.app) site |
 | [`brand`](brand) | | Logos, avatars and social images |
+
+The landing site lives in [miloopshq/miloops-landing](https://github.com/miloopshq/miloops-landing).
 
 ## Develop
 
@@ -78,7 +79,6 @@ Details for both agents are in [`packages/cli/README.md`](packages/cli/README.md
 npm install
 npm run dev           # resets the dev project to the seed, then the command center with hot reload
 npm run dev:agent     # real MCP agents working the dev project (after npm run build -w miloops)
-npm run dev:landing   # landing page
 npm run typecheck     # every workspace
 npm test              # unit and MCP tests (vitest)
 npm run verify:mcp    # after a build: an MCP client drives a mission while the command center shows it

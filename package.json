@@ -29,7 +29,6 @@
     "seed": "esbuild scripts/seed-dev.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/seed-dev.mjs && node node_modules/.cache/seed-dev.mjs",
     "start": "node packages/cli/dist/cli.js",
     "pack": "npm pack -w miloops --pack-destination .",
-    "dev:landing": "npm run dev -w @miloops-hq/landing",
     "dev:avatar": "npm run dev -w @miloops-hq/milo-avatar"
   },
   "devDependencies": {

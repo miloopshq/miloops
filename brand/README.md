@@ -18,4 +18,4 @@ The final MILO CRT mascot, rendered at exact pixel sizes. Source and re-renderin
 
 [`miloops-social-kit.zip`](miloops-social-kit.zip) bundles every file above (prefixed `milo-final-`) plus the `social-kit-overview.png` contact sheet in one download.
 
-The landing serves its own copies of the favicons, OG image and Slack icon from `apps/landing/public/media/brand/`.
+The landing ([miloops-landing](https://github.com/miloopshq/miloops-landing)) serves its own copies of the favicons, OG image and Slack icon from `public/media/brand/`.
