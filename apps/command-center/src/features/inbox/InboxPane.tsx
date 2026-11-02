@@ -89,6 +89,11 @@ export function InboxPane(props: {
   const hasConv = !!props.activity.sessions.find((s) => s.id === props.sessionId);
   return (
     <Panel className={`zone inbox split ${hasConv ? 'has-conv' : ''}`} style={{ gridArea: 'inbox' }}>
+      <SectionHeader
+        className="zone-title"
+        title="Communication"
+        info="Where your agents reach you: questions waiting on you, the conversation with the agent that asked, and the tickets coming up next."
+      />
       {list}
       {hasConv && conv}
       {props.below}

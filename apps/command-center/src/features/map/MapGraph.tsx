@@ -33,17 +33,39 @@ export function MapGraph(props: {
     return () => ro.disconnect();
   }, []);
 
-  const L = useMemo(() => {
+  const base = useMemo(() => {
     const lr = layout(snap.tickets, 'LR', snap.map.mode);
     const tb = layout(snap.tickets, 'TB', snap.map.mode);
     const fit = (l: typeof lr) => Math.min(size.w / (l.width + PAD * 2), size.h / (l.height + PAD * 2 + 16));
     return fit(lr) >= fit(tb) ? lr : tb;
   }, [snap.tickets, snap.map.mode, size.w, size.h]);
+  const fitK = (w: number, h: number) => Math.min(1.25, Math.max(props.minFit ?? 0, Math.min(size.w / w, size.h / h)));
+
+  // Out-of-scope strip sits on the bottom edge of the zone: the spare height at fit goes between the graph and it.
+  const L = useMemo(() => {
+    const W0 = base.width + PAD * 2;
+    const H0 = base.height + PAD * 2 + 16;
+    const hasOos = base.nodes.some((n) => n.state === 'out-of-scope');
+    const slack = hasOos && size.h ? Math.max(0, size.h / fitK(W0, H0) - H0) : 0;
+    if (!slack) return { ...base, slack };
+    const moved = new Map(
+      base.nodes.map((n) => [n, { ...n, y: n.y + (n.state === 'out-of-scope' ? slack : slack / 2) }]),
+    );
+    return {
+      ...base,
+      slack,
+      nodes: [...moved.values()],
+      edges: base.edges.map((e) => ({ from: moved.get(e.from)!, to: moved.get(e.to)! })),
+      quarantineY: base.quarantineY + slack,
+      height: base.height + slack,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base, size.w, size.h, props.minFit]);
   const W = L.width + PAD * 2;
   const H = L.height + PAD * 2 + 16;
 
   const fitView = (): View => {
-    const k = Math.min(1.25, Math.max(props.minFit ?? 0, Math.min(size.w / W, size.h / H)));
+    const k = fitK(W, H);
     return { k, x: Math.max(0, (size.w - W * k) / 2), y: Math.max(0, (size.h - H * k) / 2) };
   };
   const [view, setView] = useState<View>({ k: 1, x: 0, y: 0 });

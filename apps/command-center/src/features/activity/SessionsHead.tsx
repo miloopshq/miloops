@@ -3,36 +3,39 @@ import {
   type MapSnapshot,
   missionUsage,
   missionUsageSources,
-  claimsByAgent,
   USAGE_SOURCE,
 } from '@miloops-hq/core';
 import { SectionHeader } from '../../components/ui';
-import { tokens, usd } from '../../lib';
+import { isRunning, tokens, usd } from '../../lib';
 
-/** Sessions header: mission usage (`metrics.usage`) and claims per agent (`metrics.claimsByAgent`). */
+/** Header of the agent list. Mission spend shows here only where the app header doesn't carry it (phone, laptop tab). */
 export function SessionsHead({
   activity,
   snap,
   running,
+  usage = true,
 }: {
   activity: ActivityState;
   snap?: MapSnapshot;
   running: number;
+  usage?: boolean;
 }) {
   const u = missionUsage(activity, snap?.map.id);
   const sources = missionUsageSources(activity, snap?.map.id);
-  const claims = snap ? claimsByAgent(snap) : [];
+  // Running sessions plus claims without a session (teammates), the same rows the list below shows.
+  const live = new Set(activity.sessions.filter(isRunning).map((s) => s.ticketId));
+  const claims = snap?.tickets.filter((t) => t.state === 'open' && t.assignee && !live.has(t.id)).length ?? 0;
   return (
-    <>
-      <SectionHeader
-        sub
-        className="sessions-head"
-        title={
-          <>
-            Sessions // claims <span className="n">{running}</span>
-          </>
-        }
-        right={
+    <SectionHeader
+      sub
+      className="sessions-head"
+      title={
+        <>
+          Agents on tickets <span className="n">{running + claims}</span>
+        </>
+      }
+      right={
+        usage ? (
           <span
             className="usage"
             title={['Model usage for this mission, all sessions', ...sources.map((x) => USAGE_SOURCE[x].text)].join(
@@ -40,29 +43,9 @@ export function SessionsHead({
             )}
           >
             <span className="mono-label">Mission</span> {tokens(u.inputTokens + u.outputTokens)} tok · {usd(u.costUsd)}
-            {[...new Set(sources.map((x) => USAGE_SOURCE[x].tag))].map((tag) => (
-              <span key={tag} className={`usage-src tag-${tag.toLowerCase()}`}>
-                {tag}
-              </span>
-            ))}
           </span>
-        }
-      />
-      {claims.length > 0 && (
-        <ul className="claims-bar" aria-label="Claims per agent">
-          {claims.map((c) => (
-            <li key={c.agent}>
-              <span className="callsign">{c.agent}</span>
-              <span className="pips">
-                {Array.from({ length: c.count }, (_, i) => (
-                  <i key={i} />
-                ))}
-              </span>
-              <b>{c.count}</b>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
+        ) : undefined
+      }
+    />
   );
 }

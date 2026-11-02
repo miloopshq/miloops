@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cx } from '../../lib';
+import { InfoTip } from './InfoTip';
 import { Label } from './Label';
 
 /** Zone/part header: a chip label, an optional count, and a right-aligned slot. `sub` is the inline variant inside a body. */
@@ -11,6 +12,7 @@ export function SectionHeader({
   sub,
   children,
   className,
+  info,
 }: {
   title?: ReactNode;
   count?: ReactNode;
@@ -19,6 +21,8 @@ export function SectionHeader({
   sub?: boolean;
   children?: ReactNode;
   className?: string;
+  /** Hover/focus explanation of the zone, shown from an info icon next to the title. */
+  info?: string;
 }) {
   return (
     <header className={cx('sec-h', sub && 'sub', className)}>
@@ -28,6 +32,7 @@ export function SectionHeader({
           {title}
         </Label>
       )}
+      {info && <InfoTip text={info} />}
       {count}
       {right !== undefined && <span className="sec-h-right">{right}</span>}
     </header>

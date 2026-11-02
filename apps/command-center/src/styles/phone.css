@@ -87,6 +87,11 @@
 .bp-mobile .command-bar {
   padding: 0 var(--sp-12);
 }
+/* The tab bar already names the zone on phones. */
+.bp-mobile .command-bar .zone-title-label,
+.bp-mobile .hint-next {
+  display: none;
+}
 .bp-mobile .graph-box {
   bottom: 34px;
 }

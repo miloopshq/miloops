@@ -72,7 +72,7 @@ export function Conversation(props: {
         <Empty>No conversation</Empty>
       ) : (
         <>
-          <div className="comms-ticket t-title">
+          <div className="comms-ticket t-title t-pixel">
             <span className="key">{ticket?.key}</span> {ticket?.title}
             <Meta parts={[mission?.map.title, session.agent]} />
           </div>

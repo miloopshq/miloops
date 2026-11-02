@@ -9,6 +9,7 @@ export function LogZone(props: ZoneProps) {
       area="log"
       className="log-zone"
       title="Activity log"
+      info="Everything that happened in this mission, newest first: claims, steps, questions, decisions and errors."
       right={<span className="mono-label dim">{props.activity.feed.length} events</span>}
     >
       <ActivityLog activity={props.activity} onTicket={props.onTicket} />

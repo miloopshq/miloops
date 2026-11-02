@@ -37,6 +37,13 @@
 .step-tracker.waiting .st-big {
   color: var(--urgent);
 }
+.st-ticket {
+  color: var(--dim);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .st-key {
   color: var(--accent);
 }
@@ -160,38 +167,6 @@
 }
 .usage-src.tag-self {
   color: var(--dim);
-}
-.claims-bar {
-  list-style: none;
-  margin: 0 0 var(--sp-2);
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-4) var(--sp-12);
-}
-.claims-bar li {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.claims-bar .callsign {
-  font-size: var(--fs-label);
-  color: var(--st-claimed);
-}
-.claims-bar .pips {
-  display: inline-flex;
-  gap: var(--sp-2);
-}
-.claims-bar .pips i {
-  width: 5px;
-  height: 9px;
-  background: var(--st-claimed);
-}
-.claims-bar b {
-  font-family: var(--data);
-  font-weight: 400;
-  font-size: var(--fs-label);
-  color: var(--text-hi);
 }
 .sessions-list .segs {
   display: flex;

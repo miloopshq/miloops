@@ -1,6 +1,8 @@
+import { MiloAvatar } from '@miloops-hq/milo-avatar';
 import { useEffect, useState } from 'react';
 
-type Tip = { text: string; x: number; y: number; above: boolean };
+/** `milo`: the element asked for MILO to say it (`data-tip-milo`), drawn as a speech bubble beside him. */
+type Tip = { text: string; x: number; y: number; above: boolean; milo: boolean };
 
 const DELAY_MS = 350;
 
@@ -24,7 +26,13 @@ export function TooltipLayer() {
       if (!text) return;
       const r = el.getBoundingClientRect();
       const above = r.bottom + 60 > window.innerHeight;
-      setTip({ text, x: r.left + r.width / 2, y: above ? r.top - 8 : r.bottom + 8, above });
+      setTip({
+        text,
+        x: r.left + r.width / 2,
+        y: above ? r.top - 8 : r.bottom + 8,
+        above,
+        milo: el.hasAttribute('data-tip-milo'),
+      });
     };
     const target = (e: Event) => {
       const el = (e.target as Element | null)?.closest?.('[data-tip], [title]');
@@ -68,6 +76,19 @@ export function TooltipLayer() {
   }, []);
   if (!tip) return null;
   const left = Math.min(Math.max(tip.x, 140), window.innerWidth - 140);
+  if (tip.milo) {
+    const x = Math.min(Math.max(tip.x - 24, 8), window.innerWidth - 340);
+    return (
+      <div
+        className={`milo-tip ${tip.above ? 'above' : ''}`}
+        role="tooltip"
+        style={{ left: x, top: tip.y, transform: tip.above ? 'translateY(-100%)' : undefined }}
+      >
+        <MiloAvatar size={1} framed={false} speaking={tip.text} className="milo-tip-face" />
+        <p className="milo-tip-bubble">{tip.text}</p>
+      </div>
+    );
+  }
   return (
     <div
       className={`tooltip ${tip.above ? 'above' : ''}`}

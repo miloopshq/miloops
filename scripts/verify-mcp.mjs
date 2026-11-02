@@ -239,9 +239,15 @@ await shot('04-live-session-and-decisions');
 const ui = {
   decided: await page.locator('.node.st-decided, .node.decided').count(),
   sessions: await page.locator('.sessions-list li:not(.claim)').count(),
-  usage: (await page.locator('.sessions-head .usage').first().textContent())?.trim(),
+  usage: (await page.locator('.header .readout.spend b').first().textContent())?.trim(),
+  usageSource: await page
+    .locator('.header .readout.spend')
+    .first()
+    .evaluate((el) => [el.getAttribute('title'), el.getAttribute('data-tip')].filter(Boolean).join('\n')),
 };
-log(`command center shows: ${ui.sessions} live session(s), mission usage "${ui.usage}"`);
+log(
+  `command center shows: ${ui.sessions} live session(s), mission usage "${ui.usage}" (${ui.usageSource?.split('\n').slice(1).join('; ') || 'no source'})`,
+);
 
 // Crash recovery: a second agent (3 s lease) claims a ticket, reports progress and is SIGKILLed. The command center
 // shows the claim as stalled, returns it to the queue once the lease runs out, and the next claim resumes from the notes.
@@ -396,7 +402,7 @@ if (
   errors.length ||
   !spendOk ||
   !ui.usage?.includes(uiTokens) ||
-  !/LOG$/.test(ui.usage) ||
+  !/Measured from the Claude Code session transcript/.test(ui.usageSource ?? '') ||
   f.answer !== 'Users of the CLI' ||
   h.answer !== 'Grouped by version, newest first' ||
   status.mission.progress !== '2/4 decided' ||

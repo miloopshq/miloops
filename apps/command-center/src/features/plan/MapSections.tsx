@@ -1,6 +1,6 @@
 import type { MapSnapshot } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Empty, Panel, Tabs } from '../../components/ui';
+import { Empty, Panel, SectionHeader, Tabs } from '../../components/ui';
 import type { Selection } from '../../lib';
 
 export type Tab = 'unspecified' | 'decisions' | 'oos' | 'notes';
@@ -71,6 +71,13 @@ export function MapSections({
   );
   return (
     <Panel className={`zone sections ${bare ? 'bare' : ''}`} style={bare ? undefined : { gridArea: 'plan' }}>
+      {!bare && (
+        <SectionHeader
+          className="zone-title"
+          title="Mission plan"
+          info="The parts of the plan that aren't tickets yet: open questions still to specify, decisions already made, what's ruled out, and notes."
+        />
+      )}
       <div className="sections-tabs">
         <Tabs className="sub" value={tab} onChange={setTab} items={tabs} />
         {tab === 'decisions' && onAudit && (
