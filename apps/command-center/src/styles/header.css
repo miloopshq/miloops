@@ -169,7 +169,6 @@
 .bp-laptop .wordmark,
 .bp-laptop .repo,
 .bp-laptop .h-line1 .sep,
-.bp-laptop .mission-meta,
 .bp-laptop .tracker-chip .chip-label,
 .bp-laptop .waiting-chip .wl {
   display: none;
@@ -177,6 +176,10 @@
 /* Below 1800px the tracker and PR sync chips only show (with their text) when something is wrong;
  * a bare status dot said nothing. Their full state stays in Settings. */
 .bp-laptop .tracker-chip:not(.sync-error, .tone-stale, .tone-failed) {
+  display: none;
+}
+/* Laptop keeps the spend readout; time and done move out. */
+.bp-laptop .mission-meta .readout:not(.spend) {
   display: none;
 }
 .bp-laptop .h-brand {

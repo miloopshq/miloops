@@ -4,10 +4,11 @@ import {
   type ActivityState,
   type TrackerHealth,
   missionProgress,
+  missionUsage,
 } from '@miloops-hq/core';
 import { Panel, MiloMark, Label, Readout, Button } from '../../components/ui';
 import { type BriefingStatus, useNow } from '../../hooks';
-import { hms } from '../../lib';
+import { hms, tokens, usd } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
 import { HeaderMilo } from './HeaderMilo';
 import { MissionSwitcher } from './MissionSwitcher';
@@ -45,6 +46,7 @@ export function Header(props: {
   const waiting = props.activity.pending.length;
   const cur = map && props.snaps[map.id];
   const p = cur && missionProgress(cur);
+  const u = map && missionUsage(props.activity, map.id);
   return (
     <Panel as="header" className="header">
       <div className="h-brand">
@@ -72,6 +74,14 @@ export function Header(props: {
               title="Mission elapsed time, since it was charted"
             />
             <Readout label="Done" value={`${p.decided}/${p.total}`} />
+            {u && (
+              <Readout
+                className="spend"
+                label="Spent"
+                value={`${usd(u.costUsd)} · ${tokens(u.inputTokens + u.outputTokens)} tok`}
+                title="Model spend and tokens for this mission, across every session"
+              />
+            )}
           </span>
         )}
         {waiting > 0 && (

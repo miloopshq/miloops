@@ -25,7 +25,7 @@ export function Inspector({
   useEffect(() => setForm(null), [key]);
 
   return (
-    <Zone area="inspector" title="Ticket" className="inspector" bare={bare}>
+    <Zone area="inspector" title="Mission step" className="inspector" bare={bare}>
       {!snap || !selection ? (
         <Empty>No ticket selected</Empty>
       ) : selection.kind === 'unspecified' ? (

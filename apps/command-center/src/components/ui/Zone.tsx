@@ -15,7 +15,7 @@ export function Zone(props: {
   if (props.bare) return <div className={`zone-b ${props.className ?? ''}`}>{props.children}</div>;
   return (
     <Panel className={`zone ${props.className ?? ''}`} style={props.area ? { gridArea: props.area } : undefined}>
-      <SectionHeader title={props.title} count={props.count} right={props.right ?? null} />
+      <SectionHeader className="zone-title" title={props.title} count={props.count} right={props.right ?? null} />
       <div className="zone-b">{props.children}</div>
     </Panel>
   );

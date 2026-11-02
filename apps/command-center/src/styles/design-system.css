@@ -691,3 +691,17 @@ button.card.urgent:hover,
     opacity: 0;
   }
 }
+
+/* Zone titles: every desktop zone names itself in Geist Pixel on one line with a rule under it. */
+.sec-h.zone-title {
+  border-bottom: 1px solid var(--line);
+}
+.zone-title > .chip-label,
+.zone-title-label {
+  font-family: var(--display);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  letter-spacing: var(--ls-label);
+  color: var(--text-hi);
+  white-space: nowrap;
+}

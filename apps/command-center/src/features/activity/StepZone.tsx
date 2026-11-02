@@ -10,7 +10,7 @@ export function StepZone(props: ZoneProps) {
   const running = props.activity.sessions.filter(isRunning).length;
   return (
     <Panel className="zone step-zone" style={{ gridArea: 'step' }}>
-      <SectionHeader title="Current step" />
+      <SectionHeader className="zone-title" title="Current mission step" />
       <div className="zone-b">
         <StepTracker activity={props.activity} snap={props.snap} />
         <SessionsHead activity={props.activity} snap={props.snap} running={running} />

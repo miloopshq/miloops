@@ -3,7 +3,7 @@
   grid-area: map;
 }
 .command-bar {
-  flex: 0 0 46px;
+  flex: 0 0 var(--h-zone);
   display: flex;
   align-items: center;
   gap: var(--sp-8);
@@ -591,6 +591,42 @@
 /* ---------- Real missions: agents work from their chat, so the UI hands over agent commands ---------- */
 .command-bar.real {
   font-size: var(--fs-sm);
+  gap: var(--sp-14);
+}
+/* Rotating hint, right of the Mission map title. */
+.command-bar .hint {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  min-width: 0;
+  margin-left: auto;
+  animation: hint-in 0.35s ease-out;
+}
+.command-bar .hint > .dim {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.command-bar .hint .agent-cmd {
+  flex: 0 0 auto;
+}
+.hint-next {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--dim);
+}
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .command-bar .hint {
+    animation: none;
+  }
 }
 .agent-cmd {
   display: inline-flex;
