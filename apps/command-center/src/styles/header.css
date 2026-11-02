@@ -75,12 +75,13 @@
   display: inline-flex;
   align-items: center;
   gap: var(--sp-6);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--dim);
   white-space: nowrap;
+  font-weight: 500;
 }
 .sync-glyph {
   color: var(--faint);
@@ -116,11 +117,12 @@
   gap: var(--sp-6);
   background: var(--urgent);
   color: #fff;
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   white-space: nowrap;
+  font-weight: 500;
 }
 .waiting-chip b {
   font-weight: 400;

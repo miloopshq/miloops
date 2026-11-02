@@ -43,10 +43,11 @@
 .empty {
   color: var(--faint);
   padding: var(--sp-4) var(--gutter) var(--sp-12);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
+  font-weight: 500;
 }
 .zone-b .empty {
   padding: var(--sp-4) 0 var(--sp-12);
@@ -71,13 +72,14 @@
   border: 0;
   background: transparent;
   cursor: pointer;
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
   color: var(--dim);
   border-bottom: 2px solid transparent;
   white-space: nowrap;
+  font-weight: 500;
 }
 .tab:hover {
   color: var(--text);

@@ -54,19 +54,21 @@
 
 /* ---------- Signal moments: mono caps, used sparingly ---------- */
 .log-row.signal .msg {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-label);
   line-height: var(--lh-snug);
   text-transform: uppercase;
+  font-weight: 500;
 }
 .signal-tag {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
   color: var(--urgent);
   line-height: 1;
+  font-weight: 500;
 }
 
 /* ---------- Mark sheet (dev page, ?mark-sheet) ---------- */
@@ -121,7 +123,7 @@
   color: var(--accent);
 }
 .ms-cell b {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-weight: 400;
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-label);

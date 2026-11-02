@@ -5,15 +5,15 @@ export function installStage(milo) {
   const css = `
   #stage-cap{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;
     align-items:center;gap:10px;pointer-events:none;transition:opacity .35s}
-  #stage-cap b{font:400 13px 'Geist Pixel',monospace;letter-spacing:.16em;text-transform:uppercase;color:#c98b5e}
-  #stage-cap span{font:400 22px 'Geist Pixel',monospace;color:#eef4f5;padding:12px 22px;background:rgba(5,9,11,.92);
+  #stage-cap b{font:500 13px 'IBM Plex Sans Variable',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#c98b5e}
+  #stage-cap span{font:500 22px 'IBM Plex Sans Variable',system-ui,sans-serif;color:#eef4f5;padding:12px 22px;background:rgba(5,9,11,.92);
     border:1px solid rgba(128,164,172,.3);box-shadow:0 18px 50px rgba(0,0,0,.6)}
   #stage-ov{position:fixed;inset:0;z-index:9998;background:#05090b;display:grid;place-items:center;transition:opacity .35s}
   #stage-ov.off{opacity:0;pointer-events:none}
   .st-win{width:1180px;height:640px;margin-bottom:90px;border:1px solid rgba(128,164,172,.28);background:#0a1215;display:flex;flex-direction:column;
     box-shadow:0 40px 100px rgba(0,0,0,.7)}
   .st-bar{height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid rgba(128,164,172,.16);
-    font:400 13px 'Geist Variable',sans-serif;color:#8598a0}
+    font:400 13px 'IBM Plex Sans Variable',sans-serif;color:#8598a0}
   .st-bar i{width:11px;height:11px;border-radius:50%;background:#2a3437}
   .st-bar em{margin:0 auto;font-style:normal;transform:translateX(-30px)}
   .st-body{flex:1;padding:22px 26px;overflow:hidden;font:400 19px/1.6 ui-monospace,Menlo,monospace;color:#c9d6d8;white-space:pre-wrap}
@@ -25,10 +25,10 @@ export function installStage(milo) {
   .st-card img{width:170px;height:170px;image-rendering:pixelated}
   .st-card h1{margin:0;font:400 96px 'Geist Pixel',monospace;letter-spacing:.06em;color:#eef4f5}
   .st-card h1 span{color:#c98b5e}
-  .st-card p{margin:0;font:400 26px 'Geist Pixel',monospace;color:#b9c9cc}
-  .st-card code{font:400 28px 'Geist Pixel',monospace;color:#eef4f5;padding:14px 24px;border:1px solid rgba(128,164,172,.3)}
+  .st-card p{margin:0;font:400 26px 'IBM Plex Sans Variable',sans-serif;color:#b9c9cc}
+  .st-card code{font:400 28px 'Geist Mono Variable',monospace;color:#eef4f5;padding:14px 24px;border:1px solid rgba(128,164,172,.3)}
   .st-card code span{color:#c98b5e}
-  .st-card small{font:400 15px 'Geist Pixel',monospace;letter-spacing:.18em;color:#8598a0;text-transform:uppercase}`;
+  .st-card small{font:400 15px 'IBM Plex Sans Variable',sans-serif;letter-spacing:.18em;color:#8598a0;text-transform:uppercase}`;
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const el = (tag, attrs = {}, html = '') => Object.assign(document.createElement(tag), attrs, { innerHTML: html });
   let cap, ov;

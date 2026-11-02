@@ -328,7 +328,7 @@
 .onb-tagline {
   margin: 0;
   font-family: var(--strong);
-  font-weight: 400;
+  font-weight: 600;
   font-size: var(--fs-title);
   color: var(--text-hi);
 }

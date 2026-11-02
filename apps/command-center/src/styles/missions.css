@@ -82,10 +82,11 @@
   color: var(--st-claimed);
   margin-top: var(--sp-4);
   border-top: 1px solid var(--line);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
+  font-weight: 500;
 }
 .mission-meta {
   display: inline-flex;

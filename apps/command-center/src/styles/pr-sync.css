@@ -25,11 +25,12 @@
   display: inline-flex;
   align-items: center;
   gap: var(--sp-8);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--dim);
+  font-weight: 500;
 }
 .pr-chip a {
   color: var(--text-hi);

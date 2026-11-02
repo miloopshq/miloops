@@ -1,7 +1,9 @@
 @import '@fontsource/geist-pixel/400.css';
-@import '@fontsource-variable/geist';
+@import '@fontsource-variable/ibm-plex-sans';
+@import '@fontsource-variable/geist-mono';
 
-/* Two fonts, like the app: Geist Pixel for headlines and labels, Geist for everything read. */
+/* Three fonts, like the app: Geist Pixel as the accent (hero, section headings, logo), IBM Plex Sans for
+ * everything else, Geist Mono for commands and code. */
 :root {
   --bg: #05090b;
   --bg-2: #081013;
@@ -17,8 +19,9 @@
   --copper-hi: #d9a07a;
   --urgent: #ff4d42;
 
-  --pixel: 'Geist Pixel', 'Geist Variable', ui-monospace, monospace;
-  --sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pixel: 'Geist Pixel', 'IBM Plex Sans Variable', ui-monospace, monospace;
+  --sans: 'IBM Plex Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --code: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --fs-label: 12px;
   --fs-small: 15px;
@@ -89,12 +92,12 @@ h2 {
   line-height: 1.04;
 }
 
-/* Bold text (titles, buttons, <b>/<strong>) is Geist Pixel too; paragraphs stay in Geist. */
+/* Card titles, buttons and bold text: IBM Plex Sans semibold. */
 h3,
 strong,
 b {
-  font-family: var(--pixel);
-  font-weight: 400;
+  font-family: var(--sans);
+  font-weight: 600;
 }
 h3 {
   font-size: var(--fs-h3);
@@ -103,7 +106,7 @@ h3 {
 }
 
 code {
-  font-family: var(--pixel);
+  font-family: var(--code);
 }
 
 ::selection {
@@ -136,11 +139,12 @@ code {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: var(--fs-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
+  font-weight: 500;
 }
 .eyebrow::before {
   content: '';
@@ -155,12 +159,13 @@ code {
   height: 22px;
   padding: 0 8px;
   border: 1px solid var(--line-2);
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--dim);
   white-space: nowrap;
+  font-weight: 500;
 }
 .tag--now {
   color: var(--accent);
@@ -183,7 +188,7 @@ code {
   border: 1px solid var(--line-2);
   background: transparent;
   color: var(--text-hi);
-  font: 400 var(--fs-small) var(--pixel);
+  font: 600 var(--fs-small) var(--sans);
   letter-spacing: 0.01em;
   cursor: pointer;
   white-space: nowrap;
@@ -234,7 +239,7 @@ code {
   padding: 8px 8px 9px 16px;
   border: 1px solid var(--line-2);
   background: var(--bg);
-  font-family: var(--pixel);
+  font-family: var(--code);
   font-size: 16px;
   color: var(--text-hi);
   text-align: left;
@@ -343,10 +348,11 @@ code {
   transform: translateX(-50%);
   display: flex;
   gap: 32px;
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: var(--fs-small);
   letter-spacing: 0.02em;
   color: var(--dim);
+  font-weight: 500;
 }
 .nav__links a:hover,
 .nav__links a[aria-current='page'] {
@@ -389,10 +395,11 @@ code {
   padding: 0 12px;
   border: 1px solid rgba(var(--accent-rgb), 0.45);
   background: rgba(5, 9, 11, 0.7);
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: 13px;
   letter-spacing: 0.04em;
   color: var(--accent);
+  font-weight: 500;
 }
 .hero h1 {
   font-size: var(--fs-hero);
@@ -529,7 +536,7 @@ code {
   border-left: 1px solid var(--line);
 }
 .trio .n {
-  font-family: var(--pixel);
+  font-family: var(--code);
   font-size: var(--fs-label);
   letter-spacing: 0.12em;
   color: var(--dim);
@@ -563,11 +570,12 @@ code {
   background: var(--bg-2);
 }
 .role__kicker {
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: var(--fs-label);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
+  font-weight: 500;
 }
 .role p {
   font-size: var(--fs-small);
@@ -609,11 +617,12 @@ code {
 .chips span {
   padding: 3px 8px;
   border: 1px solid var(--line-2);
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);
+  font-weight: 500;
 }
 .mini-ask {
   width: 80%;
@@ -628,10 +637,11 @@ code {
 .mini-ask small {
   display: block;
   margin-bottom: 4px;
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: 10px;
   letter-spacing: 0.12em;
   color: var(--urgent);
+  font-weight: 600;
 }
 
 /* ---------- numbered runs ---------- */
@@ -677,7 +687,7 @@ code {
   width: 34px;
   height: 34px;
   border: 1px solid var(--line-2);
-  font-family: var(--pixel);
+  font-family: var(--code);
   font-size: 13px;
   color: var(--accent);
 }
@@ -703,7 +713,7 @@ code {
 }
 .ticks li::before {
   content: attr(data-n);
-  font-family: var(--pixel);
+  font-family: var(--code);
   font-size: var(--fs-label);
   color: var(--dim);
   padding-top: 2px;
@@ -735,10 +745,11 @@ code {
   gap: 12px;
 }
 .card__n {
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: var(--fs-label);
   letter-spacing: 0.12em;
   color: var(--dim);
+  font-weight: 500;
 }
 .card p {
   color: var(--dim);
@@ -908,8 +919,8 @@ code {
   opacity: 0.55;
 }
 .roster b {
-  font-family: var(--pixel);
-  font-weight: 400;
+  font-family: var(--sans);
+  font-weight: 600;
   font-size: 15px;
   letter-spacing: 0.06em;
   color: var(--text-hi);
@@ -1008,17 +1019,18 @@ code {
   justify-content: space-between;
   gap: 20px;
   padding: 22px 0;
-  font-family: var(--pixel);
+  font-family: var(--sans);
   color: var(--text-hi);
   cursor: pointer;
   list-style: none;
+  font-weight: 500;
 }
 .faq__list summary::-webkit-details-marker {
   display: none;
 }
 .faq__list summary::after {
   content: '+';
-  font-family: var(--pixel);
+  font-family: var(--code);
   color: var(--dim);
 }
 .faq__list details[open] summary::after {
@@ -1099,7 +1111,7 @@ code {
   padding: 10px 16px;
   border: 1px solid var(--accent);
   background: var(--panel);
-  font-family: var(--pixel);
+  font-family: var(--sans);
   font-size: 13px;
   color: var(--text-hi);
   transform: translate(-50%, 16px);
@@ -1108,6 +1120,7 @@ code {
   transition:
     opacity 0.25s var(--ease),
     transform 0.25s var(--ease);
+  font-weight: 500;
 }
 .toast.is-on {
   opacity: 1;

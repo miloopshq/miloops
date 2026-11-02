@@ -103,7 +103,7 @@
   background: transparent;
   color: var(--dim);
   cursor: pointer;
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
@@ -112,6 +112,7 @@
   justify-content: center;
   gap: var(--sp-6);
   border-top: 2px solid transparent;
+  font-weight: 500;
 }
 .tabbar button.on {
   color: var(--accent);

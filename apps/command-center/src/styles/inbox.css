@@ -88,11 +88,12 @@
   border-top: 1px solid var(--line);
 }
 .comms .status {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--dim);
+  font-weight: 500;
 }
 .comms .status.urgent {
   color: var(--urgent);
@@ -107,12 +108,13 @@
   background: none;
   border: 0;
   color: var(--accent);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-label);
   padding: 0 var(--sp-6) 0 0;
   cursor: pointer;
   text-transform: uppercase;
+  font-weight: 500;
 }
 .comms-ticket {
   padding: 0 var(--gutter) var(--sp-8);
@@ -304,10 +306,11 @@
 .ticket-list .st-text {
   flex: 0 0 auto;
   color: var(--c);
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
+  font-weight: 500;
 }
 .inbox-list .who.held {
   color: var(--st-held);

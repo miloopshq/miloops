@@ -40,11 +40,12 @@
 
 /* ---------- Type roles ---------- */
 .mono-label {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--dim);
+  font-weight: 500;
 }
 .mono-label.xs {
   font-size: var(--fs-xs);
@@ -55,7 +56,7 @@
 }
 .t-title {
   font-family: var(--strong);
-  font-weight: 400;
+  font-weight: 600;
   font-size: var(--fs-title);
   line-height: var(--lh-snug);
   color: var(--text-hi);
@@ -63,7 +64,7 @@
 .t-heading {
   margin: 0;
   font-family: var(--strong);
-  font-weight: 400;
+  font-weight: 600;
   font-size: var(--fs-heading);
   line-height: var(--lh-tight);
   color: var(--text-hi);
@@ -137,7 +138,7 @@
   gap: var(--sp-6);
   margin: 0;
   padding: 0;
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   font-weight: 400;
   line-height: var(--lh-snug);
@@ -207,7 +208,7 @@
   display: inline-block;
   padding: 0 5px;
   line-height: 16px;
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
@@ -215,6 +216,7 @@
   white-space: nowrap;
   color: var(--dim);
   border: 1px solid var(--line2);
+  font-weight: 500;
 }
 .pill.state {
   color: var(--c);
@@ -232,12 +234,13 @@
 
 /* ---------- Meta line: mono caps, dim, parts joined by " · " ---------- */
 .meta {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   line-height: var(--lh-snug);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;
   color: var(--dim);
+  font-weight: 500;
 }
 
 /* ---------- Readout: caption + mono value ---------- */
@@ -287,7 +290,7 @@
   color: var(--text);
   font-family: var(--strong);
   font-size: var(--fs-body);
-  font-weight: 400;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -345,11 +348,12 @@
   border: 0;
   color: var(--accent);
   cursor: pointer;
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   padding: 0;
+  font-weight: 500;
 }
 .link:hover:not(:disabled) {
   text-decoration: underline;
@@ -515,11 +519,12 @@ input:disabled {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--dim);
+  font-weight: 500;
 }
 
 /* Input + Send row (the compact HITL answer row is the reference): one row, control and action share a 36px height.
@@ -609,11 +614,12 @@ button.card.urgent:hover,
   min-width: 0;
 }
 .card-title {
-  font-family: var(--mono);
+  font-family: var(--label);
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--text-hi);
+  font-weight: 500;
 }
 .card.on .card-title {
   color: var(--accent);
