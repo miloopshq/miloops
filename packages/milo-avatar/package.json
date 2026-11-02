@@ -9,7 +9,7 @@
   },
   "description": "Pixel-art MILO avatar: a React component plus a framework-free renderer (mountMilo).",
   "type": "module",
-  "license": "MIT",
+  "license": "FSL-1.1-ALv2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miloopshq/miloops.git",

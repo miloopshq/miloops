@@ -35,7 +35,7 @@
     "esbuild": "^0.21.5",
     "zod": "^4.6.7"
   },
-  "license": "MIT",
+  "license": "FSL-1.1-ALv2",
   "homepage": "https://miloops.app",
   "repository": {
     "type": "git",

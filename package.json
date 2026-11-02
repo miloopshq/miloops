@@ -49,7 +49,7 @@
     "typescript-eslint": "^8.72.1",
     "vitest": "^3.2.7"
   },
-  "license": "MIT",
+  "license": "FSL-1.1-ALv2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miloopshq/miloops.git"

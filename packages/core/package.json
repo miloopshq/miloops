@@ -16,7 +16,7 @@
     "./agents": "./src/agentHost.ts"
   },
   "sideEffects": false,
-  "license": "MIT",
+  "license": "FSL-1.1-ALv2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/miloopshq/miloops.git",
