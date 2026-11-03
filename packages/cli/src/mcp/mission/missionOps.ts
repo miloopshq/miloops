@@ -1,7 +1,8 @@
-import { chooseNext, chartMap, deriveStates, OperationError, type MapMode } from '@miloops-hq/core';
-import { readAgentDocs, readVerificationConfig } from '@miloops-hq/core/agents';
+import { chooseNext, chartMap, deriveStates, DISCOVERY_TICKET, OperationError, type MapMode } from '@miloops-hq/core';
+import { readAgentDocs, readVerificationConfig, writeBrief } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { deliveryView } from './deliveryView';
+import { briefView, claimable } from './discovery';
 import { ticketInfo } from './ticketInfo';
 import type { TicketPlanInput } from './types';
 import { missionView } from './views';
@@ -44,6 +45,8 @@ export async function startMission(
     decided?: string[];
     unspecified?: string[];
     outOfScope?: string[];
+    /** Default on: implementation waits for an accepted discovery brief. Off only when the human says to skip it. */
+    discovery?: boolean;
   },
 ) {
   const s = await ctx.chartSession();
@@ -69,7 +72,10 @@ export async function startMission(
         unspecified: input.unspecified ?? [],
         outOfScope: input.outOfScope ?? [],
       },
-      tickets: (input.tickets ?? []).map((t) => ({ ...t, body: t.body ?? '' })),
+      tickets: [
+        ...(input.discovery === false ? [] : [{ ref: '__discovery', ...DISCOVERY_TICKET }]),
+        ...(input.tickets ?? []).map((t) => ({ ...t, body: t.body ?? '' })),
+      ],
     },
     {
       onMapCreated: (m) => {
@@ -80,11 +86,30 @@ export async function startMission(
     },
   );
   ctx.mission = map.id;
+  const discoveryTicket =
+    input.discovery === false ? undefined : tickets.find((t) => t.title === DISCOVERY_TICKET.title);
+  if (discoveryTicket)
+    writeBrief(ctx.root, {
+      mapId: map.id,
+      status: 'draft',
+      ticketId: discoveryTicket.id,
+      sections: {
+        summary: '',
+        productContext: '',
+        existing: '',
+        conventions: '',
+        dataModel: '',
+        api: '',
+        risks: '',
+        assumptions: [],
+        openQuestions: [],
+      },
+    });
   s.step(5, 'ready for agents');
   const framing = ctx.sessions.transcript(s.id) ?? [];
   ctx.sessions.end(true, `Mission launched · ${tickets.length} tickets`, true);
   const snap = await ctx.load(map.id);
-  const next = chooseNext(snap);
+  const next = chooseNext(snap, { types: claimable(ctx.root, map.id) });
   return {
     mission: {
       id: map.id,
@@ -100,6 +125,7 @@ export async function startMission(
       type: t.type,
     })),
     framingQuestionsAnswered: framing.filter((e) => e.from === 'human').length,
+    discovery: briefView(ctx.root, snap),
     next: next ? ticketInfo(ctx.root, snap, next) : null,
     commandCenter: ctx.commandCenter(),
   };
@@ -115,9 +141,10 @@ export async function resumeMission(ctx: AgentContext, missionRef?: string) {
   const agent = await ctx.agentId();
   const states = deriveStates(snap.tickets, snap.map.mode);
   const mine = snap.tickets.find((t) => states.get(t.id) === 'claimed' && t.assignee === agent);
-  const next = chooseNext(snap);
+  const next = chooseNext(snap, { types: claimable(ctx.root, snap.map.id) });
   return {
     ...current,
+    discovery: briefView(ctx.root, snap),
     yourClaim: mine ? ticketInfo(ctx.root, snap, mine, await ctx.decisions(snap.map.id)) : null,
     next: next ? ticketInfo(ctx.root, snap, next, await ctx.decisions(snap.map.id)) : null,
   };

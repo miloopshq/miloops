@@ -4,6 +4,7 @@ import { closeTicket, type CloseInput } from './mission/closeTicket';
 import { verificationStatus } from './mission/completion';
 import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './mission/hitl';
 import { resumeMission, startMission, status, updateMission } from './mission/missionOps';
+import { getBrief, submitBrief } from './mission/discovery';
 import { recordDecision, report, sessionView } from './mission/reporting';
 import { submitReviewTool } from './mission/reviews';
 import { addTicket, claimTicket, nextTicket, releaseTicket } from './mission/ticketOps';
@@ -114,6 +115,14 @@ export class MissionAgent {
 
   report(input: Input<typeof report>) {
     return report(this.ctx, input);
+  }
+
+  submitBrief(input: Input<typeof submitBrief>) {
+    return submitBrief(this.ctx, input);
+  }
+
+  getBrief(input: Input<typeof getBrief>) {
+    return getBrief(this.ctx, input);
   }
 
   recordDecision(input: Input<typeof recordDecision>) {

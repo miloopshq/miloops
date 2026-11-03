@@ -16,6 +16,7 @@ import {
 import { baselineForClaim, repoRootOf } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { recoverRuns } from './completion';
+import { assertClaimable, briefView, claimable } from './discovery';
 import { sessionView } from './reporting';
 import { assertMayReview, ownReviews } from './reviews';
 import { ticketInfo } from './ticketInfo';
@@ -35,21 +36,25 @@ async function recoverStalled(ctx: AgentContext) {
 export async function nextTicket(ctx: AgentContext, input: { mission?: string; types?: TicketType[] } = {}) {
   const recovered = await recoverStalled(ctx);
   const snap = await ctx.resolveMission(input.mission);
-  const t = chooseNext(snap, { types: input.types, exclude: ownReviews(ctx, snap, await ctx.agentId()) });
+  const gate = claimable(ctx.root, snap.map.id);
+  const types = gate ? (input.types ?? gate).filter((x) => gate.includes(x)) : input.types;
+  const t = chooseNext(snap, { types, exclude: ownReviews(ctx, snap, await ctx.agentId()) });
   const extra = recovered.length ? { recovered } : {};
   if (t) return { ticket: ticketInfo(ctx.root, snap, t, await ctx.decisions(snap.map.id)), ...extra };
   const states = deriveStates(snap.tickets, snap.map.mode);
   const open = snap.tickets.filter((x) => x.state === 'open');
   const reason = !open.length
     ? 'Every ticket is closed: the mission is decided.'
-    : `No ready ticket: ${open.filter((x) => states.get(x.id) === 'claimed').length} claimed, ${open.filter((x) => states.get(x.id) === 'blocked').length} blocked, ${open.filter((x) => states.get(x.id) === 'parked').length} parked${[
-        'verifying',
-        'held',
-      ]
-        .map((st) => [st, open.filter((x) => states.get(x.id) === st).length] as const)
-        .filter(([, n]) => n)
-        .map(([st, n]) => `, ${n} ${st === 'held' ? 'waiting on the human' : st}`)
-        .join('')}.`;
+    : gate
+      ? `No ready ${gate.join(', ')} ticket, and implementation tickets wait for the discovery brief: ${briefView(ctx.root, snap)?.next}`
+      : `No ready ticket: ${open.filter((x) => states.get(x.id) === 'claimed').length} claimed, ${open.filter((x) => states.get(x.id) === 'blocked').length} blocked, ${open.filter((x) => states.get(x.id) === 'parked').length} parked${[
+          'verifying',
+          'held',
+        ]
+          .map((st) => [st, open.filter((x) => states.get(x.id) === st).length] as const)
+          .filter(([, n]) => n)
+          .map(([st, n]) => `, ${n} ${st === 'held' ? 'waiting on the human' : st}`)
+          .join('')}.`;
   return { ticket: null, reason, ...extra };
 }
 
@@ -60,8 +65,9 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
   const agent = await ctx.agentId();
   const target = input.ticket
     ? ctx.findTicket(snap, input.ticket)
-    : chooseNext(snap, { exclude: ownReviews(ctx, snap, agent) });
+    : chooseNext(snap, { types: claimable(ctx.root, snap.map.id), exclude: ownReviews(ctx, snap, agent) });
   if (target) assertMayReview(ctx, snap, target, agent);
+  if (target && target.assignee !== agent) assertClaimable(ctx.root, snap.map.id, target);
   if (!target) {
     const r = await nextTicket(ctx, { mission: snap.map.id });
     throw new OperationError(('reason' in r ? r.reason : undefined) ?? 'No ready ticket');
@@ -105,6 +111,7 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
       await ctx.decisions(snap.map.id),
     ),
     session: sessionView(ctx),
+    discovery: briefView(ctx.root, fresh),
     git: baselineView(baseline),
     lease: {
       expiresAt: new Date(lease.expiresAt).toISOString(),

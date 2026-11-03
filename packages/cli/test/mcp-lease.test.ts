@@ -35,6 +35,7 @@ type Claimed = {
 
 async function mission(call: Awaited<ReturnType<typeof connect>>) {
   await call('start_mission', {
+    discovery: false,
     title: 'Offline sync',
     destination: 'Edits made offline survive',
     tickets: [{ ref: 'r', title: 'Survey CRDT libraries', type: 'research' }],

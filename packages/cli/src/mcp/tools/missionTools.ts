@@ -43,6 +43,12 @@ export function registerMissionTools(tool: DefineTool, agent: MissionAgent) {
           }),
         )
         .optional(),
+      discovery: z
+        .boolean()
+        .optional()
+        .describe(
+          'Default true: the mission starts with a discovery ticket, and implementation tickets wait until the human accepts your discovery brief. Set false only when the human says to skip discovery.',
+        ),
     },
     (a) => agent.startMission(a),
   );
@@ -73,5 +79,41 @@ export function registerMissionTools(tool: DefineTool, agent: MissionAgent) {
       mode: z.enum(['plan+execute', 'plan-only']).optional(),
     },
     (a) => agent.updateMission(a),
+  );
+
+  tool(
+    'submit_brief',
+    {
+      title: 'Submit the discovery brief',
+      description:
+        'Before implementation: what you found about the existing system, for the human to review. Cite real paths; never guess. Implementation tickets (task, execute, prototype) can be claimed once the human accepts it.',
+    },
+    {
+      mission,
+      summary: z.string().min(1).describe('What this mission changes, in a few lines.'),
+      productContext: z
+        .string()
+        .optional()
+        .describe('Who it affects, business rules and UX principles that apply, plan or pricing constraints.'),
+      existing: z.string().min(1).describe('Files, services and modules involved, each with its path and one line.'),
+      conventions: z.string().optional().describe('Conventions and abstractions to follow.'),
+      dataModel: z.string().optional().describe('Data model impact.'),
+      api: z.string().optional().describe('API impact.'),
+      risks: z.string().optional().describe('Risks and possible regressions.'),
+      assumptions: z.array(z.string()).optional().describe('Assumptions you rely on, one each.'),
+      openQuestions: z.array(z.string()).optional(),
+    },
+    (a) => agent.submitBrief(a),
+  );
+
+  tool(
+    'get_brief',
+    {
+      title: 'Read the discovery brief',
+      description: "The mission's discovery brief, its status and any change request.",
+      readOnly: true,
+    },
+    { mission },
+    (a) => agent.getBrief(a),
   );
 }

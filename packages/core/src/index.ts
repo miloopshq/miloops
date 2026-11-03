@@ -26,6 +26,8 @@ export { UsageLedger } from './activity/usageLedger';
 export * from './planning/briefing';
 export * from './planning/delivery';
 export * from './planning/deliveryMarkdown';
+export * from './discovery/brief';
+export { BRIEF_SECTION_LABEL, parseBrief, serializeBrief } from './discovery/briefFile';
 export * from './agents/agentLink';
 export * from './agents/ticketLease';
 export { Emitter, sleep, uid } from './lib/emitter';

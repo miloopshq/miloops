@@ -61,6 +61,7 @@ describe('MCP agent on the active tracker', () => {
     const started = await call<{ mission: { id: string; key: string }; tickets: { ref: string; key: string }[] }>(
       'start_mission',
       {
+        discovery: false,
         title: 'Changelog page',
         destination: 'A public changelog page generated from releases',
         tickets: [
@@ -100,17 +101,19 @@ describe('MCP agent on the active tracker', () => {
   it('fails the call instead of writing to local markdown when the GitHub token is missing', async () => {
     useGitHub();
     const call = await connect({}, fakeGitHub().fetch);
-    await expect(call('start_mission', { title: 'M', destination: 'D' })).rejects.toThrow(/No GitHub token/);
+    await expect(call('start_mission', { discovery: false, title: 'M', destination: 'D' })).rejects.toThrow(
+      /No GitHub token/,
+    );
     expect(await new MarkdownAdapter(nodeMarkdownFs(root)).listMaps()).toEqual([]);
   });
 
   it('follows a tracker switch made in Settings without restarting', async () => {
     const gh = fakeGitHub();
     const call = await connect({ GITHUB_TOKEN: 'gho_test' }, gh.fetch);
-    await call('start_mission', { title: 'Local one', destination: 'D' });
+    await call('start_mission', { discovery: false, title: 'Local one', destination: 'D' });
     expect((await new MarkdownAdapter(nodeMarkdownFs(root)).listMaps()).map((m) => m.title)).toEqual(['Local one']);
     useGitHub();
-    await call('start_mission', { title: 'On GitHub', destination: 'D' });
+    await call('start_mission', { discovery: false, title: 'On GitHub', destination: 'D' });
     expect([...gh.issues.values()].map((i) => i.title)).toEqual(['On GitHub']);
   });
 });
