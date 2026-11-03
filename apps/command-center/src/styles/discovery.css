@@ -100,3 +100,6 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.brief-body section > .btn {
+  align-self: flex-start;
+}

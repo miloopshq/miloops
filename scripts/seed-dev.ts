@@ -1,11 +1,19 @@
 // Resets the local development tracker to a fixed, known project, so working on MILOOPS looks like real use.
-// It writes plain files through the same adapters a real install uses: missions, tickets, decisions and
-// verification config. Live agents come from `npm run dev:agent`, a real MCP client.
+// It writes plain files through the same adapters a real install uses: missions, tickets, decisions,
+// verification config, discovery briefs and project knowledge. Live agents come from `npm run dev:agent`, a real MCP client.
 // Run: npm run seed   (folder: $<DATA_DIR_ENV>, else <dataDir> at the repo root)
 // Safety: only a folder this script created (it holds DEV_MARKER) is wiped; anything else is refused.
 import fs from 'node:fs';
 import path from 'node:path';
-import { BRAND, MarkdownAdapter, seedSnapshot, setMapMode } from '@miloops-hq/core';
+import {
+  BRAND,
+  DISCOVERY_TICKET,
+  MarkdownAdapter,
+  seedSnapshot,
+  setMapMode,
+  type KnowledgeEntry,
+} from '@miloops-hq/core';
+import { writeBrief, writeKnowledge } from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 
 const DEV_MARKER = '.dev-seed';
@@ -86,8 +94,128 @@ await adapter.addBlocking(second.id, who.id, roles.id);
 await adapter.addBlocking(second.id, prior.id, roles.id);
 await setMapMode(adapter, second.id, 'plan-only');
 
+// 3. Discovery: the mid-flight mission's brief is accepted; the plan-only one has a brief waiting for review.
+const day = 86_400_000;
+const now = Date.now();
+writeBrief(root, {
+  mapId: main.id,
+  status: 'accepted',
+  author: 'claude-01',
+  submittedAt: now - 2 * day,
+  decidedAt: now - 2 * day + 3_600_000,
+  sections: {
+    summary:
+      'Add offline editing to the Fieldnote mobile app, with edits that merge cleanly when the device reconnects.',
+    productContext:
+      'Field researchers work for days without signal. Losing an edit is the worst outcome; a visible merge summary is acceptable.',
+    existing:
+      '- `src/sync/client.ts`: pushes edits when online, no queue\n- `src/storage/notes.ts`: notes in SQLite on device\n- `src/api/notes.ts`: the notes API, last write wins',
+    conventions: 'Storage goes through `src/storage`; the API client is generated from `api/openapi.yaml`.',
+    dataModel: 'Each note gets a version vector and a pending-edits queue on device.',
+    api: 'New batch endpoint for queued edits; the existing endpoints stay.',
+    risks: 'Large merges on low-end phones; duplicate edits if a batch is retried.',
+    assumptions: [
+      { id: 'A-1', text: 'Notes stay under 10,000 per device' },
+      { id: 'A-2', text: 'The API can accept batches of edits' },
+    ],
+    openQuestions: ['Do shared notebooks need a merge review?'],
+  },
+});
+const discovery = await adapter.createTicket(second.id, { ...DISCOVERY_TICKET, hitl: false });
+await adapter.addBlocking(second.id, discovery.id, roles.id);
+writeBrief(root, {
+  mapId: second.id,
+  status: 'submitted',
+  ticketId: discovery.id,
+  author: 'claude-02',
+  submittedAt: now - 3_600_000,
+  sections: {
+    summary: 'Add team workspaces with roles, building on the existing organization and SSO model.',
+    productContext:
+      'Admins manage members themselves; today every change goes through support. Members must never see another team’s notebooks.',
+    existing:
+      '- `src/auth/sso.ts`: SAML and Google sign-in, one organization per user\n- `src/notebooks/permissions.ts`: owner-only sharing today\n- `src/admin/`: no member management yet',
+    conventions: 'Permissions are checked in one place, `src/notebooks/permissions.ts`; never in the UI.',
+    dataModel: 'New workspace and membership tables; notebooks get a workspace id.',
+    api: 'New workspace and member endpoints; sharing endpoints gain a workspace scope.',
+    risks: 'Migrating existing shared notebooks into a default workspace; SSO users without a workspace.',
+    assumptions: [
+      { id: 'A-1', text: 'One workspace per team is enough at first' },
+      { id: 'A-2', text: 'SSO groups can map to workspaces later' },
+    ],
+    openQuestions: ['Can a member belong to more than one workspace?', 'Who can delete a workspace?'],
+  },
+});
+
+// 4. Project knowledge: confirmed facts and rules, an assumption, and suggestions waiting for review.
+const entry = (
+  n: number,
+  e: Partial<KnowledgeEntry> & Pick<KnowledgeEntry, 'title' | 'body' | 'kind'>,
+): KnowledgeEntry => ({
+  id: `K-${n}`,
+  status: 'confirmed',
+  scope: [],
+  tags: [],
+  sources: [`mission:${main.key}`],
+  anchors: [],
+  createdBy: 'claude-01',
+  createdAt: now - 3 * day,
+  updatedAt: now - 2 * day,
+  ...e,
+});
+for (const e of [
+  entry(1, {
+    kind: 'business-rule',
+    title: 'Never lose a field edit',
+    body: 'A user’s edit must survive any sync conflict. When two edits clash, keep both and show a merge summary.',
+    tags: ['sync', 'merge'],
+  }),
+  entry(2, {
+    kind: 'persona',
+    title: 'Field researchers are offline for days',
+    body: 'The primary user works with multi-day dead zones. Anything that needs a connection to save is a bug.',
+    tags: ['offline'],
+    createdBy: 'operator',
+  }),
+  entry(3, {
+    kind: 'convention',
+    title: 'Storage goes through src/storage',
+    body: 'Never write SQLite directly from screens; use the storage module so migrations stay in one place.',
+    scope: ['src/storage/**', 'src/sync/**'],
+    tags: ['storage'],
+  }),
+  entry(4, {
+    kind: 'gotcha',
+    title: 'Batch retries can duplicate edits',
+    body: 'A retried batch replays every edit in it. Edits carry an id so the server can drop duplicates.',
+    status: 'assumption',
+    tags: ['sync'],
+    createdBy: 'claude-02',
+  }),
+  entry(5, {
+    kind: 'dead-end',
+    title: 'Silent auto-merge of shared notebooks lost edits',
+    body: 'The prototype merged shared notebooks without telling anyone, and edits disappeared. Shared notebooks need a visible merge review.',
+    status: 'suggested',
+    tags: ['merge'],
+    createdBy: 'claude-02',
+    sources: [`mission:${main.key}`, 'ticket:#6'],
+  }),
+  entry(6, {
+    kind: 'business-rule',
+    title: 'Members never see another team’s notebooks',
+    body: 'Workspace isolation is absolute: search, sharing and exports are all scoped to the member’s workspace.',
+    status: 'suggested',
+    tags: ['workspaces', 'permissions'],
+    createdBy: 'claude-02',
+    sources: [`mission:${second.key}`],
+  }),
+])
+  writeKnowledge(root, e);
+
 console.log(`seeded ${root}`);
 console.log(`  ${main.key} ${main.title} · mid-flight`);
-console.log(`  ${second.key} ${second.title} · plan only`);
+console.log(`  ${second.key} ${second.title} · plan only, brief waiting for review`);
+console.log('  6 knowledge entries (confirmed, an assumption, 2 suggestions)');
 console.log('Live agents: npm run dev:agent (needs npm run build -w miloops-cli once).');
 process.exit(0);
