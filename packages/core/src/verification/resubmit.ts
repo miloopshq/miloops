@@ -11,4 +11,5 @@ export const submissionOf = (a: VerificationAttempt): Submission => ({
   alternatives: a.alternatives,
   noCodeReason: a.noCodeReason,
   pr: a.pr,
+  criteria: a.criteria?.evidence,
 });

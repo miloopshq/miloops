@@ -1,5 +1,5 @@
 import { OperationError, type MapSnapshot, type Ticket, type VerificationVerdict } from '@miloops-hq/core';
-import { reviewConflict, submitReview } from '@miloops-hq/core/agents';
+import { readAgentDocs, readAttempts, reviewConflict, submitReview } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 
 /** Why this agent may not take review ticket `r`, or undefined. */
@@ -9,10 +9,40 @@ function conflictOf(ctx: AgentContext, snap: MapSnapshot, r: Ticket, agent: stri
 }
 
 /** Review tickets of work this agent did: never offered to it. */
-export const ownReviews = (ctx: AgentContext, snap: MapSnapshot, agent: string) =>
-  snap.tickets
+export const ownReviews = async (ctx: AgentContext, snap: MapSnapshot, agent: string) => [
+  ...snap.tickets
     .filter((r) => r.type === 'review' && r.state === 'open' && conflictOf(ctx, snap, r, agent))
+    .map((r) => r.id),
+  ...(await deferredReviews(ctx, snap, agent)),
+];
+
+/** `claude` from `claude-07`: the agent vendor behind a callsign. */
+export const vendorOf = (callsign: string) => callsign.split('-')[0];
+
+/** How long a review waits for another vendor's agent before any independent agent may take it. */
+export const CROSS_VENDOR_WAIT_MS = 10 * 60_000;
+
+/**
+ * Reviews this agent leaves to another vendor for now: the work was done by an agent of its own vendor, an agent of
+ * another vendor is connected, and the review hasn't waited long. Claude reviews Codex and vice versa when both run.
+ */
+export async function deferredReviews(ctx: AgentContext, snap: MapSnapshot, agent: string, now = Date.now()) {
+  const mine = vendorOf(agent);
+  const others = new Set(
+    (await readAgentDocs(ctx.root))
+      .filter((d) => d.session.status === 'running')
+      .map((d) => vendorOf(d.session.agent))
+      .filter((v) => v !== mine),
+  );
+  if (!others.size) return [];
+  return snap.tickets
+    .filter((r) => {
+      if (r.type !== 'review' || r.state !== 'open' || now - r.createdAt > CROSS_VENDOR_WAIT_MS) return false;
+      const worker = readAttempts(ctx.root, snap.map.id, r.reviewOf ?? '').at(-1)?.agent;
+      return !!worker && vendorOf(worker) === mine;
+    })
     .map((r) => r.id);
+}
 
 export function assertMayReview(ctx: AgentContext, snap: MapSnapshot, t: Ticket, agent: string) {
   const conflict = t.type === 'review' ? conflictOf(ctx, snap, t, agent) : undefined;
@@ -56,5 +86,13 @@ export async function submitReviewTool(
       ? `The code changed since its checks passed, so they run again (${r.attemptId}).`
       : `${reviewed.key} waits for the human to approve.`,
   }[r.phase as 'done'];
-  return { review: review.key, verdict: r.verdict.id, ticket: reviewed.key, phase: r.phase, next };
+  const worker = readAttempts(ctx.root, snap.map.id, reviewed.id).at(-1)?.agent;
+  return {
+    review: review.key,
+    verdict: r.verdict.id,
+    ticket: reviewed.key,
+    phase: r.phase,
+    next,
+    ...(worker ? { crossVendor: vendorOf(worker) !== vendorOf(agent) } : {}),
+  };
 }

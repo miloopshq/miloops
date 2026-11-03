@@ -1,8 +1,17 @@
+import { CRITERION_KINDS, type CriterionKind } from '@miloops-hq/core';
 import { z } from 'zod';
 import type { MissionAgent } from '../agent';
 import { type DefineTool, mission, ticket, ticketType } from '../toolKit';
 
 /** Ticket tools: pick, claim, release and add tickets. */
+const criteriaInput = z.array(
+  z.object({
+    text: z.string().min(1),
+    kind: z.enum(CRITERION_KINDS as [CriterionKind, ...CriterionKind[]]),
+    source: z.string().optional().describe('The knowledge entry it comes from, e.g. K-3.'),
+  }),
+);
+
 export function registerTicketTools(tool: DefineTool, agent: MissionAgent) {
   tool(
     'next_ticket',
@@ -49,7 +58,19 @@ export function registerTicketTools(tool: DefineTool, agent: MissionAgent) {
       hitl: z.boolean().optional(),
       blockedBy: z.array(z.string()).optional(),
       fromUnspecified: z.string().optional(),
+      criteria: criteriaInput.optional().describe('Acceptance criteria: what must be true for this ticket to be done.'),
     },
     (a) => agent.addTicket(a),
+  );
+
+  tool(
+    'set_criteria',
+    {
+      title: 'Set acceptance criteria',
+      description:
+        "What must be true for a ticket to be done, agreed before the work starts. Replaces the ticket's criteria (numbered AC-1, AC-2, …). Cover the business rules suggested with the claim. When completing, give evidence for each.",
+    },
+    { mission, ticket, criteria: criteriaInput },
+    (a) => agent.setCriteria(a),
   );
 }

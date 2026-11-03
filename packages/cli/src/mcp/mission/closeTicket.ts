@@ -5,12 +5,14 @@ import {
   OperationError,
   resolve,
   ruleOutOfScope,
+  type CriterionEvidence,
   type DecisionMeta,
   type DecisionRecord,
 } from '@miloops-hq/core';
 import { levelFor } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { submitVerified } from './completion';
+import { assertCriteria } from './criteria';
 import { claimTicket } from './ticketOps';
 import type { WaitControl } from './types';
 
@@ -29,6 +31,8 @@ export interface CloseInput {
   pr?: number;
   /** How long to wait for checks when the completion needs verification. */
   waitSeconds?: number;
+  /** Evidence per acceptance criterion. */
+  criteria?: CriterionEvidence[];
 }
 
 /**
@@ -85,6 +89,7 @@ export async function closeTicket(ctx: AgentContext, input: CloseInput, wait: { 
     const transcript =
       input.postTranscript && log.length ? log.map((e) => `**${e.author}:** ${e.text}`).join('\n\n') : undefined;
     const { info } = levelFor(ctx.root, snap, t);
+    assertCriteria(ctx.root, snap, t, info.level);
     if (info.level !== 'off') {
       s.step(4, `checks: ${info.checks.join(', ') || 'none configured'}`);
       const r = await submitVerified(
@@ -101,6 +106,7 @@ export async function closeTicket(ctx: AgentContext, input: CloseInput, wait: { 
           alternatives: input.alternatives,
           noCodeReason: input.noCodeReason,
           pr: input.pr,
+          criteria: input.criteria,
           decision: meta,
           transcript,
         },

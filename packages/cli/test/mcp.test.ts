@@ -76,6 +76,7 @@ describe('miloops MCP server', () => {
         'report_completion',
         'report_progress',
         'resume_mission',
+        'set_criteria',
         'search_knowledge',
         'start_mission',
         'status',

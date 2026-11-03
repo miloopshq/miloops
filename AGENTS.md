@@ -41,6 +41,7 @@ The landing site lives in its own repo, `miloopshq/miloops-landing`.
 - `<mission>/tickets/<n>.md`: ticket frontmatter, body and comments. `<mission>/decisions/<D-n>.md`: decision records.
 - `verification.json`: the checks agents' completions run. Committed.
 - `briefs/<mapId>.md`: the mission's discovery brief and its status. A mission with a brief requires discovery: implementation tickets can't be claimed until the operator accepts it. Committed.
+- `criteria/<mapId>.md`: acceptance criteria per ticket (`AC-<n>`, kind, optional knowledge source) and the operator's confirmation. Required for implementation tickets on missions with a brief; each needs evidence when the work is completed. Committed.
 - `knowledge/K-<n>.md`: project and product knowledge entries (suggested, confirmed, assumption, outdated). Committed, so teammates share it.
 - `.events/<mapId>.jsonl`: the append-only lifecycle journal (`packages/core/src/history/journalFile.ts`). Local only, git-ignored.
 - `.evidence/`: verification attempts, check output and git evidence per ticket.
@@ -56,6 +57,7 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 - `verification/` and `evidence/`: checks, review, approvals, outcomes, git evidence and PR/CI sync.
 - `agents/`: leases, callsigns, agent docs and returning stalled claims to the queue.
 - `discovery/`: the discovery brief model, file format, gate (`claimableTypes`, `gateReason`) and store.
+- `criteria/`: acceptance criteria, matching them to completion evidence (`checkCriteria`), and the store.
 - `knowledge/`: knowledge entries, file format, search, per-ticket selection (`selectKnowledge`), staleness from file hashes, and the store.
 - `activity/`: the activity stream, presence and usage.
 - `server/`: the HTTP bridge (`trackerBridge.ts`), its route handlers (`*Routes.ts`), the `/events` SSE stream and the background loops (`watchLeases.ts`, `watchVerification.ts`, `watchTrackerFolder.ts`).
@@ -70,6 +72,7 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 
 - `App.tsx` lays out the zones. `app/` wires the header, map zone, laptop and phone layouts, and dialogs.
 - `features/<feature>/` holds one folder per zone or dialog (inbox, map, inspector, activity, plan, decisions, briefing, settings, verification, …).
+- Live updates: hooks that refetch when a tracker file changes subscribe through `lib/trackerChanges.ts` (one shared `/events` stream). Don't open a new `EventSource` per hook: browsers allow six connections per host, and requests queue behind open streams.
 - `components/ui/` holds the design-system primitives, `hooks/` app-wide hooks (`useCommandCenter.ts` loads data and subscribes to SSE), `lib/` helpers, and `styles/` the CSS per area (tokens in `styles/design-system.css`).
 - The in-app changelog is `features/settings/releases.ts`.
 

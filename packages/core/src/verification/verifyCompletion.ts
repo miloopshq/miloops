@@ -1,5 +1,7 @@
 import path from 'node:path';
 import type { TrackerAdapter } from '../adapters/adapter';
+import { checkCriteria, type CriterionEvidence } from '../criteria/criteria';
+import { criteriaOf } from '../criteria/criteriaStore';
 import { completionEvidence, flagIfStale, gateOutcome, reverifies } from '../evidence/completionEvidence';
 import { BRAND } from '../model/brand';
 import type { Journal, TicketPhase } from '../model/lifecycle';
@@ -51,6 +53,8 @@ export interface Submission {
   pr?: number;
   /** In-process only: this run already re-runs a pass that went stale. */
   reverified?: boolean;
+  /** Evidence for each acceptance criterion of the ticket. */
+  criteria?: CriterionEvidence[];
 }
 
 export interface Settled {
@@ -137,7 +141,18 @@ export async function verify(
                 : 'verification.json is missing, so the checks this ticket needs cannot run',
             });
       if (outcome.checks.length) await flagIfStale(env.root, git);
-      attempt = { ...base, id, finishedAt: Date.now(), ...outcome, git };
+      const wanted = criteriaOf(env.root, mapId, t.id);
+      const criteria = wanted.length ? checkCriteria(wanted, sub.criteria ?? [], outcome.checks) : undefined;
+      const unmet = criteria ? [...criteria.missing, ...criteria.failed] : [];
+      const graded =
+        outcome.result === 'pass' && unmet.length
+          ? {
+              ...outcome,
+              result: 'fail' as const,
+              note: `Acceptance criteria without passing evidence: ${unmet.join(', ')}`,
+            }
+          : outcome;
+      attempt = { ...base, id, finishedAt: Date.now(), ...graded, git, ...(criteria ? { criteria } : {}) };
       writeAttempt(env.root, attempt);
     } finally {
       releaseRunLock(env.root, mapId, t.id);

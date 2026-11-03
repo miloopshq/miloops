@@ -53,13 +53,22 @@ export function verificationView(root: string, snap: MapSnapshot, t: Ticket) {
 /** The result of a finished verification run, for the agent. */
 export function settledView(s: Settled) {
   const { attempt: a } = s;
-  const base = { status: s.phase, attempt: a.id, checks: checksOf(a), ...(a.git ? { git: gitView(a.git) } : {}) };
+  const base = {
+    status: s.phase,
+    attempt: a.id,
+    checks: checksOf(a),
+    ...(a.criteria ? { criteria: a.criteria.lines } : {}),
+    ...(a.git ? { git: gitView(a.git) } : {}),
+  };
+  const unmet = a.criteria ? [...a.criteria.missing, ...a.criteria.failed] : [];
   if (s.phase === 'rework')
     return {
       ...base,
       feedback: feedbackOf(a),
       attemptsLeft: s.maxAttempts - s.failures,
-      howTo: `Fix the failing checks, then claim_ticket ${a.ticketKey} again and close_ticket.`,
+      howTo: unmet.length
+        ? `Give passing evidence for ${unmet.join(', ')} (see criteria), then claim_ticket ${a.ticketKey} again and complete it.`
+        : `Fix the failing checks, then claim_ticket ${a.ticketKey} again and close_ticket.`,
     };
   if (s.phase === 'blocked')
     return {
@@ -71,7 +80,12 @@ export function settledView(s: Settled) {
           : `The checks could not run (${a.note}). The human has to fix verification.json; move on to another ticket.`,
     };
   if (s.phase === 'verifying')
-    return { ...base, note: 'Checks passed; another agent reviews the work next. Move on to another ticket.' };
+    return {
+      ...base,
+      note: a.criteria?.manual.length
+        ? `Checks passed; the human signs off ${a.criteria.manual.join(', ')} in the command center. Move on to another ticket.`
+        : 'Checks passed; another agent reviews the work next. Move on to another ticket.',
+    };
   return base;
 }
 

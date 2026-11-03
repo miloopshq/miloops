@@ -1,3 +1,4 @@
+import { CRITERION_KINDS, type CriterionKind } from '@miloops-hq/core';
 import { z } from 'zod';
 import type { MissionAgent } from '../agent';
 import { type DefineTool, mission, ticketType } from '../toolKit';
@@ -40,6 +41,16 @@ export function registerMissionTools(tool: DefineTool, agent: MissionAgent) {
             body: z.string().optional(),
             hitl: z.boolean().optional().describe('task/execute only: needs the human.'),
             blockedBy: z.array(z.string()).optional().describe('Refs of tickets that must close first.'),
+            criteria: z
+              .array(
+                z.object({
+                  text: z.string().min(1),
+                  kind: z.enum(CRITERION_KINDS as [CriterionKind, ...CriterionKind[]]),
+                  source: z.string().optional(),
+                }),
+              )
+              .optional()
+              .describe('Acceptance criteria for implementation tickets: what must be true for it to be done.'),
           }),
         )
         .optional(),

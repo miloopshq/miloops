@@ -8,6 +8,7 @@ export { dropLease, readLease, readLeases, renewLease, writeLease } from './agen
 export { LEASE_REAPER, reclaimExpired, returnToQueue, type ReturnOutcome } from './agents/returnToQueue';
 export { journalFile, journalPath, JOURNAL_DIR } from './history/journalFile';
 export { briefPath, readBrief, writeBrief } from './discovery/briefStore';
+export { criteriaOf, readCriteria, writeTicketCriteria } from './criteria/criteriaStore';
 export {
   blobHash,
   listKnowledge,

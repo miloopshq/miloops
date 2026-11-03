@@ -42,6 +42,18 @@ export function approvalItems(root: string, snap: MapSnapshot): ApprovalItem[] {
       items.push({ ...base, kind: 'held', reason: clip(why), at: verdict?.at ?? last?.finishedAt ?? t.updatedAt });
       continue;
     }
+    const signOff = last?.result === 'pass' ? (last.criteria?.manual ?? []) : [];
+    if (signOff.length && verdict?.byKind !== 'operator' && (last!.level === 'checks' || verdict?.verdict === 'PASS')) {
+      items.push({
+        ...base,
+        kind: 'approve',
+        reason: clip(
+          `Sign off ${signOff.join(', ')}: ${last!.criteria!.lines.filter((l) => l.includes('sign-off')).join('; ')}`,
+        ),
+        at: verdict?.at ?? last!.finishedAt,
+      });
+      continue;
+    }
     if (last?.result !== 'pass' || verdict?.byKind !== 'agent' || verdict.verdict !== 'PASS') continue;
     if (levelFor(root, snap, t).info.level !== 'checks+review+human') continue;
     items.push({

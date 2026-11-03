@@ -420,13 +420,29 @@ await shot('11-discovery-brief');
 await page.getByRole('button', { name: 'Accept brief' }).click();
 await page.locator('.discovery-banner').waitFor({ state: 'detached', timeout: 15_000 });
 const unlocked = await call('claim_ticket', { ticket: buildKey });
+// Acceptance criteria: required before completing on a discovery mission; each needs evidence.
+const noCriteria = await call('report_completion', { resolution: 'Search added' }).then(
+  () => '',
+  (e) => e.message,
+);
+await call('set_criteria', {
+  ticket: buildKey,
+  criteria: [{ text: "The repo's check passes", kind: 'regression' }],
+});
+const withEvidence = await call('report_completion', {
+  resolution: 'Search added',
+  criteria: [{ id: 'AC-1', evidence: 'check:check' }],
+  waitSeconds: 60,
+});
 const discoveryOk =
   disc.discovery?.status === 'draft' &&
   /accepted discovery brief/.test(gated) &&
   unlocked.claimed.key === buildKey &&
+  /needs acceptance criteria/.test(noCriteria) &&
+  withEvidence.criteria?.[0]?.startsWith('AC-1 ✓') &&
   unlocked.discovery?.implementationClaimable === true;
 log(
-  `discovery ${discoveryOk ? 'ok' : 'WRONG'}: ${buildKey} held until the brief was accepted in the command center, then claimed`,
+  `discovery ${discoveryOk ? 'ok' : 'WRONG'}: ${buildKey} held until the brief was accepted in the command center, then claimed; completion refused without criteria, then ${withEvidence.status} with ${withEvidence.criteria?.join('; ')}`,
 );
 
 await client.close();

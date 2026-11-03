@@ -28,6 +28,8 @@ export * from './planning/delivery';
 export * from './planning/deliveryMarkdown';
 export * from './discovery/brief';
 export { BRIEF_SECTION_LABEL, parseBrief, serializeBrief } from './discovery/briefFile';
+export * from './criteria/criteria';
+export { parseCriteria, serializeCriteria } from './criteria/criteriaFile';
 export * from './knowledge/knowledge';
 export { parseKnowledge, serializeKnowledge } from './knowledge/knowledgeFile';
 export * from './knowledge/select';

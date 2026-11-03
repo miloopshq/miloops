@@ -122,7 +122,7 @@ export async function submitReview(env: VerifyEnv, r: ReviewSubmission): Promise
     void run.done.catch(() => {});
     return { verdict, phase: 'verifying', attemptId: run.attemptId };
   }
-  if (info.level === 'checks+review+human') {
+  if (info.level === 'checks+review+human' || last.criteria?.manual.length) {
     await transition(env.adapter, r.mapId, t.id, { ...engine, event: 'review.pass', to: 'verifying' }, opts);
     return { verdict, phase: 'verifying' };
   }

@@ -2,6 +2,7 @@ import { OperationError, type DecisionRecord, type MapSnapshot, type Ticket } fr
 import { AgentContext } from './mission/agentContext';
 import { closeTicket, type CloseInput } from './mission/closeTicket';
 import { verificationStatus } from './mission/completion';
+import { setCriteria } from './mission/criteria';
 import { getBrief, submitBrief } from './mission/discovery';
 import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './mission/hitl';
 import { flagKnowledge, proposeKnowledge, searchKnowledgeOp } from './mission/knowledge';
@@ -120,6 +121,10 @@ export class MissionAgent {
 
   submitBrief(input: Input<typeof submitBrief>) {
     return submitBrief(this.ctx, input);
+  }
+
+  setCriteria(input: Input<typeof setCriteria>) {
+    return setCriteria(this.ctx, input);
   }
 
   getBrief(input: Input<typeof getBrief>) {
