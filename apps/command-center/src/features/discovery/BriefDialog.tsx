@@ -1,0 +1,117 @@
+import { BRIEF_SECTION_LABEL, type BriefSections, type DiscoveryBrief } from '@miloops-hq/core';
+import { useEffect, useState } from 'react';
+import { Button, Empty, Field, Panel } from '../../components/ui';
+import { ago } from '../../lib';
+import { BriefProse } from './BriefProse';
+
+const PROSE: (keyof BriefSections)[] = [
+  'summary',
+  'productContext',
+  'existing',
+  'conventions',
+  'dataModel',
+  'api',
+  'risks',
+];
+
+/** Review a discovery brief: every section, then Accept or Request changes (with a note the agent gets). */
+export function BriefDialog(props: {
+  brief: DiscoveryBrief;
+  error?: string;
+  onAccept: () => void;
+  onRequestChanges: (note: string) => void;
+  onClose: () => void;
+}) {
+  const { brief: b } = props;
+  const [asking, setAsking] = useState(false);
+  const [note, setNote] = useState('');
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => e.key === 'Escape' && props.onClose();
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [props]);
+  const s = b.sections;
+  return (
+    <div className="scrim" onClick={props.onClose}>
+      <Panel as="div" className="dialog brief-dialog" onClick={(e) => e.stopPropagation()}>
+        <header>
+          <h2 className="t-heading caps">Discovery brief</h2>
+          <span className="mono-label">
+            {b.status === 'draft'
+              ? 'Not submitted yet'
+              : `${b.status.replace('-', ' ')}${b.author ? ` · by ${b.author}` : ''}${b.submittedAt ? ` · ${ago(Date.now() - b.submittedAt)} ago` : ''}`}
+          </span>
+        </header>
+        <div className="brief-body">
+          {PROSE.map((k) => (
+            <section key={k}>
+              <h3 className="mono-label">{BRIEF_SECTION_LABEL[k]}</h3>
+              <BriefProse text={s[k] as string} />
+            </section>
+          ))}
+          <section>
+            <h3 className="mono-label">{BRIEF_SECTION_LABEL.assumptions}</h3>
+            {s.assumptions.length ? (
+              <ul className="brief-list">
+                {s.assumptions.map((a) => (
+                  <li key={a.id}>
+                    <span className="key">{a.id}</span> {a.text}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Empty>None listed</Empty>
+            )}
+          </section>
+          <section>
+            <h3 className="mono-label">{BRIEF_SECTION_LABEL.openQuestions}</h3>
+            {s.openQuestions.length ? (
+              <ul className="brief-list">
+                {s.openQuestions.map((q) => (
+                  <li key={q}>{q}</li>
+                ))}
+              </ul>
+            ) : (
+              <Empty>None</Empty>
+            )}
+          </section>
+          {b.note && (
+            <section>
+              <h3 className="mono-label">Your last request</h3>
+              <p>{b.note}</p>
+            </section>
+          )}
+        </div>
+        {asking && (
+          <Field label="What should change?">
+            <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} autoFocus />
+          </Field>
+        )}
+        {props.error && <p className="urgent-text">{props.error}</p>}
+        <div className="actions">
+          {b.status === 'submitted' && !asking && (
+            <>
+              <Button onClick={() => setAsking(true)}>Request changes</Button>
+              <Button variant="primary" onClick={props.onAccept}>
+                Accept brief
+              </Button>
+            </>
+          )}
+          {asking && (
+            <>
+              <Button variant="ghost" onClick={() => setAsking(false)}>
+                Back
+              </Button>
+              <Button variant="primary" disabled={!note.trim()} onClick={() => props.onRequestChanges(note.trim())}>
+                Send to the agent
+              </Button>
+            </>
+          )}
+          <Button variant="ghost" onClick={props.onClose}>
+            Close
+          </Button>
+        </div>
+      </Panel>
+    </div>
+  );
+}

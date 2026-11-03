@@ -3,10 +3,21 @@ import { Panel, Field, Button } from '../../components/ui';
 import { AgentCommand } from './AgentCommand';
 
 /**
- * Drafts a new mission as the `/milo new` command for the operator's agent. MILO frames the idea there
- * and the agent charts it into this tracker; MILOOPS never runs an agent itself.
+ * Starts a mission two ways: Create mission charts it here (with its discovery ticket) for any agent to pick up with
+ * `/milo resume`, or the `/milo new` command lets MILO frame it in the agent's chat. MILOOPS never runs an agent itself.
  */
-export function NewMissionDialog({ onClose, tracker }: { onClose: () => void; tracker: string }) {
+export function NewMissionDialog({
+  onClose,
+  tracker,
+  onCreate,
+}: {
+  onClose: () => void;
+  tracker: string;
+  onCreate: (input: { title: string; destination: string; notes: string }) => Promise<{ key: string }>;
+}) {
+  const [created, setCreated] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
   const [title, setTitle] = useState('');
   const [dest, setDest] = useState('');
   const [notes, setNotes] = useState('');
@@ -43,10 +54,37 @@ export function NewMissionDialog({ onClose, tracker }: { onClose: () => void; tr
           </span>
           <AgentCommand command={`/milo new "${idea || 'your idea'}"`} label="Copy command" />
         </div>
+        {created ? (
+          <div className="agent-draft created">
+            <span>
+              Mission {created} is on the map, starting with discovery. To get it moving, run this in Claude Code or
+              Codex:
+            </span>
+            <AgentCommand command="/milo resume" label="Copy command" />
+          </div>
+        ) : (
+          error && <p className="urgent-text">{error}</p>
+        )}
         <footer>
           <Button variant="ghost" onClick={onClose}>
             Close
           </Button>
+          {!created && (
+            <Button
+              variant="primary"
+              disabled={busy || !title.trim() || !dest.trim()}
+              data-tip="Put the mission on the map now; any agent picks it up with /milo resume"
+              onClick={() => {
+                setBusy(true);
+                onCreate({ title: title.trim(), destination: dest.trim(), notes: notes.trim() })
+                  .then((m) => setCreated(m.key))
+                  .catch((e: Error) => setError(e.message))
+                  .finally(() => setBusy(false));
+              }}
+            >
+              Create mission
+            </Button>
+          )}
         </footer>
       </Panel>
     </div>

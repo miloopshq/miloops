@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Panel, Button } from '../components/ui';
 import { MapGraph } from '../features/map';
 import { AgentCommand, CommandBar } from '../features/mission';
@@ -13,11 +14,14 @@ export function MapZone(props: {
   onNewMission: () => void;
   compact: boolean;
   minFit: number;
+  /** Shown under the title bar, above the map (the discovery banner). */
+  banner?: ReactNode;
 }) {
   const { snap, selection } = props.api;
   return (
     <Panel as="main" className="zone map-zone" style={{ gridArea: 'map' }}>
       {snap && <CommandBar />}
+      {props.banner}
       <div className="map-area">
         {snap && !props.compact && <StatusPanel snap={snap} sessions={props.sessions} />}
         {snap ? (

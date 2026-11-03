@@ -12,3 +12,4 @@ export { useAppNavigation } from './useAppNavigation';
 export { useDocumentTitle } from './useDocumentTitle';
 export { useRepoName } from './useRepoName';
 export { useScopedActivity } from './useScopedActivity';
+export { useDiscoveryUi } from './useDiscoveryUi';

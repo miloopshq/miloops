@@ -20,6 +20,8 @@ export function InboxPane(props: {
   onOpenTicket: (mapId: string, ticketId: string) => void;
   /** Rendered under the inbox in the same column (the Up next list). */
   below?: ReactNode;
+  /** Shown above the inbox list (a discovery brief waiting for review). */
+  above?: ReactNode;
 }) {
   const [view, setView] = useState<'list' | 'conv'>('list');
   useEffect(() => {
@@ -80,6 +82,7 @@ export function InboxPane(props: {
           conv
         ) : (
           <div className="stack-scroll">
+            {props.above}
             {list}
             {props.below}
           </div>
@@ -94,6 +97,7 @@ export function InboxPane(props: {
         title="Communication"
         info="Where your agents reach you: questions waiting on you, the conversation with the agent that asked, and the tickets coming up next."
       />
+      {props.above}
       {list}
       {hasConv && conv}
       {props.below}
