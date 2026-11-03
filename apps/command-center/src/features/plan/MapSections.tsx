@@ -1,10 +1,9 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Empty, EmptyState, Panel, SectionHeader, Tabs } from '../../components/ui';
+import { EmptyState, Panel, SectionHeader, Tabs } from '../../components/ui';
 import type { Selection } from '../../lib';
-import { MissionReport } from './MissionReport';
-
-export type Tab = 'unspecified' | 'decisions' | 'oos' | 'notes' | 'report';
+import { PlanTabBody } from './PlanTabBody';
+import type { Tab } from './types';
 
 /** Map body sections ("the plan"): a static list per section, one tab each. */
 export function MapSections({
@@ -31,58 +30,14 @@ export function MapSections({
     { id: 'notes', label: 'Notes' },
     { id: 'report', label: 'Report' },
   ];
-  const body =
-    !s || !snap ? (
-      <EmptyState
-        title="No plan yet"
-        hint="Open questions, decisions, what's ruled out, notes and the mission report collect here."
-      />
-    ) : tab === 'report' ? (
-      activity ? (
-        <MissionReport snap={snap} activity={activity} onTicket={(id) => onSelect({ kind: 'ticket', id })} />
-      ) : (
-        <Empty>No activity yet</Empty>
-      )
-    ) : tab === 'decisions' ? (
-      s.decisions.length ? (
-        <ol className="list decisions">
-          {[...s.decisions].reverse().map((d, i) => (
-            <li key={`${d.ticketKey}-${i}`}>
-              <button onClick={() => d.ticketId && onSelect({ kind: 'ticket', id: d.ticketId })}>
-                <span className="key">{d.ticketKey}</span>
-                <span>{d.text}</span>
-              </button>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <Empty>None</Empty>
-      )
-    ) : tab === 'unspecified' ? (
-      s.unspecified.length ? (
-        <ul className="list unspecified">
-          {s.unspecified.map((f) => (
-            <li key={f} className={selection?.kind === 'unspecified' && selection.item === f ? 'sel' : ''}>
-              <button onClick={() => onSelect({ kind: 'unspecified', item: f })}>{f}</button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <Empty>None</Empty>
-      )
-    ) : tab === 'oos' ? (
-      s.outOfScope.length ? (
-        <ul className="list oos">
-          {s.outOfScope.map((o) => (
-            <li key={o}>{o}</li>
-          ))}
-        </ul>
-      ) : (
-        <Empty>None</Empty>
-      )
-    ) : (
-      <p className="notes">{s.notes || '—'}</p>
-    );
+  const body = snap ? (
+    <PlanTabBody tab={tab} snap={snap} selection={selection} onSelect={onSelect} activity={activity} />
+  ) : (
+    <EmptyState
+      title="No plan yet"
+      hint="Open questions, decisions, what's ruled out, notes and the mission report collect here."
+    />
+  );
   return (
     <Panel className={`zone sections ${bare ? 'bare' : ''}`} style={bare ? undefined : { gridArea: 'plan' }}>
       {!bare && (

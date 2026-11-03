@@ -24,9 +24,18 @@ export function GraphNode({
   const lines = wrap(t.title, 22);
   const hitl = attention(t) === 'hitl';
   const waiting = !!s?.waitingOn;
+  const classes = [
+    'node',
+    `st-${n.state}`,
+    hitl ? 'hitl' : 'afk',
+    selected ? 'sel' : '',
+    s ? 'live' : '',
+    waiting ? 'waiting' : '',
+    stalled && !waiting ? 'stalled' : '',
+  ];
   return (
     <g
-      className={`node st-${n.state} ${hitl ? 'hitl' : 'afk'} ${selected ? 'sel' : ''} ${s ? 'live' : ''} ${waiting ? 'waiting' : ''} ${stalled && !waiting ? 'stalled' : ''}`}
+      className={classes.join(' ')}
       style={{ transform: `translate(${n.x}px, ${n.y}px)` }}
       onClick={(e) => {
         e.stopPropagation();
@@ -48,13 +57,7 @@ export function GraphNode({
         {t.key}
       </text>
       <text className="state" x={NODE_W - 6} y={14} textAnchor="end">
-        {waiting
-          ? '▲ WAITING ON YOU'
-          : stalled
-            ? `◇ STALLED · ${t.assignee}`
-            : n.state === 'claimed'
-              ? `◆ ${t.assignee}`
-              : STATE_LABEL[n.state].toUpperCase()}
+        {stateLabel(n, { waiting, stalled })}
       </text>
       {lines.map((l, i) => (
         <text key={i} className="title" x={42} y={30 + i * 13}>
@@ -75,4 +78,13 @@ export function GraphNode({
       )}
     </g>
   );
+}
+
+/** The node's top-right label: waiting on you beats stalled beats claimed beats the plain state. */
+function stateLabel(n: LaidOutNode, flags: { waiting: boolean; stalled?: boolean }) {
+  const assignee = n.ticket.assignee;
+  if (flags.waiting) return '▲ WAITING ON YOU';
+  if (flags.stalled) return `◇ STALLED · ${assignee}`;
+  if (n.state === 'claimed') return `◆ ${assignee}`;
+  return STATE_LABEL[n.state].toUpperCase();
 }

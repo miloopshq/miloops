@@ -4,6 +4,7 @@ import {
   type DecisionRecord,
   type ActivityState,
   type TrackerHealth,
+  type SessionInfo,
   describeTrackerEvent,
   auditDecisions,
 } from '@miloops-hq/core';
@@ -74,24 +75,21 @@ export function useCommandCenter(rt: Runtime) {
       clearTimeout(timer);
       timer = setTimeout(() => void refresh().catch((e) => setError(String(e))), 40);
     };
+    const agentWrote = (s: SessionInfo, mapId?: string) =>
+      isRunning(s) && rt.activity.isRemote(s.id) && (!mapId || !s.mapId || s.mapId === mapId);
+    const ticketById = (id: string) => snapRef.current?.tickets.find((t) => t.id === id);
+    const onTrackerEvent = (e: Parameters<Parameters<typeof rt.adapter.subscribe>[0]>[0]) => {
+      const line = describeTrackerEvent(e, ticketById);
+      // Writes by a connected agent are already described in its own session feed.
+      const byAgent =
+        e.kind === 'external.changed' && rt.activity.snapshot.sessions.some((s) => agentWrote(s, e.mapId));
+      const thisMission = !('mapId' in e) || !e.mapId || e.mapId === mapIdRef.current || e.kind === 'map.created';
+      if (line && !byAgent && thisMission) rt.activity.push(line);
+      schedule();
+    };
     void rt.ready.then(() => {
       if (!alive) return;
-      offT = rt.adapter.subscribe((e) => {
-        const line = describeTrackerEvent(e, (id) => snapRef.current?.tickets.find((t) => t.id === id));
-        // Writes by a connected agent are already described in its own session feed.
-        const byAgent =
-          e.kind === 'external.changed' &&
-          rt.activity.snapshot.sessions.some(
-            (s) => isRunning(s) && rt.activity.isRemote(s.id) && (!e.mapId || !s.mapId || s.mapId === e.mapId),
-          );
-        if (
-          line &&
-          !byAgent &&
-          (!('mapId' in e) || !e.mapId || e.mapId === mapIdRef.current || e.kind === 'map.created')
-        )
-          rt.activity.push(line);
-        schedule();
-      });
+      offT = rt.adapter.subscribe(onTrackerEvent);
       offA = rt.activity.subscribe(setActivity);
       rt.activity.push({
         source: 'system',

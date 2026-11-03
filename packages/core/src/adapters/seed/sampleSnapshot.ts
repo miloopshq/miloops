@@ -1,30 +1,30 @@
 import type { MapSnapshot, Ticket } from '../../model/types';
-import { SEED_TICKETS } from './seedTickets';
+import { SEED_TICKETS, type SeedTicket } from './seedTickets';
+
+const SEED_CLOSE_REASON: Record<NonNullable<SeedTicket['status']>, Ticket['closeReason']> = {
+  decided: 'completed',
+  ruled: 'not_planned',
+  claimed: undefined,
+};
+
+function seedComments(s: SeedTicket, createdAt: number): Ticket['comments'] {
+  const id = `c-${s.n}`;
+  if (s.resolution)
+    return [{ id, author: 'claude-07', body: `**Resolution**\n\n${s.resolution}`, createdAt: createdAt + 1_800_000 }];
+  if (s.status === 'ruled') {
+    const body = '**Ruled out of scope**\n\nTransport is already TLS; at-rest E2EE is a separate initiative.';
+    return [{ id, author: 'mpocock', body, createdAt }];
+  }
+  return [];
+}
 
 /** A mid-flight sample map: some decisions made, one ticket claimed, a live frontier and unspecified items. */
 export function sampleSnapshot(now = Date.now()): MapSnapshot {
   const id = (n: number) => `t-${n}`;
   const tickets: Ticket[] = SEED_TICKETS.map((s, i) => {
     const createdAt = now - (SEED_TICKETS.length - i) * 3_600_000;
-    const comments = s.resolution
-      ? [
-          {
-            id: `c-${s.n}`,
-            author: 'claude-07',
-            body: `**Resolution**\n\n${s.resolution}`,
-            createdAt: createdAt + 1_800_000,
-          },
-        ]
-      : s.status === 'ruled'
-        ? [
-            {
-              id: `c-${s.n}`,
-              author: 'mpocock',
-              body: '**Ruled out of scope**\n\nTransport is already TLS; at-rest E2EE is a separate initiative.',
-              createdAt,
-            },
-          ]
-        : [];
+    const comments = seedComments(s, createdAt);
+    const closed = s.status === 'decided' || s.status === 'ruled';
     return {
       id: id(s.n),
       key: `#${s.n}`,
@@ -32,14 +32,14 @@ export function sampleSnapshot(now = Date.now()): MapSnapshot {
       type: s.type,
       hitl: s.hitl,
       body: `Decision ticket for the Fieldnote offline sync mission.\n\nPart of mission #142.`,
-      state: s.status === 'decided' || s.status === 'ruled' ? 'closed' : 'open',
-      closeReason: s.status === 'decided' ? 'completed' : s.status === 'ruled' ? 'not_planned' : undefined,
+      state: closed ? 'closed' : 'open',
+      closeReason: s.status && SEED_CLOSE_REASON[s.status],
       assignee: s.assignee,
       blockedBy: (s.blockedBy ?? []).map(id),
       comments,
       createdAt,
       updatedAt: createdAt,
-      closedAt: s.status === 'decided' || s.status === 'ruled' ? createdAt + 1_800_000 : undefined,
+      closedAt: closed ? createdAt + 1_800_000 : undefined,
     };
   });
   return {

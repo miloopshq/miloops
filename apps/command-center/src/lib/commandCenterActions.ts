@@ -37,7 +37,7 @@ export function createActions({ rt, guard, setMapId, mapIdRef, snapRef, setChatS
     openChat: (sessionId: string | undefined) => setChatSession(sessionId),
     answer: (questionId: string, text: string) => rt.activity.answer(questionId, text, OPERATOR),
     claim: (ticketId: string) =>
-      guard('Claim', () => claim(rt.adapter, mapIdRef.current!, ticketId, OPERATOR, asOperator)),
+      guard('Claim', () => claim(rt.adapter, mapIdRef.current!, ticketId, { ...asOperator, assignee: OPERATOR })),
     release: (ticketId: string) =>
       guard('Release claim', () =>
         release(rt.adapter, mapIdRef.current!, ticketId, { ...asOperator, actor: OPERATOR }),
@@ -48,18 +48,14 @@ export function createActions({ rt, guard, setMapId, mapIdRef, snapRef, setChatS
     resolve: (ticketId: string, answer: string, extra: { rationale?: string; alternatives?: string[] } = {}) =>
       guard('Resolve · record answer', async () => {
         const t = snapRef.current?.tickets.find((x) => x.id === ticketId);
-        if (t && !t.assignee) await claim(rt.adapter, mapIdRef.current!, ticketId, OPERATOR, asOperator);
-        await resolve(
-          rt.adapter,
-          mapIdRef.current!,
-          ticketId,
-          {
-            answer,
-            author: OPERATOR,
-            decision: { ...extra, source: { kind: 'command-center', label: 'Ticket inspector' } },
-          },
-          asOperator,
-        );
+        if (t && !t.assignee)
+          await claim(rt.adapter, mapIdRef.current!, ticketId, { ...asOperator, assignee: OPERATOR });
+        await resolve(rt.adapter, mapIdRef.current!, ticketId, {
+          ...asOperator,
+          answer,
+          author: OPERATOR,
+          decision: { ...extra, source: { kind: 'command-center', label: 'Ticket inspector' } },
+        });
       }),
     /** Replace a decision. Derived (tracker-only) entries are persisted first so the chain has both ends. */
     supersede: (d: AuditDecision, input: { answer: string; rationale?: string; alternatives?: string[] }) =>
@@ -76,24 +72,28 @@ export function createActions({ rt, guard, setMapId, mapIdRef, snapRef, setChatS
           source: { kind: 'command-center', label: 'Decisions view' },
         });
       }),
-    graduate: (unspecified: string, type: TicketType, title: string, blockedBy: string[], hitl: boolean) =>
+    graduate: ({
+      unspecified,
+      ...ticket
+    }: {
+      unspecified: string;
+      type: TicketType;
+      title: string;
+      blockedBy: string[];
+      hitl: boolean;
+    }) =>
       guard(`Promote to ticket · ${unspecified}`, async () => {
-        const t = await promoteToTicket(rt.adapter, mapIdRef.current!, unspecified, { type, title, blockedBy, hitl });
+        const t = await promoteToTicket(rt.adapter, mapIdRef.current!, unspecified, ticket);
         setSelection({ kind: 'ticket', id: t.id });
       }),
     ruleOut: (target: ScopeTarget, reason: string) =>
       guard('Rule out of scope', async () => {
-        await ruleOutOfScope(
-          rt.adapter,
-          mapIdRef.current!,
-          target,
-          {
-            reason,
-            author: OPERATOR,
-            source: { kind: 'command-center', label: 'Ticket inspector' },
-          },
-          asOperator,
-        );
+        await ruleOutOfScope(rt.adapter, mapIdRef.current!, target, {
+          ...asOperator,
+          reason,
+          author: OPERATOR,
+          source: { kind: 'command-center', label: 'Ticket inspector' },
+        });
         setSelection(null);
       }),
     setMode: (mode: MapMode) => guard(`Mission mode · ${mode}`, () => setMapMode(rt.adapter, mapIdRef.current!, mode)),

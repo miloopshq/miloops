@@ -124,7 +124,7 @@ function onApproval(ctx: SlackContext, p: Payload, id: string, value: string): E
     };
   const ref = JSON.parse(value) as ApprovalRef;
   if (id === ACTIONS.approve)
-    return { after: () => decideApproval(ctx, ref, user, { action: 'approve' }, p.response_url) };
+    return { after: () => decideApproval(ctx, { ref, user, responseUrl: p.response_url }, { action: 'approve' }) };
   const meta = JSON.stringify({ ...ref, r: p.response_url });
   return {
     after: async () => {
@@ -138,37 +138,55 @@ function onApproval(ctx: SlackContext, p: Payload, id: string, value: string): E
   };
 }
 
+type Values = Record<string, Record<string, Payload>>;
+
+/** A modal field's error, shown under that field. */
+const fieldError = (field: string, message: string): EnvelopeResult => ({
+  ack: { response_action: 'errors', errors: { [field]: message } },
+});
+const textOf = (values: Values, block: string) => String(values[block]?.value?.value ?? '').trim();
+
 export function onSubmit(ctx: SlackContext, p: Payload): EnvelopeResult | void {
   const view = p.view as Payload;
-  const values = (view.state?.values ?? {}) as Record<string, Record<string, Payload>>;
+  const values = (view.state?.values ?? {}) as Values;
   const user = p.user.id as string;
-  if (view.callback_id === VIEWS.rework) {
-    const meta = JSON.parse(view.private_metadata) as ApprovalRef & { r?: string };
-    const reason = String(values.reason?.value?.value ?? '').trim();
-    if (!reason) return { ack: { response_action: 'errors', errors: { reason: 'Say what has to change' } } };
-    if (!ctx.allowed(user)) return { ack: { response_action: 'errors', errors: { reason: REFUSED } } };
-    return { after: () => decideApproval(ctx, meta, user, { action: 'rework', reason }, meta.r) };
-  }
-  if (view.callback_id === VIEWS.reply) {
-    const ref = JSON.parse(view.private_metadata) as AskRef;
-    const text = String(values.answer?.value?.value ?? '').trim();
-    if (!text) return { ack: { response_action: 'errors', errors: { answer: 'Enter an answer' } } };
-    if (!ctx.allowed(user)) return { ack: { response_action: 'errors', errors: { answer: REFUSED } } };
-    const ok = writeAnswer(ctx, ref, text, user);
-    if (!ok) return { ack: { response_action: 'errors', errors: { answer: ALREADY } } };
-    return { after: () => closeAsk(ctx, ref.q) };
-  }
-  if (view.callback_id !== VIEWS.decision) return;
+  if (view.callback_id === VIEWS.rework) return submitRework(ctx, { view, values, user });
+  if (view.callback_id === VIEWS.reply) return submitReply(ctx, { view, values, user });
+  if (view.callback_id === VIEWS.decision) return submitDecision(ctx, { view, values, user });
+}
+
+type Submitted = { view: Payload; values: Values; user: string };
+
+function submitRework(ctx: SlackContext, { view, values, user }: Submitted): EnvelopeResult {
+  const meta = JSON.parse(view.private_metadata) as ApprovalRef & { r?: string };
+  const reason = textOf(values, 'reason');
+  if (!reason) return fieldError('reason', 'Say what has to change');
+  if (!ctx.allowed(user)) return fieldError('reason', REFUSED);
+  return { after: () => decideApproval(ctx, { ref: meta, user, responseUrl: meta.r }, { action: 'rework', reason }) };
+}
+
+function submitReply(ctx: SlackContext, { view, values, user }: Submitted): EnvelopeResult {
+  const ref = JSON.parse(view.private_metadata) as AskRef;
+  const text = textOf(values, 'answer');
+  if (!text) return fieldError('answer', 'Enter an answer');
+  if (!ctx.allowed(user)) return fieldError('answer', REFUSED);
+  const ok = writeAnswer(ctx, ref, text, user);
+  if (!ok) return fieldError('answer', ALREADY);
+  return { after: () => closeAsk(ctx, ref.q) };
+}
+
+function submitDecision(ctx: SlackContext, { view, values, user }: Submitted): EnvelopeResult {
   const meta = JSON.parse(view.private_metadata) as DecisionMeta;
-  const decision = String(values.decision?.value?.value ?? '').trim();
-  if (!decision) return { ack: { response_action: 'errors', errors: { decision: 'Enter the decision' } } };
-  if (!ctx.allowed(user)) return { ack: { response_action: 'errors', errors: { decision: REFUSED } } };
-  const mode = (values.mode?.value?.selected_option?.value ?? 'mission') as SaveMode;
-  const ticketId = values.ticket?.value?.selected_option?.value as string | undefined;
-  if (mode === 'resolve' && !ticketId)
-    return { ack: { response_action: 'errors', errors: { ticket: 'Pick the ticket to resolve' } } };
-  const mapId = meta.mid ?? (values.mission?.[ACTIONS.missionPick]?.selected_option?.value as string | undefined);
-  if (!mapId) return { ack: { response_action: 'errors', errors: { decision: 'Pick a mission' } } };
-  const summary = String(values.summary?.value?.value ?? '').trim();
+  const decision = textOf(values, 'decision');
+  if (!decision) return fieldError('decision', 'Enter the decision');
+  if (!ctx.allowed(user)) return fieldError('decision', REFUSED);
+  const picked = (block: string, action = 'value') =>
+    values[block]?.[action]?.selected_option?.value as string | undefined;
+  const mode = (picked('mode') ?? 'mission') as SaveMode;
+  const ticketId = picked('ticket');
+  if (mode === 'resolve' && !ticketId) return fieldError('ticket', 'Pick the ticket to resolve');
+  const mapId = meta.mid ?? picked('mission', ACTIONS.missionPick);
+  if (!mapId) return fieldError('decision', 'Pick a mission');
+  const summary = textOf(values, 'summary');
   return { after: () => saveDecision(ctx, { meta, user, mapId, mode, ticketId, decision, summary }) };
 }

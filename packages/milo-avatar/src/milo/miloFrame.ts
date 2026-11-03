@@ -76,14 +76,25 @@ export function miloLayout(rows: string[], m: ResolvedMilo, cursor: number) {
 }
 
 /** Status shown in the panel head, the accessible label and the caption text. */
-export function miloLabels(m: ResolvedMilo, label: string, speechDone: boolean, cursor: number, caption?: boolean) {
+export function miloLabels(
+  m: ResolvedMilo,
+  { label, speechDone, cursor, caption }: { label: string; speechDone: boolean; cursor: number; caption?: boolean },
+) {
   const shownState: MiloState = m.talking && speechDone ? 'idle' : m.effective;
   const status = STATUS_LABEL[shownState];
+  const bigEnough = m.size === 'md' || m.size === 'lg' || (typeof m.size === 'number' && m.size >= 4);
   return {
     shownState,
     status,
     ariaLabel: `${label}, ${status.toLowerCase()}`,
-    showCaption: caption ?? (m.size === 'md' || m.size === 'lg' || (typeof m.size === 'number' && m.size >= 4)),
-    shown: m.talking ? (m.reduced || speechDone ? m.text : m.text.slice(0, cursor + 1)) : '',
+    showCaption: caption ?? bigEnough,
+    shown: spokenSoFar(m, speechDone, cursor),
   };
+}
+
+/** The caption types out with the speech; reduced motion or finished speech shows it whole. */
+function spokenSoFar(m: ResolvedMilo, speechDone: boolean, cursor: number) {
+  if (!m.talking) return '';
+  if (m.reduced || speechDone) return m.text;
+  return m.text.slice(0, cursor + 1);
 }

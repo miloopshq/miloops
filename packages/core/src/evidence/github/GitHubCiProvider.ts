@@ -30,6 +30,24 @@ export interface GitHubCiOptions extends HttpOptions {
 const SHA = /^[0-9a-f]{7,64}$/i;
 
 /** Pull requests, reviews, check runs and commit statuses of one repository. Read-only. */
+function prState(p: GhPull): PullRequestSnapshot['state'] {
+  if (p.merged_at || p.merged === true) return 'merged';
+  return p.state === 'open' ? 'open' : 'closed';
+}
+
+function mergeableOf(m: GhPull['mergeable']): PullRequestSnapshot['mergeable'] {
+  if (m === true) return 'clean';
+  if (m === false) return 'conflicting';
+  return 'unknown';
+}
+
+/** The pull request's review state from each reviewer's latest review. */
+function reviewOf(states: string[]): PrReview {
+  if (states.includes('CHANGES_REQUESTED')) return 'changes_requested';
+  if (states.includes('APPROVED')) return 'approved';
+  return states.length ? 'commented' : 'none';
+}
+
 export class GitHubCiProvider implements CiProvider {
   readonly name = 'github';
   readonly repo: string;
@@ -53,19 +71,18 @@ export class GitHubCiProvider implements CiProvider {
   }
 
   #snapshot(p: GhPull, review: PrReview = 'none'): PullRequestSnapshot {
-    const merged = !!p.merged_at || p.merged === true;
     const sha = SHA.test(p.head.sha) ? p.head.sha.toLowerCase() : '';
     return {
       number: p.number,
       url: `https://github.com/${this.repo}/pull/${p.number}`,
       title: untrusted(p.title),
-      state: merged ? 'merged' : p.state === 'open' ? 'open' : 'closed',
+      state: prState(p),
       draft: !!p.draft,
       headSha: sha,
       headRef: untrusted(p.head.ref, 200),
       sameRepo: p.head.repo?.full_name?.toLowerCase() === this.repo.toLowerCase(),
       review,
-      mergeable: p.mergeable === true ? 'clean' : p.mergeable === false ? 'conflicting' : 'unknown',
+      mergeable: mergeableOf(p.mergeable),
       updatedAt: Date.parse(p.updated_at) || 0,
     };
   }
@@ -95,15 +112,7 @@ export class GitHubCiProvider implements CiProvider {
     ]);
     const latest = new Map<string, string>();
     for (const r of reviews) if (r.user && r.state !== 'PENDING') latest.set(r.user.login, r.state);
-    const states = [...latest.values()];
-    const review: PrReview = states.includes('CHANGES_REQUESTED')
-      ? 'changes_requested'
-      : states.includes('APPROVED')
-        ? 'approved'
-        : states.length
-          ? 'commented'
-          : 'none';
-    return this.#snapshot(p, review);
+    return this.#snapshot(p, reviewOf([...latest.values()]));
   }
 
   async checks(sha: string, required: string[]) {

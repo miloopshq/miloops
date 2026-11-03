@@ -43,7 +43,7 @@ export async function missionFlow(make: () => SyncedAdapter) {
     ],
   });
   const [r, g] = tickets;
-  await claim(a, map.id, r.id, 'claude-07');
+  await claim(a, map.id, r.id, { assignee: 'claude-07' });
   await a.comment(map.id, r.id, 'claude-07', 'Yjs has the smaller bundle.');
   await resolve(a, map.id, r.id, {
     answer: 'Use Yjs. It has the smaller bundle and mature offline support.',

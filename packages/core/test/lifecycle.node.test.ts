@@ -104,7 +104,7 @@ test('actor kinds are enforced, and a phase that moved meanwhile is refused (com
 
 test('release and expiry go back to rework when the ticket was in rework, else to ready', async () => {
   const { a, mapId, id } = await inPhase('rework');
-  await claim(a, mapId, id, 'claude-07');
+  await claim(a, mapId, id, { assignee: 'claude-07' });
   await release(a, mapId, id);
   const t = (await a.loadMap(mapId)).tickets.find((x) => x.id === id)!;
   assert.equal(t.status, 'rework');
@@ -116,8 +116,8 @@ test('operations record who, why and when; the journal is append-only JSONL and 
   const journal = journalFile(root);
   const a = memory();
   const { mapId, first } = await mission(a);
-  await claim(a, mapId, first.id, 'claude-07', { journal, sessionId: 's-1' });
-  await resolve(a, mapId, first.id, { answer: 'Done it.', author: 'claude-07' }, { journal });
+  await claim(a, mapId, first.id, { assignee: 'claude-07', journal, sessionId: 's-1' });
+  await resolve(a, mapId, first.id, { answer: 'Done it.', author: 'claude-07', journal });
   appendFileSync(journalPath(root, mapId), '{"v":1,"kind":"transi');
   const entries = journal.read(mapId);
   assert.deepEqual(

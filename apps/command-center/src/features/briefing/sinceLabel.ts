@@ -7,11 +7,8 @@ export function sinceLabel(since: number, now: number) {
   const hm = d.toTimeString().slice(0, 5);
   const today = new Date(now).toDateString();
   const yesterday = new Date(now - DAY).toDateString();
-  const day =
-    d.toDateString() === today
-      ? ''
-      : d.toDateString() === yesterday
-        ? ' yesterday'
-        : ` ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+  let day = ` ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+  if (d.toDateString() === today) day = '';
+  else if (d.toDateString() === yesterday) day = ' yesterday';
   return `Since ${hm}${day} · ${dur(now - since)}`;
 }

@@ -59,23 +59,28 @@ export async function openDecision(ctx: SlackContext, trigger: string, meta: Dec
   meta.mid = [inThread?.view?.mapId, ctx.store.read().channelMission[meta.c], maps[0].id].find(
     (id) => id && maps.some((m) => m.id === id),
   )!;
-  const form = await decisionForm(ctx, adapter, maps, meta.mid, {
-    decision: prefill,
-    summary,
-    related: inThread?.view?.ticketId,
-    count: messages.length,
-    meta,
-  });
+  const form = await decisionForm(
+    ctx,
+    adapter,
+    { maps, mapId: meta.mid },
+    {
+      decision: prefill,
+      summary,
+      related: inThread?.view?.ticketId,
+      count: messages.length,
+      meta,
+    },
+  );
   await ctx.call('views.update', { view_id: viewId, view: decisionModal(form, JSON.stringify(meta)) });
 }
 
 export async function decisionForm(
   ctx: SlackContext,
   adapter: TrackerAdapter,
-  maps: { id: string; key: string; title: string }[],
-  mapId: string,
+  target: { maps: { id: string; key: string; title: string }[]; mapId: string },
   o: { decision: string; summary: string; related?: string; count: number; meta: DecisionMeta },
 ): Promise<DecisionForm> {
+  const { maps, mapId } = target;
   const snap = await adapter.loadMap(mapId);
   const docs = await readAgentDocs(ctx.o.root);
   const related = relatedTicket(snap, docs, o.related);
@@ -118,12 +123,17 @@ export async function changeMission(ctx: SlackContext, view: Payload, mapId: str
   meta.mid = mapId;
   const adapter = await ctx.o.active();
   const maps = await adapter.listMaps();
-  const form = await decisionForm(ctx, adapter, maps, mapId, {
-    decision: String(values.decision?.value?.value ?? ''),
-    summary: String(values.summary?.value?.value ?? ''),
-    count: 0,
-    meta,
-  });
+  const form = await decisionForm(
+    ctx,
+    adapter,
+    { maps, mapId },
+    {
+      decision: String(values.decision?.value?.value ?? ''),
+      summary: String(values.summary?.value?.value ?? ''),
+      count: 0,
+      meta,
+    },
+  );
   if (form.thread) form.thread.count = 0;
   await ctx.call('views.update', {
     view_id: view.id,

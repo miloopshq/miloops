@@ -1,18 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { RECOMMENDED_STYLE, STYLES, TIMING, composeFrame, composeWave } from './frames';
+import { useMemo, type CSSProperties } from 'react';
+import { RECOMMENDED_STYLE, STYLES, composeFrame, composeWave } from './frames';
 import { useBlink } from './hooks/useBlink';
-import { useClock } from './hooks/useClock';
 import { usePrefersReducedMotion } from './hooks/usePrefersReducedMotion';
-import {
-  blinks,
-  miloFace,
-  miloLabels,
-  miloLayout,
-  resolveMilo,
-  SPEECH_STEP_MS,
-  SPEECH_TAIL_MS,
-  speechDuration,
-} from './miloFrame';
+import { useSpeechClock } from './hooks/useSpeechClock';
+import { blinks, miloFace, miloLabels, miloLayout, resolveMilo } from './miloFrame';
 import { Sprite } from './Sprite';
 import type { MiloSize, MiloState, MiloStyleId } from './types';
 import { Wave } from './Wave';
@@ -60,28 +51,15 @@ export function MiloAvatar({
   const frozen = at !== undefined;
   const animate = !reduced && !frozen;
   const key = `${effective}|${variant}|${text}`;
-  const speechMs = speechDuration(text);
-
-  const [doneKey, setDoneKey] = useState('');
-  const endRef = useRef(onSpeakEnd);
-  endRef.current = onSpeakEnd;
-  useEffect(() => {
-    if (!talking || frozen) return;
-    const id = setTimeout(() => {
-      setDoneKey(key);
-      endRef.current?.();
-    }, speechMs + SPEECH_TAIL_MS);
-    return () => clearTimeout(id);
-  }, [talking, key, speechMs, frozen]);
-
-  const speechRunning = talking && doneKey !== key;
-  const clock = useClock(
+  const { t, speechDone } = useSpeechClock({
     key,
-    animate && (speechRunning || effective === 'thinking'),
-    speechRunning ? SPEECH_STEP_MS : TIMING.thinkingStepMs,
-  );
-  const t = at ?? clock;
-  const speechDone = talking && (frozen ? t >= speechMs : doneKey === key);
+    text,
+    talking,
+    thinking: effective === 'thinking',
+    animate,
+    at,
+    onSpeakEnd,
+  });
   const blinking = useBlink(blinks(m, animate));
 
   const showWave = talking && !speechDone;
@@ -93,7 +71,7 @@ export function MiloAvatar({
     [showWave, text, waveCursor, bars],
   );
 
-  const { shownState, status, ariaLabel, showCaption, shown } = miloLabels(m, label, speechDone, cursor, caption);
+  const { shownState, status, ariaLabel, showCaption, shown } = miloLabels(m, { label, speechDone, cursor, caption });
   const cssVars = {
     ...styleProp,
     ['--milo-scale' as string]: `${scale}px`,

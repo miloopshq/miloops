@@ -47,7 +47,12 @@ async function setup(level: VerificationLevel = 'checks', maxAttempts = 3) {
     const snap = await adapter.loadMap(map.id);
     const t = snap.tickets[0];
     await (
-      await verify(env, map.id, t, levelFor(root, snap, t).info, { agent: 'MILO-1', resolution: 'did A' })
+      await verify(env, {
+        mapId: map.id,
+        ticket: t,
+        info: levelFor(root, snap, t).info,
+        sub: { agent: 'MILO-1', resolution: 'did A' },
+      })
     ).done;
   };
   await run();

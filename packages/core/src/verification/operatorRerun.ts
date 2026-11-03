@@ -10,7 +10,11 @@ import { levelFor, verify, type VerifyEnv } from './verifyCompletion';
  * ticket is re-verified, a blocked one goes back to verifying first. Returns once
  * the run has started; `done` settles with the outcome.
  */
-export async function rerunChecks(env: VerifyEnv, mapId: string, ticketId: string, by: string, reason?: string) {
+export async function rerunChecks(
+  env: VerifyEnv,
+  req: { mapId: string; ticketId: string; by: string; reason?: string },
+) {
+  const { mapId, ticketId, by, reason } = req;
   const snap = await env.adapter.loadMap(mapId);
   const t = snap.tickets.find((x) => x.id === ticketId);
   if (!t) throw new OperationError(`ticket ${ticketId} not found`);
@@ -19,7 +23,12 @@ export async function rerunChecks(env: VerifyEnv, mapId: string, ticketId: strin
   const phase = ticketPhase(t, new Map(snap.tickets.map((x) => [x.id, x])), snap.map.mode);
   if (phase !== 'verifying' && phase !== 'blocked')
     throw new OperationError(`${t.key} is ${phase}; only verifying or blocked tickets can be re-run`);
-  const actor = { actor: by, actorKind: 'operator' as const, reason: reason || 'checks re-run by the operator' };
+  const actor = {
+    actor: by,
+    actorKind: 'operator' as const,
+    reason: reason || 'checks re-run by the operator',
+    journal: env.journal,
+  };
   await transition(
     env.adapter,
     mapId,
@@ -27,8 +36,7 @@ export async function rerunChecks(env: VerifyEnv, mapId: string, ticketId: strin
     phase === 'blocked'
       ? { ...actor, event: 'unblock', to: 'verifying', expect: 'blocked' }
       : { ...actor, event: 'reverify', expect: 'verifying' },
-    { journal: env.journal },
   );
   const { info } = levelFor(env.root, snap, t);
-  return verify(env, mapId, { ...t, status: 'verifying' }, info, submissionOf(last));
+  return verify(env, { mapId, ticket: { ...t, status: 'verifying' }, info, sub: submissionOf(last) });
 }

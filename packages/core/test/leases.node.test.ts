@@ -160,8 +160,8 @@ test('operator release of a lease another process is returning reports busy', as
   const l = lease(mapId, t.id);
   writeLease(root, l);
   const [x, y] = await Promise.all([
-    returnToQueue(root, a, l, 'operator', 'operator'),
-    returnToQueue(root, a, l, 'expired', 'miloops'),
+    returnToQueue(root, a, l, { reason: 'operator', by: 'operator' }),
+    returnToQueue(root, a, l, { reason: 'expired', by: 'miloops' }),
   ]);
   assert.equal([x, y].filter((r) => 'returned' in r).length, 1);
   assert.equal([x, y].filter((r) => 'busy' in r).length, 1);

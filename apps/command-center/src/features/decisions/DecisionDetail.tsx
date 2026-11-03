@@ -76,16 +76,15 @@ export function DecisionDetail(props: {
         <dt>Source</dt>
         <dd>
           {DECISION_SOURCES[d.source.kind].label}
-          {d.source.url ? (
+          {d.source.url && (
             <>
               {' · '}
               <a href={d.source.url} target="_blank" rel="noreferrer">
                 {d.source.label ?? 'link'}
               </a>
             </>
-          ) : d.source.label ? (
-            ` · ${d.source.label}`
-          ) : null}
+          )}
+          {!d.source.url && d.source.label && ` · ${d.source.label}`}
           {d.source.ref && <span className="ref"> {d.source.ref}</span>}
         </dd>
       </dl>

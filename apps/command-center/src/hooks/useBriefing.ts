@@ -116,7 +116,9 @@ export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['br
   useEffect(() => {
     if (since) setUnread(false);
   }, [since]);
-  const status: BriefingStatus = unread ? 'new' : available ? 'seen' : 'none';
+  let status: BriefingStatus = 'none';
+  if (unread) status = 'new';
+  else if (available) status = 'seen';
 
   return {
     shown: since !== null,

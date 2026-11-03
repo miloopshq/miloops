@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import type { GitEvidence } from '../model/evidence';
+import type { GitEvidence, GitTreeState } from '../model/evidence';
 import type { MapSnapshot, Ticket } from '../model/types';
 import type { VerificationConfig } from '../model/verification';
 import { DEFAULT_CONFIG } from '../verification/config';
@@ -30,39 +30,46 @@ export interface EvidenceRequest {
  */
 export async function collectEvidence(r: EvidenceRequest): Promise<GitEvidence> {
   const base = latestBaseline(r.root, r.snap.map.id, r.ticket.id);
-  const dir = base?.git && existsSync(base.git.toplevel) ? base.git.toplevel : r.cwd;
-  const wt = await findWorktree(dir, r.root);
-  const now = 'error' in wt ? undefined : await readTreeState(wt);
-  const changed = now && base?.git && !('error' in wt) ? await changesSince(wt, now, base.git) : [];
-  const b = base?.git;
-  const descends =
-    now && b?.head && now.head && b.head !== now.head
-      ? (await git(now.toplevel, ['merge-base', '--is-ancestor', b.head, now.head])).code === 0
-      : now && b
-        ? true
-        : undefined;
+  const b = base?.git ?? undefined;
+  const dir = b && existsSync(b.toplevel) ? b.toplevel : r.cwd;
+  const found = await findWorktree(dir, r.root);
+  const wt = 'error' in found ? undefined : found;
+  const now = wt && (await readTreeState(wt));
+  const changed = wt && now && b ? await changesSince(wt, now, b) : [];
   const flags = evidenceFlags({
     base,
     now,
-    ...('error' in wt ? { noGit: wt.error } : {}),
+    ...('error' in found ? { noGit: found.error } : {}),
     changed,
     ticketType: r.ticket.type,
     noChanges: (r.config ?? DEFAULT_CONFIG).noChanges,
     noCodeReason: r.noCodeReason,
     configHash: r.configHash,
-    descends,
+    descends: await descendsFrom(b, now),
     others: now ? await otherWork(r.root, r.snap, r.ticket) : [],
   });
   return {
     v: 1,
     ...(base ? { baseline: base.id } : {}),
     ...(b ? { base: { head: b.head, branch: b.branch } } : {}),
-    ...(now
-      ? { tree: { toplevel: now.toplevel, head: now.head, branch: now.branch, fingerprint: now.fingerprint } }
-      : {}),
+    ...(now ? { tree: treeOf(now) } : {}),
     changed,
     stats: statsOf(changed),
     ...(r.configHash ? { configHash: r.configHash } : {}),
     flags,
   };
 }
+
+/** Whether the worktree's head still descends from the baseline's; `undefined` when either side is unknown. */
+async function descendsFrom(b: GitTreeState | undefined, now: GitTreeState | undefined): Promise<boolean | undefined> {
+  if (!now || !b) return undefined;
+  if (!b.head || !now.head || b.head === now.head) return true;
+  return (await git(now.toplevel, ['merge-base', '--is-ancestor', b.head, now.head])).code === 0;
+}
+
+const treeOf = (now: GitTreeState) => ({
+  toplevel: now.toplevel,
+  head: now.head,
+  branch: now.branch,
+  fingerprint: now.fingerprint,
+});

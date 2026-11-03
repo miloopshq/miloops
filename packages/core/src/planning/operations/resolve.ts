@@ -20,6 +20,16 @@ export interface DecisionMeta {
 }
 
 /** How the ticket gets to done: `complete` without verification, else the verdict that passed it. */
+/** What the resolution says; `ResolveOptions` add who fires the event and where it is journaled. */
+export interface ResolveInput {
+  answer: string;
+  author: string;
+  summary?: string;
+  transcript?: string;
+  decision?: DecisionMeta;
+  missionLine?: string;
+}
+
 export interface ResolveOptions extends ActorOptions {
   event?: 'complete' | 'checks.pass' | 'review.pass' | 'approve' | 'accept';
   /** Who fires the event, when not the author (the engine, the operator). */
@@ -31,15 +41,7 @@ export async function resolve(
   adapter: TrackerAdapter,
   mapId: string,
   ticketId: string,
-  input: {
-    answer: string;
-    author: string;
-    summary?: string;
-    transcript?: string;
-    decision?: DecisionMeta;
-    missionLine?: string;
-  },
-  opts: ResolveOptions = {},
+  input: ResolveInput & ResolveOptions,
 ) {
   const snap = await adapter.loadMap(mapId);
   const t = snap.tickets.find((x) => x.id === ticketId);
@@ -48,20 +50,15 @@ export async function resolve(
   if (input.transcript)
     await adapter.comment(mapId, ticketId, input.author, `**HITL transcript**\n\n${input.transcript}`);
   await adapter.comment(mapId, ticketId, input.author, `**Resolution**\n\n${input.answer}`);
-  await transition(
-    adapter,
-    mapId,
-    ticketId,
-    {
-      event: opts.event ?? 'complete',
-      actor: opts.actor ?? input.author,
-      actorKind: opts.actorKind ?? 'agent',
-      sessionId: opts.sessionId,
-      reason: opts.reason,
-      ...(opts.event && opts.event !== 'complete' ? { to: 'done' as const } : {}),
-    },
-    opts,
-  );
+  await transition(adapter, mapId, ticketId, {
+    event: input.event ?? 'complete',
+    actor: input.actor ?? input.author,
+    actorKind: input.actorKind ?? 'agent',
+    sessionId: input.sessionId,
+    reason: input.reason,
+    journal: input.journal,
+    ...(input.event && input.event !== 'complete' ? { to: 'done' as const } : {}),
+  });
   const d = input.decision ?? {};
   await recordDecision(
     adapter,

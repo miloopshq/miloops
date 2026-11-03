@@ -251,16 +251,15 @@ async function verifying(r: { dir: string; root: string }, checkRun: string[], s
   const snap = await a.loadMap(mapId);
   const env = { adapter: a, root: r.root, repoRoot: r.dir };
   const info = { level: 'checks' as const, source: 'mission' as const, checks: ['gen'] };
-  const run = await verify(
-    env,
+  const run = await verify(env, {
     mapId,
-    snap.tickets.find((x) => x.id === t.id)!,
+    ticket: snap.tickets.find((x) => x.id === t.id)!,
     info,
-    {
+    sub: {
       agent: 'claude-07',
       resolution: 'done',
     },
-  );
+  });
   return { a, mapId, t, settled: await run.done };
 }
 
@@ -308,10 +307,12 @@ test('verify: verification.json edited since the claim blocks the ticket without
   const snap = await a.loadMap(mapId);
   const run = await verify(
     { adapter: a, root: r.root, repoRoot: r.dir },
-    mapId,
-    snap.tickets.find((x) => x.id === t.id)!,
-    { level: 'checks', source: 'mission', checks: ['ok'] },
-    { agent: 'claude-07', resolution: 'done' },
+    {
+      mapId,
+      ticket: snap.tickets.find((x) => x.id === t.id)!,
+      info: { level: 'checks', source: 'mission', checks: ['ok'] },
+      sub: { agent: 'claude-07', resolution: 'done' },
+    },
   );
   const s = await run.done;
   assert.equal(s.phase, 'blocked');

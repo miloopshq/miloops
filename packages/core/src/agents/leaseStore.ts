@@ -39,12 +39,11 @@ export function dropLease(root: string, mapId: string, ticketId: string) {
  */
 export function renewLease(
   root: string,
-  mapId: string,
-  ticketId: string,
-  agent: string,
+  holder: { mapId: string; ticketId: string; agent: string },
   patch: { note?: string; decision?: string; sessionId?: string } = {},
   now = Date.now(),
 ): TicketLease | undefined {
+  const { mapId, ticketId, agent } = holder;
   const l = readLease(root, mapId, ticketId);
   if (!l || l.returned || l.agent !== agent) return undefined;
   const next: TicketLease = {

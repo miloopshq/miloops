@@ -39,8 +39,11 @@ export interface SocketModeOptions {
   backoffMs?: (attempt: number) => number;
 }
 
-const text = (d: unknown) =>
-  typeof d === 'string' ? d : d instanceof ArrayBuffer ? new TextDecoder().decode(d) : String(d);
+const text = (d: unknown) => {
+  if (typeof d === 'string') return d;
+  if (d instanceof ArrayBuffer) return new TextDecoder().decode(d);
+  return String(d);
+};
 
 export class SocketMode {
   private ws?: WebSocketLike;

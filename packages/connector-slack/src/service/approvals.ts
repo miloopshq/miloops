@@ -131,11 +131,10 @@ export async function waitingApproval(
 /** Approve or send back to rework from Slack, as the operator would in the command center. */
 export async function decideApproval(
   ctx: SlackContext,
-  ref: ApprovalRef,
-  user: string,
+  by: { ref: ApprovalRef; user: string; responseUrl?: string },
   d: { action: 'approve' } | { action: 'rework'; reason: string },
-  responseUrl?: string,
 ) {
+  const { ref, user, responseUrl } = by;
   if (!(await waitingApproval(ctx, ref, d.action, responseUrl))) return;
   const env = { adapter: await ctx.o.active(), root: ctx.o.root, journal: journalFile(ctx.o.root) };
   try {
@@ -155,10 +154,7 @@ export async function decideApproval(
       );
     return;
   }
-  await closeTicket(
-    ctx,
-    ref.m,
-    ref.t,
-    d.action === 'approve' ? `✓ Approved by <@${user}> via Slack.` : `↺ Sent back to rework by <@${user}> via Slack.`,
-  );
+  const line =
+    d.action === 'approve' ? `✓ Approved by <@${user}> via Slack.` : `↺ Sent back to rework by <@${user}> via Slack.`;
+  await closeTicket(ctx, ref.m, ref.t, line);
 }

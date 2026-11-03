@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { TrackerAdapter } from '../adapters/adapter';
 import { journalFile } from '../history/journalFile';
 import { levelOf } from '../model/lifecycle';
 import { OperationError } from '../planning/operations/operationError';
@@ -9,6 +8,7 @@ import { operatorAction, type OperatorAction, type OperatorRequest } from '../ve
 import { readEvidenceLog, ticketEvidence } from '../verification/ticketEvidence';
 import { levelFor } from '../verification/verifyCompletion';
 import { BadRequest, readJson, sendJson } from './http';
+import type { RouteContext } from './routeContext';
 import { crossSite } from './trackerErrors';
 
 const ACTIONS = new Set<OperatorAction>(['rerun', 'approve', 'accept', 'rework', 'unblock', 'level']);
@@ -42,8 +42,7 @@ function request(b: Record<string, unknown>): OperatorRequest {
  * with API access cannot change what verifies its own work.
  */
 export async function handleVerification(
-  root: string,
-  active: () => Promise<TrackerAdapter>,
+  { root, active }: RouteContext,
   req: IncomingMessage,
   res: ServerResponse,
   url: URL,

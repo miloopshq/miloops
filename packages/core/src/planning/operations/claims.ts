@@ -30,27 +30,22 @@ export async function claim(
   adapter: TrackerAdapter,
   mapId: string,
   ticketId: string,
-  assignee: string,
-  opts: ActorOptions = {},
+  by: ActorOptions & { assignee: string },
 ) {
+  const { assignee } = by;
   const before = await adapter.loadMap(mapId);
   const t = before.tickets.find((x) => x.id === ticketId);
   if (!t) throw new OperationError(`ticket ${ticketId} not found`);
   const state = deriveStates(before.tickets, before.map.mode).get(ticketId);
   if (state !== 'frontier' && state !== 'rework') throw new OperationError(`${t.key} is ${state}, not on the frontier`);
-  await transition(
-    adapter,
-    mapId,
-    ticketId,
-    {
-      event: 'claim',
-      actor: assignee,
-      actorKind: opts.actorKind ?? 'agent',
-      reason: opts.reason,
-      sessionId: opts.sessionId,
-    },
-    opts,
-  );
+  await transition(adapter, mapId, ticketId, {
+    event: 'claim',
+    actor: assignee,
+    actorKind: by.actorKind ?? 'agent',
+    reason: by.reason,
+    sessionId: by.sessionId,
+    journal: by.journal,
+  });
   const after = await adapter.loadMap(mapId);
   const now = after.tickets.find((x) => x.id === ticketId)!;
   if (now.assignee !== assignee) throw new OperationError(`${t.key} was claimed by ${now.assignee}`);
@@ -67,17 +62,12 @@ export async function release(
   const snap = await adapter.loadMap(mapId);
   const t = snap.tickets.find((x) => x.id === ticketId);
   if (!t) throw new OperationError(`ticket ${ticketId} not found`);
-  await transition(
-    adapter,
-    mapId,
-    ticketId,
-    {
-      event: 'release',
-      actor: opts.actor ?? t.assignee ?? 'operator',
-      actorKind: opts.actorKind ?? 'agent',
-      reason: opts.reason,
-      sessionId: opts.sessionId,
-    },
-    opts,
-  );
+  await transition(adapter, mapId, ticketId, {
+    event: 'release',
+    actor: opts.actor ?? t.assignee ?? 'operator',
+    actorKind: opts.actorKind ?? 'agent',
+    reason: opts.reason,
+    sessionId: opts.sessionId,
+    journal: opts.journal,
+  });
 }

@@ -15,14 +15,12 @@ export function LevelControl(props: {
   inherit?: string;
   onChange: (level: VerificationLevel | null) => void;
 }) {
-  const options: SelectOption<Choice>[] = [
-    ...(props.inherit !== undefined
-      ? [{ value: INHERIT, label: props.inherit, hint: 'Use the mission’s level for this ticket.' } as const]
-      : props.value === undefined
-        ? [{ value: INHERIT, label: 'Off (not set)' } as const]
-        : []),
-    ...VERIFICATION_LEVELS.map((l) => ({ value: l, label: LEVEL_TEXT[l], hint: LEVEL_HELP[l] })),
-  ];
+  const levels: SelectOption<Choice>[] = VERIFICATION_LEVELS.map((l) => ({
+    value: l,
+    label: LEVEL_TEXT[l],
+    hint: LEVEL_HELP[l],
+  }));
+  const options: SelectOption<Choice>[] = [...inheritOption(props), ...levels];
   return (
     <Select<Choice>
       compact
@@ -33,4 +31,13 @@ export function LevelControl(props: {
       onChange={(v) => props.onChange(v === INHERIT ? null : v)}
     />
   );
+}
+
+/** A ticket can fall back to the mission's level; an unset mission level shows as Off. */
+function inheritOption(props: { value?: VerificationLevel; inherit?: string }): SelectOption<Choice>[] {
+  if (props.inherit !== undefined) {
+    return [{ value: INHERIT, label: props.inherit, hint: 'Use the mission’s level for this ticket.' }];
+  }
+  if (props.value === undefined) return [{ value: INHERIT, label: 'Off (not set)' }];
+  return [];
 }

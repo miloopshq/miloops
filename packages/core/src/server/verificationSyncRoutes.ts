@@ -1,8 +1,10 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { TrackerAdapter } from '../adapters/adapter';
 import { logFlagChanges } from '../evidence/reconcile';
 import { dropTicketSync, readTicketSync, readTicketSyncs, writeTicketSync } from '../evidence/syncStore';
+import type { TicketSync } from '../model/prEvidence';
+import type { Ticket } from '../model/types';
 import { BadRequest, readJson, sendJson } from './http';
+import type { RouteContext } from './routeContext';
 import { crossSite } from './trackerErrors';
 import type { VerificationWatch } from './watchVerification';
 
@@ -14,13 +16,12 @@ import type { VerificationWatch } from './watchVerification';
  *                                     unlink, a body marker or branch name can link the ticket again.
  */
 export async function handleVerificationSync(
-  root: string,
-  active: () => Promise<TrackerAdapter>,
-  watch: VerificationWatch,
+  ctx: RouteContext & { watch: VerificationWatch },
   req: IncomingMessage,
   res: ServerResponse,
   url: URL,
 ): Promise<boolean> {
+  const { root, watch } = ctx;
   if (url.pathname === '/verification/sync' && req.method === 'GET') {
     const mapId = url.searchParams.get('mapId') ?? undefined;
     sendJson(res, 200, { status: watch.status(), tickets: readTicketSyncs(root, mapId) });
@@ -32,10 +33,9 @@ export async function handleVerificationSync(
   const b = await readJson<{ mapId?: unknown; ticketId?: unknown; pr?: unknown }>(req, '{}');
   if (typeof b.mapId !== 'string' || typeof b.ticketId !== 'string')
     throw new BadRequest('"mapId" and "ticketId" are required');
-  if (b.pr !== null && !(typeof b.pr === 'number' && Number.isInteger(b.pr) && b.pr > 0))
-    throw new BadRequest('"pr" must be a pull request number, or null to unlink');
+  if (b.pr !== null && !isPrNumber(b.pr)) throw new BadRequest('"pr" must be a pull request number, or null to unlink');
   const { mapId, ticketId } = b;
-  const t = (await (await active()).loadMap(mapId)).tickets.find((x) => x.id === ticketId);
+  const t = (await (await ctx.active()).loadMap(mapId)).tickets.find((x) => x.id === ticketId);
   if (!t) return (sendJson(res, 404, { error: 'no such ticket' }), true);
   const prev = readTicketSync(root, mapId, ticketId);
   const now = Date.now();
@@ -45,22 +45,28 @@ export async function handleVerificationSync(
     sendJson(res, 200, { ticket: null });
     return true;
   }
-  const same = prev?.pr?.number === b.pr;
-  const next = {
-    v: 1 as const,
-    mapId,
-    ticketId,
-    ticketKey: t.key,
-    provider: prev?.provider ?? 'github',
-    link: { number: b.pr, source: 'explicit' as const, at: now },
-    checks: same ? prev.checks : [],
-    checksSummary: same ? prev.checksSummary : ('none' as const),
-    flags: same ? prev.flags : [],
-    ...(same ? { pr: prev.pr, syncedAt: prev.syncedAt } : {}),
-  };
+  const next = linked({ mapId, ticket: t, pr: b.pr, prev, now });
   writeTicketSync(root, next);
-  if (!same) logFlagChanges(root, prev, next, now);
+  if (prev?.pr?.number !== b.pr) logFlagChanges(root, prev, next, now);
   watch.kick();
   sendJson(res, 200, { ticket: next });
   return true;
+}
+
+const isPrNumber = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v > 0;
+
+/** The ticket's sync with an explicit link to `pr`; what was read of the same PR before is kept. */
+function linked(i: { mapId: string; ticket: Ticket; pr: number; prev?: TicketSync; now: number }): TicketSync {
+  const { prev } = i;
+  const base = {
+    v: 1 as const,
+    mapId: i.mapId,
+    ticketId: i.ticket.id,
+    ticketKey: i.ticket.key,
+    provider: prev?.provider ?? 'github',
+    link: { number: i.pr, source: 'explicit' as const, at: i.now },
+  };
+  if (prev?.pr?.number !== i.pr) return { ...base, checks: [], checksSummary: 'none', flags: [] };
+  const { checks, checksSummary, flags, pr, syncedAt } = prev;
+  return { ...base, checks, checksSummary, flags, pr, syncedAt };
 }

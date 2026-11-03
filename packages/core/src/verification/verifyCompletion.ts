@@ -1,8 +1,7 @@
 import path from 'node:path';
 import type { TrackerAdapter } from '../adapters/adapter';
-import { checkCriteria, type CriterionEvidence } from '../criteria/criteria';
-import { criteriaOf } from '../criteria/criteriaStore';
-import { completionEvidence, flagIfStale, gateOutcome, reverifies } from '../evidence/completionEvidence';
+import type { CriterionEvidence } from '../criteria/criteria';
+import { completionEvidence, reverifies } from '../evidence/completionEvidence';
 import { BRAND } from '../model/brand';
 import type { Journal, TicketPhase } from '../model/lifecycle';
 import type { MapSnapshot, Ticket } from '../model/types';
@@ -12,12 +11,12 @@ import { OperationError } from '../planning/operations/operationError';
 import { resolve, type DecisionMeta } from '../planning/operations/resolve';
 import { DEFAULT_CONFIG } from './config';
 import { readVerificationConfig, type ConfigRead } from './configFile';
-import { evidencePaths, nextAttemptId, readAttempts, writeAttempt } from './evidenceStore';
+import { nextAttemptId, readAttempts, writeAttempt } from './evidenceStore';
+import { gradeAttempt } from './gradeAttempt';
 import { attemptComment, outcomeOf } from './outcome';
 import { verificationFor, type LevelInfo } from './policy';
 import { submissionOf } from './resubmit';
 import { requestReview } from './reviewRequest';
-import { runChecks } from './runChecks';
 import { acquireRunLock, releaseRunLock } from './runLock';
 
 /** The engine as an actor: comments and journal lines of the check runner. */
@@ -57,6 +56,14 @@ export interface Submission {
   criteria?: CriterionEvidence[];
 }
 
+/** One ticket's completion to verify: its level, and what the agent submitted. */
+export interface VerifyJob {
+  mapId: string;
+  ticket: Ticket;
+  info: LevelInfo;
+  sub: Submission;
+}
+
 export interface Settled {
   attempt: VerificationAttempt;
   phase: TicketPhase;
@@ -77,13 +84,8 @@ export function levelFor(root: string, snap: MapSnapshot, t: Ticket): { info: Le
  * attempt id is taken under the ticket's run lock, so only one run per ticket
  * happens at a time across processes.
  */
-export async function verify(
-  env: VerifyEnv,
-  mapId: string,
-  t: Ticket,
-  info: LevelInfo,
-  sub: Submission,
-): Promise<{ attemptId: string; done: Promise<Settled> }> {
+export async function verify(env: VerifyEnv, job: VerifyJob): Promise<{ attemptId: string; done: Promise<Settled> }> {
+  const { mapId, ticket: t, info, sub } = job;
   const config = readVerificationConfig(env.root);
   const base = {
     v: 1 as const,
@@ -109,13 +111,12 @@ export async function verify(
   if (lock.recovered) {
     // the dead run took the id we picked: start over with the next one
     releaseRunLock(env.root, mapId, t.id);
-    return verify(env, mapId, t, info, sub);
+    return verify(env, job);
   }
   const done = (async (): Promise<Settled> => {
     let attempt: VerificationAttempt;
     try {
       const repoRoot = repoRootOf(env);
-      const rel = evidencePaths.logs(mapId, t.id, id);
       const git = await completionEvidence({
         ...env,
         repoRoot,
@@ -124,99 +125,68 @@ export async function verify(
         config,
         noCodeReason: sub.noCodeReason,
       });
-      const outcome =
-        gateOutcome(git) ??
-        (config.config
-          ? await runChecks(config.config, info.checks, {
-              repoRoot,
-              logDir: path.join(env.root, rel),
-              logRel: rel,
-              signal: env.signal,
-            })
-          : {
-              checks: [],
-              result: 'error' as const,
-              note: config.exists
-                ? `verification.json has errors: ${config.errors.join('; ')}`
-                : 'verification.json is missing, so the checks this ticket needs cannot run',
-            });
-      if (outcome.checks.length) await flagIfStale(env.root, git);
-      const wanted = criteriaOf(env.root, mapId, t.id);
-      const criteria = wanted.length ? checkCriteria(wanted, sub.criteria ?? [], outcome.checks) : undefined;
-      const unmet = criteria ? [...criteria.missing, ...criteria.failed] : [];
-      const graded =
-        outcome.result === 'pass' && unmet.length
-          ? {
-              ...outcome,
-              result: 'fail' as const,
-              note: `Acceptance criteria without passing evidence: ${unmet.join(', ')}`,
-            }
-          : outcome;
-      attempt = { ...base, id, finishedAt: Date.now(), ...graded, git, ...(criteria ? { criteria } : {}) };
+      const { outcome, criteria } = await gradeAttempt({
+        root: env.root,
+        repoRoot,
+        mapId,
+        ticketId: t.id,
+        attemptId: id,
+        config,
+        info,
+        git,
+        evidence: sub.criteria,
+        signal: env.signal,
+      });
+      attempt = { ...base, id, finishedAt: Date.now(), ...outcome, git, ...(criteria ? { criteria } : {}) };
       writeAttempt(env.root, attempt);
     } finally {
       releaseRunLock(env.root, mapId, t.id);
     }
-    if (reverifies(attempt, config.config, !!sub.reverified)) return reverify(env, mapId, t, info, sub, attempt);
+    if (reverifies(attempt, config.config, !!sub.reverified)) return reverify(env, job, attempt);
     return settle(env, attempt, sub, (config.config ?? DEFAULT_CONFIG).maxAttempts);
   })();
   return { attemptId: id, done };
 }
 
 /** Records that a pass went stale while its checks ran, and runs the checks again on the code as it is now. */
-async function reverify(
-  env: VerifyEnv,
-  mapId: string,
-  t: Ticket,
-  info: LevelInfo,
-  sub: Submission,
-  a: VerificationAttempt,
-) {
-  await transition(
-    env.adapter,
-    mapId,
-    t.id,
-    {
-      event: 'reverify',
-      actor: CHECK_RUNNER,
-      actorKind: 'engine',
-      expect: 'verifying',
-      reason: `${a.id} passed on code that changed while it ran`,
-      sessionId: sub.sessionId,
-    },
-    { journal: env.journal },
-  );
-  return (await verify(env, mapId, t, info, { ...sub, reverified: true })).done;
+async function reverify(env: VerifyEnv, job: VerifyJob, a: VerificationAttempt) {
+  const { mapId, ticket: t, sub } = job;
+  await transition(env.adapter, mapId, t.id, {
+    event: 'reverify',
+    actor: CHECK_RUNNER,
+    actorKind: 'engine',
+    expect: 'verifying',
+    reason: `${a.id} passed on code that changed while it ran`,
+    sessionId: sub.sessionId,
+    journal: env.journal,
+  });
+  return (await verify(env, { ...job, sub: { ...sub, reverified: true } })).done;
 }
 
 async function settle(env: VerifyEnv, a: VerificationAttempt, sub: Submission, maxAttempts: number): Promise<Settled> {
   const failures = readAttempts(env.root, a.mapId, a.ticketId).filter((x) => x.result === 'fail').length;
   const o = outcomeOf(a, failures, maxAttempts);
-  const engine = { actor: CHECK_RUNNER, actorKind: 'engine' as const, reason: o.reason, sessionId: sub.sessionId };
+  const engine = {
+    actor: CHECK_RUNNER,
+    actorKind: 'engine' as const,
+    reason: o.reason,
+    sessionId: sub.sessionId,
+    journal: env.journal,
+  };
   await env.adapter.comment(a.mapId, a.ticketId, CHECK_RUNNER, attemptComment(a, o));
   if (o.to === 'done') {
     const d = sub.decision ?? {};
-    await resolve(
-      env.adapter,
-      a.mapId,
-      a.ticketId,
-      {
-        answer: a.resolution,
-        summary: a.summary,
-        author: a.agent,
-        transcript: sub.transcript,
-        decision: { ...d, rationale: a.rationale ?? d.rationale, alternatives: a.alternatives ?? d.alternatives },
-      },
-      { ...engine, event: 'checks.pass', journal: env.journal },
-    );
+    await resolve(env.adapter, a.mapId, a.ticketId, {
+      ...engine,
+      event: 'checks.pass',
+      answer: a.resolution,
+      summary: a.summary,
+      author: a.agent,
+      transcript: sub.transcript,
+      decision: { ...d, rationale: a.rationale ?? d.rationale, alternatives: a.alternatives ?? d.alternatives },
+    });
   } else
-    await transition(
-      env.adapter,
-      a.mapId,
-      a.ticketId,
-      { ...engine, event: o.event, to: o.to, expect: 'verifying' },
-      { journal: env.journal },
-    );
+    await transition(env.adapter, a.mapId, a.ticketId, { ...engine, event: o.event, to: o.to, expect: 'verifying' });
   if (o.to === 'verifying') await requestReview(env, a);
   return { attempt: a, phase: o.to, failures, maxAttempts };
 }
@@ -226,5 +196,5 @@ export async function rerun(env: VerifyEnv, snap: MapSnapshot, interrupted: Veri
   const t = snap.tickets.find((x) => x.id === interrupted.ticketId);
   if (!t || t.state !== 'open' || t.status !== 'verifying') return undefined;
   const { info } = levelFor(env.root, snap, t);
-  return verify(env, snap.map.id, t, info, submissionOf(interrupted));
+  return verify(env, { mapId: snap.map.id, ticket: t, info, sub: submissionOf(interrupted) });
 }

@@ -55,6 +55,33 @@ export interface HttpProfile {
 
 const num = (v: string | null) => (v === null || v === '' || Number.isNaN(Number(v)) ? undefined : Number(v));
 
+/** JSON when it parses; non-JSON error pages stay as text, and an empty body is `undefined`. */
+function parseBody(text: string): unknown {
+  if (!text) return undefined;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
+function statusCode(status: number): TrackerErrorCode {
+  if (status === 401 || status === 403) return 'auth';
+  if (status === 404) return 'not_found';
+  if (status === 422 || status === 400) return 'invalid';
+  return 'http';
+}
+
+/** A plain-text error body, trimmed; anything else has no message. */
+const textMessage = (b: unknown) => (typeof b === 'string' && b ? b.slice(0, 200) : undefined);
+
+function graphqlCode(code: string): TrackerErrorCode {
+  if (/AUTH|FORBIDDEN/i.test(code)) return 'auth';
+  if (/NOT_FOUND|ENTITY_NOT_FOUND/i.test(code)) return 'not_found';
+  if (/INVALID|VALIDATION|BAD_USER_INPUT/i.test(code)) return 'invalid';
+  return 'http';
+}
+
 export class HttpClient {
   rate: RateInfo = {};
   private f: typeof fetch;
@@ -80,13 +107,7 @@ export class HttpClient {
       } catch (err) {
         throw new TrackerError('offline', `${name} unreachable (${(err as Error).message || err})`);
       }
-      const text = await res.text().catch(() => '');
-      let body: unknown = text;
-      try {
-        body = text ? JSON.parse(text) : undefined;
-      } catch {
-        // non-JSON error pages stay as text
-      }
+      const body = parseBody(await res.text().catch(() => ''));
       const rate = this.profile.rate(res.headers);
       if (rate) this.rate = rate;
       const until = this.profile.rateLimitedUntil(res.status, res.headers, body, this.now());
@@ -109,15 +130,7 @@ export class HttpClient {
       }
       if (res.status >= 400) {
         const detail = this.profile.message(body) ?? res.statusText;
-        const code: TrackerErrorCode =
-          res.status === 401 || res.status === 403
-            ? 'auth'
-            : res.status === 404
-              ? 'not_found'
-              : res.status === 422 || res.status === 400
-                ? 'invalid'
-                : 'http';
-        throw new TrackerError(code, `${name} ${res.status}: ${detail}`, res.status);
+        throw new TrackerError(statusCode(res.status), `${name} ${res.status}: ${detail}`, res.status);
       }
       return { status: res.status, headers: res.headers, body: body as T };
     }
@@ -150,11 +163,7 @@ export const github: HttpProfile = {
     };
   },
   message: (b) =>
-    typeof b === 'object' && b && 'message' in b
-      ? String((b as { message: unknown }).message)
-      : typeof b === 'string' && b
-        ? b.slice(0, 200)
-        : undefined,
+    typeof b === 'object' && b && 'message' in b ? String((b as { message: unknown }).message) : textMessage(b),
 };
 
 interface GqlErrorBody {
@@ -178,8 +187,7 @@ export const linear: HttpProfile = {
       resetAt: num(h.get('x-ratelimit-requests-reset')),
     };
   },
-  message: (b) =>
-    (b as GqlErrorBody)?.errors?.[0]?.message ?? (typeof b === 'string' && b ? b.slice(0, 200) : undefined),
+  message: (b) => (b as GqlErrorBody)?.errors?.[0]?.message ?? textMessage(b),
 };
 
 /** GraphQL `errors` on a 200 response, classified like HTTP errors. */
@@ -188,12 +196,5 @@ export function graphqlError(name: string, body: unknown): TrackerError | undefi
   if (!errs?.length) return undefined;
   const e = errs[0];
   const code = e.extensions?.code ?? e.extensions?.type ?? (e as { type?: string }).type ?? '';
-  const kind: TrackerErrorCode = /AUTH|FORBIDDEN/i.test(code)
-    ? 'auth'
-    : /NOT_FOUND|ENTITY_NOT_FOUND/i.test(code)
-      ? 'not_found'
-      : /INVALID|VALIDATION|BAD_USER_INPUT/i.test(code)
-        ? 'invalid'
-        : 'http';
-  return new TrackerError(kind, `${name}: ${e.message ?? code}`);
+  return new TrackerError(graphqlCode(code), `${name}: ${e.message ?? code}`);
 }

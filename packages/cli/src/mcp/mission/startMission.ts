@@ -1,0 +1,126 @@
+import {
+  chooseNext,
+  chartMap,
+  DISCOVERY_TICKET,
+  OperationError,
+  type MapDoc,
+  type MapMode,
+  type Ticket,
+} from '@miloops-hq/core';
+import { readVerificationConfig, writeBrief } from '@miloops-hq/core/agents';
+import type { AgentContext } from './agentContext';
+import { saveCriteria } from './criteria';
+import { briefView, claimable } from './discovery';
+import { knowledgeFor } from './knowledge';
+import { ticketInfo } from './ticketInfo';
+import type { TicketPlanInput } from './types';
+
+interface StartInput {
+  title: string;
+  destination: string;
+  notes?: string;
+  mode?: MapMode;
+  tickets?: TicketPlanInput[];
+  decided?: string[];
+  unspecified?: string[];
+  outOfScope?: string[];
+  /** Default on: implementation waits for an accepted discovery brief. Off only when the human says to skip it. */
+  discovery?: boolean;
+}
+
+const EMPTY_BRIEF = {
+  summary: '',
+  productContext: '',
+  existing: '',
+  conventions: '',
+  dataModel: '',
+  api: '',
+  risks: '',
+  assumptions: [],
+  openQuestions: [],
+};
+
+/** `start_mission`: charts the map and its tickets, saves their criteria and opens the discovery brief. */
+export async function startMission(ctx: AgentContext, input: StartInput) {
+  const planned = input.tickets ?? [];
+  const withDiscovery = input.discovery !== false;
+  const s = await ctx.chartSession();
+  s.step(1, input.destination);
+  s.step(2, `${planned.length} tickets proposed`);
+  for (const t of planned) s.log(`proposed ${t.type} · ${t.title}`);
+  assertKnownRefs(planned);
+  s.step(3, input.title);
+  const { map, tickets } = await chartMap(ctx.adapter, chartInput(ctx, input), {
+    onMapCreated: (m) => {
+      s.bindMap(m.id);
+      s.log(`mission ${m.key} online`, 'ok');
+      s.step(4, `${planned.length} tickets`);
+    },
+  });
+  ctx.mission = map.id;
+  saveAllCriteria(ctx, { map, tickets, planned });
+  const discoveryTicket = withDiscovery ? tickets.find((t) => t.title === DISCOVERY_TICKET.title) : undefined;
+  if (discoveryTicket)
+    writeBrief(ctx.root, { mapId: map.id, status: 'draft', ticketId: discoveryTicket.id, sections: EMPTY_BRIEF });
+  s.step(5, 'ready for agents');
+  const framing = ctx.sessions.transcript(s.id) ?? [];
+  ctx.sessions.end(true, `Mission launched · ${tickets.length} tickets`, true);
+  const snap = await ctx.load(map.id);
+  const next = chooseNext(snap, { types: claimable(ctx.root, map.id) });
+  return {
+    mission: {
+      id: map.id,
+      key: map.key,
+      title: map.title,
+      mode: map.mode,
+      ...(map.verification ? { verification: map.verification } : {}),
+    },
+    tickets: tickets.map((t) => ({
+      ref: planned.find((p) => p.title === t.title)?.ref,
+      key: t.key,
+      title: t.title,
+      type: t.type,
+    })),
+    framingQuestionsAnswered: framing.filter((e) => e.from === 'human').length,
+    discovery: briefView(ctx.root, snap),
+    next: next ? ticketInfo(ctx.root, snap, next) : null,
+    knowledge: next ? knowledgeFor(ctx.root, snap, next) : undefined,
+    commandCenter: ctx.commandCenter(),
+  };
+}
+
+function assertKnownRefs(planned: TicketPlanInput[]) {
+  const refs = new Set(planned.map((t) => t.ref));
+  for (const t of planned) {
+    const unknown = (t.blockedBy ?? []).find((b) => !refs.has(b));
+    if (unknown) throw new OperationError(`ticket "${t.ref}" is blocked by unknown ref "${unknown}"`);
+  }
+}
+
+/** The map to chart: sections from the input, the repo's default verification level, discovery first. */
+function chartInput(ctx: AgentContext, input: StartInput) {
+  const level = readVerificationConfig(ctx.root).config?.default;
+  const verifies = level !== undefined && level !== 'off';
+  const discovery = input.discovery === false ? [] : [{ ref: '__discovery', ...DISCOVERY_TICKET }];
+  return {
+    title: input.title,
+    mode: input.mode,
+    ...(verifies ? { verification: level } : {}),
+    sections: {
+      destination: input.destination,
+      notes: input.notes ?? '',
+      decisions: (input.decided ?? []).map((text) => ({ text })),
+      unspecified: input.unspecified ?? [],
+      outOfScope: input.outOfScope ?? [],
+    },
+    tickets: [...discovery, ...(input.tickets ?? []).map((t) => ({ ...t, body: t.body ?? '' }))],
+  };
+}
+
+function saveAllCriteria(ctx: AgentContext, made: { map: MapDoc; tickets: Ticket[]; planned: TicketPlanInput[] }) {
+  for (const pt of made.planned) {
+    if (!pt.criteria?.length) continue;
+    const ticket = made.tickets.find((x) => x.title === pt.title);
+    if (ticket) saveCriteria(ctx.root, made.map, ticket, pt.criteria);
+  }
+}

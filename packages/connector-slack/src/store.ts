@@ -77,18 +77,13 @@ export function slackStore(dir: string, env: Env = process.env) {
     /** Saved tokens first, then $MILOOPS_SLACK_APP_TOKEN / $MILOOPS_SLACK_BOT_TOKEN. */
     tokens(): { app?: { token: string; source: SlackTokenSource }; bot?: { token: string; source: SlackTokenSource } } {
       const s = creds.read().slack ?? {};
-      return {
-        app: s.appToken
-          ? { token: s.appToken, source: 'stored' }
-          : env[ENV.app]
-            ? { token: env[ENV.app]!, source: ENV.app }
-            : undefined,
-        bot: s.botToken
-          ? { token: s.botToken, source: 'stored' }
-          : env[ENV.bot]
-            ? { token: env[ENV.bot]!, source: ENV.bot }
-            : undefined,
+      const pick = (stored: string | undefined, name: SlackTokenSource) => {
+        if (stored) return { token: stored, source: 'stored' as const };
+        const fromEnv = env[name];
+        if (fromEnv) return { token: fromEnv, source: name };
+        return undefined;
       };
+      return { app: pick(s.appToken, ENV.app), bot: pick(s.botToken, ENV.bot) };
     },
     saveToken(kind: 'app' | 'bot', token: string) {
       const c = creds.read();

@@ -30,7 +30,7 @@ export function PrFlagBadges({ mapId, ticketId }: { mapId: string; ticketId: str
           `PR #${s.link.number}`
         )}
         <span className={`ci ci-${s.checksSummary}`}>{CHECKS[s.checksSummary]}</span>
-        <span className="when">{s.error ? 'sync failed' : s.syncedAt ? syncedAgo(s.syncedAt) : 'not synced yet'}</span>
+        <span className="when">{syncWhen(s)}</span>
       </span>
       {s.flags.map((f) => (
         <Pill key={f.kind} className={`flag flag-${f.severity}`} title={f.text}>
@@ -39,4 +39,10 @@ export function PrFlagBadges({ mapId, ticketId }: { mapId: string; ticketId: str
       ))}
     </div>
   );
+}
+
+function syncWhen(s: NonNullable<ReturnType<typeof prSync.ticket>>) {
+  if (s.error) return 'sync failed';
+  if (s.syncedAt) return syncedAgo(s.syncedAt);
+  return 'not synced yet';
 }

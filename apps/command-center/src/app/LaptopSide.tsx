@@ -23,7 +23,7 @@ export function LaptopSide(props: {
           { id: 'plan', label: 'Plan', n: props.unspecified },
         ]}
       />
-      {props.tab === 'ticket' ? props.ticket : props.tab === 'activity' ? props.activity : props.plan}
+      {{ ticket: props.ticket, activity: props.activity, plan: props.plan }[props.tab]}
     </Panel>
   );
 }

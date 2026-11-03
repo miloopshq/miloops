@@ -39,45 +39,27 @@ function strongest(links: (PrLink | undefined)[]): PrLink | undefined {
 
 const comparable = (s: TicketSync) => JSON.stringify([s.link, s.pr, s.checks, s.flags, s.error]);
 
-async function reconcileTicket(
-  env: ReconcileEnv,
-  mapId: string,
-  t: Ticket,
-  phase: TicketPhase,
-  byRef: Map<string, PrCandidate>,
-  now: number,
-): Promise<TicketSync | undefined> {
+interface TicketContext {
+  env: ReconcileEnv;
+  mapId: string;
+  t: Ticket;
+  phase: TicketPhase;
+  byRef: Map<string, PrCandidate>;
+  now: number;
+}
+
+type Refs = ReturnType<typeof ticketRefs>;
+
+async function reconcileTicket(c: TicketContext): Promise<TicketSync | undefined> {
+  const { env, mapId, t, now } = c;
   const prev = readTicketSync(env.root, mapId, t.id);
   const refs = ticketRefs(readAttempts(env.root, mapId, t.id));
-  const marked = byRef.get(ticketRef(mapId, t.id));
-  let link = strongest([
-    refs.pr ? { number: refs.pr, source: 'attempt', at: now } : undefined,
-    prev?.link,
-    marked ? { number: marked.pr.number, source: 'marker', at: now } : undefined,
-  ]);
-  if (refs.branch && (!link || RANK[link.source] < RANK.branch)) {
-    const found = await env.provider.forBranch(refs.branch);
-    const pick = found.find((p) => p.state === 'open') ?? found[0];
-    if (pick) link = { number: pick.number, source: 'branch', at: now };
-  }
+  const link = await findLink(c, prev, refs);
   if (!link) return undefined;
-  if (prev?.link.number === link.number && prev.link.source === link.source) link = prev.link;
-
-  const listed = [...byRef.values()].find((c) => c.pr.number === link.number)?.pr;
-  const settled =
-    prev?.pr?.number === link.number &&
-    prev.pr.state !== 'open' &&
-    listed?.state === prev.pr.state &&
-    listed.updatedAt === prev.pr.updatedAt;
-  const pr = settled ? prev.pr! : await env.provider.pull(link.number);
-  const checks = settled
-    ? prev.checks
-    : pr.state === 'closed'
-      ? []
-      : await env.provider.checks(pr.headSha, env.requiredChecks);
+  const { pr, checks } = await readPr(c, prev, link);
   const checksSummary = summarizeChecks(checks);
   const flags = mismatchFlags(
-    { phase, pr, checks: checksSummary, verifiedHead: refs.verifiedHead },
+    { phase: c.phase, pr, checks: checksSummary, verifiedHead: refs.verifiedHead },
     prev?.flags ?? [],
     now,
   );
@@ -97,6 +79,61 @@ async function reconcileTicket(
   writeTicketSync(env.root, next);
   logFlagChanges(env.root, prev, next, now);
   return prev && comparable(prev) === comparable(next) ? undefined : next;
+}
+
+/** The ticket's PR: the strongest of the attempt's PR, the last link, a marker in a PR, and the attempt's branch. */
+async function findLink(c: TicketContext, prev: TicketSync | undefined, refs: Refs): Promise<PrLink | undefined> {
+  const marked = c.byRef.get(ticketRef(c.mapId, c.t.id));
+  let link = strongest([
+    refs.pr ? { number: refs.pr, source: 'attempt', at: c.now } : undefined,
+    prev?.link,
+    marked ? { number: marked.pr.number, source: 'marker', at: c.now } : undefined,
+  ]);
+  const branchIsStronger = !link || RANK[link.source] < RANK.branch;
+  if (refs.branch && branchIsStronger) link = (await branchLink(c, refs.branch)) ?? link;
+  const sameAsBefore = link && prev?.link.number === link.number && prev.link.source === link.source;
+  return sameAsBefore ? prev?.link : link;
+}
+
+async function branchLink(c: TicketContext, branch: string): Promise<PrLink | undefined> {
+  const found = await c.env.provider.forBranch(branch);
+  const pick = found.find((p) => p.state === 'open') ?? found[0];
+  return pick && { number: pick.number, source: 'branch', at: c.now };
+}
+
+/** The PR and its checks; a closed or merged PR that hasn't changed since the last tick isn't read again. */
+async function readPr(c: TicketContext, prev: TicketSync | undefined, link: PrLink) {
+  const listed = [...c.byRef.values()].find((x) => x.pr.number === link.number)?.pr;
+  const last = prev?.pr;
+  const settled =
+    last?.number === link.number &&
+    last.state !== 'open' &&
+    listed?.state === last.state &&
+    listed.updatedAt === last.updatedAt;
+  if (settled && prev) return { pr: last, checks: prev.checks };
+  const pr = await c.env.provider.pull(link.number);
+  const checks = pr.state === 'closed' ? [] : await c.env.provider.checks(pr.headSha, c.env.requiredChecks);
+  return { pr, checks };
+}
+
+/** Reconciles one ticket; a failure other than a rate limit is reported and marked on its last snapshot. */
+async function reconcileOrMark(c: TicketContext): Promise<{ sync?: TicketSync; failure?: string }> {
+  try {
+    return { sync: await reconcileTicket(c) };
+  } catch (e) {
+    if (e instanceof TrackerError && e.code === 'rate_limited') throw e;
+    const reason = redact(String((e as Error)?.message ?? e)).slice(0, 300);
+    const sync = markFailed(c.env.root, readTicketSync(c.env.root, c.mapId, c.t.id), reason);
+    return { sync, failure: `${c.t.key}: ${reason}` };
+  }
+}
+
+/** A ticket that could not be read keeps its last snapshot, marked with the error. */
+function markFailed(root: string, prev: TicketSync | undefined, reason: string): TicketSync | undefined {
+  if (!prev || prev.error === reason) return undefined;
+  const marked = { ...prev, error: reason };
+  writeTicketSync(root, marked);
+  return marked;
 }
 
 export function logFlagChanges(root: string, prev: TicketSync | undefined, next: TicketSync | undefined, at: number) {
@@ -129,20 +166,9 @@ export async function reconcile(env: ReconcileEnv): Promise<ReconcileResult> {
     const snap = await env.adapter.loadMap(summary.id);
     const phases = derivePhases(snap.tickets, snap.map.mode);
     for (const t of snap.tickets) {
-      try {
-        const s = await reconcileTicket(env, snap.map.id, t, phases.get(t.id)!, byRef, now);
-        if (s) changed.push(s);
-      } catch (e) {
-        if (e instanceof TrackerError && e.code === 'rate_limited') throw e;
-        const reason = redact(String((e as Error)?.message ?? e)).slice(0, 300);
-        failures.push(`${t.key}: ${reason}`);
-        const prev = readTicketSync(env.root, snap.map.id, t.id);
-        if (prev && prev.error !== reason) {
-          const marked = { ...prev, error: reason };
-          writeTicketSync(env.root, marked);
-          changed.push(marked);
-        }
-      }
+      const r = await reconcileOrMark({ env, mapId: snap.map.id, t, phase: phases.get(t.id)!, byRef, now });
+      if (r.sync) changed.push(r.sync);
+      if (r.failure) failures.push(r.failure);
     }
   }
   return { changed, failures };

@@ -1,12 +1,7 @@
 import { spawn } from 'node:child_process';
 
 export function openBrowser(url: string) {
-  const [cmd, args] =
-    process.platform === 'darwin'
-      ? ['open', [url]]
-      : process.platform === 'win32'
-        ? ['cmd', ['/c', 'start', '""', url]]
-        : ['xdg-open', [url]];
+  const [cmd, args] = opener(url);
   try {
     const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
     child.on('error', () => process.stdout.write(`  Open ${url} in your browser.\n`));
@@ -14,4 +9,11 @@ export function openBrowser(url: string) {
   } catch {
     process.stdout.write(`  Open ${url} in your browser.\n`);
   }
+}
+
+/** The platform's command that opens a URL in the default browser. */
+function opener(url: string): [string, string[]] {
+  if (process.platform === 'darwin') return ['open', [url]];
+  if (process.platform === 'win32') return ['cmd', ['/c', 'start', '""', url]];
+  return ['xdg-open', [url]];
 }

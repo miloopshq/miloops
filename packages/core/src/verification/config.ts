@@ -50,78 +50,88 @@ function check(name: string, v: unknown, errors: string[]): CheckSpec | undefine
   };
 }
 
-/** Parses `verification.json`; every problem is reported, and `config` is only set when there are none. */
-export function parseVerificationConfig(text: string): { config?: VerificationConfig; errors: string[] } {
+type Take = <T>(v: unknown, valid: (v: unknown) => v is T, set: (v: T) => void, error: string) => void;
+
+/** Sets a field when the file has it and it's valid; reports it when it's invalid. */
+const taker =
+  (errors: string[]): Take =>
+  (v, valid, set, error) => {
+    if (v === undefined) return;
+    if (valid(v)) set(v);
+    else errors.push(error);
+  };
+
+const oneOf =
+  <T extends string>(...values: readonly T[]) =>
+  (v: unknown): v is T =>
+    values.includes(v as T);
+const isStrings = (v: unknown): v is string[] => strings(v);
+const isPosInt = (v: unknown): v is number => posInt(v);
+const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
+
+function parseJson(text: string): { raw: Obj } | { errors: string[] } {
   let raw: unknown;
   try {
     raw = JSON.parse(text);
   } catch (e) {
     return { errors: [`not valid JSON: ${(e as Error).message}`] };
   }
-  if (!isObj(raw)) return { errors: ['must be a JSON object'] };
+  return isObj(raw) ? { raw } : { errors: ['must be a JSON object'] };
+}
+
+/** Parses `verification.json`; every problem is reported, and `config` is only set when there are none. */
+export function parseVerificationConfig(text: string): { config?: VerificationConfig; errors: string[] } {
+  const parsed = parseJson(text);
+  if ('errors' in parsed) return parsed;
+  const { raw } = parsed;
   const errors: string[] = [];
+  const take = taker(errors);
   const c: VerificationConfig = structuredClone(DEFAULT_CONFIG);
   if (raw.v !== 1) errors.push('"v" must be 1');
   for (const k of Object.keys(raw)) if (!KEYS.has(k)) errors.push(`unknown key "${k}"`);
-  if (raw.default !== undefined) {
-    if (VERIFICATION_LEVELS.includes(raw.default as never)) c.default = raw.default as VerificationConfig['default'];
-    else errors.push(`"default" must be one of ${VERIFICATION_LEVELS.join(', ')}`);
-  }
+  const levels = `"default" must be one of ${VERIFICATION_LEVELS.join(', ')}`;
+  take(raw.default, oneOf(...VERIFICATION_LEVELS), (v) => (c.default = v), levels);
   if (raw.appliesTo !== undefined) c.appliesTo = types(raw.appliesTo, '"appliesTo"', errors) ?? c.appliesTo;
-  if (raw.checks !== undefined) {
-    if (!isObj(raw.checks)) errors.push('"checks" must be an object of named checks');
-    else
-      for (const [name, spec] of Object.entries(raw.checks)) {
-        const s = check(name, spec, errors);
-        if (s) c.checks[name] = s;
-      }
-  }
-  if (raw.run !== undefined) {
-    if (!strings(raw.run)) errors.push('"run" must list check names');
-    else c.run = raw.run as string[];
-  }
+  parseChecks(raw.checks, c, errors);
+  take(raw.run, isStrings, (v) => (c.run = v), '"run" must list check names');
   for (const name of c.run) if (!c.checks[name]) errors.push(`"run" names unknown check "${name}"`);
-  if (raw.failFast !== undefined) {
-    if (typeof raw.failFast === 'boolean') c.failFast = raw.failFast;
-    else errors.push('"failFast" must be true or false');
-  }
-  for (const k of ['maxAttempts', 'totalTimeoutSec'] as const) {
-    if (raw[k] === undefined) continue;
-    if (posInt(raw[k])) c[k] = raw[k] as number;
-    else errors.push(`"${k}" must be a positive integer`);
-  }
-  if (raw.noChanges !== undefined) {
-    const n = raw.noChanges;
-    if (!isObj(n)) errors.push('"noChanges" must be an object');
-    else {
-      if (n.allow !== undefined) c.noChanges.allow = types(n.allow, '"noChanges.allow"', errors) ?? c.noChanges.allow;
-      if (n.else !== undefined) {
-        if (['flag', 'fail', 'human'].includes(n.else as string)) c.noChanges.else = n.else as 'flag';
-        else errors.push('"noChanges.else" must be flag, fail or human');
-      }
-    }
-  }
-  if (raw.stale !== undefined) {
-    if (raw.stale === 'reverify' || raw.stale === 'flag') c.stale = raw.stale;
-    else errors.push('"stale" must be reverify or flag');
-  }
-  if (raw.github !== undefined) {
-    const g = raw.github;
-    if (!isObj(g)) errors.push('"github" must be an object');
-    else {
-      if (g.enabled !== undefined) {
-        if (g.enabled === 'auto' || g.enabled === 'off') c.github.enabled = g.enabled;
-        else errors.push('"github.enabled" must be auto or off');
-      }
-      if (g.requiredChecks !== undefined) {
-        if (strings(g.requiredChecks)) c.github.requiredChecks = g.requiredChecks as string[];
-        else errors.push('"github.requiredChecks" must list check names');
-      }
-      if (g.pollSec !== undefined) {
-        if (posInt(g.pollSec) && (g.pollSec as number) >= 15) c.github.pollSec = g.pollSec as number;
-        else errors.push('"github.pollSec" must be an integer of at least 15');
-      }
-    }
-  }
+  take(raw.failFast, isBool, (v) => (c.failFast = v), '"failFast" must be true or false');
+  for (const k of ['maxAttempts', 'totalTimeoutSec'] as const)
+    take(raw[k], isPosInt, (v) => (c[k] = v), `"${k}" must be a positive integer`);
+  parseNoChanges(raw.noChanges, c, errors);
+  take(raw.stale, oneOf('reverify', 'flag'), (v) => (c.stale = v), '"stale" must be reverify or flag');
+  parseGithub(raw.github, c, errors);
   return errors.length ? { errors } : { config: c, errors };
+}
+
+function parseChecks(v: unknown, c: VerificationConfig, errors: string[]) {
+  if (v === undefined) return;
+  if (!isObj(v)) return void errors.push('"checks" must be an object of named checks');
+  for (const [name, spec] of Object.entries(v)) {
+    const s = check(name, spec, errors);
+    if (s) c.checks[name] = s;
+  }
+}
+
+function parseNoChanges(n: unknown, c: VerificationConfig, errors: string[]) {
+  if (n === undefined) return;
+  if (!isObj(n)) return void errors.push('"noChanges" must be an object');
+  if (n.allow !== undefined) c.noChanges.allow = types(n.allow, '"noChanges.allow"', errors) ?? c.noChanges.allow;
+  const elseError = '"noChanges.else" must be flag, fail or human';
+  taker(errors)(n.else, oneOf('flag', 'fail', 'human'), (v) => (c.noChanges.else = v), elseError);
+}
+
+function parseGithub(g: unknown, c: VerificationConfig, errors: string[]) {
+  if (g === undefined) return;
+  if (!isObj(g)) return void errors.push('"github" must be an object');
+  const take = taker(errors);
+  take(g.enabled, oneOf('auto', 'off'), (v) => (c.github.enabled = v), '"github.enabled" must be auto or off');
+  take(
+    g.requiredChecks,
+    isStrings,
+    (v) => (c.github.requiredChecks = v),
+    '"github.requiredChecks" must list check names',
+  );
+  const isPoll = (v: unknown): v is number => posInt(v) && (v as number) >= 15;
+  take(g.pollSec, isPoll, (v) => (c.github.pollSec = v), '"github.pollSec" must be an integer of at least 15');
 }

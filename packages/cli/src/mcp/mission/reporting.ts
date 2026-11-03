@@ -29,16 +29,8 @@ export async function report(
   },
 ) {
   const s = await ctx.ensureSession();
-  if (input.step !== undefined) {
-    const steps = STEPS[s.info.mode];
-    const n =
-      typeof input.step === 'number'
-        ? input.step
-        : steps.findIndex((x) => x.toLowerCase() === String(input.step).toLowerCase()) + 1 || Number(input.step);
-    if (!Number.isInteger(n) || n < 1 || n > steps.length)
-      throw new OperationError(`step must be 1-${steps.length} or one of: ${steps.join(', ')}`);
-    s.step(n, input.message);
-  } else if (input.message) s.log(input.message, input.level ?? 'info');
+  if (input.step !== undefined) s.step(stepNumber(STEPS[s.info.mode], input.step), input.message);
+  else if (input.message) s.log(input.message, input.level ?? 'info');
   if (input.say) {
     s.say(input.say);
     ctx.sessions.note(s, 'agent', s.info.agent, input.say);
@@ -51,15 +43,24 @@ export async function report(
   const note = input.message ?? input.say;
   if (note) ctx.heartbeat({ ticketId: s.info.ticketId, note });
   const measured = ctx.sessions.measure(s);
-  if (!measured && (u.inputTokens || u.outputTokens || u.costUsd)) s.usage({ ...u, source: 'reported' });
-  return {
-    session: sessionView(ctx),
-    usageSource: measured
-      ? `${s.info.usage?.source} logs (reported numbers are ignored)`
-      : s.info.usage
-        ? 'reported'
-        : 'none',
-  };
+  const reportedAny = u.inputTokens || u.outputTokens || u.costUsd;
+  if (!measured && reportedAny) s.usage({ ...u, source: 'reported' });
+  return { session: sessionView(ctx), usageSource: usageSource(measured, s.info.usage) };
+}
+
+/** A step given as its number or its name (any case), checked against the mode's steps. */
+function stepNumber(steps: readonly string[], step: string | number): number {
+  const byName = steps.findIndex((x) => x.toLowerCase() === String(step).toLowerCase()) + 1;
+  const n = typeof step === 'number' ? step : byName || Number(step);
+  if (!Number.isInteger(n) || n < 1 || n > steps.length)
+    throw new OperationError(`step must be 1-${steps.length} or one of: ${steps.join(', ')}`);
+  return n;
+}
+
+function usageSource(measured: boolean, usage?: { source?: string }): string {
+  if (measured) return `${usage?.source} logs (reported numbers are ignored)`;
+  if (usage) return 'reported';
+  return 'none';
 }
 
 export async function recordDecision(

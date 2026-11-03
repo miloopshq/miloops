@@ -57,16 +57,22 @@ export function claimableTypes(brief: DiscoveryBrief | undefined): TicketType[] 
   return !brief || brief.status === 'accepted' ? undefined : DISCOVERY_TYPES;
 }
 
+function briefState(brief: DiscoveryBrief): string {
+  switch (brief.status) {
+    case 'submitted':
+      return 'the brief is waiting for the human to review it in the command center';
+    case 'changes-requested':
+      return `the human asked for changes to the brief: ${brief.note ?? 'see the command center'}`;
+    default:
+      return 'nobody has submitted the discovery brief yet';
+  }
+}
+
 /** Why a claim of `type` is refused, or `undefined` when it's allowed. */
 export function gateReason(brief: DiscoveryBrief | undefined, type: TicketType): string | undefined {
   const allowed = claimableTypes(brief);
-  if (!allowed || allowed.includes(type)) return undefined;
-  const state =
-    brief!.status === 'submitted'
-      ? 'the brief is waiting for the human to review it in the command center'
-      : brief!.status === 'changes-requested'
-        ? `the human asked for changes to the brief: ${brief!.note ?? 'see the command center'}`
-        : 'nobody has submitted the discovery brief yet';
+  if (!brief || !allowed || allowed.includes(type)) return undefined;
+  const state = briefState(brief);
   return `This mission needs an accepted discovery brief before ${type} tickets can be claimed, and ${state}. Work research and grilling tickets meanwhile, or write the brief with submit_brief.`;
 }
 

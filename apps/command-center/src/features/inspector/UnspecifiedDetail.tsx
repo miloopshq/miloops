@@ -26,7 +26,7 @@ export function UnspecifiedDetail({ snap, item, api }: { snap: MapSnapshot; item
         className="inline-form"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
-          void api.actions.graduate(item, type, title, blockedBy, hitl);
+          void api.actions.graduate({ unspecified: item, type, title, blockedBy, hitl });
         }}
       >
         <Field label="Title">

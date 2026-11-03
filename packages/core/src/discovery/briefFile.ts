@@ -19,6 +19,12 @@ export const BRIEF_SECTION_LABEL = Object.fromEntries(HEADINGS) as Record<keyof 
 const STATUSES: BriefStatus[] = ['draft', 'submitted', 'accepted', 'changes-requested'];
 const str = (v: unknown) => (typeof v === 'string' && v ? v : undefined);
 
+function sectionText(s: BriefSections, k: keyof BriefSections): string {
+  if (k === 'assumptions') return s.assumptions.map((a) => `- ${a.id}: ${a.text}`).join('\n');
+  if (k === 'openQuestions') return s.openQuestions.map((q) => `- ${q}`).join('\n');
+  return s[k].trim();
+}
+
 export function serializeBrief(b: DiscoveryBrief): string {
   const front: Record<string, string> = { status: b.status };
   if (b.ticketId) front.ticket = b.ticketId;
@@ -28,12 +34,7 @@ export function serializeBrief(b: DiscoveryBrief): string {
   if (b.note) front.note = b.note;
   const s = b.sections;
   const body = HEADINGS.map(([k, h]) => {
-    const text =
-      k === 'assumptions'
-        ? s.assumptions.map((a) => `- ${a.id}: ${a.text}`).join('\n')
-        : k === 'openQuestions'
-          ? s.openQuestions.map((q) => `- ${q}`).join('\n')
-          : (s[k] as string).trim();
+    const text = sectionText(s, k);
     return `## ${h}\n\n${text || '_None yet._'}`;
   }).join('\n\n');
   return writeFront(front, `${body}\n`);

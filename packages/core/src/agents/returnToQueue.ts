@@ -19,10 +19,9 @@ export async function returnToQueue(
   root: string,
   adapter: TrackerAdapter,
   lease: TicketLease,
-  reason: LeaseReturnReason,
-  by: string,
-  now = Date.now(),
+  why: { reason: LeaseReturnReason; by: string; now?: number },
 ): Promise<ReturnOutcome> {
+  const { reason, by, now = Date.now() } = why;
   const taken = takeLease(root, lease);
   if (!taken) return { busy: true };
   const l = taken.lease;
@@ -38,19 +37,14 @@ export async function returnToQueue(
       return { dropped: l };
     }
     await adapter.comment(l.mapId, l.ticketId, by, handoffComment(l, reason, by));
-    await transition(
-      adapter,
-      l.mapId,
-      l.ticketId,
-      {
-        event: reason === 'expired' ? 'expire' : 'release',
-        actor: by,
-        actorKind: reason === 'expired' ? 'engine' : 'operator',
-        reason: reason === 'expired' ? `${l.agent} went silent` : `claim of ${l.agent} released`,
-        sessionId: l.sessionId,
-      },
-      { journal: journalFile(root) },
-    );
+    await transition(adapter, l.mapId, l.ticketId, {
+      event: reason === 'expired' ? 'expire' : 'release',
+      actor: by,
+      actorKind: reason === 'expired' ? 'engine' : 'operator',
+      reason: reason === 'expired' ? `${l.agent} went silent` : `claim of ${l.agent} released`,
+      sessionId: l.sessionId,
+      journal: journalFile(root),
+    });
   } catch (e) {
     taken.put(l);
     throw e;
@@ -69,7 +63,9 @@ export async function reclaimExpired(root: string, adapter: TrackerAdapter, now 
       continue;
     }
     if (leaseHealth(l, now) !== 'expired') continue;
-    const r = await returnToQueue(root, adapter, l, 'expired', LEASE_REAPER, now).catch(() => undefined);
+    const r = await returnToQueue(root, adapter, l, { reason: 'expired', by: LEASE_REAPER, now }).catch(
+      () => undefined,
+    );
     if (r && 'returned' in r) returned.push(r.returned);
   }
   return returned;

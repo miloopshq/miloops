@@ -8,7 +8,7 @@ export function CheckRow({ check: c }: { check: CheckResult }) {
   const ok = checkOk(c);
   const [log, setLog] = useState<string>();
   const [err, setErr] = useState<string>();
-  const exit = c.error ? 'did not start' : c.timedOut ? 'timed out' : `exit ${c.exitCode ?? c.signal ?? '?'}`;
+  const exit = exitText(c);
   return (
     <details className={`vf-row ${ok ? 'ok' : 'bad'}`} open={!ok}>
       <summary>
@@ -39,4 +39,10 @@ export function CheckRow({ check: c }: { check: CheckResult }) {
       </div>
     </details>
   );
+}
+
+function exitText(c: CheckResult) {
+  if (c.error) return 'did not start';
+  if (c.timedOut) return 'timed out';
+  return `exit ${c.exitCode ?? c.signal ?? '?'}`;
 }

@@ -4,11 +4,22 @@ import {
   OperationError,
   submitted,
   type BriefSections,
+  type DiscoveryBrief,
   type MapSnapshot,
   type Ticket,
 } from '@miloops-hq/core';
 import { readBrief, writeBrief } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+
+/** What the agent should do next, per brief status. */
+const BRIEF_NEXT: Record<DiscoveryBrief['status'], string> = {
+  accepted:
+    'Brief accepted: implementation tickets can be claimed. Revise the planned tickets if the brief changed the picture.',
+  submitted:
+    'Waiting for the human to review the brief in the command center. Work research and grilling tickets meanwhile.',
+  'changes-requested': 'The human asked for changes: revise the brief and submit_brief again.',
+  draft: 'Claim the discovery ticket, investigate, and call submit_brief.',
+};
 
 /** What agents see about a mission's discovery step in claim, next, resume and start results. */
 export function briefView(root: string, snap: MapSnapshot) {
@@ -20,14 +31,7 @@ export function briefView(root: string, snap: MapSnapshot) {
     ticket: ticket ? ticket.key : undefined,
     ...(b.note ? { changesRequested: b.note } : {}),
     implementationClaimable: b.status === 'accepted',
-    next:
-      b.status === 'accepted'
-        ? 'Brief accepted: implementation tickets can be claimed. Revise the planned tickets if the brief changed the picture.'
-        : b.status === 'submitted'
-          ? 'Waiting for the human to review the brief in the command center. Work research and grilling tickets meanwhile.'
-          : b.status === 'changes-requested'
-            ? 'The human asked for changes: revise the brief and submit_brief again.'
-            : 'Claim the discovery ticket, investigate, and call submit_brief.',
+    next: BRIEF_NEXT[b.status],
   };
 }
 

@@ -37,11 +37,7 @@ export function BriefDialog(props: {
       <Panel as="div" className="dialog brief-dialog" onClick={(e) => e.stopPropagation()}>
         <header>
           <h2 className="t-heading caps">Discovery brief</h2>
-          <span className="mono-label">
-            {b.status === 'draft'
-              ? 'Not submitted yet'
-              : `${b.status.replace('-', ' ')}${b.author ? ` · by ${b.author}` : ''}${b.submittedAt ? ` · ${ago(Date.now() - b.submittedAt)} ago` : ''}`}
-          </span>
+          <span className="mono-label">{statusLine(b)}</span>
         </header>
         <div className="brief-body">
           {PROSE.map((k) => (
@@ -125,4 +121,13 @@ export function BriefDialog(props: {
       </Panel>
     </div>
   );
+}
+
+/** "submitted · by claude-01 · 5m ago", or "Not submitted yet" for a draft. */
+function statusLine(b: DiscoveryBrief) {
+  if (b.status === 'draft') return 'Not submitted yet';
+  const parts = [b.status.replace('-', ' ')];
+  if (b.author) parts.push(`by ${b.author}`);
+  if (b.submittedAt) parts.push(`${ago(Date.now() - b.submittedAt)} ago`);
+  return parts.join(' · ');
 }

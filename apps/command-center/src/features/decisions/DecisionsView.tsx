@@ -5,8 +5,9 @@ import { type CommandCenterApi, type Breakpoint } from '../../hooks';
 import { download, day } from '../../lib';
 import { DecisionDetail } from './DecisionDetail';
 import { DecisionFilters } from './DecisionFilters';
+import { DecisionList } from './DecisionList';
 import { DecisionReadouts } from './DecisionReadouts';
-import { DecisionRow } from './DecisionRow';
+import { DecisionSearch } from './DecisionSearch';
 
 /**
  * Decisions audit: every decision across missions, newest first. Covers the
@@ -26,8 +27,12 @@ export function DecisionsView(props: {
   const [filtersOpen, setFiltersOpen] = useState(false);
   useEffect(() => setSel(props.focus), [props.focus]);
   useEffect(() => {
-    const k = (e: KeyboardEvent) =>
-      e.key === 'Escape' && (bp === 'mobile' && sel ? setSel(undefined) : props.onClose());
+    const k = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // On a phone, Escape first steps back from a decision to the list.
+      if (bp === 'mobile' && sel) setSel(undefined);
+      else props.onClose();
+    };
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, [bp, sel, props]);
@@ -50,7 +55,6 @@ export function DecisionsView(props: {
       decisionsToMarkdown(rows, ms, { title: `${BRAND.name} decisions` }),
     );
   };
-  const active = Object.values(filter).filter(Boolean).length;
   const detailOnly = bp === 'mobile' && !!current;
 
   return (
@@ -79,22 +83,13 @@ export function DecisionsView(props: {
       </header>
 
       {!detailOnly && (
-        <div className="dv-search">
-          <input
-            type="search"
-            placeholder="Search decisions"
-            value={filter.query ?? ''}
-            onChange={(e) => set({ query: e.target.value })}
-          />
-          {bp !== 'wide' && (
-            <button
-              className={`chip ${filtersOpen || active > (filter.query ? 1 : 0) ? 'on' : ''}`}
-              onClick={() => setFiltersOpen((o) => !o)}
-            >
-              Filters{active - (filter.query ? 1 : 0) > 0 ? ` · ${active - (filter.query ? 1 : 0)}` : ''}
-            </button>
-          )}
-        </div>
+        <DecisionSearch
+          filter={filter}
+          set={set}
+          showToggle={bp !== 'wide'}
+          filtersOpen={filtersOpen}
+          onToggle={() => setFiltersOpen((o) => !o)}
+        />
       )}
 
       <div className="dv-body">
@@ -109,25 +104,15 @@ export function DecisionsView(props: {
           />
         )}
         {!detailOnly && (
-          <ol className="dv-list" aria-label="Decisions">
-            {rows.length ? (
-              rows.map((d, i) => (
-                <DecisionRow
-                  key={`${d.mapId}:${d.id}`}
-                  d={d}
-                  newDay={i === 0 || day(rows[i - 1].decidedAt) !== day(d.decidedAt)}
-                  mission={api.allSnaps[d.mapId]?.map.key}
-                  on={current?.id === d.id && current.mapId === d.mapId}
-                  showMission={bp === 'wide'}
-                  onClick={() => setSel(d.id)}
-                />
-              ))
-            ) : (
-              <Empty>No decisions</Empty>
-            )}
-          </ol>
+          <DecisionList
+            rows={rows}
+            current={current}
+            snaps={api.allSnaps}
+            showMission={bp === 'wide'}
+            onSelect={setSel}
+          />
         )}
-        {bp !== 'mobile' || current ? (
+        {(bp !== 'mobile' || current) && (
           <div className="dv-detail">
             {current ? (
               <DecisionDetail
@@ -142,7 +127,7 @@ export function DecisionsView(props: {
               <Empty>No decision selected</Empty>
             )}
           </div>
-        ) : null}
+        )}
       </div>
     </Panel>
   );

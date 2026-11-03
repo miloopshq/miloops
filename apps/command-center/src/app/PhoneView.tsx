@@ -12,22 +12,12 @@ export function PhoneView(props: {
   activity: ReactNode;
   plan: ReactNode;
 }) {
-  const { tab } = props;
-  return (
-    <main className="phone-view">
-      {props.decisions ? (
-        props.decisions
-      ) : tab === 'home' ? (
-        props.inbox
-      ) : tab === 'map' ? (
-        props.map
-      ) : tab === 'ticket' ? (
-        <Panel className="zone">{props.ticket}</Panel>
-      ) : tab === 'activity' ? (
-        <Panel className="zone">{props.activity}</Panel>
-      ) : (
-        props.plan
-      )}
-    </main>
-  );
+  const layers: Record<PhoneTab, ReactNode> = {
+    home: props.inbox,
+    map: props.map,
+    ticket: <Panel className="zone">{props.ticket}</Panel>,
+    activity: <Panel className="zone">{props.activity}</Panel>,
+    plan: props.plan,
+  };
+  return <main className="phone-view">{props.decisions || layers[props.tab]}</main>;
 }

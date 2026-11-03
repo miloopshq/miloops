@@ -36,8 +36,7 @@ export async function ruleOutOfScope(
   adapter: TrackerAdapter,
   mapId: string,
   target: ScopeTarget,
-  input: { reason: string; author: string; source?: DecisionSource },
-  opts: ActorOptions = {},
+  input: { reason: string; author: string; source?: DecisionSource } & Omit<ActorOptions, 'reason'>,
 ) {
   const snap = await adapter.loadMap(mapId);
   const { unspecified, outOfScope } = snap.map.sections;
@@ -53,19 +52,14 @@ export async function ruleOutOfScope(
   const t = snap.tickets.find((x) => x.id === target.ticketId);
   if (!t) throw new OperationError(`ticket ${target.ticketId} not found`);
   await adapter.comment(mapId, t.id, input.author, `**Ruled out of scope**\n\n${input.reason}`);
-  await transition(
-    adapter,
-    mapId,
-    t.id,
-    {
-      event: 'cancel',
-      actor: input.author,
-      actorKind: opts.actorKind ?? 'agent',
-      reason: input.reason,
-      sessionId: opts.sessionId,
-    },
-    opts,
-  );
+  await transition(adapter, mapId, t.id, {
+    event: 'cancel',
+    actor: input.author,
+    actorKind: input.actorKind ?? 'agent',
+    reason: input.reason,
+    sessionId: input.sessionId,
+    journal: input.journal,
+  });
   await recordDecision(
     adapter,
     mapId,

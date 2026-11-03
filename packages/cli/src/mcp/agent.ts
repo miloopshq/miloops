@@ -1,15 +1,17 @@
 import { OperationError, type DecisionRecord, type MapSnapshot, type Ticket } from '@miloops-hq/core';
 import { AgentContext } from './mission/agentContext';
+import { claimTicket } from './mission/claimTicket';
 import { closeTicket, type CloseInput } from './mission/closeTicket';
 import { verificationStatus } from './mission/completion';
 import { setCriteria } from './mission/criteria';
 import { getBrief, submitBrief } from './mission/discovery';
 import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './mission/hitl';
 import { flagKnowledge, proposeKnowledge, searchKnowledgeOp } from './mission/knowledge';
-import { resumeMission, startMission, status, updateMission } from './mission/missionOps';
+import { resumeMission, status, updateMission } from './mission/missionOps';
 import { recordDecision, report, sessionView } from './mission/reporting';
 import { submitReviewTool } from './mission/reviews';
-import { addTicket, claimTicket, nextTicket, releaseTicket } from './mission/ticketOps';
+import { startMission } from './mission/startMission';
+import { addTicket, nextTicket, releaseTicket } from './mission/ticketOps';
 import type { AgentOptions, WaitControl } from './mission/types';
 import { ticketView } from './mission/views';
 

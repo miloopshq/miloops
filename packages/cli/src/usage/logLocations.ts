@@ -41,14 +41,14 @@ export function claudeCandidates(root: string, env: NodeJS.ProcessEnv, cwd: stri
 export function findCodexRollout(thread: string, env: NodeJS.ProcessEnv, home: string) {
   const sessions = path.join(env.CODEX_HOME || path.join(home, '.codex'), 'sessions');
   const desc = (dir: string) => ls(dir).sort().reverse();
-  let days = 0;
-  for (const y of desc(sessions))
-    for (const m of desc(path.join(sessions, y)))
-      for (const d of desc(path.join(sessions, y, m))) {
-        if (++days > 400) return undefined;
-        const dir = path.join(sessions, y, m, d);
-        const hit = ls(dir).find((n) => n.startsWith('rollout-') && n.endsWith(`-${thread}.jsonl`));
-        if (hit) return path.join(dir, hit);
-      }
+  const dayDirs = desc(sessions).flatMap((y) =>
+    desc(path.join(sessions, y)).flatMap((m) =>
+      desc(path.join(sessions, y, m)).map((d) => path.join(sessions, y, m, d)),
+    ),
+  );
+  for (const dir of dayDirs.slice(0, 400)) {
+    const hit = ls(dir).find((n) => n.startsWith('rollout-') && n.endsWith(`-${thread}.jsonl`));
+    if (hit) return path.join(dir, hit);
+  }
   return undefined;
 }

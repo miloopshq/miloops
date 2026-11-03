@@ -23,7 +23,8 @@ export class AgentLeases {
 
   private id = (mapId: string, ticketId: string) => `${mapId}/${ticketId}`;
 
-  hold(agent: string, mapId: string, t: Ticket, sessionId?: string, now = Date.now()) {
+  hold(agent: string, mapId: string, t: Ticket, opts: { sessionId?: string; now?: number } = {}) {
+    const { sessionId, now = Date.now() } = opts;
     const lease: TicketLease = {
       v: 1,
       mapId,
@@ -49,7 +50,7 @@ export class AgentLeases {
     const lost: Held[] = [];
     for (const [k, h] of this.held) {
       const mine = h.ticketId === extra.ticketId;
-      if (renewLease(this.root, h.mapId, h.ticketId, agent, mine ? extra : {})) continue;
+      if (renewLease(this.root, { mapId: h.mapId, ticketId: h.ticketId, agent }, mine ? extra : {})) continue;
       this.held.delete(k);
       this.lost.push(h.key);
       lost.push(h);

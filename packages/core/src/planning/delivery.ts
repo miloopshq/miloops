@@ -61,8 +61,10 @@ const median = (xs: number[]) => {
   return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
 };
 
-const outcomeOf = (t: Ticket): TicketDelivery['outcome'] =>
-  t.state === 'open' ? 'open' : t.closeReason === 'not_planned' ? 'cancelled' : 'done';
+function outcomeOf(t: Ticket): TicketDelivery['outcome'] {
+  if (t.state === 'open') return 'open';
+  return t.closeReason === 'not_planned' ? 'cancelled' : 'done';
+}
 
 export function deliveryReport({ snap, journal, answered, usage }: DeliveryInput): DeliveryReport {
   const mapId = snap.map.id;

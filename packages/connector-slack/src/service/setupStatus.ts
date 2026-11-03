@@ -5,7 +5,7 @@ import type { SlackContext } from './slackContext';
 export function statusOf(ctx: SlackContext): SlackStatus {
   const c = ctx.store.read();
   const t = ctx.store.tokens();
-  const step: SlackStatus['step'] = !t.app ? (c.created ? 2 : 1) : !t.bot ? 4 : !c.owners.length ? 5 : 'done';
+  const step = setupStep({ created: c.created, app: !!t.app, bot: !!t.bot, owners: c.owners.length });
   return {
     state: ctx.state,
     error: ctx.error,
@@ -33,4 +33,12 @@ export function statusOf(ctx: SlackContext): SlackStatus {
     },
     ...(ctx.heldBy ? { heldBy: ctx.heldBy } : {}),
   };
+}
+
+/** The setup step to show: create the app, paste the app token, paste the bot token, pick an owner, done. */
+function setupStep(s: { created: boolean; app: boolean; bot: boolean; owners: number }): SlackStatus['step'] {
+  if (!s.app) return s.created ? 2 : 1;
+  if (!s.bot) return 4;
+  if (!s.owners) return 5;
+  return 'done';
 }
