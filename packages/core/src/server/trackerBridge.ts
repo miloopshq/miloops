@@ -9,6 +9,7 @@ import { handleBriefs } from './briefRoutes';
 import { handleDecisions } from './decisionRoutes';
 import { BadRequest, openEventStream, readText, sendJson } from './http';
 import { handleJournal } from './journalRoutes';
+import { handleKnowledge } from './knowledgeRoutes';
 import { handleLeases } from './leaseRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
@@ -78,6 +79,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       if (await handleVerificationSync(abs, () => routes.active(), reconciler, req, res, url)) return;
       if (await handleAgents(abs, req, res, url)) return;
       if (await handleBriefs(abs, req, res, url)) return;
+      if (await handleKnowledge(abs, req, res, url)) return;
       res.statusCode = 404;
       res.end('not found');
     } catch (err) {

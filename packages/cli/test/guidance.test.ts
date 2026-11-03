@@ -19,6 +19,8 @@ describe('agent guidance', () => {
       expect(text).toMatch(/don't chart|without a mission/);
       expect(text).toContain('record_decision');
       expect(text).toContain('submit_brief');
+      expect(text).toContain('propose_knowledge');
+      expect(text).toContain('flag_knowledge');
       expect(text).toMatch(/Never decide (HITL|a `hitl`)/);
     }
   });

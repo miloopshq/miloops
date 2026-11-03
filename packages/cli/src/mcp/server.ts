@@ -8,6 +8,7 @@ import { MissionAgent } from './agent';
 import { INSTRUCTIONS } from './instructions';
 import { toolDefiner } from './toolKit';
 import { registerHitlTools } from './tools/hitlTools';
+import { registerKnowledgeTools } from './tools/knowledgeTools';
 import { registerMissionTools } from './tools/missionTools';
 import { registerTicketTools } from './tools/ticketTools';
 import { registerWorkTools } from './tools/workTools';
@@ -19,6 +20,7 @@ export function createMcpServer(agent: MissionAgent, version: string) {
   registerTicketTools(tool, agent);
   registerWorkTools(tool, agent);
   registerHitlTools(tool, agent);
+  registerKnowledgeTools(tool, agent);
   return server;
 }
 

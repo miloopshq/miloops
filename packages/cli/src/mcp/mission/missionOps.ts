@@ -3,6 +3,7 @@ import { readAgentDocs, readVerificationConfig, writeBrief } from '@miloops-hq/c
 import type { AgentContext } from './agentContext';
 import { deliveryView } from './deliveryView';
 import { briefView, claimable } from './discovery';
+import { knowledgeFor } from './knowledge';
 import { ticketInfo } from './ticketInfo';
 import type { TicketPlanInput } from './types';
 import { missionView } from './views';
@@ -127,6 +128,7 @@ export async function startMission(
     framingQuestionsAnswered: framing.filter((e) => e.from === 'human').length,
     discovery: briefView(ctx.root, snap),
     next: next ? ticketInfo(ctx.root, snap, next) : null,
+    knowledge: next ? knowledgeFor(ctx.root, snap, next) : undefined,
     commandCenter: ctx.commandCenter(),
   };
 }
@@ -147,6 +149,7 @@ export async function resumeMission(ctx: AgentContext, missionRef?: string) {
     discovery: briefView(ctx.root, snap),
     yourClaim: mine ? ticketInfo(ctx.root, snap, mine, await ctx.decisions(snap.map.id)) : null,
     next: next ? ticketInfo(ctx.root, snap, next, await ctx.decisions(snap.map.id)) : null,
+    knowledge: mine || next ? knowledgeFor(ctx.root, snap, (mine ?? next)!) : undefined,
   };
 }
 

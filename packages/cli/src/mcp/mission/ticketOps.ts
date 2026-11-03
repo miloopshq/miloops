@@ -17,6 +17,7 @@ import { baselineForClaim, repoRootOf } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { recoverRuns } from './completion';
 import { assertClaimable, briefView, claimable } from './discovery';
+import { knowledgeFor } from './knowledge';
 import { sessionView } from './reporting';
 import { assertMayReview, ownReviews } from './reviews';
 import { ticketInfo } from './ticketInfo';
@@ -40,7 +41,12 @@ export async function nextTicket(ctx: AgentContext, input: { mission?: string; t
   const types = gate ? (input.types ?? gate).filter((x) => gate.includes(x)) : input.types;
   const t = chooseNext(snap, { types, exclude: ownReviews(ctx, snap, await ctx.agentId()) });
   const extra = recovered.length ? { recovered } : {};
-  if (t) return { ticket: ticketInfo(ctx.root, snap, t, await ctx.decisions(snap.map.id)), ...extra };
+  if (t)
+    return {
+      ticket: ticketInfo(ctx.root, snap, t, await ctx.decisions(snap.map.id)),
+      knowledge: knowledgeFor(ctx.root, snap, t),
+      ...extra,
+    };
   const states = deriveStates(snap.tickets, snap.map.mode);
   const open = snap.tickets.filter((x) => x.state === 'open');
   const reason = !open.length
@@ -103,6 +109,8 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
     resume: t === target || target.status === 'rework',
   });
   const fresh = await ctx.load(snap.map.id);
+  const delivered = knowledgeFor(ctx.root, fresh, t);
+  if (delivered) s.log(`knowledge delivered: ${delivered.map((k) => k.id).join(', ')}`);
   return {
     claimed: ticketInfo(
       ctx.root,
@@ -112,6 +120,7 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
     ),
     session: sessionView(ctx),
     discovery: briefView(ctx.root, fresh),
+    knowledge: delivered,
     git: baselineView(baseline),
     lease: {
       expiresAt: new Date(lease.expiresAt).toISOString(),
