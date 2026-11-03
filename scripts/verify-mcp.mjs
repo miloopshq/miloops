@@ -249,12 +249,14 @@ log(
   `command center shows: ${ui.sessions} live session(s), mission usage "${ui.usage}" (${ui.usageSource?.split('\n').slice(1).join('; ') || 'no source'})`,
 );
 
-// Crash recovery: a second agent (3 s lease) claims a ticket, reports progress and is SIGKILLed. The command center
+// Crash recovery: a second agent (18 s lease) claims a ticket, reports progress and is SIGKILLed. The command center
 // shows the claim as stalled, returns it to the queue once the lease runs out, and the next claim resumes from the notes.
+// The lease is stalled for its last third (6 s) until the reaper (every 15 s) returns it; the map re-checks lease health
+// every 5 s, so the stalled window must outlast that or a fast reap can skip it on a slow machine.
 const added = await call('add_ticket', { title: 'Which date format?', type: 'research' });
 const crashTransport = new StdioClientTransport({
   command: process.execPath,
-  args: [cli, 'mcp', '--agent', 'claude-09', '--lease-minutes', '0.05'],
+  args: [cli, 'mcp', '--agent', 'claude-09', '--lease-minutes', '0.3'],
   cwd: repo,
   stderr: 'pipe',
   env: { ...process.env, CLAUDE_CONFIG_DIR: path.join(repo, '.claude-crash'), CLAUDE_PROJECT_DIR: repo },
@@ -268,14 +270,14 @@ await crashCall('report_progress', { step: 'Investigate', message: 'ISO dates in
 process.kill(crashTransport.pid, 'SIGKILL');
 log(`claude-09 claimed ${crashed.claimed.key} (lease ${crashed.lease.length}) and was killed`);
 const stalledNode = page.locator('.node.stalled', { hasText: 'Which date format?' });
-await stalledNode.waitFor({ timeout: 15_000 });
+await stalledNode.waitFor({ timeout: 30_000 });
 await clickNode(stalledNode);
 await page.locator('.lease-stalled, .lease-expired').waitFor({ timeout: 10_000 });
 await shot('05-stalled-claim');
 const returnedLog = page.locator('.log-row', {
   hasText: `${crashed.claimed.key} returned to queue after claude-09 went silent`,
 });
-await returnedLog.first().waitFor({ timeout: 30_000 });
+await returnedLog.first().waitFor({ timeout: 60_000 });
 log('command center returned the ticket to the queue: "ticket returned to queue after agent went silent" logged');
 const resumed = await call('claim_ticket', { ticket: added.ticket.key });
 const handoffOk =
