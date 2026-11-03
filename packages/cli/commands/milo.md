@@ -11,6 +11,7 @@ Take the subcommand from the first word of the arguments. With no arguments, run
 
 ## new "<idea>"
 
+0. Check that it's mission-sized. Missions are for work that spans several layers or needs investigation. For a bug fix, a UI tweak or a single endpoint, say so and do the work directly, without a mission, unless the human asks for one.
 1. Frame the idea with the human before planning. Ask 3–4 framing questions, one at a time, each with the `ask_human` tool (`framing: true`, 2–3 short `suggestions`):
    - who it is for,
    - what "done" looks like,
@@ -31,7 +32,7 @@ Take the subcommand from the first word of the arguments. With no arguments, run
 2. Work the ticket:
    - Follow its `howTo`. Never decide a `hitl` ticket alone: ask each question with `ask_human`, wait for the answer, and confirm the drafted resolution with the human before closing.
    - Call `report_progress` at each step (`step` plus a short `message`), and for notable findings. Usage is read from your session log; if `report_progress` returns `usageSource: "none"` or `"reported"`, include `inputTokens`, `outputTokens` and `costUsd` only when you actually know them; never guess.
-   - Use `record_decision` for any other decision worth keeping.
+   - Ask or decide. Ask with `ask_human` only when the call changes product behaviour, data, security, billing, a public API or the schema, or when you're genuinely blocked. Keep each question to one decision with 2–3 `suggestions`. Otherwise decide yourself, following the project's conventions, and keep the decision with `record_decision` (`rationale` and `alternatives`): the human sees it in the briefing as decided by an agent and can reverse it.
    - If the ticket lists `verification.checks`, run those commands yourself before completing. If it has `rework`, a previous completion failed: fix what `rework.failures` shows first.
 3. Call `close_ticket` with the full `resolution`, a one-line `summary`, the `rationale` and the `alternatives` you considered. When the ticket needs verification, its checks run first and the result has a `status`:
    - `done`: closed, carry on.

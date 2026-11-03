@@ -59,3 +59,62 @@
   margin: 0;
   white-space: pre-wrap;
 }
+
+/* Mission report: outcome numbers (hover for how each is computed), then one row per ticket. */
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-10);
+}
+.report-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--sp-4);
+}
+.report-stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: var(--sp-4) var(--sp-8);
+  border: 1px solid var(--line);
+  cursor: help;
+}
+.report-stats .mono-label {
+  font-size: var(--fs-xs);
+}
+.report-stats b {
+  font-family: var(--data);
+  font-weight: 400;
+  font-size: var(--fs-body);
+  color: var(--text-hi);
+}
+.report-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.report-tickets button {
+  display: flex;
+  gap: var(--sp-8);
+  align-items: baseline;
+  width: 100%;
+}
+.report-tickets .ttl {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.report-tickets .lead {
+  flex: 0 0 auto;
+  font-family: var(--data);
+  font-size: var(--fs-sm);
+  color: var(--dim);
+}
+.report-tickets .out-done .lead {
+  color: var(--st-decided);
+}

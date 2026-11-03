@@ -12,6 +12,13 @@ export const DECISION_SOURCE_KINDS = Object.keys(DECISION_SOURCES) as DecisionSo
 
 export const isSourceKind = (v: string): v is DecisionSourceKind => v in DECISION_SOURCES;
 
+/**
+ * Who made the call. Agents also record the human's HITL answers (`decidedBy: operator`), so the source alone
+ * isn't enough: an agent decision is one an agent recorded and made itself.
+ */
+export const madeBy = (d: Pick<DecisionRecord, 'decidedBy' | 'source'>): 'agent' | 'human' =>
+  d.source.kind === 'agent' && d.decidedBy !== 'operator' && !d.decidedBy.startsWith('slack:') ? 'agent' : 'human';
+
 export const decisionStatus = (d: Pick<DecisionRecord, 'supersededBy'>): DecisionStatus =>
   d.supersededBy ? 'superseded' : 'active';
 

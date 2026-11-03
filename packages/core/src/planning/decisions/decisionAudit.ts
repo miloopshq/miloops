@@ -5,7 +5,7 @@ import type {
   DecisionSourceKind,
   DecisionStatus,
 } from '../../model/types';
-import { firstSentence, decisionStatus, DECISION_SOURCE_KINDS } from './decisionRecord';
+import { firstSentence, decisionStatus, DECISION_SOURCE_KINDS, madeBy } from './decisionRecord';
 
 /* ---------- audit view ---------- */
 
@@ -67,6 +67,8 @@ export interface DecisionFilter {
   mapId?: string;
   source?: DecisionSourceKind;
   decidedBy?: string;
+  /** Decisions agents made themselves, or the ones people made (see `madeBy`). */
+  madeBy?: 'agent' | 'human';
   status?: DecisionStatus;
   query?: string;
 }
@@ -78,6 +80,7 @@ export function filterDecisions<T extends DecisionRecord>(all: T[], f: DecisionF
       (!f.mapId || d.mapId === f.mapId) &&
       (!f.source || d.source.kind === f.source) &&
       (!f.decidedBy || d.decidedBy === f.decidedBy) &&
+      (!f.madeBy || madeBy(d) === f.madeBy) &&
       (!f.status || decisionStatus(d) === f.status) &&
       (!q ||
         [
@@ -107,8 +110,8 @@ export function decisionStats(all: DecisionRecord[], now = Date.now()) {
     bySource[d.source.kind]++;
     if (d.supersededBy) superseded++;
     if (now - d.decidedAt < 86_400_000) last24h++;
-    if (d.transcript.some((e) => e.from === 'human') || d.source.kind === 'command-center' || d.source.kind === 'slack')
-      human++;
+    // A person made the call (see `madeBy`), or took part in the conversation behind it.
+    if (madeBy(d) === 'human' || d.transcript.some((e) => e.from === 'human')) human++;
   }
   return { total: all.length, active: all.length - superseded, superseded, last24h, human, bySource };
 }

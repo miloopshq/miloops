@@ -6,6 +6,7 @@ import {
   DECISION_SOURCE_KINDS,
   DECISION_SOURCES,
   type DecisionStatus,
+  madeBy,
 } from '@miloops-hq/core';
 import { Select } from '../../components/ui';
 import { DecisionOption } from './DecisionOption';
@@ -96,6 +97,22 @@ export function DecisionFilters(props: {
             onClick={() => set({ source: filter.source === k ? undefined : k })}
           />
         ))}
+      </ul>
+      <h3 className="mono-label">Made by</h3>
+      <ul>
+        <DecisionOption on={!filter.madeBy} label="Anyone" n={all.length} onClick={() => set({ madeBy: undefined })} />
+        <DecisionOption
+          on={filter.madeBy === 'agent'}
+          label="Agents, on their own"
+          n={count((d) => madeBy(d) === 'agent')}
+          onClick={() => set({ madeBy: filter.madeBy === 'agent' ? undefined : 'agent' })}
+        />
+        <DecisionOption
+          on={filter.madeBy === 'human'}
+          label="People"
+          n={count((d) => madeBy(d) === 'human')}
+          onClick={() => set({ madeBy: filter.madeBy === 'human' ? undefined : 'human' })}
+        />
       </ul>
       <h3 className="mono-label">Decided by</h3>
       <ul>

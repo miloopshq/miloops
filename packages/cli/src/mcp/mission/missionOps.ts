@@ -1,6 +1,7 @@
 import { chooseNext, chartMap, deriveStates, OperationError, type MapMode } from '@miloops-hq/core';
 import { readAgentDocs, readVerificationConfig } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { deliveryView } from './deliveryView';
 import { ticketInfo } from './ticketInfo';
 import type { TicketPlanInput } from './types';
 import { missionView } from './views';
@@ -25,7 +26,11 @@ export async function status(ctx: AgentContext, missionRef?: string) {
   if (!maps.length) return { ...base, mission: null, hint: 'No missions yet. Start one with start_mission.' };
   const snap = await ctx.resolveMission(missionRef);
   const records = await ctx.decisions(snap.map.id);
-  return { ...base, mission: missionView(snap, docs, records, (id) => ctx.keyOf(id)) };
+  return {
+    ...base,
+    mission: missionView(snap, docs, records, (id) => ctx.keyOf(id)),
+    delivery: deliveryView(ctx.root, snap, docs),
+  };
 }
 
 export async function startMission(

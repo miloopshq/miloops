@@ -228,6 +228,10 @@ const spendOk =
 log(
   `measured spend ${spendOk ? 'matches' : 'DOES NOT match'} ${measured} transcript messages ($${(measured * PER_MESSAGE_USD).toFixed(6)})`,
 );
+// The mission report: two tickets done, the HITL answer counted, lead times measured from the journal.
+const d = status.delivery;
+const deliveryOk = d?.done === 2 && d.interventions.answers >= 1 && d.medianLeadMs >= 0 && /2 done/.test(d.summary);
+log(`delivery ${deliveryOk ? 'ok' : 'WRONG'}: ${d?.summary}`);
 const uiTokens = `${((measured * 2150) / 1000).toFixed(1)}k tok`;
 await page
   .locator('.sessions-head .usage', { hasText: uiTokens })
@@ -403,6 +407,7 @@ else log('kept', repo);
 if (
   errors.length ||
   !spendOk ||
+  !deliveryOk ||
   !ui.usage?.includes(uiTokens) ||
   !/Measured from the Claude Code session transcript/.test(ui.usageSource ?? '') ||
   f.answer !== 'Users of the CLI' ||
