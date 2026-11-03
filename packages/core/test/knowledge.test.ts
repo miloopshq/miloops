@@ -68,6 +68,11 @@ describe('knowledge entries', () => {
     expect(globMatch('src/notify/**', 'src/notifyx/a.ts')).toBe(false);
     expect(globMatch('src/*.ts', 'src/a.ts')).toBe(true);
     expect(globMatch('src/*.ts', 'src/x/a.ts')).toBe(false);
+    expect(globMatch('**/migrations/**', 'db/migrations/001.sql')).toBe(true);
+    expect(globMatch('**/migrations/**', 'migrations/001.sql')).toBe(true);
+    expect(globMatch('**/migrations/**', 'db/foomigrations/001.sql')).toBe(false);
+    expect(globMatch('src/**/*.ts', 'src/a.ts')).toBe(true);
+    expect(globMatch('src/**/*.ts', 'src/x/y/a.ts')).toBe(true);
   });
 
   it('search ranks paths, tags and words, and hides retired entries', () => {

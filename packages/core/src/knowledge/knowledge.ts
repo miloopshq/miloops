@@ -104,12 +104,17 @@ export function applyCall(e: KnowledgeEntry, call: KnowledgeCall, now = Date.now
 
 const words = (s: string) => s.toLowerCase().match(/[a-z0-9][a-z0-9_-]{1,}/g) ?? [];
 
-/** `src/notify/**` style globs: `**` any depth, `*` within a segment. */
+/**
+ * `src/notify/**` style globs: `**` followed by a slash matches whole folders (or none), so `**` + `/migrations/**`
+ * never matches `foomigrations/`; a bare `**` matches anything; `*` stays within one segment.
+ */
 export function globMatch(glob: string, path: string) {
   const re = glob
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*\/?/g, '§DEEP§')
+    .replace(/\*\*\//g, '§DIRS§')
+    .replace(/\*\*/g, '§DEEP§')
     .replace(/\*/g, '[^/]*')
+    .replace(/§DIRS§/g, '(?:.*/)?')
     .replace(/§DEEP§/g, '.*');
   return new RegExp(`^${re}$`).test(path.replace(/^\.\//, ''));
 }
