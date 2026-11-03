@@ -1,9 +1,11 @@
 import { chooseNext, deriveStates, type MapMode } from '@miloops-hq/core';
 import { readAgentDocs } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { addMissionAssumptions, type AssumptionPlanInput } from './assumptions';
 import { deliveryView } from './deliveryView';
 import { briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
+import { adaptiveView, frozenOn } from './replans';
 import { ticketInfo } from './ticketInfo';
 import { missionView } from './views';
 
@@ -31,6 +33,7 @@ export async function status(ctx: AgentContext, missionRef?: string) {
     ...base,
     mission: missionView(snap, docs, records, (id) => ctx.keyOf(id)),
     delivery: deliveryView(ctx.root, snap, docs),
+    adaptive: adaptiveView(ctx, snap),
   };
 }
 
@@ -44,7 +47,8 @@ export async function resumeMission(ctx: AgentContext, missionRef?: string) {
   const agent = await ctx.agentId();
   const states = deriveStates(snap.tickets, snap.map.mode);
   const mine = snap.tickets.find((t) => states.get(t.id) === 'claimed' && t.assignee === agent);
-  const next = chooseNext(snap, { types: claimable(ctx.root, snap.map.id) });
+  const exclude = [...frozenOn(ctx, snap.map.id).keys()];
+  const next = chooseNext(snap, { types: claimable(ctx.root, snap.map.id), exclude });
   return {
     ...current,
     discovery: briefView(ctx.root, snap),
@@ -62,6 +66,7 @@ export async function updateMission(
     notes?: string;
     addUnspecified?: string[];
     addOutOfScope?: string[];
+    addAssumptions?: AssumptionPlanInput[];
     mode?: MapMode;
   },
 ) {
@@ -78,6 +83,8 @@ export async function updateMission(
   };
   if (Object.keys(patch).length) await ctx.adapter.updateMapSections(snap.map.id, patch);
   if (input.mode && input.mode !== snap.map.mode) await ctx.adapter.setMapMode(snap.map.id, input.mode);
-  s.log(`mission updated · ${[...Object.keys(patch), ...(input.mode ? ['mode'] : [])].join(', ') || 'no change'}`);
+  const added = input.addAssumptions?.length ? await addMissionAssumptions(ctx, snap, input.addAssumptions) : [];
+  const changed = [...Object.keys(patch), ...(input.mode ? ['mode'] : []), ...(added.length ? ['assumptions'] : [])];
+  s.log(`mission updated · ${changed.join(', ') || 'no change'}`);
   return (await status(ctx, snap.map.id)).mission;
 }

@@ -1,5 +1,6 @@
 import { OperationError, recordDecision as saveDecision, STEPS, stepTag } from '@miloops-hq/core';
 import type { AgentContext } from './agentContext';
+import { assertAssumes } from './assumptions';
 
 export function sessionView(ctx: AgentContext) {
   const s = ctx.sessions.current?.info;
@@ -75,12 +76,14 @@ export async function recordDecision(
     alternatives?: string[];
     decidedBy?: string;
     appendToMission?: boolean;
+    assumes?: string[];
   },
 ) {
   const s = ctx.sessions.running();
   const snap = await ctx.resolveMission(input.mission ?? (s?.info.mapId || undefined));
   const agent = await ctx.agentId();
   const t = input.ticket ? ctx.findTicket(snap, input.ticket) : undefined;
+  assertAssumes(snap, input.assumes);
   const rec = await saveDecision(
     ctx.adapter,
     snap.map.id,
@@ -99,6 +102,7 @@ export async function recordDecision(
         ref: `${s?.id ?? `${agent}@${process.pid}`}/d${ctx.decisionSeq++}`,
         label: `${agent} session`,
       },
+      ...(input.assumes?.length ? { assumes: input.assumes } : {}),
     },
     { appendToMission: input.appendToMission },
   );

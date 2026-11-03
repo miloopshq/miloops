@@ -1,3 +1,4 @@
+import type { Assumption } from './assumption';
 import type { TicketStatus, VerificationLevel } from './lifecycle';
 
 /**
@@ -67,6 +68,8 @@ export interface MapSections {
   decisions: Decision[];
   unspecified: string[];
   outOfScope: string[];
+  /** What the mission relies on. Missing (older maps, GitHub/Linear bodies without the section) means none. */
+  assumptions?: Assumption[];
 }
 
 /**
@@ -160,6 +163,8 @@ export interface DecisionRecord {
   supersedes?: string;
   /** Id of the record that replaced this one; set means the decision is no longer in force. */
   supersededBy?: string;
+  /** Ids (`S-<n>`) of the mission assumptions this decision relies on. */
+  assumes?: string[];
   /** The conversation behind the decision: a HITL session, or a Slack thread excerpt. Empty when only a summary was kept. */
   transcript: TranscriptEntry[];
 }

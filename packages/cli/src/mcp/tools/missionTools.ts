@@ -54,6 +54,15 @@ export function registerMissionTools(tool: DefineTool, agent: MissionAgent) {
           }),
         )
         .optional(),
+      assumptions: z
+        .array(
+          z.object({
+            text: z.string().min(1),
+            tickets: z.array(z.string()).optional().describe('Refs of tickets that depend on it.'),
+          }),
+        )
+        .optional()
+        .describe('What the plan relies on and could turn out wrong, e.g. "the v2 API supports batch writes".'),
       discovery: z
         .boolean()
         .optional()
@@ -79,7 +88,8 @@ export function registerMissionTools(tool: DefineTool, agent: MissionAgent) {
     'update_mission',
     {
       title: 'Update mission',
-      description: 'Edit the destination or notes, add Not yet specified or Out of scope lines, or switch mode.',
+      description:
+        'Edit the destination or notes, add Not yet specified, Out of scope or Assumptions lines, or switch mode. To change the plan itself (cancel, rewire, a new destination), use propose_replan.',
     },
     {
       mission,
@@ -87,6 +97,9 @@ export function registerMissionTools(tool: DefineTool, agent: MissionAgent) {
       notes: z.string().optional(),
       addUnspecified: z.array(z.string()).optional(),
       addOutOfScope: z.array(z.string()).optional(),
+      addAssumptions: z
+        .array(z.object({ text: z.string().min(1), tickets: z.array(z.string()).optional().describe('Ticket keys.') }))
+        .optional(),
       mode: z.enum(['plan+execute', 'plan-only']).optional(),
     },
     (a) => agent.updateMission(a),

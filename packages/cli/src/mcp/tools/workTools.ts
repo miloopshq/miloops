@@ -14,6 +14,10 @@ const completion = {
   rationale: z.string().optional(),
   alternatives: z.array(z.string()).optional(),
   postTranscript: z.boolean().optional().describe('Also post the question/answer transcript as a ticket comment.'),
+  assumes: z
+    .array(z.string())
+    .optional()
+    .describe('Ids (S-<n>) of the mission assumptions this decision relies on, so it is revisited if one fails.'),
   criteria: z
     .array(
       z.object({
@@ -152,6 +156,10 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
       alternatives: z.array(z.string()).optional(),
       decidedBy: z.string().optional().describe('Actor id; default you. Use "operator" when the human made the call.'),
       appendToMission: z.boolean().optional(),
+      assumes: z
+        .array(z.string())
+        .optional()
+        .describe('Ids (S-<n>) of the mission assumptions this decision relies on.'),
     },
     (a) => agent.recordDecision(a),
   );

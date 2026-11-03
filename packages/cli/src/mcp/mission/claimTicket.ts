@@ -16,6 +16,7 @@ import { criteriaView } from './criteria';
 import { assertClaimable, briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
 import { recoverStalled } from './recoverStalled';
+import { frozenOn } from './replans';
 import { sessionView } from './reporting';
 import { assertMayReview, ownReviews } from './reviews';
 import { ticketInfo } from './ticketInfo';
@@ -71,13 +72,18 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
 /** The named ticket, or the best ready one; checked against review and discovery rules. */
 async function pickTarget(ctx: AgentContext, at: { snap: MapSnapshot; agent: string; ref?: string }): Promise<Ticket> {
   const { snap, agent } = at;
+  const frozen = frozenOn(ctx, snap.map.id);
+  const exclude = [...(await ownReviews(ctx, snap, agent)), ...frozen.keys()];
   const target = at.ref
     ? ctx.findTicket(snap, at.ref)
-    : chooseNext(snap, { types: claimable(ctx.root, snap.map.id), exclude: await ownReviews(ctx, snap, agent) });
+    : chooseNext(snap, { types: claimable(ctx.root, snap.map.id), exclude });
   if (!target) {
     const r = await nextTicket(ctx, { mission: snap.map.id });
     throw new OperationError(('reason' in r ? r.reason : undefined) ?? 'No ready ticket');
   }
+  const proposal = frozen.get(target.id);
+  if (proposal && target.assignee !== agent)
+    throw new OperationError(`${target.key} is frozen by replan proposal ${proposal}, waiting on the human`);
   assertMayReview(ctx, snap, target, agent);
   if (target.assignee !== agent) assertClaimable(ctx.root, snap.map.id, target);
   return target;

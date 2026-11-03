@@ -14,6 +14,7 @@ import { briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
 import { noTicketReason } from './noTicketReason';
 import { recoverStalled } from './recoverStalled';
+import { frozenOn } from './replans';
 import { ownReviews } from './reviews';
 import { ticketInfo } from './ticketInfo';
 
@@ -22,7 +23,8 @@ export async function nextTicket(ctx: AgentContext, input: { mission?: string; t
   const snap = await ctx.resolveMission(input.mission);
   const gate = claimable(ctx.root, snap.map.id);
   const types = gate ? (input.types ?? gate).filter((x) => gate.includes(x)) : input.types;
-  const t = chooseNext(snap, { types, exclude: await ownReviews(ctx, snap, await ctx.agentId()) });
+  const exclude = [...(await ownReviews(ctx, snap, await ctx.agentId())), ...frozenOn(ctx, snap.map.id).keys()];
+  const t = chooseNext(snap, { types, exclude });
   const extra = recovered.length ? { recovered } : {};
   if (t)
     return {

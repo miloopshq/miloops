@@ -17,6 +17,8 @@ export interface DecisionMeta {
   source?: DecisionSource;
   /** Kept on the record even when only a summary is posted to the ticket. */
   transcript?: TranscriptEntry[];
+  /** Mission assumptions (`S-<n>`) the decision relies on. */
+  assumes?: string[];
 }
 
 /** How the ticket gets to done: `complete` without verification, else the verdict that passed it. */
@@ -75,6 +77,7 @@ export async function resolve(
       participants: d.participants,
       source: d.source ?? { kind: 'agent', label: input.author },
       transcript: d.transcript,
+      ...(d.assumes?.length ? { assumes: d.assumes } : {}),
     },
     { missionLine: input.missionLine },
   );

@@ -1,3 +1,4 @@
+import { assumptionLine, parseAssumptionLines } from './assumptionLine';
 import type { Decision, MapSections } from './types';
 
 /**
@@ -8,6 +9,7 @@ import type { Decision, MapSections } from './types';
 const HEADINGS: [keyof MapSections, string][] = [
   ['destination', 'Destination'],
   ['notes', 'Notes'],
+  ['assumptions', 'Assumptions'],
   ['decisions', 'Decisions so far'],
   ['unspecified', 'Not yet specified'],
   ['outOfScope', 'Out of scope'],
@@ -26,6 +28,8 @@ export function serializeMapBody(s: MapSections): string {
     [
       `## Destination\n\n${s.destination.trim()}`,
       `## Notes\n\n${s.notes.trim() || '_None yet._'}`,
+      // Only missions that list assumptions get the section, so older maps keep their exact body.
+      ...(s.assumptions?.length ? [`## Assumptions\n\n${s.assumptions.map(assumptionLine).join('\n')}`] : []),
       `## Decisions so far\n\n${decisions(s.decisions)}`,
       `## Not yet specified\n\n${list(s.unspecified)}`,
       `## Out of scope\n\n${list(s.outOfScope)}`,
@@ -54,6 +58,7 @@ export function parseMapBody(md: string): MapSections {
           .filter((l) => l.startsWith('- '));
     if (key === 'destination') out.destination = body;
     else if (key === 'notes') out.notes = empty ? '' : body;
+    else if (key === 'assumptions') out.assumptions = parseAssumptionLines(items);
     else if (key === 'decisions')
       out.decisions = items.map((l) => {
         const m = l.match(DECISION_RE);

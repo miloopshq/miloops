@@ -10,6 +10,22 @@ export { journalFile, journalPath, JOURNAL_DIR } from './history/journalFile';
 export { briefPath, readBrief, writeBrief } from './discovery/briefStore';
 export { criteriaOf, readCriteria, writeTicketCriteria } from './criteria/criteriaStore';
 export {
+  createReplan,
+  listAllReplans,
+  listReplans,
+  readReplan,
+  REPLANS_DIR,
+  writeReplan,
+} from './planning/replan/replanStore';
+export {
+  proposeReplan,
+  replanView,
+  ReplanInvalid,
+  type ProposeInput,
+  type ReplanEnv,
+} from './planning/replan/replanFlow';
+export { approveReplan, rejectReplan, type ReplanDecision } from './planning/replan/decideReplan';
+export {
   blobHash,
   listKnowledge,
   nextKnowledgeId,
