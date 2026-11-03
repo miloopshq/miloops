@@ -1,4 +1,4 @@
-import { OperationError } from '@miloops-hq/core';
+import { OperationError, type RiskCategory } from '@miloops-hq/core';
 import { readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { callsignFamily } from './callsign';
@@ -6,7 +6,7 @@ import { OPERATOR, type AskResult, type WaitControl } from './types';
 
 export async function ask(
   ctx: AgentContext,
-  input: { question: string; suggestions?: string[]; waitSeconds?: number; framing?: boolean },
+  input: { question: string; suggestions?: string[]; waitSeconds?: number; framing?: boolean; category?: RiskCategory },
   ctl: WaitControl = {},
 ): Promise<AskResult> {
   const s = input.framing ? await ctx.chartSession() : await ctx.ensureSession();
@@ -14,6 +14,7 @@ export async function ask(
   ctx.sessions.note(s, 'agent', s.info.agent, input.question);
   const answer = s.ask(input.question, input.suggestions?.length ? input.suggestions : undefined);
   const q = ctx.activity.snapshot.pending.filter((p) => p.sessionId === s.id).at(-1)!;
+  if (input.category) q.category = input.category;
   ctx.writer.flush();
   const sid = s.id;
   ctx.waits.set(
@@ -91,6 +92,7 @@ export async function inbox(ctx: AgentContext) {
         ticket: q.ticketId ? ctx.keyOf(q.ticketId) : undefined,
         question: q.text,
         suggestions: q.suggestions,
+        ...(q.category ? { category: q.category } : {}),
         askedSecondsAgo: Math.round((Date.now() - q.at) / 1000),
         step: d.session.stepLabel,
       })),

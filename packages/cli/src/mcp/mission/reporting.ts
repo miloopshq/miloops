@@ -1,5 +1,6 @@
-import { OperationError, recordDecision as saveDecision, STEPS, stepTag } from '@miloops-hq/core';
+import { OperationError, recordDecision as saveDecision, STEPS, stepTag, type RiskCategory } from '@miloops-hq/core';
 import type { AgentContext } from './agentContext';
+import { checkRisk } from './riskCheck';
 
 export function sessionView(ctx: AgentContext) {
   const s = ctx.sessions.current?.info;
@@ -75,12 +76,16 @@ export async function recordDecision(
     alternatives?: string[];
     decidedBy?: string;
     appendToMission?: boolean;
+    category?: RiskCategory;
+    paths?: string[];
   },
 ) {
   const s = ctx.sessions.running();
   const snap = await ctx.resolveMission(input.mission ?? (s?.info.mapId || undefined));
   const agent = await ctx.agentId();
   const t = input.ticket ? ctx.findTicket(snap, input.ticket) : undefined;
+  const decidedBy = input.decidedBy ?? agent;
+  const risk = checkRisk({ root: ctx.root, category: input.category, paths: input.paths, decidedBy });
   const rec = await saveDecision(
     ctx.adapter,
     snap.map.id,
@@ -92,13 +97,14 @@ export async function recordDecision(
       summary: input.summary,
       alternatives: input.alternatives,
       rationale: input.rationale,
-      decidedBy: input.decidedBy ?? agent,
-      participants: [...new Set([agent, input.decidedBy ?? agent])].map((id) => ({ id })),
+      decidedBy,
+      participants: [...new Set([agent, decidedBy])].map((id) => ({ id })),
       source: {
         kind: 'agent',
         ref: `${s?.id ?? `${agent}@${process.pid}`}/d${ctx.decisionSeq++}`,
         label: `${agent} session`,
       },
+      ...(risk ? { risk } : {}),
     },
     { appendToMission: input.appendToMission },
   );

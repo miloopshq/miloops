@@ -14,6 +14,7 @@ import { ModeChoice } from '../mission';
 import { TrackerConnectors } from '../trackers';
 import { BriefingChoice } from './BriefingChoice';
 import { Changelog } from './Changelog';
+import { RiskPolicySection } from './RiskPolicySection';
 import { SettingsSection } from './SettingsSection';
 import { SlackSection } from './SlackSection';
 import { TranscriptChoice } from './TranscriptChoice';
@@ -71,6 +72,8 @@ export function SettingsPanel(props: {
             <SlackSection focus={props.focus === 'slack'} />
 
             <VerificationSection map={props.map} />
+
+            <RiskPolicySection />
 
             <SettingsSection title="Labels">
               <div className="label-codes">

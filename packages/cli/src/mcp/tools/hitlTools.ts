@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { MissionAgent } from '../agent';
-import { type DefineTool, waitControl } from '../toolKit';
+import { type DefineTool, riskCategory, waitControl } from '../toolKit';
 
 /** Human-in-the-loop tools: ask, wait, inbox, answer. */
 export function registerHitlTools(tool: DefineTool, agent: MissionAgent) {
@@ -16,6 +16,7 @@ export function registerHitlTools(tool: DefineTool, agent: MissionAgent) {
       suggestions: z.array(z.string()).optional().describe('Suggested replies, shown as one-click answers.'),
       waitSeconds: z.number().int().min(0).max(86_400).optional(),
       framing: z.boolean().optional(),
+      category: riskCategory.optional(),
     },
     (a, extra) => agent.ask(a, waitControl(extra)),
   );

@@ -1,0 +1,29 @@
+/* Settings → Risk policy: a level per category, then per-file rules. */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4) var(--sp-18);
+}
+.risk-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7.5rem auto;
+  align-items: center;
+  gap: var(--sp-8);
+  font-size: var(--fs-sm);
+}
+.risk-grid .risk-row {
+  grid-template-columns: minmax(0, 1fr) 7.5rem;
+}
+.risk-row code {
+  overflow-wrap: anywhere;
+}
+.risk-paths {
+  display: grid;
+  gap: var(--sp-4);
+  margin-top: var(--sp-8);
+}
+@media (max-width: 640px) {
+  .risk-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
