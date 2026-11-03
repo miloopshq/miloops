@@ -1,6 +1,7 @@
 import type { ActivityState } from '../activity/activityStream';
 import type { UsageLedger } from '../activity/usageLedger';
 import type { DecisionRecord, MapSnapshot, PendingQuestion, SessionInfo, SessionUsage, Ticket } from '../model/types';
+import { madeBy } from './decisions/decisionRecord';
 import { attention, deriveStates } from './derive';
 
 export interface MissionBriefing {
@@ -97,7 +98,7 @@ export function buildBriefing(input: BriefingInput): Briefing {
       blocked,
       waiting,
       decisions,
-      agentDecisions: decisions.filter((d) => d.source.kind === 'agent'),
+      agentDecisions: decisions.filter((d) => madeBy(d) === 'agent'),
       usage,
       active,
       changed: !!(

@@ -13,6 +13,7 @@ export {
   decisionNumber,
   decisionStatus,
   firstSentence,
+  madeBy,
   supersessionChain,
 } from './decisionRecord';
 export { decisionsToMarkdown } from './decisionsToMarkdown';

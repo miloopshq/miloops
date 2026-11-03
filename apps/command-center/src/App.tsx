@@ -95,6 +95,7 @@ export function App() {
       onSelect={nav.select}
       bare={bare}
       onAudit={() => nav.openDecisions()}
+      activity={scoped}
     />
   );
   const decisions = nav.decisionsView && (
