@@ -49,6 +49,7 @@ async function mission(call: Call) {
   return call<{ mission: { id: string; verification?: string }; tickets: { ref: string; key: string }[] }>(
     'start_mission',
     {
+      discovery: false,
       title: 'Changelog',
       destination: 'A changelog page',
       tickets: [

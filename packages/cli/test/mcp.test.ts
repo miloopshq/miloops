@@ -66,15 +66,20 @@ describe('miloops MCP server', () => {
         'ask_human',
         'claim_ticket',
         'close_ticket',
+        'flag_knowledge',
+        'get_brief',
         'list_inbox',
         'next_ticket',
+        'propose_knowledge',
         'record_decision',
         'release_ticket',
         'report_completion',
         'report_progress',
         'resume_mission',
+        'search_knowledge',
         'start_mission',
         'status',
+        'submit_brief',
         'submit_review',
         'update_mission',
         'verification_status',
@@ -101,6 +106,7 @@ describe('miloops MCP server', () => {
       next: { key: string };
       framingQuestionsAnswered: number;
     }>('start_mission', {
+      discovery: false,
       title: 'Changelog page',
       destination: 'A public changelog page generated from releases',
       decided: ['Static page, no backend'],
@@ -193,6 +199,7 @@ describe('miloops MCP server', () => {
   it('returns answered=false when the wait runs out and picks the answer up later', async () => {
     const { call } = await connect();
     await call('start_mission', {
+      discovery: false,
       title: 'M',
       destination: 'D',
       tickets: [{ ref: 'a', title: 'Decide', type: 'grilling' }],
@@ -217,6 +224,7 @@ describe('miloops MCP server', () => {
     const one = await connect('claude-01');
     const two = await connect('codex-01', 'codex-mcp-client');
     await one.call('start_mission', {
+      discovery: false,
       title: 'Shared',
       destination: 'D',
       tickets: [
@@ -246,6 +254,7 @@ describe('miloops MCP server', () => {
   it('journals every transition the agent makes, with its callsign and session', async () => {
     const { call } = await connect('claude-07');
     const started = await call<{ mission: { id: string } }>('start_mission', {
+      discovery: false,
       title: 'Journal',
       destination: 'D',
       tickets: [
@@ -275,12 +284,13 @@ describe('miloops MCP server', () => {
     await expect(call('resume_mission')).rejects.toThrow(/No missions yet/);
     await expect(
       call('start_mission', {
+        discovery: false,
         title: 'M',
         destination: 'D',
         tickets: [{ ref: 'a', title: 'A', type: 'task', blockedBy: ['zz'] }],
       }),
     ).rejects.toThrow(/unknown ref "zz"/);
-    await call('start_mission', { title: 'Plan', destination: 'D', mode: 'plan-only' });
+    await call('start_mission', { discovery: false, title: 'Plan', destination: 'D', mode: 'plan-only' });
     await expect(call('add_ticket', { title: 'Do it', type: 'execute' })).rejects.toThrow(/plan-only/);
     await expect(call('report_progress', { step: 'Fly' })).rejects.toThrow(/step must be/);
     await expect(call('claim_ticket')).rejects.toThrow(/No ready ticket|closed/);

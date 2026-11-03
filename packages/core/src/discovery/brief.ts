@@ -1,0 +1,119 @@
+import type { TicketType } from '../model/types';
+
+/**
+ * Discovery brief: before implementation, an agent investigates the existing system and writes this; the operator
+ * accepts it or asks for changes. Stored per mission in `<tracker dir>/briefs/<mapId>.md`, the same for every tracker.
+ * A mission requires discovery when it has a brief file; missions from before briefs have none and are unaffected.
+ */
+export type BriefStatus = 'draft' | 'submitted' | 'accepted' | 'changes-requested';
+
+export interface BriefSections {
+  summary: string;
+  /** Who it affects, the business rules and UX principles that apply, plan or pricing constraints. */
+  productContext: string;
+  /** Files, services and modules, with paths. */
+  existing: string;
+  conventions: string;
+  dataModel: string;
+  api: string;
+  risks: string;
+  assumptions: { id: string; text: string }[];
+  openQuestions: string[];
+}
+
+export interface DiscoveryBrief {
+  mapId: string;
+  status: BriefStatus;
+  /** The ticket the brief is written in. */
+  ticketId?: string;
+  author?: string;
+  submittedAt?: number;
+  /** When the operator accepted it or asked for changes. */
+  decidedAt?: number;
+  /** The operator's note with a change request. */
+  note?: string;
+  sections: BriefSections;
+}
+
+export const BRIEF_DIR = 'briefs';
+
+export const EMPTY_SECTIONS: BriefSections = {
+  summary: '',
+  productContext: '',
+  existing: '',
+  conventions: '',
+  dataModel: '',
+  api: '',
+  risks: '',
+  assumptions: [],
+  openQuestions: [],
+};
+
+/** Ticket types agents may claim before the brief is accepted: investigation, decisions with the human, reviews. */
+export const DISCOVERY_TYPES: TicketType[] = ['research', 'grilling', 'review'];
+
+/** What an agent may claim on this mission: `undefined` means anything (no discovery, or the brief is accepted). */
+export function claimableTypes(brief: DiscoveryBrief | undefined): TicketType[] | undefined {
+  return !brief || brief.status === 'accepted' ? undefined : DISCOVERY_TYPES;
+}
+
+/** Why a claim of `type` is refused, or `undefined` when it's allowed. */
+export function gateReason(brief: DiscoveryBrief | undefined, type: TicketType): string | undefined {
+  const allowed = claimableTypes(brief);
+  if (!allowed || allowed.includes(type)) return undefined;
+  const state =
+    brief!.status === 'submitted'
+      ? 'the brief is waiting for the human to review it in the command center'
+      : brief!.status === 'changes-requested'
+        ? `the human asked for changes to the brief: ${brief!.note ?? 'see the command center'}`
+        : 'nobody has submitted the discovery brief yet';
+  return `This mission needs an accepted discovery brief before ${type} tickets can be claimed, and ${state}. Work research and grilling tickets meanwhile, or write the brief with submit_brief.`;
+}
+
+/** The body of the discovery ticket new missions start with. */
+export const DISCOVERY_TICKET = {
+  title: 'Discovery brief: map the existing system',
+  type: 'research' as const,
+  body: [
+    'Investigate before anything is built, then call `submit_brief`. Cite real paths; never guess.',
+    '',
+    '- **Summary**: what this mission changes, in a few lines.',
+    "- **Product context**: who it affects, the business rules and UX principles that apply, plan or pricing constraints. Ask the human with `ask_human` when the repo doesn't tell you.",
+    '- **Existing implementation**: the files, services and modules involved, each with its path and one line.',
+    '- **Conventions and abstractions** to follow.',
+    '- **Data model impact** and **API impact**.',
+    '- **Risks and possible regressions**.',
+    '- **Assumptions** you rely on, and **open questions**.',
+    '',
+    'Implementation tickets (task, execute, prototype) can be claimed once the human accepts the brief. Afterwards, revise the planned tickets with `add_ticket` and `update_mission` if the brief changed the picture.',
+  ].join('\n'),
+};
+
+/** The brief after an agent submits it: sections replaced, status submitted, any old change note cleared. */
+export function submitted(
+  prev: DiscoveryBrief | undefined,
+  input: { mapId: string; sections: BriefSections; author: string; ticketId?: string },
+  now = Date.now(),
+): DiscoveryBrief {
+  return {
+    mapId: input.mapId,
+    status: 'submitted',
+    ticketId: input.ticketId ?? prev?.ticketId,
+    author: input.author,
+    submittedAt: now,
+    sections: input.sections,
+  };
+}
+
+/** The operator's call on a submitted brief. Only a submitted brief can be decided; a change request needs a note. */
+export function decided(
+  b: DiscoveryBrief,
+  call: { kind: 'accept' } | { kind: 'request-changes'; note: string },
+  now = Date.now(),
+): DiscoveryBrief {
+  if (b.status !== 'submitted') throw new Error(`the brief is ${b.status}, not submitted`);
+  if (call.kind === 'accept') return { ...b, status: 'accepted', decidedAt: now, note: undefined };
+  const note = call.note.trim();
+  if (!note) throw new Error('say what should change');
+  return { ...b, status: 'changes-requested', decidedAt: now, note };
+}

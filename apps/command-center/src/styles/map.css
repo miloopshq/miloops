@@ -588,3 +588,42 @@
   font-size: var(--fs-sm);
   line-height: var(--lh-body);
 }
+
+/* Empty map: MILO floats above "No mission", with a soft shadow that breathes with him. */
+.floating-milo {
+  display: grid;
+  justify-items: center;
+  margin-bottom: var(--sp-4);
+}
+.floating-milo .fm-avatar {
+  margin: 0;
+  animation: fm-float 4s ease-in-out infinite;
+}
+.floating-milo .milo-sprite {
+  outline: none !important;
+}
+.fm-shadow {
+  width: 64px;
+  height: 8px;
+  margin-top: var(--sp-6);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6), transparent 70%);
+  animation: fm-shadow 4s ease-in-out infinite;
+}
+@keyframes fm-float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes fm-shadow {
+  50% {
+    transform: scaleX(0.7);
+    opacity: 0.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .floating-milo .fm-avatar,
+  .fm-shadow {
+    animation: none;
+  }
+}

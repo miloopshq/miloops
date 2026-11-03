@@ -7,6 +7,15 @@ export { writeJsonAtomic } from './lib/jsonFile';
 export { dropLease, readLease, readLeases, renewLease, writeLease } from './agents/leaseStore';
 export { LEASE_REAPER, reclaimExpired, returnToQueue, type ReturnOutcome } from './agents/returnToQueue';
 export { journalFile, journalPath, JOURNAL_DIR } from './history/journalFile';
+export { briefPath, readBrief, writeBrief } from './discovery/briefStore';
+export {
+  blobHash,
+  listKnowledge,
+  nextKnowledgeId,
+  readKnowledge,
+  repoRootFor,
+  writeKnowledge,
+} from './knowledge/knowledgeStore';
 export { configHash, readVerificationConfig, VERIFICATION_FILE, type ConfigRead } from './verification/configFile';
 export { checkPassed, runCheck, MAX_LOG_BYTES, type CheckRun } from './verification/runCheck';
 export { runChecks, type ChecksOutcome } from './verification/runChecks';

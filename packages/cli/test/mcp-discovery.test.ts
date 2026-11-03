@@ -1,0 +1,138 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { decided, parseBrief, serializeBrief } from '@miloops-hq/core';
+import { briefPath, readBrief, writeBrief } from '@miloops-hq/core/agents';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { MissionAgent } from '../src/mcp/agent';
+import { createMcpServer } from '../src/mcp/server';
+
+let root: string;
+const open: { close(): void | Promise<void> }[] = [];
+
+async function connect(agentName = 'claude-01') {
+  const agent = new MissionAgent({ root, agent: agentName, pollMs: 20 });
+  const server = createMcpServer(agent, '0.0.0-test');
+  const [a, b] = InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: 'claude-code', version: '1.0.0' });
+  await Promise.all([server.connect(a), client.connect(b)]);
+  open.push({ close: () => agent.close() }, client);
+  return async <T = Record<string, unknown>>(name: string, args: Record<string, unknown> = {}) => {
+    const r = (await client.callTool({ name, arguments: args })) as { isError?: boolean; content: { text: string }[] };
+    if (r.isError) throw new Error(r.content[0].text);
+    return JSON.parse(r.content[0].text) as T;
+  };
+}
+
+beforeEach(() => {
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-discovery-'));
+});
+afterEach(async () => {
+  for (const o of open.splice(0)) await o.close();
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+type Started = {
+  mission: { id: string };
+  tickets: { key: string; title: string; type: string }[];
+  discovery: { status: string };
+};
+
+describe('discovery brief over MCP', () => {
+  it('gates implementation until the human accepts the brief', async () => {
+    const call = await connect();
+    const started = await call<Started>('start_mission', {
+      title: 'Reminders',
+      destination: 'Clients get reminders they asked for',
+      tickets: [
+        { ref: 'build', title: 'Build the reminder scheduler', type: 'execute' },
+        { ref: 'look', title: 'How do notifications work today?', type: 'research' },
+      ],
+    });
+    const mapId = started.mission.id;
+    expect(started.discovery.status).toBe('draft');
+    const discovery = started.tickets.find((t) => t.title.startsWith('Discovery brief'));
+    const build = started.tickets.find((t) => t.type === 'execute')!;
+    expect(discovery?.type).toBe('research');
+
+    // Implementation is held back; next_ticket only offers investigation.
+    await expect(call('claim_ticket', { ticket: build.key })).rejects.toThrow(/accepted discovery brief/);
+    const next = await call<{ ticket: { type: string } }>('next_ticket');
+    expect(next.ticket.type).toBe('research');
+
+    // A brief needs real content.
+    await expect(call('submit_brief', { summary: 'x', existing: '' })).rejects.toThrow();
+    const sent = await call<{ brief: { status: string } }>('submit_brief', {
+      summary: 'Add a scheduler next to the existing notification service.',
+      existing: '- src/notify/service.ts: sends push and SMS',
+      productContext: 'Clients opt in per channel; SMS costs money.',
+      assumptions: ['Push is the default channel'],
+      openQuestions: ['Quiet hours?'],
+    });
+    expect(sent.brief.status).toBe('submitted');
+    await expect(call('claim_ticket', { ticket: build.key })).rejects.toThrow(/waiting for the human/);
+
+    // The operator asks for changes; the agent sees the note.
+    writeBrief(root, decided(readBrief(root, mapId)!, { kind: 'request-changes', note: 'Cover quiet hours' }));
+    const read = await call<{ status: string; changesRequested: string; sections: { assumptions: { id: string }[] } }>(
+      'get_brief',
+    );
+    expect(read.status).toBe('changes-requested');
+    expect(read.changesRequested).toBe('Cover quiet hours');
+    expect(read.sections.assumptions.map((a) => a.id)).toEqual(['A-1']);
+
+    // Resubmitted and accepted: implementation opens up.
+    await call('submit_brief', { summary: 'Scheduler with quiet hours.', existing: '- src/notify/service.ts' });
+    writeBrief(root, decided(readBrief(root, mapId)!, { kind: 'accept' }));
+    const claimed = await call<{ claimed: { key: string }; discovery: { implementationClaimable: boolean } }>(
+      'claim_ticket',
+      { ticket: build.key },
+    );
+    expect(claimed.claimed.key).toBe(build.key);
+    expect(claimed.discovery.implementationClaimable).toBe(true);
+    await expect(call('submit_brief', { summary: 'again', existing: 'x' })).rejects.toThrow(/already accepted/);
+  });
+
+  it('skips discovery when asked, and leaves missions without a brief alone', async () => {
+    const call = await connect();
+    const started = await call<Started>('start_mission', {
+      discovery: false,
+      title: 'Typo fix sweep',
+      destination: 'No typos in the docs',
+      tickets: [{ ref: 'fix', title: 'Fix typos', type: 'task' }],
+    });
+    expect(started.discovery).toBeNull();
+    expect(started.tickets.some((t) => t.title.startsWith('Discovery brief'))).toBe(false);
+    expect(fs.existsSync(briefPath(root, started.mission.id))).toBe(false);
+    const claimed = await call<{ claimed: { title: string } }>('claim_ticket');
+    expect(claimed.claimed.title).toBe('Fix typos');
+  });
+
+  it('round-trips the brief file', () => {
+    const b = decided(
+      {
+        mapId: 'm1',
+        status: 'submitted',
+        ticketId: '7',
+        author: 'claude-01',
+        submittedAt: Date.UTC(2026, 10, 3),
+        sections: {
+          summary: 'S',
+          productContext: 'P',
+          existing: '- a.ts',
+          conventions: '',
+          dataModel: '',
+          api: '',
+          risks: 'R',
+          assumptions: [{ id: 'A-1', text: 'one' }],
+          openQuestions: ['q?'],
+        },
+      },
+      { kind: 'request-changes', note: 'More: on risks, please' },
+      Date.UTC(2026, 10, 4),
+    );
+    expect(parseBrief('m1', serializeBrief(b))).toEqual(b);
+  });
+});

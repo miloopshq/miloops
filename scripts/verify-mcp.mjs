@@ -142,6 +142,7 @@ const f = await framing;
 log(`framing answered in UI: "${f.answer}" by ${f.answeredBy}`);
 
 const started = await call('start_mission', {
+  discovery: false,
   title: 'Changelog page',
   destination: 'A public changelog page generated from release notes',
   decided: ['Static page, no backend'],
@@ -393,6 +394,41 @@ log(
   `${footer.ticket.key} ${reviewOk ? 'reviewed and approved' : 'NOT reviewed and approved'}: own review refused (${ownClaim.replace(/^claim_ticket: /, '')}), ${offered.key} ${reviewed.verdict} by claude-02, approved in the command center`,
 );
 
+// Discovery: a new mission starts with a discovery ticket; implementation waits until the operator accepts the
+// brief in the command center.
+const disc = await call('start_mission', {
+  title: 'Search the changelog',
+  destination: 'Readers find a release by keyword',
+  tickets: [{ ref: 'build', title: 'Build changelog search', type: 'execute' }],
+});
+const buildKey = disc.tickets.find((t) => t.type === 'execute').key;
+const gated = await call('claim_ticket', { ticket: buildKey }).then(
+  () => '',
+  (e) => e.message,
+);
+await page.locator('.mission-btn').click();
+await page.getByRole('menuitem').filter({ hasText: 'Search the changelog' }).first().click();
+await page.locator('.discovery-banner').waitFor({ timeout: 15_000 });
+await call('submit_brief', {
+  summary: 'Add a client-side search over the generated changelog page.',
+  existing: '- `fixed.txt`: the repo check this project uses',
+  assumptions: ['Releases stay under a few hundred'],
+});
+await page.getByRole('button', { name: 'Review brief' }).click({ timeout: 15_000 });
+await page.locator('.brief-dialog').waitFor();
+await shot('11-discovery-brief');
+await page.getByRole('button', { name: 'Accept brief' }).click();
+await page.locator('.discovery-banner').waitFor({ state: 'detached', timeout: 15_000 });
+const unlocked = await call('claim_ticket', { ticket: buildKey });
+const discoveryOk =
+  disc.discovery?.status === 'draft' &&
+  /accepted discovery brief/.test(gated) &&
+  unlocked.claimed.key === buildKey &&
+  unlocked.discovery?.implementationClaimable === true;
+log(
+  `discovery ${discoveryOk ? 'ok' : 'WRONG'}: ${buildKey} held until the brief was accepted in the command center, then claimed`,
+);
+
 await client.close();
 await page.waitForTimeout(1500);
 const after = await page.locator('.sessions-list li:not(.claim)').count();
@@ -417,7 +453,8 @@ if (
   !handoffOk ||
   !releaseOk ||
   !verifiedOk ||
-  !reviewOk
+  !reviewOk ||
+  !discoveryOk
 )
   process.exit(1);
 console.log('\nOK');

@@ -23,14 +23,16 @@ Take the subcommand from the first word of the arguments. With no arguments, run
    - `destination`: what "done" looks like, in one or two sentences.
    - `decided`, `unspecified` (known unknowns) and `outOfScope`, from the answers.
    - `tickets`: `research` for what you can find out alone, `grilling` for decisions the human must make, `prototype` for things to try before deciding, `task` for checks and chores (`hitl: true` if the human must do or approve them), `execute` for implementation once its decisions are made. Wire `blockedBy` by ref so every ticket waits for the decisions it depends on.
-3. Call `start_mission`. Tell the human the mission key and how many tickets are ready.
-4. Continue with **resume**.
+3. Call `start_mission`. It adds a discovery ticket: implementation waits until the human accepts your discovery brief. Pass `discovery: false` only if the human says to skip it. Tell the human the mission key.
+4. Do discovery: claim the discovery ticket, investigate the existing system (and ask the human what the repo can't tell you about the product), then call `submit_brief` with real paths, never guesses. The human reviews it in the command center; `get_brief` shows the status and any requested changes. Once it's accepted, revise the planned tickets if the brief changed the picture (`add_ticket`, `update_mission`).
+5. Continue with **resume**.
 
 ## resume [mission]
 
-1. Call `resume_mission` (pass the mission if one was named). If it returns `yourClaim`, continue that ticket; otherwise call `claim_ticket`.
+1. Call `resume_mission` (pass the mission if one was named). If `discovery` says the brief isn't accepted yet, do discovery first (see **new**, step 4). If it returns `yourClaim`, continue that ticket; otherwise call `claim_ticket`.
 2. Work the ticket:
    - Follow its `howTo`. Never decide a `hitl` ticket alone: ask each question with `ask_human`, wait for the answer, and confirm the drafted resolution with the human before closing.
+   - Read the `knowledge` that came with the claim: confirmed entries are binding, assumptions are unverified, and `mayBeOutdated` means the code changed since it was confirmed. If an entry contradicts what you find, `flag_knowledge` with the evidence. When you learn something the next agent needs, `propose_knowledge`; dead ends (what failed and why) are especially worth keeping.
    - Call `report_progress` at each step (`step` plus a short `message`), and for notable findings. Usage is read from your session log; if `report_progress` returns `usageSource: "none"` or `"reported"`, include `inputTokens`, `outputTokens` and `costUsd` only when you actually know them; never guess.
    - Ask or decide. Ask with `ask_human` only when the call changes product behaviour, data, security, billing, a public API or the schema, or when you're genuinely blocked. Keep each question to one decision with 2–3 `suggestions`. Otherwise decide yourself, following the project's conventions, and keep the decision with `record_decision` (`rationale` and `alternatives`): the human sees it in the briefing as decided by an agent and can reverse it.
    - If the ticket lists `verification.checks`, run those commands yourself before completing. If it has `rework`, a previous completion failed: fix what `rework.failures` shows first.

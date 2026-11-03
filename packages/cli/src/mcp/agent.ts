@@ -2,7 +2,9 @@ import { OperationError, type DecisionRecord, type MapSnapshot, type Ticket } fr
 import { AgentContext } from './mission/agentContext';
 import { closeTicket, type CloseInput } from './mission/closeTicket';
 import { verificationStatus } from './mission/completion';
+import { getBrief, submitBrief } from './mission/discovery';
 import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './mission/hitl';
+import { flagKnowledge, proposeKnowledge, searchKnowledgeOp } from './mission/knowledge';
 import { resumeMission, startMission, status, updateMission } from './mission/missionOps';
 import { recordDecision, report, sessionView } from './mission/reporting';
 import { submitReviewTool } from './mission/reviews';
@@ -114,6 +116,26 @@ export class MissionAgent {
 
   report(input: Input<typeof report>) {
     return report(this.ctx, input);
+  }
+
+  submitBrief(input: Input<typeof submitBrief>) {
+    return submitBrief(this.ctx, input);
+  }
+
+  getBrief(input: Input<typeof getBrief>) {
+    return getBrief(this.ctx, input);
+  }
+
+  proposeKnowledge(input: Input<typeof proposeKnowledge>) {
+    return proposeKnowledge(this.ctx, input);
+  }
+
+  searchKnowledge(input: Input<typeof searchKnowledgeOp>) {
+    return searchKnowledgeOp(this.ctx, input);
+  }
+
+  flagKnowledge(input: Input<typeof flagKnowledge>) {
+    return flagKnowledge(this.ctx, input);
   }
 
   recordDecision(input: Input<typeof recordDecision>) {

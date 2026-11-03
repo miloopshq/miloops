@@ -1,6 +1,6 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Empty, Panel, SectionHeader, Tabs } from '../../components/ui';
+import { Empty, EmptyState, Panel, SectionHeader, Tabs } from '../../components/ui';
 import type { Selection } from '../../lib';
 import { MissionReport } from './MissionReport';
 
@@ -33,7 +33,10 @@ export function MapSections({
   ];
   const body =
     !s || !snap ? (
-      <Empty>No mission</Empty>
+      <EmptyState
+        title="No plan yet"
+        hint="Open questions, decisions, what's ruled out, notes and the mission report collect here."
+      />
     ) : tab === 'report' ? (
       activity ? (
         <MissionReport snap={snap} activity={activity} onTicket={(id) => onSelect({ kind: 'ticket', id })} />

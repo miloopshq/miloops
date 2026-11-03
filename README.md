@@ -79,6 +79,7 @@ The landing site lives in [miloopshq/miloops-landing](https://github.com/miloops
 npm install
 npm run dev           # resets the dev project to the seed, then the command center with hot reload
 npm run dev:agent     # real MCP agents working the dev project (after npm run build -w miloops-cli)
+npm run dev:empty     # the command center on a brand-new empty folder: the first-run, no-mission flow
 npm run typecheck     # every workspace
 npm test              # unit and MCP tests (vitest)
 npm run verify:mcp    # after a build: an MCP client drives a mission while the command center shows it

@@ -3,6 +3,7 @@ import { BRAND } from '@miloops-hq/core';
 import { fail } from './args/help';
 import { parseArgs, parseSubArgs } from './args/parseArgs';
 import { runConnect } from './connect';
+import { importKnowledge } from './knowledgeImport';
 import { runMcpServer } from './mcp/server';
 import { serveCommandCenter } from './serve/serveCommandCenter';
 import { readStdin, recordClaudeSession } from './usage/hook';
@@ -28,6 +29,15 @@ async function main() {
     } catch {
       // a hook must never break the agent's session
     }
+    return;
+  }
+  if (argv[0] === 'knowledge') {
+    const o = parseSubArgs(argv.slice(1), ['--dir']);
+    if (o.rest[0] !== 'import' || !o.rest[1]) fail('usage: knowledge import <file.md> [--dir <path>]');
+    const ids = importKnowledge(path.resolve(process.cwd(), o.dir), path.resolve(process.cwd(), o.rest[1]));
+    process.stdout.write(
+      `\n  ${BRAND.name} · imported ${ids.length} suggestions (${ids[0] ?? '—'}…${ids.at(-1) ?? ''}). Review them in the command center: Knowledge.\n\n`,
+    );
     return;
   }
   const slackSetup = argv[0] === 'connect' && argv[1] === 'slack';
