@@ -17,6 +17,7 @@ import {
 } from '@miloops-hq/core';
 import { LeaseBoard } from './leaseBoard';
 import { type TrackerChoice, loadPrefs } from './prefs';
+import { onTrackerChange } from './trackerChanges';
 
 /** File API served by the Vite dev server (see plugins/trackerFs.ts). */
 export const httpFs: MarkdownFs = {
@@ -34,9 +35,7 @@ export const httpFs: MarkdownFs = {
     if (!r.ok) throw new Error(`write ${path}: ${r.status}`);
   },
   watch(cb) {
-    const es = new EventSource(`${BRAND.apiPrefix}/events`);
-    es.onmessage = (m) => cb(JSON.parse(m.data).path);
-    return () => es.close();
+    return onTrackerChange(cb);
   },
 };
 

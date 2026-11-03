@@ -21,6 +21,7 @@ describe('agent guidance', () => {
       expect(text).toContain('submit_brief');
       expect(text).toContain('propose_knowledge');
       expect(text).toContain('flag_knowledge');
+      expect(text).toContain('set_criteria');
       expect(text).toMatch(/Never decide (HITL|a `hitl`)/);
     }
   });

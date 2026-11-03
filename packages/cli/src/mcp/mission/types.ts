@@ -1,4 +1,4 @@
-import type { TicketType, TrackerAdapter } from '@miloops-hq/core';
+import type { CriterionKind, TicketType, TrackerAdapter } from '@miloops-hq/core';
 import type { UsageMeter } from '../../usage/meter';
 
 export const OPERATOR = 'operator';
@@ -31,6 +31,7 @@ export interface TicketPlanInput {
   body?: string;
   hitl?: boolean;
   blockedBy?: string[];
+  criteria?: { text: string; kind: CriterionKind; source?: string }[];
 }
 
 export interface AskResult {

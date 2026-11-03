@@ -13,9 +13,10 @@ import {
   type Ticket,
   type TicketType,
 } from '@miloops-hq/core';
-import { baselineForClaim, repoRootOf } from '@miloops-hq/core/agents';
+import { baselineForClaim, levelFor, repoRootOf } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
 import { recoverRuns } from './completion';
+import { criteriaView, saveCriteria, type CriterionInput } from './criteria';
 import { assertClaimable, briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
 import { sessionView } from './reporting';
@@ -39,7 +40,7 @@ export async function nextTicket(ctx: AgentContext, input: { mission?: string; t
   const snap = await ctx.resolveMission(input.mission);
   const gate = claimable(ctx.root, snap.map.id);
   const types = gate ? (input.types ?? gate).filter((x) => gate.includes(x)) : input.types;
-  const t = chooseNext(snap, { types, exclude: ownReviews(ctx, snap, await ctx.agentId()) });
+  const t = chooseNext(snap, { types, exclude: await ownReviews(ctx, snap, await ctx.agentId()) });
   const extra = recovered.length ? { recovered } : {};
   if (t)
     return {
@@ -71,7 +72,7 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
   const agent = await ctx.agentId();
   const target = input.ticket
     ? ctx.findTicket(snap, input.ticket)
-    : chooseNext(snap, { types: claimable(ctx.root, snap.map.id), exclude: ownReviews(ctx, snap, agent) });
+    : chooseNext(snap, { types: claimable(ctx.root, snap.map.id), exclude: await ownReviews(ctx, snap, agent) });
   if (target) assertMayReview(ctx, snap, target, agent);
   if (target && target.assignee !== agent) assertClaimable(ctx.root, snap.map.id, target);
   if (!target) {
@@ -121,6 +122,12 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
     session: sessionView(ctx),
     discovery: briefView(ctx.root, fresh),
     knowledge: delivered,
+    criteria: criteriaView(
+      ctx.root,
+      fresh,
+      fresh.tickets.find((x) => x.id === t.id)!,
+      levelFor(ctx.root, fresh, t).info.level,
+    ),
     git: baselineView(baseline),
     lease: {
       expiresAt: new Date(lease.expiresAt).toISOString(),
@@ -155,6 +162,7 @@ export async function addTicket(
     hitl?: boolean;
     blockedBy?: string[];
     fromUnspecified?: string;
+    criteria?: CriterionInput[];
   },
 ) {
   const snap = await ctx.resolveMission(input.mission);
@@ -181,12 +189,11 @@ export async function addTicket(
     });
     for (const b of blockers) await ctx.adapter.addBlocking(snap.map.id, b, t.id);
   }
+  if (input.criteria?.length) saveCriteria(ctx.root, snap.map, t, input.criteria);
   const fresh = await ctx.load(snap.map.id);
+  const created = fresh.tickets.find((x) => x.id === t.id)!;
   return {
-    ticket: ticketInfo(
-      ctx.root,
-      fresh,
-      fresh.tickets.find((x) => x.id === t.id)!,
-    ),
+    ticket: ticketInfo(ctx.root, fresh, created),
+    criteria: criteriaView(ctx.root, fresh, created, levelFor(ctx.root, fresh, created).info.level),
   };
 }

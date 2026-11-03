@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { Empty, Pill, Button, Card, Field, Meta } from '../../components/ui';
 import { type CommandCenterApi } from '../../hooks';
 import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
+import { CriteriaSection } from '../criteria';
 import { KnowledgePreview, PromoteButton } from '../knowledge';
 import { PrFlagBadges } from '../pr-sync';
 import { VerificationPanel } from '../verification';
@@ -72,6 +73,7 @@ export function TicketDetail(props: {
       </dl>
 
       <PrFlagBadges mapId={snap.map.id} ticketId={t.id} />
+      <CriteriaSection snap={snap} t={t} />
       <KnowledgePreview snap={snap} t={t} />
       {t.closeReason === 'not_planned' && (
         <PromoteButton

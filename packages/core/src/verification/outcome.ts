@@ -22,8 +22,14 @@ export const checkLine = (c: CheckResult) =>
  */
 export function outcomeOf(a: VerificationAttempt, failures: number, maxAttempts: number): Outcome {
   const ran = a.checks.map(checkLine).join(', ') || 'no checks configured';
-  if (a.result === 'pass')
-    return { event: 'checks.pass', to: a.level === 'checks' ? 'done' : 'verifying', reason: `${a.id} passed: ${ran}` };
+  if (a.result === 'pass') {
+    const signOff = a.criteria?.manual ?? [];
+    return {
+      event: 'checks.pass',
+      to: a.level === 'checks' && !signOff.length ? 'done' : 'verifying',
+      reason: `${a.id} passed: ${ran}${signOff.length ? `; ${signOff.join(', ')} need your sign-off` : ''}`,
+    };
+  }
   if (a.result === 'fail') {
     const last = failures >= maxAttempts;
     return {
@@ -55,6 +61,7 @@ export function attemptComment(a: VerificationAttempt, o: Outcome) {
     '',
     ...a.checks.map((c) => `- ${checkLine(c)} · ${(c.durationMs / 1000).toFixed(1)} s`),
     ...(a.note ? ['', a.note] : []),
+    ...(a.criteria ? ['', '**Acceptance criteria**', '', ...a.criteria.lines.map((l) => `- ${l}`)] : []),
     ...(a.git ? ['', ...evidenceLines(a.git)] : []),
     ...(failed && tail
       ? ['', `\`${failed.name}\` output (last lines):`, '', '```', tail.replace(/```/g, "'''"), '```']

@@ -17,6 +17,15 @@ export function AttemptRow({ attempt: a, latest }: { attempt: VerificationAttemp
       </summary>
       <p className="vf-claim">{a.summary ?? a.resolution}</p>
       {a.note && <p className="vf-note">{a.note}</p>}
+      {a.criteria && (
+        <ul className="vf-criteria">
+          {a.criteria.lines.map((l) => (
+            <li key={l} className={l.includes(' ✓ ') ? 'ok' : l.includes(' ✗ ') ? 'bad' : 'wait'}>
+              {l}
+            </li>
+          ))}
+        </ul>
+      )}
       <GitEvidence attempt={a} />
       {a.checks.map((c) => (
         <CheckRow key={c.name} check={c} />

@@ -1,5 +1,6 @@
 import { BRAND, type KnowledgeCall, type KnowledgeEntry } from '@miloops-hq/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { onTrackerChange } from '../../lib/trackerChanges';
 import type { KnowledgeDraft, KnowledgeStore } from './knowledgeContext';
 
 const api = `${BRAND.apiPrefix}/knowledge`;
@@ -35,11 +36,7 @@ export function useKnowledgeStore(briefText: string): KnowledgeStore {
   }, []);
   useEffect(() => {
     load();
-    const es = new EventSource(`${BRAND.apiPrefix}/events`);
-    es.onmessage = (m) => {
-      if (String((JSON.parse(m.data) as { path?: string }).path ?? '').startsWith('knowledge/')) load();
-    };
-    return () => es.close();
+    return onTrackerChange((path) => path.startsWith('knowledge/') && load());
   }, [load]);
   const attention = useMemo(
     () => entries.filter((e) => e.status === 'suggested' || e.flag || (stale[e.id] && e.status !== 'outdated')).length,

@@ -13,7 +13,7 @@ import {
   setMapMode,
   type KnowledgeEntry,
 } from '@miloops-hq/core';
-import { writeBrief, writeKnowledge } from '@miloops-hq/core/agents';
+import { writeBrief, writeKnowledge, writeTicketCriteria } from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
 
 const DEV_MARKER = '.dev-seed';
@@ -212,6 +212,17 @@ for (const e of [
   }),
 ])
   writeKnowledge(root, e);
+
+// 5. Acceptance criteria on the instrumentation task, one taken from a business rule.
+const instrument = (await adapter.loadMap(main.id)).tickets.find((t) => t.type === 'task' && t.state === 'open');
+if (instrument)
+  writeTicketCriteria(root, main, instrument, {
+    criteria: [
+      { id: 'AC-1', kind: 'unit', text: 'Every sync failure is counted with its cause' },
+      { id: 'AC-2', kind: 'business-rule', source: 'K-1', text: 'Counting never drops or changes a user’s edit' },
+      { id: 'AC-3', kind: 'manual', text: 'The dashboard shows last week’s failure rate' },
+    ],
+  });
 
 console.log(`seeded ${root}`);
 console.log(`  ${main.key} ${main.title} · mid-flight`);

@@ -1,6 +1,7 @@
 import { chooseNext, chartMap, deriveStates, DISCOVERY_TICKET, OperationError, type MapMode } from '@miloops-hq/core';
 import { readAgentDocs, readVerificationConfig, writeBrief } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { saveCriteria } from './criteria';
 import { deliveryView } from './deliveryView';
 import { briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
@@ -87,6 +88,10 @@ export async function startMission(
     },
   );
   ctx.mission = map.id;
+  for (const pt of input.tickets ?? []) {
+    const made = pt.criteria?.length && tickets.find((x) => x.title === pt.title);
+    if (made) saveCriteria(ctx.root, map, made, pt.criteria!);
+  }
   const discoveryTicket =
     input.discovery === false ? undefined : tickets.find((t) => t.title === DISCOVERY_TICKET.title);
   if (discoveryTicket)

@@ -1,5 +1,6 @@
 import { BRAND, type DiscoveryBrief, type MapSnapshot } from '@miloops-hq/core';
 import { useCallback, useEffect, useState } from 'react';
+import { onTrackerChange } from '../../lib/trackerChanges';
 
 const api = `${BRAND.apiPrefix}/briefs`;
 
@@ -17,13 +18,7 @@ export function useBrief(snap?: MapSnapshot) {
   }, [mapId]);
   const version = snap?.tickets.reduce((n, t) => Math.max(n, t.updatedAt), snap.map.updatedAt);
   useEffect(load, [load, version]);
-  useEffect(() => {
-    const es = new EventSource(`${BRAND.apiPrefix}/events`);
-    es.onmessage = (m) => {
-      if (String((JSON.parse(m.data) as { path?: string }).path ?? '').startsWith('briefs/')) load();
-    };
-    return () => es.close();
-  }, [load]);
+  useEffect(() => onTrackerChange((path) => path.startsWith('briefs/') && load()), [load]);
   const post = (action: 'accept' | 'request-changes', note?: string) =>
     fetch(`${api}/${action}`, {
       method: 'POST',

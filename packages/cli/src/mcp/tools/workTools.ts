@@ -14,6 +14,16 @@ const completion = {
   rationale: z.string().optional(),
   alternatives: z.array(z.string()).optional(),
   postTranscript: z.boolean().optional().describe('Also post the question/answer transcript as a ticket comment.'),
+  criteria: z
+    .array(
+      z.object({
+        id: z.string().describe('AC-<n>'),
+        evidence: z.string().describe('check:<name>, test:<name>, command:<cmd>, pr, or manual (the human signs off).'),
+        note: z.string().optional(),
+      }),
+    )
+    .optional()
+    .describe('Evidence for each acceptance criterion of the ticket. Every criterion needs one.'),
   noCodeReason: z
     .string()
     .optional()

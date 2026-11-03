@@ -6,6 +6,7 @@ import { AnswerError } from '../agents/agentDocs';
 import { handleAgents } from './agentRoutes';
 import type { BridgeOptions, TrackerBridge } from './bridgeTypes';
 import { handleBriefs } from './briefRoutes';
+import { handleCriteria } from './criteriaRoutes';
 import { handleDecisions } from './decisionRoutes';
 import { BadRequest, openEventStream, readText, sendJson } from './http';
 import { handleJournal } from './journalRoutes';
@@ -80,6 +81,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       if (await handleAgents(abs, req, res, url)) return;
       if (await handleBriefs(abs, req, res, url)) return;
       if (await handleKnowledge(abs, req, res, url)) return;
+      if (await handleCriteria(abs, req, res, url)) return;
       res.statusCode = 404;
       res.end('not found');
     } catch (err) {

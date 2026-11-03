@@ -14,6 +14,17 @@ export const NEXT: { area: string; items: string[] }[] = [
 
 export const RELEASES: Release[] = [
   {
+    version: '0.18.0',
+    date: '2026-11-04',
+    items: [
+      'Acceptance criteria: agents write down what done means before they start (required on missions with a discovery brief). When they finish, each point needs proof: one of your checks, a named test, the pull request, or your sign-off',
+      'Work whose criteria lack proof goes back with the reason; points only you can confirm come to your inbox to sign off',
+      'Business rules from your project knowledge are suggested as criteria, and the ticket shows any rule no criterion covers yet. Confirm a ticket’s criteria in the inspector',
+      'Cross-vendor review: when Claude and Codex agents both run, each reviews the other’s work first',
+      'Fix: answers from the command center could hang when too many live updates were open; all updates now share one connection',
+    ],
+  },
+  {
     version: '0.17.0',
     date: '2026-11-03',
     items: [

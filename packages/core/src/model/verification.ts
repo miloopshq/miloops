@@ -1,3 +1,4 @@
+import type { CriteriaResult } from '../criteria/criteria';
 import type { GitEvidence } from './evidence';
 import type { VerificationLevel } from './lifecycle';
 import type { TicketType } from './types';
@@ -76,6 +77,8 @@ export interface VerificationAttempt {
   note?: string;
   /** The worktree the checks ran on, the changes since the claim and their flags. */
   git?: GitEvidence;
+  /** The ticket's acceptance criteria matched to the evidence the agent gave. */
+  criteria?: CriteriaResult;
 }
 
 export type VerdictKind = 'PASS' | 'FAIL' | 'NEEDS_HUMAN';
