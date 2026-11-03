@@ -108,9 +108,9 @@ const words = (s: string) => s.toLowerCase().match(/[a-z0-9][a-z0-9_-]{1,}/g) ??
 export function globMatch(glob: string, path: string) {
   const re = glob
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*\/?/g, '\u0000')
+    .replace(/\*\*\/?/g, '§DEEP§')
     .replace(/\*/g, '[^/]*')
-    .replace(/\u0000/g, '.*');
+    .replace(/§DEEP§/g, '.*');
   return new RegExp(`^${re}$`).test(path.replace(/^\.\//, ''));
 }
 
