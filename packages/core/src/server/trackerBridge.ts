@@ -14,6 +14,7 @@ import { handleJournal } from './journalRoutes';
 import { handleKnowledge } from './knowledgeRoutes';
 import { handleLeases } from './leaseRoutes';
 import { handlePolicy } from './policyRoutes';
+import { handleReplans } from './replanRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
 import { handleVerification } from './verificationRoutes';
@@ -67,7 +68,8 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
     (req, res, url) => handleVerification(ctx, req, res, url),
     (req, res, url) => handleVerificationSync({ ...ctx, watch: reconciler }, req, res, url),
     (req, res, url) => handleAgents(abs, req, res, url),
-    (req, res, url) => handleBriefs(abs, req, res, url),
+    (req, res, url) => handleBriefs(ctx, req, res, url),
+    (req, res, url) => handleReplans(ctx, req, res, url),
     (req, res, url) => handleKnowledge(abs, req, res, url),
     (req, res, url) => handleCriteria(abs, req, res, url),
     (req, res, url) => handlePolicy(ctx, req, res, url),

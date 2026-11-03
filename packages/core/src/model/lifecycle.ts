@@ -95,6 +95,26 @@ export interface TransitionEntry {
   sessionId?: string;
 }
 
+export type ReplanAction = 'proposed' | 'approved' | 'rejected' | 'applied' | 'superseded';
+
+/** A replan proposal's step, in the same history file as transitions. Readers skip kinds they don't know. */
+export interface ReplanEntry {
+  v: 1;
+  kind: 'replan';
+  at: number;
+  mapId: string;
+  replanId: string;
+  action: ReplanAction;
+  actor: string;
+  actorKind: ActorKind;
+  /** The proposal's reason (proposed) or the operator's note (approved, rejected). */
+  reason?: string;
+  /** How many changes the proposal carries (proposed) or executed (applied). */
+  changes?: number;
+}
+
+export type JournalEntry = TransitionEntry | ReplanEntry;
+
 /** Where transitions are recorded: a JSONL file in node, the command-center server from the browser, nowhere in demos. */
 export interface Journal {
   append(entry: TransitionEntry): void | Promise<void>;

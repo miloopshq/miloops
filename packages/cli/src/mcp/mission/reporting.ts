@@ -1,5 +1,6 @@
 import { OperationError, recordDecision as saveDecision, STEPS, stepTag, type RiskCategory } from '@miloops-hq/core';
 import type { AgentContext } from './agentContext';
+import { assertAssumes } from './assumptions';
 import { checkRisk } from './riskCheck';
 
 export function sessionView(ctx: AgentContext) {
@@ -78,6 +79,7 @@ export async function recordDecision(
     appendToMission?: boolean;
     category?: RiskCategory;
     paths?: string[];
+    assumes?: string[];
   },
 ) {
   const s = ctx.sessions.running();
@@ -86,6 +88,7 @@ export async function recordDecision(
   const t = input.ticket ? ctx.findTicket(snap, input.ticket) : undefined;
   const decidedBy = input.decidedBy ?? agent;
   const risk = checkRisk({ root: ctx.root, category: input.category, paths: input.paths, decidedBy });
+  assertAssumes(snap, input.assumes);
   const rec = await saveDecision(
     ctx.adapter,
     snap.map.id,
@@ -105,6 +108,7 @@ export async function recordDecision(
         label: `${agent} session`,
       },
       ...(risk ? { risk } : {}),
+      ...(input.assumes?.length ? { assumes: input.assumes } : {}),
     },
     { appendToMission: input.appendToMission },
   );

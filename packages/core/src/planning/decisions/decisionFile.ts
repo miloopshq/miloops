@@ -30,6 +30,7 @@ export function serializeDecision(d: DecisionRecord): string {
     ...(d.supersedes ? { supersedes: d.supersedes } : {}),
     ...(d.supersededBy ? { superseded_by: d.supersededBy } : {}),
     ...riskFront(d.risk),
+    ...(d.assumes?.length ? { assumes: d.assumes } : {}),
   };
   const list = (xs: string[]) => (xs.length ? xs.map((x) => `- ${x}`).join('\n') : '_None._');
   const transcript = d.transcript.length
@@ -102,6 +103,7 @@ export function parseDecision(md: string): DecisionRecord {
     source,
     supersedes: str(front.supersedes) || undefined,
     supersededBy: str(front.superseded_by) || undefined,
+    ...(arr(front.assumes).length ? { assumes: arr(front.assumes) } : {}),
     transcript,
     ...riskOf(front),
   };

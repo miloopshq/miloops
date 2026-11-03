@@ -20,6 +20,8 @@ export interface DecisionMeta {
   transcript?: TranscriptEntry[];
   /** The policy level of the call (see riskLevelFor). */
   risk?: DecisionRisk;
+  /** Mission assumptions (`S-<n>`) the decision relies on. */
+  assumes?: string[];
 }
 
 /** How the ticket gets to done: `complete` without verification, else the verdict that passed it. */
@@ -79,6 +81,7 @@ export async function resolve(
       source: d.source ?? { kind: 'agent', label: input.author },
       transcript: d.transcript,
       ...(d.risk ? { risk: d.risk } : {}),
+      ...(d.assumes?.length ? { assumes: d.assumes } : {}),
     },
     { missionLine: input.missionLine },
   );

@@ -1,5 +1,6 @@
+import type { Assumption } from './assumption';
 import type { TicketStatus, VerificationLevel } from './lifecycle';
-import type { DecisionRisk, RiskCategory } from './risk';
+import type { DecisionRisk } from './risk';
 
 /**
  * `execute` tickets carry out decided work (implementation) rather than decide something.
@@ -68,6 +69,8 @@ export interface MapSections {
   decisions: Decision[];
   unspecified: string[];
   outOfScope: string[];
+  /** What the mission relies on. Missing (older maps, GitHub/Linear bodies without the section) means none. */
+  assumptions?: Assumption[];
 }
 
 /**
@@ -161,6 +164,8 @@ export interface DecisionRecord {
   supersedes?: string;
   /** Id of the record that replaced this one; set means the decision is no longer in force. */
   supersededBy?: string;
+  /** Ids (`S-<n>`) of the mission assumptions this decision relies on. */
+  assumes?: string[];
   /** The conversation behind the decision: a HITL session, or a Slack thread excerpt. Empty when only a summary was kept. */
   transcript: TranscriptEntry[];
   /** The risk level the policy gave this call, when the agent named a category or the files it touches. */
@@ -280,20 +285,4 @@ export interface ChatMessage {
   questionId?: string;
 }
 
-export interface PendingQuestion {
-  id: string;
-  sessionId: string;
-  mapId: string;
-  ticketId?: string;
-  agent: string;
-  text: string;
-  /** Suggested replies, shown as one-click answers. */
-  suggestions?: string[];
-  at: number;
-  /** What the call touches (risk policy), when the agent named it. */
-  category?: RiskCategory;
-  /** How much the agent needs the answer (attention ranking); missing means `soon`. */
-  urgency?: 'blocking' | 'soon' | 'fyi';
-  /** Ids of tickets that can't move until this is answered. */
-  blocks?: string[];
-}
+export type { PendingQuestion } from './pendingQuestion';

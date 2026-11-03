@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { decided, EMPTY_SECTIONS } from '../discovery/brief';
 import { readBrief, writeBrief } from '../discovery/briefStore';
+import { seedFromBrief } from '../planning/assumptions/assumptionOps';
 import { BadRequest, readJson, sendJson } from './http';
+import type { RouteContext } from './routeContext';
 
 const text = (v: unknown, max = 300) => typeof v === 'string' && v.length > 0 && v.length <= max;
 
@@ -9,13 +11,19 @@ const text = (v: unknown, max = 300) => typeof v === 'string' && v.length > 0 &&
  * `/briefs` routes over the discovery briefs under `root`; false when none matches.
  * GET `?mapId=` reads a mission's brief; POST `/briefs/accept`, `/briefs/request-changes` (`note`) are the operator's
  * calls on a submitted brief; POST `/briefs/create` (`ticketId`) starts discovery for a mission created in the UI.
+ * Accepting a brief adds its assumptions to the mission's Assumptions section (once).
  */
 const DECISION_ROUTES: Record<string, 'accept' | 'request-changes' | undefined> = {
   '/briefs/accept': 'accept',
   '/briefs/request-changes': 'request-changes',
 };
 
-export async function handleBriefs(root: string, req: IncomingMessage, res: ServerResponse, url: URL) {
+export async function handleBriefs(
+  { root, active }: RouteContext,
+  req: IncomingMessage,
+  res: ServerResponse,
+  url: URL,
+) {
   if (!url.pathname.startsWith('/briefs')) return false;
   if (url.pathname === '/briefs' && req.method === 'GET') {
     const mapId = url.searchParams.get('mapId');
@@ -49,7 +57,8 @@ export async function handleBriefs(root: string, req: IncomingMessage, res: Serv
       kind === 'accept' ? { kind } : { kind, note: typeof b.note === 'string' ? b.note.slice(0, 2000) : '' },
     );
     writeBrief(root, next);
-    sendJson(res, 200, { brief: next });
+    const seeded = kind === 'accept' ? await seedFromBrief(await active(), next) : [];
+    sendJson(res, 200, { brief: next, ...(seeded.length ? { assumptions: seeded } : {}) });
   } catch (e) {
     sendJson(res, 409, { error: (e as Error).message });
   }

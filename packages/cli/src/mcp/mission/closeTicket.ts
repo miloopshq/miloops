@@ -16,6 +16,7 @@ import {
 } from '@miloops-hq/core';
 import { levelFor } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { assertAssumes } from './assumptions';
 import { claimTicket } from './claimTicket';
 import { submitVerified } from './completion';
 import { assertCriteria } from './criteria';
@@ -42,6 +43,8 @@ export interface CloseInput {
   /** What the call touches and the files it changes, for the risk policy. */
   category?: RiskCategory;
   paths?: string[];
+  /** Mission assumptions (`S-<n>`) the decision relies on. */
+  assumes?: string[];
 }
 
 type Wait = { seconds: number; ctl?: WaitControl };
@@ -125,6 +128,7 @@ function assertCloseable(t: Ticket, agent: string) {
 async function complete(c: Closing, wait: Wait): Promise<Completion> {
   const { ctx, input, snap, ticket: t, session: s } = c;
   const log = ctx.sessions.transcript(s.id) ?? [];
+  assertAssumes(snap, input.assumes);
   const meta = decisionMeta(c, log);
   const wantsTranscript = input.postTranscript && log.length > 0;
   const transcript = wantsTranscript ? log.map((e) => `**${e.author}:** ${e.text}`).join('\n\n') : undefined;
@@ -175,6 +179,7 @@ function decisionMeta(c: Closing, log: Transcript): DecisionMeta {
     source: c.source,
     transcript: log,
     ...(c.risk ? { risk: c.risk } : {}),
+    ...(c.input.assumes?.length ? { assumes: c.input.assumes } : {}),
   };
 }
 

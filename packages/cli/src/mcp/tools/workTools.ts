@@ -16,6 +16,10 @@ const completion = {
   postTranscript: z.boolean().optional().describe('Also post the question/answer transcript as a ticket comment.'),
   category: riskCategory.optional(),
   paths: riskPaths.optional(),
+  assumes: z
+    .array(z.string())
+    .optional()
+    .describe('Ids (S-<n>) of the mission assumptions this decision relies on, so it is revisited if one fails.'),
   criteria: z
     .array(
       z.object({
@@ -156,6 +160,10 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
       appendToMission: z.boolean().optional(),
       category: riskCategory.optional(),
       paths: riskPaths.optional(),
+      assumes: z
+        .array(z.string())
+        .optional()
+        .describe('Ids (S-<n>) of the mission assumptions this decision relies on.'),
     },
     (a) => agent.recordDecision(a),
   );

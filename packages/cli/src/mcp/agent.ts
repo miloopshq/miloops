@@ -59,6 +59,11 @@ export class MissionAgent {
     return ticketView(snap, t, records);
   }
 
+  /** Runs a mission operation with this agent's context; newer tools call through here instead of a method each. */
+  with<A, R>(fn: (ctx: AgentContext, input: A) => R, input: A): R {
+    return fn(this.ctx, input);
+  }
+
   status(missionRef?: string) {
     return status(this.ctx, missionRef);
   }
