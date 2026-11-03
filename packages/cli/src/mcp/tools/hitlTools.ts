@@ -1,6 +1,9 @@
+import { ATTENTION_KINDS, type AttentionKind } from '@miloops-hq/core';
 import { z } from 'zod';
 import type { MissionAgent } from '../agent';
 import { type DefineTool, riskCategory, waitControl } from '../toolKit';
+
+const ATTENTION_KIND_VALUES = ATTENTION_KINDS as [AttentionKind, ...AttentionKind[]];
 
 /** Human-in-the-loop tools: ask, wait, inbox, answer. */
 export function registerHitlTools(tool: DefineTool, agent: MissionAgent) {
@@ -9,7 +12,7 @@ export function registerHitlTools(tool: DefineTool, agent: MissionAgent) {
     {
       title: 'Ask the human',
       description:
-        'Ask the human a question. It lands in the command center inbox (Waiting on you) and this call waits for the answer, up to waitSeconds (default 600; 50 for Codex). Returns answered=false with a questionId on timeout: call wait_for_answer to keep waiting. Set framing=true for the framing questions of a mission that does not exist yet.',
+        'Ask the human a question. It lands in the command center inbox (Waiting on you), ranked with everything else that needs them, and this call waits for the answer, up to waitSeconds (default 600; 50 for Codex). Returns answered=false with a questionId on timeout: call wait_for_answer to keep waiting. Set framing=true for the framing questions of a mission that does not exist yet. Set urgency honestly and ask related questions together.',
     },
     {
       question: z.string().min(1),
@@ -17,6 +20,16 @@ export function registerHitlTools(tool: DefineTool, agent: MissionAgent) {
       waitSeconds: z.number().int().min(0).max(86_400).optional(),
       framing: z.boolean().optional(),
       category: riskCategory.optional(),
+      urgency: z
+        .enum(['blocking', 'soon', 'fyi'])
+        .optional()
+        .describe(
+          'How much you need the answer. blocking: only when you can do no useful work until answered. soon (default): you keep working on other tickets meanwhile. fyi: whenever the human has a moment.',
+        ),
+      blocks: z
+        .array(z.string())
+        .optional()
+        .describe('Ticket refs (#4 or ids) that cannot move until this is answered; they rank the question higher.'),
     },
     (a, extra) => agent.ask(a, waitControl(extra)),
   );
@@ -36,11 +49,17 @@ export function registerHitlTools(tool: DefineTool, agent: MissionAgent) {
     'list_inbox',
     {
       title: 'Inbox',
-      description: 'Questions from every connected agent that are waiting on the human, oldest first.',
+      description:
+        'Questions from every connected agent that are waiting on the human, oldest first, plus `attention`: everything that needs the human (questions, approvals, held tickets, PR/CI flags, stalled claims, HITL tickets, knowledge to review, briefs), ranked best first, each with plain reasons.',
       readOnly: true,
     },
-    {},
-    () => agent.inbox(),
+    {
+      kinds: z
+        .array(z.enum(ATTENTION_KIND_VALUES))
+        .optional()
+        .describe('Only these attention kinds, e.g. ["question", "approval"].'),
+    },
+    (a) => agent.inbox(a),
   );
 
   tool(

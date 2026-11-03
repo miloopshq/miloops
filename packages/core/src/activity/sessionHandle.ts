@@ -11,8 +11,8 @@ export interface SessionHandle {
   log(text: string, level?: FeedEntry['level']): void;
   /** Post an agent message into the session's conversation. */
   say(text: string): void;
-  /** Ask the human a question and wait for the answer. */
-  ask(text: string, suggestions?: string[]): Promise<string>;
+  /** Ask the human a question and wait for the answer. `extra` ranks it in the attention queue. */
+  ask(text: string, suggestions?: string[], extra?: Pick<PendingQuestion, 'urgency' | 'blocks'>): Promise<string>;
   done(ok?: boolean, text?: string, opts?: { signal?: boolean }): void;
   /** Attach the session to a map created mid-session (chart). */
   bindMap(mapId: string): void;
@@ -62,7 +62,7 @@ export function createSessionHandle(host: SessionHost, info: SessionInfo, mode: 
     say(text) {
       host.chat({ sessionId: info.id, ticketId: current().ticketId, from: 'agent', author: info.agent, text });
     },
-    ask(text, suggestions) {
+    ask(text, suggestions, extra) {
       const q: PendingQuestion = {
         id: uid('q'),
         sessionId: info.id,
@@ -72,6 +72,8 @@ export function createSessionHandle(host: SessionHost, info: SessionInfo, mode: 
         text,
         suggestions,
         at: Date.now(),
+        ...(extra?.urgency ? { urgency: extra.urgency } : {}),
+        ...(extra?.blocks?.length ? { blocks: extra.blocks } : {}),
       };
       host.chat({
         sessionId: info.id,

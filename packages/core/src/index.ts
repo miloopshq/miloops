@@ -42,6 +42,23 @@ export { policyViolations, type PolicyViolation, type ViolationInput } from './p
 export { decisionsByRisk, type RiskGroup, type RiskGroupLevel } from './policy/decisionsByRisk';
 export * from './agents/agentLink';
 export * from './agents/ticketLease';
+export * from './model/attention';
+export {
+  ATTENTION_FILE,
+  ATTENTION_KINDS,
+  DEFAULT_ATTENTION_POLICY,
+  DEFAULT_ATTENTION_PREFS,
+  DEFAULT_WEIGHTS,
+  EMPTY_ATTENTION_STATE,
+} from './attention/defaults';
+export { buildAttention, type AttentionQueue } from './attention/buildAttention';
+export type { AttentionInput, AttentionSource, Candidate } from './attention/types';
+export { ATTENTION_SOURCES } from './attention/sources/registry';
+export { parseAttentionPolicy, type Parsed } from './attention/parsePolicy';
+export { parseAttentionPrefs } from './attention/parsePrefs';
+export { isFocused, isInterrupting } from './attention/focus';
+export { waitLabel } from './attention/score';
+export { heldTickets } from './attention/heldTickets';
 export { Emitter, sleep, uid } from './lib/emitter';
 
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memoryAdapter';

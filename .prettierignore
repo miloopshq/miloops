@@ -6,3 +6,4 @@ brand
 **/milo/art.ts
 packages/core/test/fixtures
 .vercel
+.claude

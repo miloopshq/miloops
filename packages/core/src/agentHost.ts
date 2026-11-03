@@ -65,3 +65,13 @@ export { staleAction, staleness } from './evidence/stale';
 export { GitHubCiProvider, type GitHubCiOptions } from './evidence/github/GitHubCiProvider';
 export { reconcile, type ReconcileEnv, type ReconcileResult } from './evidence/reconcile';
 export { readSyncStatus, readTicketSync, readTicketSyncs } from './evidence/syncStore';
+export {
+  readAttentionPolicy,
+  readAttentionPrefs,
+  readAttentionState,
+  updateAttentionState,
+  writeAttentionPrefs,
+  type AttentionPolicyRead,
+} from './attention/attentionStore';
+export { gatherAttention } from './attention/gatherAttention';
+export { attentionView } from './attention/attentionView';

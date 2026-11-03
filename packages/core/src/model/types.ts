@@ -292,4 +292,8 @@ export interface PendingQuestion {
   at: number;
   /** What the call touches (risk policy), when the agent named it. */
   category?: RiskCategory;
+  /** How much the agent needs the answer (attention ranking); missing means `soon`. */
+  urgency?: 'blocking' | 'soon' | 'fyi';
+  /** Ids of tickets that can't move until this is answered. */
+  blocks?: string[];
 }

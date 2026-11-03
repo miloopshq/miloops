@@ -36,6 +36,7 @@ Take the subcommand from the first word of the arguments. With no arguments, run
    - Call `report_progress` at each step (`step` plus a short `message`), and for notable findings. Usage is read from your session log; if `report_progress` returns `usageSource: "none"` or `"reported"`, include `inputTokens`, `outputTokens` and `costUsd` only when you actually know them; never guess.
    - Ask or decide. Ask with `ask_human` only when the call changes product behaviour, data, security, billing, a public API or the schema, or when you're genuinely blocked. Keep each question to one decision with 2–3 `suggestions`. Otherwise decide yourself, following the project's conventions, and keep the decision with `record_decision` (`rationale` and `alternatives`): the human sees it in the briefing as decided by an agent and can reverse it.
    - Name the risk. Pass `category` and the `paths` you change to `record_decision` and `close_ticket`. The project's risk policy decides what's yours: a high-risk call is the human's, so ask it with `ask_human` (with the `category`); recording it yourself is rejected.
+   - When you ask, set `urgency` honestly: `blocking` only when you can do no useful work until it's answered; `soon` (the default) or `fyi` when you can keep going, and then keep working on other tickets while it waits (short `waitSeconds`). Ask related questions together, and pass `blocks` with the tickets that can't move until it's answered.
    - Before working on a task, execute or prototype ticket, agree what done means: call `set_criteria` (cover the business rules in `criteria.suggested`). When completing, give evidence per criterion in `criteria`: `check:<name>`, `test:<name>`, `command:<cmd>`, `pr`, or `manual` when only the human can confirm it.
    - If the ticket lists `verification.checks`, run those commands yourself before completing. If it has `rework`, a previous completion failed: fix what `rework.failures` shows first.
 3. Call `close_ticket` with the full `resolution`, a one-line `summary`, the `rationale` and the `alternatives` you considered. When the ticket needs verification, its checks run first and the result has a `status`:
@@ -49,8 +50,8 @@ If `ask_human` returns `answered: false`, call `wait_for_answer` with its `quest
 
 ## status
 
-Call `status` and summarize it in a few lines: progress, running sessions, what is waiting on the human, what is blocked, what is verifying or back for rework, and spend.
+Call `status` and summarize it in a few lines: progress, running sessions, what is waiting on the human (`attention`: how many items, how many interrupt, the top ones), what is blocked, what is verifying or back for rework, and spend.
 
 ## inbox
 
-Call `list_inbox`. List each question with a number, its agent, mission and ticket. Let the human answer here, then pass their exact words to `answer_question`. Never answer on their behalf.
+Call `list_inbox`. List its `attention` items in their ranked order, each with a number, what it is, its mission and ticket, and its `reasons`; keep items with the same `batch` together. For questions (`questionId`), let the human answer here, then pass their exact words to `answer_question`. Other items (approvals, held tickets, flags, briefs, knowledge) are decided in the command center: say where. Never answer or approve on their behalf.

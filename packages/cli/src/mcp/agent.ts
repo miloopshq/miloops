@@ -163,9 +163,9 @@ export class MissionAgent {
     return defaultWaitSeconds(this.ctx);
   }
 
-  /** Open questions from every connected agent on this tracker. */
-  inbox() {
-    return inbox(this.ctx);
+  /** Open questions from every connected agent on this tracker, plus the ranked attention queue. */
+  inbox(input: Input<typeof inbox> = {}) {
+    return inbox(this.ctx, input);
   }
 
   /** Answer a question from the agent chat, as the operator. Works for any connected agent's question. */

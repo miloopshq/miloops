@@ -1,0 +1,33 @@
+import type { PendingQuestion, SessionInfo } from '../../model/types';
+import type { AttentionSource, Candidate } from '../types';
+import { clip } from './clip';
+
+/**
+ * Old clients don't send urgency and their ask_human call blocks until answered, so the agent is idle.
+ * Agents that say `soon` or `fyi` keep working on something else meanwhile.
+ */
+function idleOn(q: PendingQuestion, session?: SessionInfo): boolean {
+  if (session?.status !== 'running' || session.waitingOn !== q.id) return false;
+  return q.urgency === undefined || q.urgency === 'blocking';
+}
+
+/** Open agent questions. Questions in one mission are a batch: the human answers them in one sitting. */
+export const questionSource: AttentionSource = {
+  kind: 'question',
+  collect({ questions, sessions }) {
+    const byId = new Map(sessions.map((s) => [s.id, s]));
+    return questions.map((q): Candidate => ({
+      kind: 'question',
+      mapId: q.mapId,
+      ticketId: q.ticketId,
+      title: clip(q.text),
+      since: q.at,
+      urgency: q.urgency ?? 'soon',
+      ref: q.id,
+      agent: q.agent,
+      holds: [...new Set([q.ticketId, ...(q.blocks ?? [])].filter((t): t is string => !!t))],
+      idleAgent: idleOn(q, byId.get(q.sessionId)) ? q.agent : undefined,
+      batchKey: `${q.mapId}:decide`,
+    }));
+  },
+};

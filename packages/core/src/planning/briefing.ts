@@ -1,5 +1,6 @@
 import type { ActivityState } from '../activity/activityStream';
 import type { UsageLedger } from '../activity/usageLedger';
+import type { AttentionItem } from '../model/attention';
 import type { DecisionRecord, MapSnapshot, PendingQuestion, SessionInfo, SessionUsage, Ticket } from '../model/types';
 import { madeBy } from './decisions/decisionRecord';
 import { attention, deriveStates } from './derive';
@@ -16,8 +17,10 @@ export interface MissionBriefing {
   opened: Ticket[];
   /** Blocked tickets held up by a ticket that needs a human. */
   blocked: { ticket: Ticket; on: Ticket[] }[];
-  /** Questions agents are blocked on now, oldest first (whenever they were asked). */
+  /** Questions agents are blocked on now: in attention-queue order when `attention` is given, else oldest first. */
   waiting: PendingQuestion[];
+  /** The mission's attention items, ranked as in the queue (empty without `attention`). */
+  needsYou: AttentionItem[];
   /** Every decision recorded since `since`; `agentDecisions` is the subset an agent made. */
   decisions: DecisionRecord[];
   agentDecisions: DecisionRecord[];
@@ -55,6 +58,8 @@ export interface BriefingInput {
   since: (mapId: string) => number;
   currentMapId?: string;
   now?: number;
+  /** The ranked attention queue (GET /attention); the briefing then lists what needs you in the same order. */
+  attention?: AttentionItem[];
 }
 
 /** `metrics.briefing`: what changed in each mission since the operator was last present. */
@@ -66,7 +71,11 @@ export function buildBriefing(input: BriefingInput): Briefing {
     const after = (t?: number) => !!t && t >= since;
     const states = deriveStates(snap.tickets, snap.map.mode);
     const byId = new Map(snap.tickets.map((t) => [t.id, t]));
-    const waiting = input.activity.pending.filter((q) => q.mapId === mapId).sort((a, b) => a.at - b.at);
+    const needsYou = (input.attention ?? []).filter((i) => i.mapId === mapId);
+    const waiting = inQueueOrder(
+      input.activity.pending.filter((q) => q.mapId === mapId),
+      needsYou,
+    );
     const waitingTickets = new Set(waiting.map((q) => q.ticketId));
     const needsHuman = (t: Ticket) => t.state === 'open' && (waitingTickets.has(t.id) || attention(t) === 'hitl');
     const blocked = snap.tickets
@@ -97,6 +106,7 @@ export function buildBriefing(input: BriefingInput): Briefing {
       opened,
       blocked,
       waiting,
+      needsYou,
       decisions,
       agentDecisions: decisions.filter((d) => madeBy(d) === 'agent'),
       usage,
@@ -142,6 +152,13 @@ export function buildBriefing(input: BriefingInput): Briefing {
     },
     changed: missions.some((m) => m.changed),
   };
+}
+
+/** Questions in the order the attention queue ranks them; ones it doesn't know follow, oldest first. */
+function inQueueOrder(questions: PendingQuestion[], ranked: AttentionItem[]): PendingQuestion[] {
+  const rank = new Map(ranked.filter((i) => i.kind === 'question').map((i, n) => [i.ref, n]));
+  const pos = (q: PendingQuestion) => rank.get(q.id) ?? Number.MAX_SAFE_INTEGER;
+  return [...questions].sort((a, b) => pos(a) - pos(b) || a.at - b.at);
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;

@@ -1,6 +1,7 @@
 import { chooseNext, deriveStates, type MapMode } from '@miloops-hq/core';
 import { readAgentDocs } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { attentionSummary } from './attention';
 import { deliveryView } from './deliveryView';
 import { briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
@@ -23,7 +24,12 @@ export async function status(ctx: AgentContext, missionRef?: string) {
       };
     }),
   );
-  const base = { agent: await ctx.agentId(), commandCenter: ctx.commandCenter(), missions };
+  const base = {
+    agent: await ctx.agentId(),
+    commandCenter: ctx.commandCenter(),
+    missions,
+    attention: await attentionSummary(ctx),
+  };
   if (!maps.length) return { ...base, mission: null, hint: 'No missions yet. Start one with start_mission.' };
   const snap = await ctx.resolveMission(missionRef);
   const records = await ctx.decisions(snap.map.id);
