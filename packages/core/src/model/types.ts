@@ -287,4 +287,8 @@ export interface PendingQuestion {
   /** Suggested replies, shown as one-click answers. */
   suggestions?: string[];
   at: number;
+  /** How much the agent needs the answer (attention ranking); missing means `soon`. */
+  urgency?: 'blocking' | 'soon' | 'fyi';
+  /** Ids of tickets that can't move until this is answered. */
+  blocks?: string[];
 }

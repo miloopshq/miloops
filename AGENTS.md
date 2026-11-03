@@ -43,6 +43,8 @@ The landing site lives in its own repo, `miloopshq/miloops-landing`.
 - `briefs/<mapId>.md`: the mission's discovery brief and its status. A mission with a brief requires discovery: implementation tickets can't be claimed until the operator accepts it. Committed.
 - `criteria/<mapId>.md`: acceptance criteria per ticket (`AC-<n>`, kind, optional knowledge source) and the operator's confirmation. Required for implementation tickets on missions with a brief; each needs evidence when the work is completed. Committed.
 - `knowledge/K-<n>.md`: project and product knowledge entries (suggested, confirmed, assumption, outdated). Committed, so teammates share it.
+- `attention.json`: the team's attention policy (kind weights, the interrupt threshold, the digest cadence). Optional; committed. Each person's focus hours and notification channel live in `attention.json` in their user config dir, never in the repo.
+- `.attention/state.json`: snoozes and dismissals of attention items. Local only, git-ignored.
 - `.events/<mapId>.jsonl`: the append-only lifecycle journal (`packages/core/src/history/journalFile.ts`). Local only, git-ignored.
 - `.evidence/`: verification attempts, check output and git evidence per ticket.
 - `.agents/`: cross-process coordination between MCP processes and the command center, including sessions, answers, leases, callsigns and the server lock.
@@ -59,6 +61,7 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 - `discovery/`: the discovery brief model, file format, gate (`claimableTypes`, `gateReason`) and store.
 - `criteria/`: acceptance criteria, matching them to completion evidence (`checkCriteria`), and the store.
 - `knowledge/`: knowledge entries, file format, search, per-ticket selection (`selectKnowledge`), staleness from file hashes, and the store.
+- `attention/`: the attention queue. `buildAttention` ranks everything that needs the human (pure, explainable `reasons`), one source per kind in `attention/sources/` registered in `sources/registry.ts`, scoring, batching, the policy and prefs parsers, and `isInterrupting` (focus hours).
 - `activity/`: the activity stream, presence and usage.
 - `server/`: the HTTP bridge (`trackerBridge.ts`), its route handlers (`*Routes.ts`), the `/events` SSE stream and the background loops (`watchLeases.ts`, `watchVerification.ts`, `watchTrackerFolder.ts`).
 

@@ -1,0 +1,37 @@
+import type { TrackerAdapter } from '../adapters/adapter';
+import { readAgentDocs } from '../agents/agentDocs';
+import { readLeases } from '../agents/leaseStore';
+import { readBrief } from '../discovery/briefStore';
+import { readTicketSyncs } from '../evidence/syncStore';
+import { listKnowledge } from '../knowledge/knowledgeStore';
+import type { AttentionPolicy } from '../model/attention';
+import { approvalItems } from '../verification/approvals';
+import { readAttentionState } from './attentionStore';
+import type { AttentionInput } from './types';
+
+/** Reads everything the queue is built from: the tracker, agent session docs and the local evidence. */
+export async function gatherAttention(input: {
+  root: string;
+  adapter: TrackerAdapter;
+  policy: AttentionPolicy;
+  now: number;
+}): Promise<AttentionInput> {
+  const { root, adapter, policy, now } = input;
+  const maps = await adapter.listMaps();
+  const snaps = await Promise.all(maps.map((m) => adapter.loadMap(m.id)));
+  const docs = await readAgentDocs(root);
+  const briefs = snaps.map((s) => readBrief(root, s.map.id)).filter((b) => b !== undefined);
+  return {
+    snaps,
+    questions: docs.flatMap((d) => d.pending),
+    sessions: docs.map((d) => d.session),
+    approvals: snaps.flatMap((s) => approvalItems(root, s)),
+    syncs: readTicketSyncs(root).filter((s) => s.flags.length),
+    leases: readLeases(root),
+    knowledge: listKnowledge(root),
+    briefs,
+    policy,
+    state: readAttentionState(root),
+    now,
+  };
+}
