@@ -25,10 +25,12 @@ export function drawSprite(svg: SVGElement, rows: string[], palette: Palette, sc
 
 export function drawWave(
   svg: SVGElement,
-  heights: number[] | null,
-  bars: number,
-  unit: number,
-  colors: { bar: string; lead: string },
+  {
+    heights,
+    bars,
+    unit,
+    colors,
+  }: { heights: number[] | null; bars: number; unit: number; colors: { bar: string; lead: string } },
 ) {
   const width = waveWidth(bars);
   svg.setAttribute('class', `milo-wave${heights ? ' on' : ''}`);

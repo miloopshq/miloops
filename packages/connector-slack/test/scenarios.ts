@@ -31,7 +31,7 @@ async function eventStore() {
     tickets: [{ ref: 'conf', title: 'Conflict policy', type: 'grilling', body: 'LWW?' }],
   });
   const [bench, db, retention, migrate] = tickets;
-  await claim(a, map.id, db.id, 'claude-07');
+  await claim(a, map.id, db.id, { assignee: 'claude-07' });
   return { a, map, bench, db, retention, migrate, second };
 }
 

@@ -18,7 +18,21 @@ ESLint (`eslint.config.js`) and Prettier (`.prettierrc.json`) enforce most of th
 - **Naming.** Components and classes use `PascalCase`, hooks `useCamelCase`, other modules `camelCase`, and folders `kebab-case`.
 - **Tests.** vitest suites are `*.test.ts` and node:test suites are `*.node.test.ts`. Both live in the package's `test/` folder, with fakes in `test/fakes/` and recorded fixtures in `test/fixtures/`.
 - **Formatting.** Run `npm run format` on the files you touch: single quotes, 120 columns, trailing commas.
+- **Readable code.** See below.
 - **Behavior-neutral refactors.** Keep package exports and public names stable. Run the full `check` and compare command center screenshots before and after.
+
+## Readable code
+
+Code is read far more often than it's written, by people and by agents. Write it so the next reader can follow it top to bottom without holding much in their head. ESLint enforces the first four rules in `src/`; reviewers check the rest.
+
+- **No nested ternaries.** One `a ? b : c` is fine. For more cases, use early returns, a `switch`, or a lookup object. Don't build strings out of ternaries either: compute the parts into named variables first.
+- **Flat control flow.** Return early for the edge cases and keep the main path unindented. Blocks nest three deep at most, callbacks three deep at most.
+- **Few parameters.** A function takes four parameters at most. Past two or three, prefer one object with named fields, so call sites read like `saveCriteria({ root, map, ticket, items })`.
+- **Small functions.** Keep each function to one job, under a complexity of 20. A long function with numbered steps wants to be those steps, each a named function.
+- **Explicit variants.** Model cases as a union with a `kind` field and handle them with a `switch` that ends in an exhaustive `never` check, not with a scatter of optional fields and boolean flags.
+- **Positive conditions.** Write `if (ready)` and `ready ? a : b` rather than negations; don't put `!` in a ternary's condition.
+- **Name the steps.** Give intermediate values names instead of chaining everything into one expression. A name explains what a line is for; a comment explains only why it's unusual.
+- **Components.** Keep handlers inline unless they're reused, render each case in its own small component instead of `cond && cond2 && …` chains, and fetch data in the component that shows it.
 
 ## Releasing
 

@@ -288,13 +288,7 @@ test('watchVerification: off without config, ok after a clean tick, failed (neve
   const events: VerificationSyncEvent[] = [];
   const send = (text: string) => events.push(JSON.parse(text.split('data: ')[1]));
   let access: () => Promise<GitHubCiProvider | string> = async () => provider;
-  const w = watchVerification(
-    root,
-    async () => a,
-    () => access(),
-    send,
-    { firstMs: 60_000 },
-  );
+  const w = watchVerification({ root, active: async () => a }, { access: () => access(), send }, { firstMs: 60_000 });
   const next = async () => {
     const n = events.length;
     w.kick();

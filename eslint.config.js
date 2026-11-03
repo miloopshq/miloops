@@ -107,6 +107,17 @@ export default tseslint.config(
     },
   },
   {
+    // Readable code (CONTRIBUTING.md, "Readable code"): flat control flow, few parameters, no knots.
+    files: ['packages/*/src/**/*.{ts,tsx}', 'apps/*/src/**/*.{ts,tsx}'],
+    rules: {
+      'no-nested-ternary': 'error',
+      'max-depth': ['error', 3],
+      'max-nested-callbacks': ['error', 3],
+      'max-params': ['error', 4],
+      complexity: ['error', 20],
+    },
+  },
+  {
     // Tests and one-off tooling scripts: long fixtures and generators are fine, structure rules are not.
     files: ['**/test/**', 'scripts/**', '**/scripts/**', '**/tools/**'],
     rules: { 'max-lines': 'off' },

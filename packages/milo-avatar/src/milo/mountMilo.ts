@@ -59,13 +59,12 @@ export function mountMilo(host: HTMLElement, initial: MountMiloOptions = {}): Mi
     const rows = composeFrame(art, { eyes, mouth, light });
     const { base, scale, bars, waveCursor } = miloLayout(rows, d, cursor);
     const label = opts.label ?? 'MILO';
-    const { shownState, status, ariaLabel, showCaption, shown } = miloLabels(
-      d,
+    const { shownState, status, ariaLabel, showCaption, shown } = miloLabels(d, {
       label,
       speechDone,
       cursor,
-      opts.caption,
-    );
+      caption: opts.caption,
+    });
 
     root.style.setProperty('--milo-scale', `${scale}px`);
     root.style.setProperty('--milo-u', `${base}px`);
@@ -85,7 +84,8 @@ export function mountMilo(host: HTMLElement, initial: MountMiloOptions = {}): Mi
     dom.name.textContent = label;
     dom.status.textContent = status;
     feed.setAttribute('aria-label', ariaLabel);
-    drawWave(dom.wave, speaking ? composeWave(d.text, waveCursor, bars) : null, bars, base, style.wave);
+    const heights = speaking ? composeWave(d.text, waveCursor, bars) : null;
+    drawWave(dom.wave, { heights, bars, unit: base, colors: style.wave });
     feed.replaceChildren(spriteWrap, dom.wave);
 
     const children: Node[] = [head, feed];

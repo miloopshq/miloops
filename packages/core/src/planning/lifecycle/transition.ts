@@ -6,7 +6,7 @@ import { OperationError } from '../operations/operationError';
 import { ticketPhase } from './phase';
 import { ruleFor, type TransitionRule } from './transitions';
 
-export interface TransitionRequest {
+export interface TransitionRequest extends TransitionOptions {
   event: LifecycleEvent;
   actor: string;
   actorKind: ActorKind;
@@ -19,6 +19,7 @@ export interface TransitionRequest {
 }
 
 export interface TransitionOptions {
+  /** Where the transition is recorded; without one it is only written to the tracker. */
   journal?: Journal;
 }
 
@@ -36,7 +37,8 @@ function target(rule: TransitionRule, t: Ticket, want?: TicketPhase): TicketPhas
 }
 
 /** The tracker writes that put `t` into phase `to`. Each write is skipped when it would change nothing. */
-async function apply(adapter: TrackerAdapter, mapId: string, t: Ticket, to: TicketPhase, actor: string) {
+async function apply(adapter: TrackerAdapter, mapId: string, t: Ticket, step: { to: TicketPhase; actor: string }) {
+  const { to, actor } = step;
   const status = async (s: Ticket['status'] | null) => {
     if ((t.status ?? null) !== s) await adapter.setMeta(mapId, t.id, { status: s });
   };
@@ -68,13 +70,7 @@ async function apply(adapter: TrackerAdapter, mapId: string, t: Ticket, to: Tick
  * the transition table and the actor, writes the tracker, then records who,
  * why and when in the journal.
  */
-export function transition(
-  adapter: TrackerAdapter,
-  mapId: string,
-  ticketId: string,
-  req: TransitionRequest,
-  opts: TransitionOptions = {},
-) {
+export function transition(adapter: TrackerAdapter, mapId: string, ticketId: string, req: TransitionRequest) {
   return locks.run(`${mapId}/${ticketId}`, async () => {
     const snap = await adapter.loadMap(mapId);
     const t = snap.tickets.find((x) => x.id === ticketId);
@@ -86,9 +82,9 @@ export function transition(
       throw new OperationError(`${t.key} is ${from}; ${req.event} needs ${rule.from.join(' or ')}`);
     if (!rule.actors.includes(req.actorKind)) throw new OperationError(`${req.event} is not for ${req.actorKind}s`);
     const to = target(rule, t, req.to);
-    await apply(adapter, mapId, t, to, req.actor);
+    await apply(adapter, mapId, t, { to, actor: req.actor });
     try {
-      await opts.journal?.append({
+      await req.journal?.append({
         v: 1,
         kind: 'transition',
         at: Date.now(),

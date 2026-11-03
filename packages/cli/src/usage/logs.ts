@@ -108,30 +108,17 @@ export function codexRolloutParser(): LogParser {
       if (!p) return;
       const at = Date.parse(o.timestamp) || Date.now();
       if (o.type === 'turn_context' && typeof p.model === 'string') model = p.model;
-      if (
-        o.type === 'response_item' &&
-        p.type === 'function_call' &&
-        typeof p.call_id === 'string' &&
-        !calls.has(p.call_id)
-      )
-        calls.set(p.call_id, at - 1);
+      const callId = o.type === 'response_item' && p.type === 'function_call' ? p.call_id : undefined;
+      if (typeof callId === 'string' && !calls.has(callId)) calls.set(callId, at - 1);
       if (o.type === 'token_usage_record' && p.usage) {
         records = true;
         return event(`r:${p.response_id ?? n++}`, at, p.usage as CodexTotals);
       }
-      if (records || o.type !== 'event_msg' || p.type !== 'token_count' || !p.info?.total_token_usage) return;
+      const isTokenCount = o.type === 'event_msg' && p.type === 'token_count' && p.info?.total_token_usage;
+      if (records || !isTokenCount) return;
       const t = p.info.total_token_usage as CodexTotals;
-      let d: CodexTotals;
-      if (!prev || num(t.total_tokens) > num(prev.total_tokens)) {
-        d = {
-          input_tokens: num(t.input_tokens) - num(prev?.input_tokens),
-          cached_input_tokens: num(t.cached_input_tokens) - num(prev?.cached_input_tokens),
-          cache_write_input_tokens: num(t.cache_write_input_tokens) - num(prev?.cache_write_input_tokens),
-          output_tokens: num(t.output_tokens) - num(prev?.output_tokens),
-        };
-      } else if (num(t.total_tokens) < num(prev.total_tokens) && p.info.last_token_usage)
-        d = p.info.last_token_usage as CodexTotals;
-      else return;
+      const d = codexDelta(t, prev, p.info.last_token_usage as CodexTotals | undefined);
+      if (!d) return;
       prev = t;
       return event(`c${n++}`, at, d);
     },
@@ -169,21 +156,44 @@ export class LogFile {
         this.offset += n;
         const lines = (this.partial + buf.toString('utf8', 0, n)).split('\n');
         this.partial = lines.pop() ?? '';
-        for (const l of lines) {
-          if (!l.trim()) continue;
-          try {
-            const e = this.parser.line(JSON.parse(l));
-            if (e) out.push(e);
-          } catch {
-            // a torn or foreign line; skip it
-          }
-        }
+        out.push(...this.parse(lines));
       }
     } finally {
       fs.closeSync(fd);
     }
     return out;
   }
+
+  /** Complete lines to events; a torn or foreign line is skipped. */
+  private parse(lines: string[]): UsageEvent[] {
+    const out: UsageEvent[] = [];
+    for (const l of lines) {
+      if (!l.trim()) continue;
+      try {
+        const e = this.parser.line(JSON.parse(l));
+        if (e) out.push(e);
+      } catch {
+        // a torn or foreign line; skip it
+      }
+    }
+    return out;
+  }
+}
+
+/**
+ * Codex reports running totals: the usage since the previous total. When the total drops,
+ * the last turn's own usage is used; an unchanged total adds nothing.
+ */
+function codexDelta(t: CodexTotals, prev: CodexTotals | undefined, last?: CodexTotals): CodexTotals | undefined {
+  if (!prev || num(t.total_tokens) > num(prev.total_tokens))
+    return {
+      input_tokens: num(t.input_tokens) - num(prev?.input_tokens),
+      cached_input_tokens: num(t.cached_input_tokens) - num(prev?.cached_input_tokens),
+      cache_write_input_tokens: num(t.cache_write_input_tokens) - num(prev?.cache_write_input_tokens),
+      output_tokens: num(t.output_tokens) - num(prev?.output_tokens),
+    };
+  if (num(t.total_tokens) < num(prev.total_tokens) && last) return last;
+  return undefined;
 }
 
 /** Parse a whole log at once (tests, one-off reads). */

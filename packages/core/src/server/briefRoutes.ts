@@ -10,6 +10,11 @@ const text = (v: unknown, max = 300) => typeof v === 'string' && v.length > 0 &&
  * GET `?mapId=` reads a mission's brief; POST `/briefs/accept`, `/briefs/request-changes` (`note`) are the operator's
  * calls on a submitted brief; POST `/briefs/create` (`ticketId`) starts discovery for a mission created in the UI.
  */
+const DECISION_ROUTES: Record<string, 'accept' | 'request-changes' | undefined> = {
+  '/briefs/accept': 'accept',
+  '/briefs/request-changes': 'request-changes',
+};
+
 export async function handleBriefs(root: string, req: IncomingMessage, res: ServerResponse, url: URL) {
   if (!url.pathname.startsWith('/briefs')) return false;
   if (url.pathname === '/briefs' && req.method === 'GET') {
@@ -35,12 +40,7 @@ export async function handleBriefs(root: string, req: IncomingMessage, res: Serv
     sendJson(res, 200, { brief: created });
     return true;
   }
-  const kind =
-    url.pathname === '/briefs/accept'
-      ? 'accept'
-      : url.pathname === '/briefs/request-changes'
-        ? 'request-changes'
-        : null;
+  const kind = DECISION_ROUTES[url.pathname];
   if (!kind) return false;
   if (!brief) return (sendJson(res, 404, { error: 'this mission has no discovery brief' }), true);
   try {

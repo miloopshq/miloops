@@ -1,6 +1,6 @@
 import { type MapSnapshot, type SessionInfo, deriveStates, attention, label } from '@miloops-hq/core';
 import { useState, type FormEvent } from 'react';
-import { Empty, Pill, Button, Card, Field, Meta } from '../../components/ui';
+import { Empty, Pill, Button, Card, Field } from '../../components/ui';
 import { type CommandCenterApi } from '../../hooks';
 import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
 import { CriteriaSection } from '../criteria';
@@ -8,6 +8,8 @@ import { KnowledgePreview, PromoteButton } from '../knowledge';
 import { PrFlagBadges } from '../pr-sync';
 import { VerificationPanel } from '../verification';
 import { LeaseFacts } from './LeaseFacts';
+import { OtherComments } from './OtherComments';
+import { ResolutionNote } from './ResolutionNote';
 import { TicketActions } from './TicketActions';
 import type { Form } from './types';
 
@@ -32,6 +34,11 @@ export function TicketDetail(props: {
   const state = deriveStates(snap.tickets, snap.map.mode).get(t.id)!;
   const byId = new Map(snap.tickets.map((x) => [x.id, x]));
   const blocks = snap.tickets.filter((x) => x.blockedBy.includes(t.id));
+  const blockerLabel = (b: string) => {
+    const done = byId.get(b)?.state === 'closed' ? ' ✓' : '';
+    return `${byId.get(b)?.key ?? b}${done}`;
+  };
+  const blockedBy = t.blockedBy.map(blockerLabel).join(', ');
   const att = attention(t);
   const session = props.sessions.find((s) => s.ticketId === t.id && isRunning(s));
   const mine = t.assignee === OPERATOR;
@@ -39,7 +46,6 @@ export function TicketDetail(props: {
   const resolution = [...t.comments].reverse().find((c) => /^\*\*(Resolution|Ruled out of scope)\*\*/.test(c.body));
   const others = t.comments.filter((c) => c !== resolution);
   const decisions = api.decisions.filter((d) => d.mapId === snap.map.id && d.ticketId === t.id);
-  const decision = decisions.find((d) => !d.supersededBy) ?? decisions[0];
 
   return (
     <div className="detail">
@@ -57,11 +63,7 @@ export function TicketDetail(props: {
         <dt>Assignee</dt>
         <dd>{t.assignee ?? '—'}</dd>
         <dt>Blocked by</dt>
-        <dd>
-          {t.blockedBy
-            .map((b) => `${byId.get(b)?.key ?? b}${byId.get(b)?.state === 'closed' ? ' ✓' : ''}`)
-            .join(', ') || '—'}
-        </dd>
+        <dd>{blockedBy || '—'}</dd>
         <dt>Blocks</dt>
         <dd>{blocks.map((b) => b.key).join(', ') || '—'}</dd>
         {t.reviewOf && (
@@ -172,33 +174,10 @@ export function TicketDetail(props: {
       )}
 
       {resolution && (
-        <div className="resolution">
-          <div className="res-head">
-            <Meta parts={[resolution.author, resolution.body.startsWith('**Ruled') ? 'ruled out' : 'resolution']} />
-            {decision && props.onOpenDecision && (
-              <button className="link" onClick={() => props.onOpenDecision!(decision.id)}>
-                {decision.id}
-                {decisions.length > 1 ? ` · ${decisions.length} in chain` : ''} ›
-              </button>
-            )}
-          </div>
-          <p>{resolution.body.replace(/^\*\*[^*]+\*\*\s*/, '')}</p>
-        </div>
+        <ResolutionNote resolution={resolution} decisions={decisions} onOpenDecision={props.onOpenDecision} />
       )}
       <p className="body">{t.body}</p>
-      {others.length > 0 && (
-        <details className="comments">
-          <summary className="mono-label">
-            {others.length} other comment{others.length > 1 ? 's' : ''}
-          </summary>
-          {others.map((c) => (
-            <div key={c.id} className="comment">
-              <Meta parts={[c.author]} />
-              <div className="c-body">{c.body.replace(/\*\*/g, '')}</div>
-            </div>
-          ))}
-        </details>
-      )}
+      <OtherComments comments={others} />
     </div>
   );
 }

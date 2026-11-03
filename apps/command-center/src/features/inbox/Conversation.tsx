@@ -46,15 +46,7 @@ export function Conversation(props: {
     props.onAnswer(pending.id, text.trim());
     setDraft('');
   };
-  const status = !session
-    ? ''
-    : pending
-      ? 'Your answer is needed'
-      : isRunning(session)
-        ? `${session.agent} is working…`
-        : session.status === 'done'
-          ? 'Resolved · ticket closed'
-          : 'Session ended';
+  const status = statusLine(session, !!pending);
 
   return (
     <div className={`comms ${pending ? 'asking' : ''}`}>
@@ -113,4 +105,14 @@ export function Conversation(props: {
       )}
     </div>
   );
+}
+
+type Session = ActivityState['sessions'][number];
+
+function statusLine(session: Session | undefined, asking: boolean) {
+  if (!session) return '';
+  if (asking) return 'Your answer is needed';
+  if (isRunning(session)) return `${session.agent} is working…`;
+  if (session.status === 'done') return 'Resolved · ticket closed';
+  return 'Session ended';
 }

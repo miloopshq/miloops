@@ -20,7 +20,7 @@ export function AttemptRow({ attempt: a, latest }: { attempt: VerificationAttemp
       {a.criteria && (
         <ul className="vf-criteria">
           {a.criteria.lines.map((l) => (
-            <li key={l} className={l.includes(' ✓ ') ? 'ok' : l.includes(' ✗ ') ? 'bad' : 'wait'}>
+            <li key={l} className={criterionClass(l)}>
               {l}
             </li>
           ))}
@@ -32,4 +32,11 @@ export function AttemptRow({ attempt: a, latest }: { attempt: VerificationAttemp
       ))}
     </details>
   );
+}
+
+/** A criteria line reads `AC-1 ✓ …` when proven, `AC-1 ✗ …` when not, anything else is still waiting. */
+function criterionClass(line: string) {
+  if (line.includes(' ✓ ')) return 'ok';
+  if (line.includes(' ✗ ')) return 'bad';
+  return 'wait';
 }

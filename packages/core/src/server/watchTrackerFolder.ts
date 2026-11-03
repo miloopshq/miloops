@@ -10,6 +10,14 @@ import { parseDecision } from '../planning/decisions/decisionFile';
 import type { DecisionEvent } from './bridgeTypes';
 import { verificationEvents } from './verificationEvents';
 
+type SeenDecision = { text: string; supersededBy?: string };
+
+function decisionChange(prev: SeenDecision | undefined, now: { supersededBy?: string }): DecisionEvent['kind'] {
+  if (!prev) return 'decision.recorded';
+  const newlySuperseded = now.supersededBy && !prev.supersededBy;
+  return newlySuperseded ? 'decision.superseded' : 'decision.updated';
+}
+
 /**
  * Turns changes in the tracker folder into SSE messages for `send`: `{ path }`
  * per changed file, named `decision` events for decision records and named
@@ -17,7 +25,7 @@ import { verificationEvents } from './verificationEvents';
  * attempts, verdicts, check logs and run locks. Returns the function that stops watching.
  */
 export function watchTrackerFolder(abs: string, fs: MarkdownFs, send: (text: string) => void): () => void {
-  const seen = new Map<string, { text: string; supersededBy?: string }>();
+  const seen = new Map<string, SeenDecision>();
 
   async function onDecisionFile(rel: string) {
     let text: string;
@@ -30,11 +38,7 @@ export function watchTrackerFolder(abs: string, fs: MarkdownFs, send: (text: str
     if (prev?.text === text) return;
     const decision = { ...parseDecision(text), mapId: rel.split('/')[0] };
     seen.set(rel, { text, supersededBy: decision.supersededBy });
-    const kind: DecisionEvent['kind'] = !prev
-      ? 'decision.recorded'
-      : decision.supersededBy && !prev.supersededBy
-        ? 'decision.superseded'
-        : 'decision.updated';
+    const kind = decisionChange(prev, decision);
     const ev: DecisionEvent = { kind, mapId: decision.mapId, decision };
     send(`event: decision\ndata: ${JSON.stringify(ev)}\n\n`);
   }

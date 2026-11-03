@@ -70,7 +70,8 @@ export class ExternalChanges {
     else if (!events.length && decisionPaths.length < batch.paths.size)
       events.push({ kind: 'external.changed', mapId, at: Date.now() });
     // superseded events sort after the record that replaced them
-    events.sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'decision.recorded' ? -1 : 1));
+    const rank = (e: (typeof events)[number]) => (e.kind === 'decision.recorded' ? 0 : 1);
+    events.sort((a, b) => rank(a) - rank(b));
     for (const e of events) this.emit(e);
   }
 }

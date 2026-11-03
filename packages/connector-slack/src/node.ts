@@ -16,6 +16,8 @@ export * from './index';
 
 class BadRequest extends Error {}
 
+type Reply = { status: number; body: unknown };
+
 /**
  * The Slack routes. Tokens are verified and stored here, in the local process,
  * and never sent back to the browser:
@@ -42,26 +44,30 @@ export function slackRoutes(service: SlackService) {
       throw new BadRequest('body must be JSON');
     }
   }
+  const ok = (v: unknown): Reply => ({ status: 200, body: v });
+  const routes: Record<string, (req: IncomingMessage) => Reply | Promise<Reply>> = {
+    'GET /slack': () => ok(service.status()),
+    'DELETE /slack': () => ok(service.remove()),
+    'POST /slack/created': () => ok(service.markCreated()),
+    'POST /slack/token': async (req) => {
+      const b = await body<{ token?: unknown }>(req);
+      if (typeof b.token !== 'string' || !b.token.trim()) throw new BadRequest('"token" is required');
+      const r = await service.pasteToken(b.token);
+      return { status: r.ok ? 200 : 400, body: r };
+    },
+    'PUT /slack/settings': async (req) => ok(service.updateSettings(await body<SlackSettingsPatch>(req))),
+    'POST /slack/owner/reset': () => ok(service.resetOwner()),
+    'GET /slack/members': async () => ok({ members: await service.members() }),
+  };
   return async function handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
     const p = url.pathname;
     if (p !== '/slack' && !p.startsWith('/slack/')) return false;
     try {
       if (crossSite(req)) return (json(res, 403, { error: 'cross-site request refused' }), true);
-      const m = req.method;
-      if (p === '/slack' && m === 'GET') return (json(res, 200, service.status()), true);
-      if (p === '/slack' && m === 'DELETE') return (json(res, 200, service.remove()), true);
-      if (p === '/slack/created' && m === 'POST') return (json(res, 200, service.markCreated()), true);
-      if (p === '/slack/token' && m === 'POST') {
-        const b = await body<{ token?: unknown }>(req);
-        if (typeof b.token !== 'string' || !b.token.trim()) throw new BadRequest('"token" is required');
-        const r = await service.pasteToken(b.token);
-        return (json(res, r.ok ? 200 : 400, r), true);
-      }
-      if (p === '/slack/settings' && m === 'PUT')
-        return (json(res, 200, service.updateSettings(await body<SlackSettingsPatch>(req))), true);
-      if (p === '/slack/owner/reset' && m === 'POST') return (json(res, 200, service.resetOwner()), true);
-      if (p === '/slack/members' && m === 'GET') return (json(res, 200, { members: await service.members() }), true);
-      json(res, 405, { error: 'method not allowed' });
+      const route = routes[`${req.method} ${p}`];
+      if (!route) return (json(res, 405, { error: 'method not allowed' }), true);
+      const r = await route(req);
+      json(res, r.status, r.body);
     } catch (err) {
       json(res, err instanceof BadRequest ? 400 : 500, { error: String((err as Error)?.message ?? err) });
     }

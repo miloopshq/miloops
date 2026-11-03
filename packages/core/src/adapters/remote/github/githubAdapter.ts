@@ -23,7 +23,7 @@ import {
 } from '../format';
 import { TrackerError, type HttpOptions } from '../http';
 import { SyncedAdapter } from '../sync/syncedAdapter';
-import type { SyncOptions } from '../sync/types';
+import type { RemoteComment, SyncOptions } from '../sync/types';
 import { GitHubClient } from './githubClient';
 import { readMission } from './readMission';
 import { labelNames, MISSION_QUERY, type GqlIssue, type RestIssue } from './schema';
@@ -193,8 +193,8 @@ export class GitHubAdapter extends SyncedAdapter {
     await this.gh.repo('PATCH', `/issues/${t.id}`, { body: joinBody(t.body, ticketMeta(t)) });
   }
 
-  protected async remoteComment(_map: MapDoc, t: Ticket, author: string, body: string, writeId: string) {
-    await this.gh.repo('POST', `/issues/${t.id}/comments`, { body: authoredBody(author, body, writeId) });
+  protected async remoteComment(_map: MapDoc, t: Ticket, c: RemoteComment) {
+    await this.gh.repo('POST', `/issues/${t.id}/comments`, { body: authoredBody(c.author, c.body, c.writeId) });
   }
 
   protected async remoteClose(_map: MapDoc, t: Ticket, reason: 'completed' | 'not_planned') {

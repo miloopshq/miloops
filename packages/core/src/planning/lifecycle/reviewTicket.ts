@@ -26,11 +26,11 @@ export async function withdrawReviews(
   by: { actor: string; reason: string; journal?: Journal },
 ) {
   for (const r of openReviews(snap, ticketId))
-    await transition(
-      adapter,
-      snap.map.id,
-      r.id,
-      { event: 'cancel', actor: by.actor, actorKind: 'engine', reason: by.reason },
-      { journal: by.journal },
-    );
+    await transition(adapter, snap.map.id, r.id, {
+      event: 'cancel',
+      actor: by.actor,
+      actorKind: 'engine',
+      reason: by.reason,
+      journal: by.journal,
+    });
 }

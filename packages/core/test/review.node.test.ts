@@ -48,7 +48,14 @@ async function setup(level: VerificationLevel) {
     const snap = await adapter.loadMap(map.id);
     const t = snap.tickets.find((x) => x.id === id)!;
     const info = levelFor(root, snap, t).info;
-    return (await verify(env, map.id, t, info, { agent: 'MILO-1', sessionId: 's_work', resolution: 'built it' })).done;
+    return (
+      await verify(env, {
+        mapId: map.id,
+        ticket: t,
+        info,
+        sub: { agent: 'MILO-1', sessionId: 's_work', resolution: 'built it' },
+      })
+    ).done;
   };
   await complete();
   const snap = () => adapter.loadMap(map.id);
@@ -56,7 +63,7 @@ async function setup(level: VerificationLevel) {
   const review = async () => openReviews(await snap(), id)[0];
   const answer = async (agent: string, r: Partial<ReviewSubmission>) => {
     const rv = (await review())!;
-    await claim(adapter, map.id, rv.id, agent);
+    await claim(adapter, map.id, rv.id, { assignee: agent });
     return submitReview(env, {
       mapId: map.id,
       reviewId: rv.id,
@@ -164,7 +171,7 @@ test('when the operator decides first, the open review is withdrawn', async () =
   await operatorAction(s.env, { action: 'approve', mapId: s.mapId, ticketId: s.id, by: 'operator' });
   const after = (await s.snap()).tickets.find((x) => x.id === rv.id)!;
   assert.deepEqual([after.state, after.closeReason], ['closed', 'not_planned']);
-  await claim(s.adapter, s.mapId, rv.id, 'MILO-2').catch(() => {});
+  await claim(s.adapter, s.mapId, rv.id, { assignee: 'MILO-2' }).catch(() => {});
   await assert.rejects(
     submitReview(s.env, {
       mapId: s.mapId,

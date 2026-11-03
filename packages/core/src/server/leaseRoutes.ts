@@ -1,13 +1,12 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { TrackerAdapter } from '../adapters/adapter';
 import { readLease, readLeases } from '../agents/leaseStore';
 import { returnToQueue } from '../agents/returnToQueue';
 import { BadRequest, readJson, sendJson } from './http';
+import type { RouteContext } from './routeContext';
 
 /** `/agents/leases` routes over the claim leases under `root`; false when none matches. */
 export async function handleLeases(
-  root: string,
-  active: () => Promise<TrackerAdapter>,
+  { root, active }: RouteContext,
   req: IncomingMessage,
   res: ServerResponse,
   url: URL,
@@ -23,7 +22,7 @@ export async function handleLeases(
     const lease = readLease(root, b.mapId, b.ticketId);
     if (!lease || lease.returned) return (sendJson(res, 404, { error: 'no live lease on this ticket' }), true);
     const by = typeof b.by === 'string' && b.by ? b.by : 'operator';
-    const r = await returnToQueue(root, await active(), lease, 'operator', by);
+    const r = await returnToQueue(root, await active(), lease, { reason: 'operator', by });
     if ('busy' in r) sendJson(res, 409, { error: 'the lease is being returned already' });
     else sendJson(res, 200, 'returned' in r ? { returned: r.returned } : { dropped: r.dropped });
     return true;

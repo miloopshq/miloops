@@ -1,6 +1,7 @@
 import { staleAction } from '../evidence/stale';
 import type { TicketPhase } from '../model/lifecycle';
-import type { VerdictKind, VerificationVerdict } from '../model/verification';
+import type { MapSnapshot, Ticket } from '../model/types';
+import type { VerdictKind, VerificationAttempt, VerificationVerdict } from '../model/verification';
 import { ticketPhase } from '../planning/lifecycle/phase';
 import { withdrawReviews } from '../planning/lifecycle/reviewTicket';
 import { transition } from '../planning/lifecycle/transition';
@@ -42,6 +43,27 @@ const findingLine = (f: VerificationVerdict['findings'][number]) =>
  */
 export async function submitReview(env: VerifyEnv, r: ReviewSubmission): Promise<ReviewResult> {
   const snap = await env.adapter.loadMap(r.mapId);
+  const { review, t } = await reviewedTicket(env, snap, r);
+  const conflict = reviewConflict(env.root, r.mapId, t, r);
+  if (conflict) throw new OperationError(conflict);
+  const last = readAttempts(env.root, r.mapId, t.id).at(-1);
+  if (last?.result !== 'pass') throw new OperationError(`${t.key} has no passing attempt to review`);
+  const summary = r.summary.trim();
+  if (!summary) throw new OperationError('a review needs a summary');
+  const verdict = await recordVerdict({ env, r, t, last, summary });
+  await transition(env.adapter, r.mapId, review.id, {
+    event: 'complete',
+    actor: r.agent,
+    actorKind: 'agent',
+    reason: `${verdict.id}: ${r.verdict}`,
+    sessionId: r.sessionId,
+    journal: env.journal,
+  });
+  return { verdict, ...(await moveReviewed({ env, snap, t, last, verdict })) };
+}
+
+/** The review ticket `r` names and the ticket it reviews, which must still be waiting for review. */
+async function reviewedTicket(env: VerifyEnv, snap: MapSnapshot, r: ReviewSubmission) {
   const review = snap.tickets.find((x) => x.id === r.reviewId);
   if (!review || review.type !== 'review' || !review.reviewOf)
     throw new OperationError(`${review?.key ?? r.reviewId} is not a review ticket`);
@@ -49,17 +71,19 @@ export async function submitReview(env: VerifyEnv, r: ReviewSubmission): Promise
   if (review.assignee !== r.agent) throw new OperationError(`claim ${review.key} before reviewing it`);
   const t = snap.tickets.find((x) => x.id === review.reviewOf);
   const byId = new Map(snap.tickets.map((x) => [x.id, x]));
-  if (!t || ticketPhase(t, byId, snap.map.mode) !== 'verifying') {
-    if (t) await withdrawReviews(env.adapter, snap, t.id, { actor: CHECK_RUNNER, reason: `${t.key} left review` });
-    throw new OperationError(`${t?.key ?? review.reviewOf} is no longer waiting for review`);
-  }
-  const conflict = reviewConflict(env.root, r.mapId, t, r);
-  if (conflict) throw new OperationError(conflict);
-  const last = readAttempts(env.root, r.mapId, t.id).at(-1);
-  if (last?.result !== 'pass') throw new OperationError(`${t.key} has no passing attempt to review`);
-  const summary = r.summary.trim();
-  if (!summary) throw new OperationError('a review needs a summary');
+  if (t && ticketPhase(t, byId, snap.map.mode) === 'verifying') return { review, t };
+  if (t) await withdrawReviews(env.adapter, snap, t.id, { actor: CHECK_RUNNER, reason: `${t.key} left review` });
+  throw new OperationError(`${t?.key ?? review.reviewOf} is no longer waiting for review`);
+}
 
+interface Reviewed {
+  env: VerifyEnv;
+  t: Ticket;
+  last: VerificationAttempt;
+}
+
+/** Keeps the verdict next to the attempt and posts it on the reviewed ticket. */
+async function recordVerdict({ env, r, t, last, summary }: Reviewed & { r: ReviewSubmission; summary: string }) {
   const verdict = writeVerdict(env.root, {
     v: 1,
     mapId: r.mapId,
@@ -74,64 +98,47 @@ export async function submitReview(env: VerifyEnv, r: ReviewSubmission): Promise
     at: Date.now(),
   });
   const findings = verdict.findings.map(findingLine);
-  await env.adapter.comment(
-    r.mapId,
-    t.id,
-    r.agent,
-    [
-      `**Review ${verdict.id} of ${last.id}: ${r.verdict}**`,
-      '',
-      summary,
-      ...(findings.length ? ['', ...findings] : []),
-    ].join('\n'),
-  );
-  const opts = { journal: env.journal };
-  await transition(
-    env.adapter,
-    r.mapId,
-    review.id,
-    {
-      event: 'complete',
-      actor: r.agent,
-      actorKind: 'agent',
-      reason: `${verdict.id}: ${r.verdict}`,
-      sessionId: r.sessionId,
-    },
-    opts,
-  );
+  const heading = `**Review ${verdict.id} of ${last.id}: ${r.verdict}**`;
+  const body = [heading, '', summary, ...(findings.length ? ['', ...findings] : [])].join('\n');
+  await env.adapter.comment(r.mapId, t.id, r.agent, body);
+  return verdict;
+}
+
+/** Moves the reviewed ticket on: FAIL to rework, NEEDS_HUMAN to the operator, PASS to done or to what it still waits on. */
+async function moveReviewed(
+  m: Reviewed & { snap: MapSnapshot; verdict: VerificationVerdict },
+): Promise<Omit<ReviewResult, 'verdict'>> {
+  const { env, t, last, verdict } = m;
+  const mapId = m.snap.map.id;
   const engine = {
     actor: CHECK_RUNNER,
     actorKind: 'engine' as const,
-    reason: `${verdict.id} by ${r.agent}: ${r.verdict}`,
+    reason: `${verdict.id} by ${verdict.by}: ${verdict.verdict}`,
     sessionId: last.sessionId,
     expect: 'verifying' as const,
+    journal: env.journal,
   };
-  if (r.verdict === 'FAIL') {
-    await transition(env.adapter, r.mapId, t.id, { ...engine, event: 'review.fail', to: 'rework' }, opts);
-    return { verdict, phase: 'rework' };
+  if (verdict.verdict === 'FAIL') {
+    await transition(env.adapter, mapId, t.id, { ...engine, event: 'review.fail', to: 'rework' });
+    return { phase: 'rework' };
   }
-  if (r.verdict === 'NEEDS_HUMAN') {
-    await transition(env.adapter, r.mapId, t.id, { ...engine, event: 'review.needs_human', to: 'blocked' }, opts);
-    return { verdict, phase: 'blocked' };
+  if (verdict.verdict === 'NEEDS_HUMAN') {
+    await transition(env.adapter, mapId, t.id, { ...engine, event: 'review.needs_human', to: 'blocked' });
+    return { phase: 'blocked' };
   }
-  const { info, config } = levelFor(env.root, snap, t);
+  const { info, config } = levelFor(env.root, m.snap, t);
   const stale = await staleAction(env.root, config.config ?? DEFAULT_CONFIG, last);
   if (stale.action === 'reverify') {
-    await transition(env.adapter, r.mapId, t.id, { ...engine, event: 'reverify', reason: stale.check.reason }, opts);
-    const run = await verify(env, r.mapId, t, info, submissionOf(last));
+    await transition(env.adapter, mapId, t.id, { ...engine, event: 'reverify', reason: stale.check.reason });
+    const run = await verify(env, { mapId, ticket: t, info, sub: submissionOf(last) });
     void run.done.catch(() => {});
-    return { verdict, phase: 'verifying', attemptId: run.attemptId };
+    return { phase: 'verifying', attemptId: run.attemptId };
   }
   if (info.level === 'checks+review+human' || last.criteria?.manual.length) {
-    await transition(env.adapter, r.mapId, t.id, { ...engine, event: 'review.pass', to: 'verifying' }, opts);
-    return { verdict, phase: 'verifying' };
+    await transition(env.adapter, mapId, t.id, { ...engine, event: 'review.pass', to: 'verifying' });
+    return { phase: 'verifying' };
   }
-  await resolve(
-    env.adapter,
-    r.mapId,
-    t.id,
-    { answer: last.resolution, summary: last.summary, author: last.agent },
-    { ...engine, event: 'review.pass', journal: env.journal },
-  );
-  return { verdict, phase: 'done' };
+  const answer = { answer: last.resolution, summary: last.summary, author: last.agent };
+  await resolve(env.adapter, mapId, t.id, { ...engine, event: 'review.pass', ...answer });
+  return { phase: 'done' };
 }

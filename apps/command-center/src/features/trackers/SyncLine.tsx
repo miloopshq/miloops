@@ -7,16 +7,7 @@ export function SyncLine({ status }: { status?: SyncStatus }) {
     ? `${status.rate.remaining?.toLocaleString() ?? '?'}/${status.rate.limit.toLocaleString()} req`
     : '';
   const queued = status.queued ? ` · ${status.queued} queued` : '';
-  const [cls, text] =
-    status.state === 'online'
-      ? ['ok', `Online · synced ${syncedAgo(status.lastSyncAt)}${queued}`]
-      : status.state === 'offline'
-        ? ['warn', `Offline${queued}`]
-        : status.state === 'rate-limited'
-          ? ['warn', `Rate limited · resumes ${hhmm(status.resetAt)}${queued}`]
-          : status.state === 'auth-error'
-            ? ['alert', `Credentials rejected${queued}`]
-            : ['', `Connecting${queued}`];
+  const [cls, text] = stateLine(status, queued);
   return (
     <div className={`sync-line ${cls}`} title={status.error}>
       <span className="dot" />
@@ -24,4 +15,19 @@ export function SyncLine({ status }: { status?: SyncStatus }) {
       {rate && <span className="rate">{rate}</span>}
     </div>
   );
+}
+
+function stateLine(status: SyncStatus, queued: string): [string, string] {
+  switch (status.state) {
+    case 'online':
+      return ['ok', `Online · synced ${syncedAgo(status.lastSyncAt)}${queued}`];
+    case 'offline':
+      return ['warn', `Offline${queued}`];
+    case 'rate-limited':
+      return ['warn', `Rate limited · resumes ${hhmm(status.resetAt)}${queued}`];
+    case 'auth-error':
+      return ['alert', `Credentials rejected${queued}`];
+    default:
+      return ['', `Connecting${queued}`];
+  }
 }

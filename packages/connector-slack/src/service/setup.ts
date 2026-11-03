@@ -24,102 +24,35 @@ export async function adoptEnvTokens(ctx: SlackContext) {
   }
 }
 
+/** Why a token was refused: the message for the operator and a code for the UI. */
+type Refusal = { error: string; code: string };
+
+const WRONG_KIND: Record<string, Refusal> = {
+  user: {
+    error: 'That is a user token (xoxp-). Paste the Bot User OAuth Token (xoxb-) from Install App.',
+    code: 'user_token',
+  },
+  config: {
+    error: 'That is a configuration token. Paste the app-level token (xapp-) or the bot token (xoxb-).',
+    code: 'config_token',
+  },
+  unknown: {
+    error: 'Not a Slack token. App-level tokens start with xapp-, bot tokens with xoxb-.',
+    code: 'unknown_token',
+  },
+};
+
+const APP_TOKEN_ERRORS: Record<string, string> = {
+  offline: 'Slack is unreachable. Check your connection and paste again.',
+  missing_scope: 'This token is missing connections:write. Generate it again with the connections:write scope.',
+  not_allowed_token_type: 'That is not an app-level token. Generate one under Basic Information → App-Level Tokens.',
+};
+
 export async function verifyToken(ctx: SlackContext, token: string, save: boolean): Promise<SlackTokenResult> {
-  const fail = (error: string, code: string, kind?: 'app' | 'bot'): SlackTokenResult => ({
-    ok: false,
-    error,
-    code,
-    kind,
-    status: statusOf(ctx),
-  });
   const kind = tokenKind(token);
-  if (kind === 'user')
-    return fail('That is a user token (xoxp-). Paste the Bot User OAuth Token (xoxb-) from Install App.', 'user_token');
-  if (kind === 'config')
-    return fail(
-      'That is a configuration token. Paste the app-level token (xapp-) or the bot token (xoxb-).',
-      'config_token',
-    );
-  if (kind === 'unknown')
-    return fail('Not a Slack token. App-level tokens start with xapp-, bot tokens with xoxb-.', 'unknown_token');
-  if (kind === 'app') {
-    let url: string;
-    try {
-      url = (await ctx.api(token).call<{ url: string }>('apps.connections.open')).url;
-    } catch (e) {
-      const code = e instanceof SlackApiError ? e.code : 'error';
-      if (code === 'offline') return fail('Slack is unreachable. Check your connection and paste again.', code, 'app');
-      if (code === 'missing_scope')
-        return fail(
-          'This token is missing connections:write. Generate it again with the connections:write scope.',
-          code,
-          'app',
-        );
-      if (code === 'not_allowed_token_type')
-        return fail(
-          'That is not an app-level token. Generate one under Basic Information → App-Level Tokens.',
-          code,
-          'app',
-        );
-      return fail('Slack rejected that token. Generate a new app-level token and copy it again.', code, 'app');
-    }
-    if (!ctx.WS) return fail('Slack needs Node.js 22 or newer.', 'unsupported', 'app');
-    let hello: { appId?: string };
-    try {
-      hello = await probeSocket(url, ctx.WS);
-    } catch {
-      return fail(
-        'Socket Mode is off. Turn it on under Socket Mode in the app settings, then paste again.',
-        'socket_mode_off',
-        'app',
-      );
-    }
-    const appId = appIdFromToken(token) ?? hello.appId;
-    const prev = ctx.store.read();
-    if (prev.appId && appId && prev.appId !== appId) {
-      // A different app: its bot token, workspace and owner no longer apply.
-      ctx.stop();
-      if (save) ctx.store.saveToken('bot', '');
-      ctx.store.update({ workspace: undefined, bot: undefined, owners: [], enabled: false });
-    }
-    if (save) ctx.store.saveToken('app', token);
-    ctx.store.update({ appId, created: true });
-  } else {
-    const api = ctx.api(token);
-    let who: { team_id: string; team: string; url: string; user_id: string; user: string; bot_id?: string };
-    try {
-      who = await api.call('auth.test');
-    } catch (e) {
-      const code = e instanceof SlackApiError ? e.code : 'error';
-      if (code === 'offline') return fail('Slack is unreachable. Check your connection and paste again.', code, 'bot');
-      return fail('Slack rejected that token. Copy the Bot User OAuth Token from Install App again.', code, 'bot');
-    }
-    const missing = api.scopes ? BOT_SCOPES.filter((s) => !api.scopes!.includes(s)) : [];
-    if (missing.length)
-      return fail(
-        `The app is missing ${missing.join(', ')}. Reinstall it from Install App, then paste the new token.`,
-        'missing_scope',
-        'bot',
-      );
-    const appId = ctx.store.read().appId;
-    if (appId && who.bot_id) {
-      const info = await api
-        .call<{ bot?: { app_id?: string } }>('bots.info', { bot: who.bot_id })
-        .catch(() => undefined);
-      if (info?.bot?.app_id && info.bot.app_id !== appId)
-        return fail(
-          `That bot token belongs to another Slack app (${info.bot.app_id}). Paste the token from ${BRAND.assistant.name}'s Install App page.`,
-          'wrong_app',
-          'bot',
-        );
-    }
-    if (save) ctx.store.saveToken('bot', token);
-    ctx.store.update({
-      workspace: { id: who.team_id, name: who.team, url: who.url },
-      bot: { userId: who.user_id, name: who.user },
-    });
-    if (!ctx.store.read().owners.length && api.scopes?.includes('users:read.email')) await ownerByEmail(ctx, api);
-  }
+  if (kind !== 'app' && kind !== 'bot') return { ok: false, ...WRONG_KIND[kind], status: statusOf(ctx) };
+  const refused = kind === 'app' ? await verifyAppToken(ctx, token, save) : await verifyBotToken(ctx, token, save);
+  if (refused) return { ok: false, ...refused, kind, status: statusOf(ctx) };
   const t = ctx.store.tokens();
   if (t.app && t.bot) {
     ctx.stop();
@@ -127,4 +60,82 @@ export async function verifyToken(ctx: SlackContext, token: string, save: boolea
     ctx.start();
   }
   return { ok: true, kind, status: statusOf(ctx) };
+}
+
+/** An app-level token must open a Socket Mode connection; a token of a different app resets the bot side. */
+async function verifyAppToken(ctx: SlackContext, token: string, save: boolean): Promise<Refusal | undefined> {
+  let url: string;
+  try {
+    url = (await ctx.api(token).call<{ url: string }>('apps.connections.open')).url;
+  } catch (e) {
+    const code = e instanceof SlackApiError ? e.code : 'error';
+    const error =
+      APP_TOKEN_ERRORS[code] ?? 'Slack rejected that token. Generate a new app-level token and copy it again.';
+    return { error, code };
+  }
+  if (!ctx.WS) return { error: 'Slack needs Node.js 22 or newer.', code: 'unsupported' };
+  let hello: { appId?: string };
+  try {
+    hello = await probeSocket(url, ctx.WS);
+  } catch {
+    return {
+      error: 'Socket Mode is off. Turn it on under Socket Mode in the app settings, then paste again.',
+      code: 'socket_mode_off',
+    };
+  }
+  const appId = appIdFromToken(token) ?? hello.appId;
+  const prev = ctx.store.read();
+  if (prev.appId && appId && prev.appId !== appId) {
+    // A different app: its bot token, workspace and owner no longer apply.
+    ctx.stop();
+    if (save) ctx.store.saveToken('bot', '');
+    ctx.store.update({ workspace: undefined, bot: undefined, owners: [], enabled: false });
+  }
+  if (save) ctx.store.saveToken('app', token);
+  ctx.store.update({ appId, created: true });
+  return undefined;
+}
+
+type AuthTest = { team_id: string; team: string; url: string; user_id: string; user: string; bot_id?: string };
+
+/** A bot token must pass auth.test with every scope, and belong to this app; then the workspace is saved. */
+async function verifyBotToken(ctx: SlackContext, token: string, save: boolean): Promise<Refusal | undefined> {
+  const api = ctx.api(token);
+  let who: AuthTest;
+  try {
+    who = await api.call('auth.test');
+  } catch (e) {
+    const code = e instanceof SlackApiError ? e.code : 'error';
+    if (code === 'offline') return { error: 'Slack is unreachable. Check your connection and paste again.', code };
+    return { error: 'Slack rejected that token. Copy the Bot User OAuth Token from Install App again.', code };
+  }
+  const granted = api.scopes;
+  const missing = granted ? BOT_SCOPES.filter((s) => !granted.includes(s)) : [];
+  if (missing.length)
+    return {
+      error: `The app is missing ${missing.join(', ')}. Reinstall it from Install App, then paste the new token.`,
+      code: 'missing_scope',
+    };
+  const otherApp = await otherAppOf(ctx, api, who.bot_id);
+  if (otherApp)
+    return {
+      error: `That bot token belongs to another Slack app (${otherApp}). Paste the token from ${BRAND.assistant.name}'s Install App page.`,
+      code: 'wrong_app',
+    };
+  if (save) ctx.store.saveToken('bot', token);
+  ctx.store.update({
+    workspace: { id: who.team_id, name: who.team, url: who.url },
+    bot: { userId: who.user_id, name: who.user },
+  });
+  if (!ctx.store.read().owners.length && api.scopes?.includes('users:read.email')) await ownerByEmail(ctx, api);
+  return undefined;
+}
+
+/** The bot's app, when it isn't the app already connected. */
+async function otherAppOf(ctx: SlackContext, api: ReturnType<SlackContext['api']>, botId?: string) {
+  const appId = ctx.store.read().appId;
+  if (!appId || !botId) return undefined;
+  const info = await api.call<{ bot?: { app_id?: string } }>('bots.info', { bot: botId }).catch(() => undefined);
+  const botApp = info?.bot?.app_id;
+  return botApp && botApp !== appId ? botApp : undefined;
 }

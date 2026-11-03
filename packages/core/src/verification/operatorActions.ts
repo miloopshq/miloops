@@ -1,6 +1,6 @@
 import { staleAction } from '../evidence/stale';
 import type { TicketPhase, VerificationLevel } from '../model/lifecycle';
-import type { VerdictKind } from '../model/verification';
+import type { VerdictKind, VerificationAttempt } from '../model/verification';
 import { withdrawReviews } from '../planning/lifecycle/reviewTicket';
 import { setVerification } from '../planning/lifecycle/setVerification';
 import { transition } from '../planning/lifecycle/transition';
@@ -44,66 +44,111 @@ export async function operatorAction(env: VerifyEnv, r: OperatorRequest): Promis
     return {};
   }
   if (!r.ticketId) throw new OperationError('"ticketId" is required');
-  const ticketId = r.ticketId;
-  const operator = { actor: r.by, actorKind: 'operator' as const, reason, journal: env.journal };
-  const last = readAttempts(env.root, r.mapId, ticketId).at(-1);
-  const verdict = (kind: VerdictKind, summary: string) => {
-    if (last)
-      writeVerdict(env.root, {
-        v: 1,
-        mapId: r.mapId,
-        ticketId,
-        attemptId: last.id,
-        by: r.by,
-        byKind: 'operator',
-        verdict: kind,
-        summary,
-        findings: [],
-        at: Date.now(),
-      });
+  const a: Act = {
+    env,
+    r,
+    ticketId: r.ticketId,
+    reason,
+    operator: { actor: r.by, actorKind: 'operator', reason, journal: env.journal },
+    last: readAttempts(env.root, r.mapId, r.ticketId).at(-1),
   };
-  const withdraw = async () =>
-    withdrawReviews(env.adapter, await env.adapter.loadMap(r.mapId), ticketId, {
-      actor: CHECK_RUNNER,
-      reason: `${r.by} decided it (${r.action})`,
-      journal: env.journal,
-    });
   switch (r.action) {
-    case 'rerun': {
-      const run = await rerunChecks(env, r.mapId, ticketId, r.by, reason);
-      void run.done.catch(() => {});
-      return { attemptId: run.attemptId };
-    }
+    case 'rerun':
+      return rerun(a);
     case 'approve':
-    case 'accept': {
-      const answer = last?.resolution ?? reason;
-      if (!answer) throw new OperationError('nothing was submitted: say what is accepted');
-      if (r.action === 'approve' && last) {
-        const config = readVerificationConfig(env.root).config ?? DEFAULT_CONFIG;
-        const s = await staleAction(env.root, config, last);
-        if (s.action === 'reverify')
-          throw new OperationError(`${last.id} no longer matches the code (${s.check.reason}): re-run checks first`);
-      }
-      await resolve(
-        env.adapter,
-        r.mapId,
-        ticketId,
-        { answer, summary: last?.summary, author: last?.agent ?? r.by },
-        { ...operator, event: r.action },
-      );
-      verdict('PASS', reason ?? (r.action === 'approve' ? 'approved' : 'accepted'));
-      await withdraw();
-      return {};
-    }
+    case 'accept':
+      return decide(a, r.action);
     case 'rework':
-      await transition(env.adapter, r.mapId, ticketId, { ...operator, event: 'reject', to: 'rework' }, operator);
-      await env.adapter.comment(r.mapId, ticketId, r.by, `**Sent back to rework**\n\n${reason}`);
-      verdict('FAIL', reason!);
-      await withdraw();
-      return {};
+      return rework(a);
     case 'unblock':
-      if (r.to !== 'ready' && r.to !== 'rework') throw new OperationError('unblock needs "to": ready or rework');
-      await transition(env.adapter, r.mapId, ticketId, { ...operator, event: 'unblock', to: r.to }, operator);
-      return {};
+      return unblock(a);
+    default: {
+      const unhandled: never = r.action;
+      throw new OperationError(`unknown action ${unhandled}`);
+    }
   }
+}
+
+/** One operator action on one ticket, with the ticket's last attempt. */
+interface Act {
+  env: VerifyEnv;
+  r: OperatorRequest;
+  ticketId: string;
+  reason?: string;
+  operator: { actor: string; actorKind: 'operator'; reason?: string; journal: VerifyEnv['journal'] };
+  last?: VerificationAttempt;
+}
+
+async function rerun({ env, r, ticketId, reason }: Act) {
+  const run = await rerunChecks(env, { mapId: r.mapId, ticketId, by: r.by, reason });
+  void run.done.catch(() => {});
+  return { attemptId: run.attemptId };
+}
+
+/** Approve a pass, or accept the work despite what the checks or a reviewer found. */
+async function decide(a: Act, action: 'approve' | 'accept') {
+  const { env, r, ticketId, reason, last } = a;
+  const answer = last?.resolution ?? reason;
+  if (!answer) throw new OperationError('nothing was submitted: say what is accepted');
+  if (action === 'approve' && last) await assertCurrent(env, last);
+  const author = last?.agent ?? r.by;
+  await resolve(env.adapter, r.mapId, ticketId, {
+    ...a.operator,
+    event: action,
+    answer,
+    summary: last?.summary,
+    author,
+  });
+  verdict(a, 'PASS', reason ?? (action === 'approve' ? 'approved' : 'accepted'));
+  await withdraw(a);
+  return {};
+}
+
+/** An approval only counts for the code that was checked. */
+async function assertCurrent(env: VerifyEnv, last: VerificationAttempt) {
+  const config = readVerificationConfig(env.root).config ?? DEFAULT_CONFIG;
+  const s = await staleAction(env.root, config, last);
+  if (s.action === 'reverify')
+    throw new OperationError(`${last.id} no longer matches the code (${s.check.reason}): re-run checks first`);
+}
+
+async function rework(a: Act) {
+  const { env, r, ticketId, reason = '' } = a;
+  await transition(env.adapter, r.mapId, ticketId, { ...a.operator, event: 'reject', to: 'rework' });
+  await env.adapter.comment(r.mapId, ticketId, r.by, `**Sent back to rework**\n\n${reason}`);
+  verdict(a, 'FAIL', reason);
+  await withdraw(a);
+  return {};
+}
+
+async function unblock({ env, r, ticketId, operator }: Act) {
+  if (r.to !== 'ready' && r.to !== 'rework') throw new OperationError('unblock needs "to": ready or rework');
+  await transition(env.adapter, r.mapId, ticketId, { ...operator, event: 'unblock', to: r.to });
+  return {};
+}
+
+/** The operator's decision, kept next to the attempt it is about. */
+function verdict({ env, r, ticketId, last }: Act, kind: VerdictKind, summary: string) {
+  if (!last) return;
+  writeVerdict(env.root, {
+    v: 1,
+    mapId: r.mapId,
+    ticketId,
+    attemptId: last.id,
+    by: r.by,
+    byKind: 'operator',
+    verdict: kind,
+    summary,
+    findings: [],
+    at: Date.now(),
+  });
+}
+
+/** Open reviews of a ticket the operator decided have nothing left to decide. */
+async function withdraw({ env, r, ticketId }: Act) {
+  await withdrawReviews(env.adapter, await env.adapter.loadMap(r.mapId), ticketId, {
+    actor: CHECK_RUNNER,
+    reason: `${r.by} decided it (${r.action})`,
+    journal: env.journal,
+  });
 }

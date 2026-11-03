@@ -1,10 +1,10 @@
-import type { TrackerAdapter } from '../adapters/adapter';
 import { TrackerError } from '../adapters/remote/http';
 import { reconcile } from '../evidence/reconcile';
 import { readSyncStatus, writeSyncStatus } from '../evidence/syncStore';
 import type { CiProvider, PrSyncStatus, TicketSync, VerificationSyncEvent } from '../model/prEvidence';
 import { readVerificationConfig } from '../verification/configFile';
 import { redact } from '../verification/redact';
+import type { RouteContext } from './routeContext';
 
 /** The configured CI provider, or why there is none (no token, no repo). Never includes the token. */
 export type CiAccess = () => Promise<CiProvider | string>;
@@ -26,12 +26,11 @@ const MAX_BACKOFF_MS = 15 * 60_000;
  * exponentially; a rate limit waits for the reset. It never changes tickets.
  */
 export function watchVerification(
-  root: string,
-  active: () => Promise<TrackerAdapter>,
-  access: CiAccess,
-  send: (text: string) => void,
+  { root, active }: RouteContext,
+  deps: { access: CiAccess; send: (text: string) => void },
   opts: { firstMs?: number; now?: () => number } = {},
 ): VerificationWatch {
+  const { access, send } = deps;
   const now = opts.now ?? Date.now;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let running = false;

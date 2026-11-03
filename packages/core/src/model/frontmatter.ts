@@ -53,6 +53,9 @@ export function writeFront(front: Front, body: string) {
 }
 
 export const str = (v: string | string[] | undefined) => (Array.isArray(v) ? v.join(',') : (v ?? ''));
-export const arr = (v: string | string[] | undefined) => (Array.isArray(v) ? v : v ? [v] : []);
+export function arr(v: string | string[] | undefined): string[] {
+  if (Array.isArray(v)) return v;
+  return v ? [v] : [];
+}
 export const time = (v: string | string[] | undefined) => Date.parse(str(v)) || 0;
 export const iso = (n: number) => new Date(n).toISOString();

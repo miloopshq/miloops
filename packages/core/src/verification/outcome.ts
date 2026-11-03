@@ -11,8 +11,14 @@ export interface Outcome {
 const ok = (c: CheckResult) => c.exitCode === 0 && !c.timedOut && !c.error;
 
 /** One line per check, as the ticket comment and the journal show it. */
-export const checkLine = (c: CheckResult) =>
-  `${c.name} ${ok(c) ? 'passed' : c.timedOut ? 'timed out' : c.error ? `could not run (${c.error})` : `exited ${c.exitCode ?? c.signal}`}`;
+export const checkLine = (c: CheckResult) => `${c.name} ${checkStatus(c)}`;
+
+function checkStatus(c: CheckResult): string {
+  if (ok(c)) return 'passed';
+  if (c.timedOut) return 'timed out';
+  if (c.error) return `could not run (${c.error})`;
+  return `exited ${c.exitCode ?? c.signal}`;
+}
 
 /**
  * Where a finished attempt sends the ticket. A pass is done at level `checks`

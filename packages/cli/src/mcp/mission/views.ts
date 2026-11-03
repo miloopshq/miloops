@@ -4,10 +4,12 @@ import {
   isHandoff,
   PHASE_OF,
   type AgentSessionDoc,
+  type Attention,
   type DecisionRecord,
   type MapSnapshot,
   type NodeState,
   type Ticket,
+  type TicketType,
 } from '@miloops-hq/core';
 
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
@@ -49,12 +51,7 @@ export function ticketView(snap: MapSnapshot, t: Ticket, records: DecisionRecord
           },
         }
       : {}),
-    howTo:
-      att === 'hitl'
-        ? 'Needs the human: ask each question with ask_human (it waits for the answer), then close_ticket with the agreed resolution.'
-        : t.type === 'execute'
-          ? 'Implement the decided work, report_progress as you go, then close_ticket with what changed.'
-          : 'Work it out yourself (read code, docs, run experiments), then close_ticket with the decision, rationale and alternatives.',
+    howTo: howTo(att, t.type),
   };
 }
 
@@ -125,4 +122,13 @@ export function missionView(
       note: 'Sessions of the last 24 hours',
     },
   };
+}
+
+/** How to work a ticket: with the human, as implementation, or as a decision the agent works out. */
+function howTo(att: Attention, type: TicketType): string {
+  if (att === 'hitl')
+    return 'Needs the human: ask each question with ask_human (it waits for the answer), then close_ticket with the agreed resolution.';
+  if (type === 'execute')
+    return 'Implement the decided work, report_progress as you go, then close_ticket with what changed.';
+  return 'Work it out yourself (read code, docs, run experiments), then close_ticket with the decision, rationale and alternatives.';
 }

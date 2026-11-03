@@ -43,54 +43,64 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
   };
   const unwatch = watchTrackerFolder(abs, fs, send);
   const unwatchLeases = watchLeases(abs, () => routes.active(), send, leaseTiming);
-  const reconciler = watchVerification(abs, () => routes.active(), routes.ciAccess, send, reconcilerTiming);
+  const ctx = { root: abs, active: () => routes.active() };
+  const reconciler = watchVerification(ctx, { access: routes.ciAccess, send }, reconcilerTiming);
+
+  type Route = (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<boolean>;
+  /** Tried in order; the first that handles the request answers it. */
+  const api: Route[] = [
+    fileRoute,
+    (req, res, url) => routes.handle(req, res, url),
+    ...plugins.map(
+      (p): Route =>
+        (req, res, url) =>
+          p.handle(req, res, url),
+    ),
+    async (req, res, url) =>
+      url.pathname.startsWith('/decisions') && handleDecisions(await routes.active(), req, res, url),
+    (req, res, url) => handleLeases(ctx, req, res, url),
+    (req, res, url) => handleJournal(abs, req, res, url),
+    (req, res, url) => handleVerification(ctx, req, res, url),
+    (req, res, url) => handleVerificationSync({ ...ctx, watch: reconciler }, req, res, url),
+    (req, res, url) => handleAgents(abs, req, res, url),
+    (req, res, url) => handleBriefs(abs, req, res, url),
+    (req, res, url) => handleKnowledge(abs, req, res, url),
+    (req, res, url) => handleCriteria(abs, req, res, url),
+  ];
+
+  /** The live event stream and raw file access to the tracker folder. */
+  async function fileRoute(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
+    if (url.pathname === '/events') {
+      openEventStream(res);
+      clients.add(res);
+      req.on('close', () => clients.delete(res));
+      return true;
+    }
+    if (url.pathname === '/list') {
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ root: abs, files: await fs.list() }));
+      return true;
+    }
+    if (url.pathname !== '/file') return false;
+    const p = url.searchParams.get('path') ?? '';
+    if (req.method === 'PUT') {
+      await fs.write(p, await readText(req));
+      res.end('ok');
+      return true;
+    }
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+    res.end(await fs.read(p));
+    return true;
+  }
 
   async function handle(req: IncomingMessage, res: ServerResponse) {
     const url = new URL(req.url ?? '/', 'http://x');
     try {
-      if (url.pathname === '/events') {
-        openEventStream(res);
-        clients.add(res);
-        req.on('close', () => clients.delete(res));
-        return;
-      }
-      if (url.pathname === '/list') {
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ root: abs, files: await fs.list() }));
-        return;
-      }
-      if (url.pathname === '/file') {
-        const p = url.searchParams.get('path') ?? '';
-        if (req.method === 'PUT') {
-          await fs.write(p, await readText(req));
-          res.end('ok');
-          return;
-        }
-        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
-        res.end(await fs.read(p));
-        return;
-      }
-      if (await routes.handle(req, res, url)) return;
-      for (const p of plugins) if (await p.handle(req, res, url)) return;
-      if (url.pathname.startsWith('/decisions') && (await handleDecisions(await routes.active(), req, res, url)))
-        return;
-      if (await handleLeases(abs, () => routes.active(), req, res, url)) return;
-      if (await handleJournal(abs, req, res, url)) return;
-      if (await handleVerification(abs, () => routes.active(), req, res, url)) return;
-      if (await handleVerificationSync(abs, () => routes.active(), reconciler, req, res, url)) return;
-      if (await handleAgents(abs, req, res, url)) return;
-      if (await handleBriefs(abs, req, res, url)) return;
-      if (await handleKnowledge(abs, req, res, url)) return;
-      if (await handleCriteria(abs, req, res, url)) return;
+      for (const route of api) if (await route(req, res, url)) return;
       res.statusCode = 404;
       res.end('not found');
     } catch (err) {
-      if (err instanceof BadRequest || err instanceof AnswerError)
-        sendJson(res, err instanceof BadRequest ? 400 : 409, { error: err.message });
-      else if (!sendTrackerError(res, err)) {
-        res.statusCode = 500;
-        res.end(String(err));
-      }
+      sendError(res, err);
     }
   }
 
@@ -107,4 +117,12 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       clients.clear();
     },
   };
+}
+
+function sendError(res: ServerResponse, err: unknown) {
+  if (err instanceof BadRequest) return sendJson(res, 400, { error: err.message });
+  if (err instanceof AnswerError) return sendJson(res, 409, { error: err.message });
+  if (sendTrackerError(res, err)) return;
+  res.statusCode = 500;
+  res.end(String(err));
 }

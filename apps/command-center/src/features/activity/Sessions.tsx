@@ -65,7 +65,7 @@ export function Sessions({
               </span>
               <span className="segs">
                 {Array.from({ length: s.total }, (_, i) => (
-                  <i key={i} className={i < s.step - 1 ? 'done' : i === s.step - 1 ? 'cur' : ''} />
+                  <i key={i} className={segmentClass(i + 1, s.step)} />
                 ))}
               </span>
               <span className="row">
@@ -78,7 +78,7 @@ export function Sessions({
                     {s.mode} · {s.stepLabel.toLowerCase()}
                   </span>
                 )}
-                <span className="tkt">{t ? `${t.key} ${t.title}` : s.mode === 'chart' ? 'Charting mission' : ''}</span>
+                <span className="tkt">{ticketLabel(t, s.mode)}</span>
               </span>
             </Card>
           </li>
@@ -102,4 +102,17 @@ export function Sessions({
       ))}
     </ul>
   );
+}
+
+/** A step before the current one is done; the current one is highlighted. */
+function segmentClass(n: number, step: number) {
+  if (n < step) return 'done';
+  if (n === step) return 'cur';
+  return '';
+}
+
+function ticketLabel(t: { key: string; title: string } | undefined, mode: string) {
+  if (t) return `${t.key} ${t.title}`;
+  if (mode === 'chart') return 'Charting mission';
+  return '';
 }

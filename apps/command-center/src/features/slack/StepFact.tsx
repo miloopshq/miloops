@@ -1,14 +1,18 @@
 import type { SlackStatus } from '@miloops-hq/connector-slack';
 
 export function StepFact({ s, n }: { s: SlackStatus; n: number }) {
-  const fact =
-    n === 3
-      ? s.setup.appId && `app ${s.setup.appId}`
-      : n === 4
-        ? s.workspace && `${s.workspace.name} · @${s.bot?.name ?? 'milo'}`
-        : n === 5
-          ? s.owners[0] &&
-            `owner ${s.owners[0].name ?? s.owners[0].id}${s.owners[0].via === 'git-email' ? ' · git email' : ''}`
-          : undefined;
+  const fact = stepFact(s, n);
   return fact ? <span className="mono-label dim">{fact}</span> : null;
+}
+
+/** What setup step n already knows: the app (3), the workspace and bot (4), the owner (5). */
+function stepFact(s: SlackStatus, n: number) {
+  if (n === 3) return s.setup.appId && `app ${s.setup.appId}`;
+  if (n === 4) return s.workspace && `${s.workspace.name} · @${s.bot?.name ?? 'milo'}`;
+  const owner = s.owners[0];
+  if (n === 5 && owner) {
+    const via = owner.via === 'git-email' ? ' · git email' : '';
+    return `owner ${owner.name ?? owner.id}${via}`;
+  }
+  return undefined;
 }

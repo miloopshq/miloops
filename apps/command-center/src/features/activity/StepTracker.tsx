@@ -34,7 +34,10 @@ export function StepTracker({ activity, snap }: { activity: ActivityState; snap?
       <ol className="pipeline">
         {steps.map((label, i) => {
           const n = i + 1;
-          const cls = n < s.step || (n === s.step && s.status === 'done') ? 'done' : n === s.step ? 'cur' : '';
+          const done = n < s.step || (n === s.step && s.status === 'done');
+          let cls = '';
+          if (done) cls = 'done';
+          else if (n === s.step) cls = 'cur';
           return (
             <li key={label} className={cls}>
               <i />

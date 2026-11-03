@@ -13,3 +13,9 @@ export const isCurrent = (step: SlackStatus['step'], n: number) => step === n ||
 
 export const isDone = (step: SlackStatus['step'], n: number) =>
   step === 'done' || (typeof step === 'number' && n < step && !isCurrent(step, n));
+
+export function stepClass(step: SlackStatus['step'], n: number) {
+  if (isDone(step, n)) return 'done';
+  if (isCurrent(step, n)) return 'cur';
+  return '';
+}

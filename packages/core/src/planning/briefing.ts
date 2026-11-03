@@ -112,7 +112,7 @@ export function buildBriefing(input: BriefingInput): Briefing {
   });
   const shown = missions
     .filter((m) => m.changed || m.waiting.length)
-    .sort((a, b) => (a.mapId === input.currentMapId ? -1 : b.mapId === input.currentMapId ? 1 : 0));
+    .sort((a, b) => Number(b.mapId === input.currentMapId) - Number(a.mapId === input.currentMapId));
   const sum = <K extends 'done' | 'ruledOut' | 'blocked' | 'waiting' | 'agentDecisions' | 'active'>(k: K) =>
     shown.reduce((n, m) => n + m[k].length, 0);
   const oldest = shown
@@ -146,6 +146,20 @@ export function buildBriefing(input: BriefingInput): Briefing {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
+/** Blocked tickets that wait on one of the mission's open questions. */
+function heldByQuestions(b: Briefing): MissionBriefing['blocked'] {
+  return b.missions.flatMap((m) => {
+    const waitingOn = new Set(m.waiting.map((q) => q.ticketId));
+    return m.blocked.filter((x) => x.on.some((o) => waitingOn.has(o.id)));
+  });
+}
+
+function holdsUp(held: MissionBriefing['blocked']): string {
+  if (held.length === 1) return `, and it holds up ${held[0].ticket.title.replace(/^./, (c) => c.toLowerCase())}`;
+  if (held.length > 1) return `, holding up ${plural(held.length, 'ticket')}`;
+  return '';
+}
+
 /** MILO's spoken summary of a briefing. Deterministic; built only from the briefing's numbers. */
 export function briefingLine(b: Briefing, hour = new Date(b.now).getHours()): string {
   const t = b.totals;
@@ -155,15 +169,7 @@ export function briefingLine(b: Briefing, hour = new Date(b.now).getHours()): st
   if (t.done) parts.push(`${plural(t.done, 'ticket')} ${t.done === 1 ? 'is' : 'are'} done.`);
   if (t.agentDecisions) parts.push(`Agents made ${plural(t.agentDecisions, 'decision')}.`);
   if (t.waiting) {
-    const held = b.missions.flatMap((m) =>
-      m.blocked.filter((x) => x.on.some((o) => m.waiting.some((q) => q.ticketId === o.id))),
-    );
-    const hold =
-      held.length === 1
-        ? `, and it holds up ${held[0].ticket.title.replace(/^./, (c) => c.toLowerCase())}`
-        : held.length > 1
-          ? `, holding up ${plural(held.length, 'ticket')}`
-          : '';
+    const hold = holdsUp(heldByQuestions(b));
     parts.push(`${plural(t.waiting, 'decision')} ${t.waiting === 1 ? 'is' : 'are'} waiting on you${hold}.`);
   } else parts.push('Nothing is waiting on you.');
   if (!t.done && !t.agentDecisions && t.ruledOut) parts.unshift(`${plural(t.ruledOut, 'ticket')} ruled out of scope.`);

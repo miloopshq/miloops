@@ -21,11 +21,16 @@ export function KnowledgeView() {
   }, [k]);
   const needsYou = (e: KnowledgeEntry) =>
     e.status === 'suggested' || !!e.flag || (!!k.stale[e.id] && e.status !== 'outdated');
+  const inFilter = (e: KnowledgeEntry, f: Filter) => {
+    if (f === 'all') return true;
+    if (f === 'review') return needsYou(e);
+    return e.status === f;
+  };
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return k.entries.filter(
       (e) =>
-        (filter === 'all' || (filter === 'review' ? needsYou(e) : e.status === filter)) &&
+        inFilter(e, filter) &&
         (!kind || e.kind === kind) &&
         (!q || `${e.id} ${e.title} ${e.body} ${e.tags.join(' ')}`.toLowerCase().includes(q)),
     );
@@ -33,8 +38,7 @@ export function KnowledgeView() {
   }, [k.entries, k.stale, filter, kind, query]);
   if (!k.open) return null;
   const current = shown.find((e) => e.id === sel) ?? shown[0];
-  const count = (f: Filter) =>
-    k.entries.filter((e) => (f === 'all' ? true : f === 'review' ? needsYou(e) : e.status === f)).length;
+  const count = (f: Filter) => k.entries.filter((e) => inFilter(e, f)).length;
   const tabs: [Filter, string][] = [
     ['review', 'Needs you'],
     ['confirmed', 'Confirmed'],

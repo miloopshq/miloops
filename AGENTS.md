@@ -78,7 +78,7 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 
 ## Conventions
 
-Follow `CONTRIBUTING.md`: one export per file, 200 lines max, the layout rules, inline type imports, naming, and where tests and fixtures go. Run `npm run format` on files you touch.
+Follow `CONTRIBUTING.md`: one export per file, 200 lines max, the layout rules, inline type imports, naming, where tests and fixtures go, and its **Readable code** rules (no nested ternaries, early returns, flat nesting, object parameters, small functions, explicit variants). Lint enforces the mechanical ones; write the rest in the same spirit. Run `npm run format` on files you touch.
 
 ## Recipes
 
@@ -89,7 +89,7 @@ Follow `CONTRIBUTING.md`: one export per file, 200 lines max, the layout rules, 
 4. Cover it in `packages/cli/test/` (`mcp*.test.ts`) and drive it end to end in `scripts/verify-mcp.mjs`.
 
 **Add a bridge route and SSE event.**
-1. Add a `handleX(...)` in `packages/core/src/server/<name>Routes.ts` that returns `true` when it handled the request, following `leaseRoutes.ts`.
+1. Add a `handleX(req, res, ctx)` in `packages/core/src/server/<name>Routes.ts` that takes the shared `RouteContext` (`routeContext.ts`) and returns `true` when it handled the request, following `leaseRoutes.ts`.
 2. Mount it in `trackerBridge.ts` next to the others.
 3. Push changes with `send('event: x\ndata: …\n\n')` from a route or a loop (see `watchLeases.ts`), and subscribe in `apps/command-center/src/hooks/useCommandCenter.ts`.
 4. Operator-only actions are journaled.

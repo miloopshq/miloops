@@ -56,8 +56,11 @@ export function briefMission(snap: MapSnapshot, docs: AgentSessionDoc[]): Missio
   };
 }
 
-export const formatTokens = (n: number) =>
-  n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${Math.round(n / 1e3)}k` : String(n);
+export const formatTokens = (n: number) => {
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `${Math.round(n / 1e3)}k`;
+  return String(n);
+};
 const since = (at: number, now: number) => {
   const m = Math.max(0, Math.round((now - at) / 60_000));
   return m < 60 ? `${m}m` : `${Math.round(m / 60)}h`;

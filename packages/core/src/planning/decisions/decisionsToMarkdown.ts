@@ -2,6 +2,11 @@ import { iso } from '../../model/frontmatter';
 import type { DecisionRecord } from '../../model/types';
 import { DECISION_SOURCES, decisionStatus } from './decisionRecord';
 
+function sourceLink(source: DecisionRecord['source']): string {
+  if (source.url) return ` · [${source.label ?? 'link'}](${source.url})`;
+  return source.label ? ` · ${source.label}` : '';
+}
+
 /** Markdown export of an audit list, newest first, grouped per mission. */
 export function decisionsToMarkdown(
   all: DecisionRecord[],
@@ -26,7 +31,7 @@ export function decisionsToMarkdown(
         '',
         `- **Status:** ${decisionStatus(d)}${d.supersededBy ? ` (superseded by ${d.supersededBy})` : ''}${d.supersedes ? ` · supersedes ${d.supersedes}` : ''}`,
         `- **Decided by:** ${d.decidedBy} · ${iso(d.decidedAt)}`,
-        `- **Source:** ${src}${d.source.url ? ` · [${d.source.label ?? 'link'}](${d.source.url})` : d.source.label ? ` · ${d.source.label}` : ''}`,
+        `- **Source:** ${src}${sourceLink(d.source)}`,
         ...(d.participants.length
           ? [`- **Participants:** ${d.participants.map((p) => p.name ?? p.id).join(', ')}`]
           : []),

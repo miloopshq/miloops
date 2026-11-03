@@ -27,6 +27,8 @@ export interface FlagInput {
 
 const short = (sha?: string | null) => sha?.slice(0, 8) ?? 'none';
 
+const NO_CHANGES_EFFECT = { fail: '; completing needs a change', human: '; a human decides' } as const;
+
 function noChanges(i: FlagInput): EvidenceFlag {
   const allowed = i.noChanges.allow.includes(i.ticketType);
   if (allowed || i.noCodeReason)
@@ -39,7 +41,7 @@ function noChanges(i: FlagInput): EvidenceFlag {
   return {
     kind: 'no-changes',
     level: effect ? 'alert' : 'warn',
-    message: `no files changed since the claim${effect === 'fail' ? '; completing needs a change' : effect === 'human' ? '; a human decides' : ''}`,
+    message: `no files changed since the claim${effect ? NO_CHANGES_EFFECT[effect] : ''}`,
     ...(effect ? { effect } : {}),
   };
 }

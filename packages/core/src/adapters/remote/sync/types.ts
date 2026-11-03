@@ -73,3 +73,10 @@ export interface CacheEntry {
   decisions: DecisionRecord[];
   at: number;
 }
+
+/** A comment as a remote tracker writes it; `writeId` lets a queued write find it again. */
+export interface RemoteComment {
+  author: string;
+  body: string;
+  writeId: string;
+}

@@ -1,10 +1,10 @@
 import { type RemoteKind, CONNECTORS } from '@miloops-hq/core';
 import { useState, useMemo } from 'react';
 import type { TrackerChoice, Prefs } from '../../lib';
+import { ConnectorCard } from './ConnectorCard';
 import { GitHubSetup } from './GitHubSetup';
 import { isRemote } from './labels';
 import { LinearSetup } from './LinearSetup';
-import { SyncLine } from './SyncLine';
 import { trackerApi, switchTracker } from './trackerApi';
 import { useTrackerSettings } from './useTrackerSettings';
 
@@ -43,44 +43,19 @@ export function TrackerConnectors(props: {
       <div className="connectors">
         {CONNECTORS.map((c) => {
           const id = c.id as TrackerChoice;
-          const active = id === props.activeTracker;
-          const remote = isRemote(id);
-          const usable = !remote || !!s;
           return (
-            <div
+            <ConnectorCard
               key={c.id}
-              className={`card connector ${active ? 'active' : ''} ${usable ? '' : 'disabled'} ${open === id ? 'open' : ''}`}
-            >
-              <div className="card-row">
-                <b className="card-title">{c.name}</b>
-                {active && <span className="pill on">Active</span>}
-              </div>
-              {(c.id === 'markdown' || remote) && active && <div className="c-loc">{props.location}</div>}
-              {remote && !active && configured[id] && (
-                <div className="c-loc">
-                  {id === 'github'
-                    ? s!.github.repo
-                    : [s!.linear.teamKey, s!.linear.projectName].filter(Boolean).join(' · ')}
-                </div>
-              )}
-              {remote && active && <SyncLine status={s?.[id].status} />}
-              <div className="c-actions">
-                {!active && (!remote || configured[id]) && (
-                  <button className="btn sm" disabled={!usable} onClick={() => void select(id)}>
-                    Switch
-                  </button>
-                )}
-                {remote && (
-                  <button
-                    className={`btn sm ${open === id ? 'on' : ''}`}
-                    disabled={!usable}
-                    onClick={() => setOpen(open === id ? null : id)}
-                  >
-                    {configured[id] ? 'Edit' : 'Connect'}
-                  </button>
-                )}
-              </div>
-            </div>
+              id={id}
+              name={c.name}
+              active={id === props.activeTracker}
+              configured={isRemote(id) && configured[id]}
+              open={open === id}
+              location={props.location}
+              s={s}
+              onSwitch={() => void select(id)}
+              onToggle={() => isRemote(id) && setOpen(open === id ? null : id)}
+            />
           );
         })}
       </div>

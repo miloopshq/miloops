@@ -12,6 +12,9 @@ export function DecisionRow(props: {
 }) {
   const { d } = props;
   const status = decisionStatus(d);
+  let statusText = 'active';
+  if (status === 'superseded') statusText = `→ ${d.supersededBy}`;
+  else if (d.supersedes) statusText = `↺ ${d.supersedes}`;
   return (
     <>
       {props.newDay && <li className="dv-day mono-label">{day(d.decidedAt)}</li>}
@@ -27,9 +30,7 @@ export function DecisionRow(props: {
             <span className="a">{d.summary}</span>
           </span>
           <span className="by">{d.decidedBy}</span>
-          <span className={`st ${status}`}>
-            {status === 'superseded' ? `→ ${d.supersededBy}` : d.supersedes ? `↺ ${d.supersedes}` : 'active'}
-          </span>
+          <span className={`st ${status}`}>{statusText}</span>
         </button>
       </li>
     </>

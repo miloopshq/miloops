@@ -20,14 +20,15 @@ export function UpNext(props: {
   return (
     <div className="upnext">
       <SectionHeader title="Up next" count={<span className="n mono-label">{items.length}</span>} />
-      {!snap ? (
-        <Empty>Ready tickets show here</Empty>
-      ) : !items.length ? (
-        <Empty>Nothing ready</Empty>
-      ) : (
+      {!snap && <Empty>Ready tickets show here</Empty>}
+      {snap && !items.length && <Empty>Nothing ready</Empty>}
+      {snap && items.length > 0 && (
         <ul className="ticket-list">
           {items.map((t) => {
             const st = states.get(t.id)!;
+            let stateText = STATE_TEXT[st].toLowerCase();
+            if (waiting.has(t.id)) stateText = 'waiting';
+            else if (st === 'claimed') stateText = t.assignee ?? '';
             return (
               <li key={t.id} className={`${selId === t.id ? 'sel' : ''} st-${waiting.has(t.id) ? 'waiting' : st}`}>
                 <button onClick={() => props.onSelect({ kind: 'ticket', id: t.id })}>
@@ -35,9 +36,7 @@ export function UpNext(props: {
                   <span className="key">{t.key}</span>
                   <span className="ttl">{t.title}</span>
                   <span className="human">{attention(t) === 'hitl' ? '●' : '○'}</span>
-                  <span className="st-text">
-                    {waiting.has(t.id) ? 'waiting' : st === 'claimed' ? t.assignee : STATE_TEXT[st].toLowerCase()}
-                  </span>
+                  <span className="st-text">{stateText}</span>
                 </button>
               </li>
             );

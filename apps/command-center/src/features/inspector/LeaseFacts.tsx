@@ -14,13 +14,7 @@ export function LeaseFacts({ lease, onRelease }: { lease: TicketLease; onRelease
         <Meta parts={['Lease', lease.agent, `active ${ago(now - lease.renewedAt)} ago`]} />
         {health !== 'live' && <Pill tone="amber">Stalled</Pill>}
       </div>
-      <p className="lease-line">
-        {health === 'expired'
-          ? 'Lease expired · returning to the queue'
-          : health === 'stalled'
-            ? `Agent went quiet · returns to the queue in ${dur(left)}`
-            : `Renewed by agent activity · returns to the queue after ${dur(left)} of silence`}
-      </p>
+      <p className="lease-line">{leaseLine(health, dur(left))}</p>
       {lease.notes.length > 0 && (
         <ul className="lease-notes">
           {lease.notes.slice(-3).map((n, i) => (
@@ -35,4 +29,10 @@ export function LeaseFacts({ lease, onRelease }: { lease: TicketLease; onRelease
       </div>
     </div>
   );
+}
+
+function leaseLine(health: string, left: string) {
+  if (health === 'expired') return 'Lease expired · returning to the queue';
+  if (health === 'stalled') return `Agent went quiet · returns to the queue in ${left}`;
+  return `Renewed by agent activity · returns to the queue after ${left} of silence`;
 }

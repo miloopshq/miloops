@@ -1,12 +1,10 @@
-import { chooseNext, chartMap, deriveStates, DISCOVERY_TICKET, OperationError, type MapMode } from '@miloops-hq/core';
-import { readAgentDocs, readVerificationConfig, writeBrief } from '@miloops-hq/core/agents';
+import { chooseNext, deriveStates, type MapMode } from '@miloops-hq/core';
+import { readAgentDocs } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
-import { saveCriteria } from './criteria';
 import { deliveryView } from './deliveryView';
 import { briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
 import { ticketInfo } from './ticketInfo';
-import type { TicketPlanInput } from './types';
 import { missionView } from './views';
 
 export async function status(ctx: AgentContext, missionRef?: string) {
@@ -33,108 +31,6 @@ export async function status(ctx: AgentContext, missionRef?: string) {
     ...base,
     mission: missionView(snap, docs, records, (id) => ctx.keyOf(id)),
     delivery: deliveryView(ctx.root, snap, docs),
-  };
-}
-
-export async function startMission(
-  ctx: AgentContext,
-  input: {
-    title: string;
-    destination: string;
-    notes?: string;
-    mode?: MapMode;
-    tickets?: TicketPlanInput[];
-    decided?: string[];
-    unspecified?: string[];
-    outOfScope?: string[];
-    /** Default on: implementation waits for an accepted discovery brief. Off only when the human says to skip it. */
-    discovery?: boolean;
-  },
-) {
-  const s = await ctx.chartSession();
-  s.step(1, input.destination);
-  s.step(2, `${input.tickets?.length ?? 0} tickets proposed`);
-  for (const t of input.tickets ?? []) s.log(`proposed ${t.type} · ${t.title}`);
-  const refs = new Set((input.tickets ?? []).map((t) => t.ref));
-  for (const t of input.tickets ?? [])
-    for (const b of t.blockedBy ?? [])
-      if (!refs.has(b)) throw new OperationError(`ticket "${t.ref}" is blocked by unknown ref "${b}"`);
-  s.step(3, input.title);
-  const level = readVerificationConfig(ctx.root).config?.default;
-  const { map, tickets } = await chartMap(
-    ctx.adapter,
-    {
-      title: input.title,
-      mode: input.mode,
-      ...(level && level !== 'off' ? { verification: level } : {}),
-      sections: {
-        destination: input.destination,
-        notes: input.notes ?? '',
-        decisions: (input.decided ?? []).map((text) => ({ text })),
-        unspecified: input.unspecified ?? [],
-        outOfScope: input.outOfScope ?? [],
-      },
-      tickets: [
-        ...(input.discovery === false ? [] : [{ ref: '__discovery', ...DISCOVERY_TICKET }]),
-        ...(input.tickets ?? []).map((t) => ({ ...t, body: t.body ?? '' })),
-      ],
-    },
-    {
-      onMapCreated: (m) => {
-        s.bindMap(m.id);
-        s.log(`mission ${m.key} online`, 'ok');
-        s.step(4, `${input.tickets?.length ?? 0} tickets`);
-      },
-    },
-  );
-  ctx.mission = map.id;
-  for (const pt of input.tickets ?? []) {
-    const made = pt.criteria?.length && tickets.find((x) => x.title === pt.title);
-    if (made) saveCriteria(ctx.root, map, made, pt.criteria!);
-  }
-  const discoveryTicket =
-    input.discovery === false ? undefined : tickets.find((t) => t.title === DISCOVERY_TICKET.title);
-  if (discoveryTicket)
-    writeBrief(ctx.root, {
-      mapId: map.id,
-      status: 'draft',
-      ticketId: discoveryTicket.id,
-      sections: {
-        summary: '',
-        productContext: '',
-        existing: '',
-        conventions: '',
-        dataModel: '',
-        api: '',
-        risks: '',
-        assumptions: [],
-        openQuestions: [],
-      },
-    });
-  s.step(5, 'ready for agents');
-  const framing = ctx.sessions.transcript(s.id) ?? [];
-  ctx.sessions.end(true, `Mission launched · ${tickets.length} tickets`, true);
-  const snap = await ctx.load(map.id);
-  const next = chooseNext(snap, { types: claimable(ctx.root, map.id) });
-  return {
-    mission: {
-      id: map.id,
-      key: map.key,
-      title: map.title,
-      mode: map.mode,
-      ...(map.verification ? { verification: map.verification } : {}),
-    },
-    tickets: tickets.map((t) => ({
-      ref: (input.tickets ?? []).find((p) => p.title === t.title)?.ref,
-      key: t.key,
-      title: t.title,
-      type: t.type,
-    })),
-    framingQuestionsAnswered: framing.filter((e) => e.from === 'human').length,
-    discovery: briefView(ctx.root, snap),
-    next: next ? ticketInfo(ctx.root, snap, next) : null,
-    knowledge: next ? knowledgeFor(ctx.root, snap, next) : undefined,
-    commandCenter: ctx.commandCenter(),
   };
 }
 

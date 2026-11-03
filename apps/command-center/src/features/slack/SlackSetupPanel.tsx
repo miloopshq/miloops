@@ -7,7 +7,7 @@ import { PasteToken } from './PasteToken';
 import { slackApi } from './slackApi';
 import { SlackStateLine } from './SlackStateLine';
 import { StepFact } from './StepFact';
-import { STEPS, isDone, isCurrent } from './steps';
+import { STEPS, isDone, isCurrent, stepClass } from './steps';
 import { useTokenPickup, PASTE_KEY } from './useTokenPickup';
 
 /**
@@ -37,19 +37,14 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
   const auto = useTokenPickup(onToken);
   const pickup = auto ? 'come back to this tab' : `press ${PASTE_KEY} here`;
   const step = s.step;
-  const line = (n: number) =>
-    result &&
-    (n === 4
-      ? result.kind === 'bot' || (!result.ok && step === 4)
-      : result.kind === 'app' || (!result.ok && step !== 4)) ? (
-      <div className={`test-line ${result.ok ? 'ok' : 'alert'}`}>
-        {result.ok
-          ? result.kind === 'app'
-            ? `✓ Socket Mode reachable · app ${result.status.setup.appId}`
-            : `✓ Installed in ${result.status.workspace?.name} as @${result.status.bot?.name ?? 'milo'}`
-          : `✕ ${result.error}`}
-      </div>
-    ) : null;
+  /** The last token test shows under the step it belongs to: the bot token under Install, the app token elsewhere. */
+  const line = (n: number) => {
+    if (!result) return null;
+    const failedHere = !result.ok && (n === 4) === (step === 4);
+    const forThisStep = result.kind === (n === 4 ? 'bot' : 'app') || failedHere;
+    if (!forThisStep) return null;
+    return <div className={`test-line ${result.ok ? 'ok' : 'alert'}`}>{resultText(result)}</div>;
+  };
   const body: Record<number, ReactNode> = {
     1: (
       <>
@@ -134,7 +129,7 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
     <Card tone="inset" className="slack-setup">
       <ol className="pipeline sl-pipeline" aria-label="Slack setup">
         {STEPS.map((x) => (
-          <li key={x.n} className={isDone(step, x.n) ? 'done' : isCurrent(step, x.n) ? 'cur' : ''}>
+          <li key={x.n} className={stepClass(step, x.n)}>
             <i />
             <span>
               {x.n} {x.title}
@@ -147,7 +142,7 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
           const done = isDone(step, x.n);
           const cur = isCurrent(step, x.n);
           return (
-            <li key={x.n} className={done ? 'done' : cur ? 'cur' : ''}>
+            <li key={x.n} className={stepClass(step, x.n)}>
               <div className="sl-step-h">
                 <span className="sl-n">{done ? '✓' : x.n}</span>
                 <b>{x.title}</b>
@@ -160,4 +155,10 @@ export function SlackSetupPanel(props: { s: SlackStatus; set: (s: SlackStatus) =
       </ol>
     </Card>
   );
+}
+
+function resultText(r: SlackTokenResult) {
+  if (!r.ok) return `✕ ${r.error}`;
+  if (r.kind === 'app') return `✓ Socket Mode reachable · app ${r.status.setup.appId}`;
+  return `✓ Installed in ${r.status.workspace?.name} as @${r.status.bot?.name ?? 'milo'}`;
 }

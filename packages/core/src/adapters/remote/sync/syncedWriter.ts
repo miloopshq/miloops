@@ -3,10 +3,10 @@ import { OperationError } from '../../../planning/operations/operationError';
 import type { MapInput } from '../../adapter';
 import { withMapMeta } from '../../mapMeta';
 import { withMeta } from '../../ticketMeta';
-import { isTransient } from '../http';
+import { isTransient, type TrackerError } from '../http';
 import { applyWrite, CHECKED, hasLanded, ticketOf, writeId } from './queuedWrites';
 import { SyncedStore } from './syncedStore';
-import type { CacheEntry, EventInit, QueuedChange, QueuedWrite } from './types';
+import type { CacheEntry, EventInit, QueuedChange, QueuedWrite, RemoteComment } from './types';
 
 /**
  * Write side of a synced adapter: the remote primitives each tracker supplies,
@@ -22,14 +22,8 @@ export abstract class SyncedWriter extends SyncedStore {
   protected abstract remoteAddBlocking(map: MapDoc, blocker: Ticket, blocked: Ticket): Promise<void>;
   /** Persist the claim and status (`ticketMeta`) of an already-updated ticket. */
   protected abstract remoteSetMeta(map: MapDoc, t: Ticket): Promise<void>;
-  /** `writeId` must be readable back as the comment's `writeId`. */
-  protected abstract remoteComment(
-    map: MapDoc,
-    t: Ticket,
-    author: string,
-    body: string,
-    writeId: string,
-  ): Promise<void>;
+  /** `c.writeId` must be readable back as the comment's `writeId`. */
+  protected abstract remoteComment(map: MapDoc, t: Ticket, c: RemoteComment): Promise<void>;
   protected abstract remoteClose(map: MapDoc, t: Ticket, reason: 'completed' | 'not_planned'): Promise<void>;
   protected abstract remoteUpdateMap(map: MapDoc): Promise<void>;
   protected abstract remoteSetMode(map: MapDoc, mode: MapMode): Promise<void>;
@@ -57,7 +51,7 @@ export abstract class SyncedWriter extends SyncedStore {
       case 'meta':
         return this.remoteSetMeta(map, withMeta(ticketOf(e, c.ticketId), c.patch));
       case 'comment':
-        return this.remoteComment(map, ticketOf(e, c.ticketId), c.author, c.body, w.id);
+        return this.remoteComment(map, ticketOf(e, c.ticketId), { author: c.author, body: c.body, writeId: w.id });
       case 'close':
         return this.remoteClose(map, ticketOf(e, c.ticketId), c.reason);
       case 'decision':
@@ -92,13 +86,7 @@ export abstract class SyncedWriter extends SyncedStore {
         if (check || !this.entries.has(w.mapId)) await read(w.mapId);
         if (!(check && hasLanded(remote.get(w.mapId)!, w))) await this.send(await this.entry(w.mapId), w);
       } catch (err) {
-        if (isTransient(err)) {
-          if (err.code === 'offline' && !w.verify) {
-            w.verify = true;
-            this.queue.save();
-          }
-          throw err;
-        }
+        if (isTransient(err)) throw this.keepQueued(w, err);
         // the tracker rejected it for good (deleted issue, revoked access): drop it rather than block the queue
         this.queue.shift();
         this.health.set({ error: `Dropped queued write (${w.label}): ${(err as Error).message}` });
@@ -108,6 +96,18 @@ export abstract class SyncedWriter extends SyncedStore {
       this.health.online();
       this.health.set({});
     }
+  }
+
+  /**
+   * Leaves a write that hit a transient failure in the queue. An offline failure
+   * may have reached the tracker anyway, so the write is checked before it is sent again.
+   */
+  private keepQueued(w: QueuedWrite, err: TrackerError): TrackerError {
+    if (err.code === 'offline' && !w.verify) {
+      w.verify = true;
+      this.queue.save();
+    }
+    return err;
   }
 
   /**

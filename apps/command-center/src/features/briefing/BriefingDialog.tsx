@@ -153,13 +153,7 @@ export function BriefingDialog(
               <BriefingTile
                 label="Waiting on you"
                 value={t.waiting}
-                sub={
-                  t.oldestWaitMs !== undefined
-                    ? t.oldestWaitMs < 60_000
-                      ? 'Just asked'
-                      : `Oldest ${dur(t.oldestWaitMs)}`
-                    : undefined
-                }
+                sub={oldestWait(t.oldestWaitMs)}
                 urgent={t.waiting > 0}
               />
               <BriefingTile label="Agent decisions" value={t.agentDecisions} className="opt" />
@@ -188,4 +182,10 @@ export function BriefingDialog(
       </Panel>
     </div>
   );
+}
+
+function oldestWait(ms: number | undefined) {
+  if (ms === undefined) return undefined;
+  if (ms < 60_000) return 'Just asked';
+  return `Oldest ${dur(ms)}`;
 }

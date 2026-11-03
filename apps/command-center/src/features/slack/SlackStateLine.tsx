@@ -9,24 +9,32 @@ export const EVENT_LABEL: Record<SlackNotifyEvent, string> = {
 };
 
 export function SlackStateLine({ s }: { s: SlackStatus }) {
-  const [cls, text] =
-    s.state === 'online'
-      ? ['ok', 'Online']
-      : s.state === 'connecting'
-        ? ['', 'Connecting']
-        : s.state === 'offline'
-          ? ['warn', 'Offline · reconnecting']
-          : s.state === 'auth-error'
-            ? ['alert', 'Disconnected · Slack rejected the tokens']
-            : s.state === 'elsewhere'
-              ? ['warn', `Connected from another ${BRAND.slug}${s.heldBy ? ` (${s.heldBy})` : ''}`]
-              : s.state === 'unsupported'
-                ? ['alert', s.error ?? 'Not supported here']
-                : ['', s.step === 'done' ? 'Off' : 'Not connected'];
+  const [cls, text] = stateLine(s);
   return (
     <div className={`sync-line ${cls}`} title={s.error}>
       <span className="dot" />
       <span>{text}</span>
     </div>
   );
+}
+
+function stateLine(s: SlackStatus): [string, string] {
+  switch (s.state) {
+    case 'online':
+      return ['ok', 'Online'];
+    case 'connecting':
+      return ['', 'Connecting'];
+    case 'offline':
+      return ['warn', 'Offline · reconnecting'];
+    case 'auth-error':
+      return ['alert', 'Disconnected · Slack rejected the tokens'];
+    case 'elsewhere': {
+      const holder = s.heldBy ? ` (${s.heldBy})` : '';
+      return ['warn', `Connected from another ${BRAND.slug}${holder}`];
+    }
+    case 'unsupported':
+      return ['alert', s.error ?? 'Not supported here'];
+    default:
+      return ['', s.step === 'done' ? 'Off' : 'Not connected'];
+  }
 }

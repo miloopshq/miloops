@@ -87,29 +87,27 @@ async function awaitRun(ctx: AgentContext, run: Run, seconds: number, ctl: WaitC
  */
 export async function submitVerified(
   ctx: AgentContext,
-  snap: MapSnapshot,
-  t: Ticket,
-  info: LevelInfo,
-  sub: Submission,
+  job: { snap: MapSnapshot; ticket: Ticket; info: LevelInfo; sub: Submission },
   wait: { seconds: number; ctl: WaitControl },
 ) {
-  await transition(
-    ctx.adapter,
-    snap.map.id,
-    t.id,
-    {
-      event: 'submit',
-      actor: sub.agent,
-      actorKind: 'agent',
-      expect: 'working',
-      sessionId: sub.sessionId,
-      reason: sub.summary,
-    },
-    { journal: ctx.journal },
-  );
+  const { snap, ticket: t, info, sub } = job;
+  await transition(ctx.adapter, snap.map.id, t.id, {
+    event: 'submit',
+    actor: sub.agent,
+    actorKind: 'agent',
+    expect: 'working',
+    sessionId: sub.sessionId,
+    reason: sub.summary,
+    journal: ctx.journal,
+  });
   ctx.leases.drop(snap.map.id, t.id);
   ctx.sessions.running()?.log(`${t.key} submitted · checks: ${info.checks.join(', ') || 'none'}`, 'step');
-  const run = track(ctx, snap.map.id, t.id, await verify(ctx.verifyEnv(), snap.map.id, t, info, sub));
+  const run = track(
+    ctx,
+    snap.map.id,
+    t.id,
+    await verify(ctx.verifyEnv(), { mapId: snap.map.id, ticket: t, info, sub }),
+  );
   return awaitRun(ctx, run, wait.seconds, wait.ctl);
 }
 
