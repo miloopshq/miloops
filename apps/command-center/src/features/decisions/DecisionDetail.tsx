@@ -9,6 +9,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { Pill, Meta, Button, Card, Field, Empty } from '../../components/ui';
 import type { CommandCenterApi } from '../../hooks';
 import { stamp, ago, day, hm } from '../../lib';
+import { PromoteButton } from '../knowledge';
 import { SourceTag } from './SourceTag';
 
 export function DecisionDetail(props: {
@@ -125,6 +126,14 @@ export function DecisionDetail(props: {
       )}
 
       <div className="actions">
+        <PromoteButton
+          draft={() => ({
+            title: d.summary || d.question,
+            body: [d.answer, d.rationale && `Why: ${d.rationale}`].filter(Boolean).join('\n\n'),
+            kind: 'product-decision',
+            sources: [`decision:${d.id}`, ...(d.ticketKey ? [`ticket:${d.ticketKey}`] : [])],
+          })}
+        />
         {status === 'active' && (
           <Button
             on={form}

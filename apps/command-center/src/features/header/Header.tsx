@@ -39,6 +39,10 @@ export function Header(props: {
   decisions: number;
   decisionsOpen: boolean;
   onDecisions: () => void;
+  /** Knowledge entries that need the operator (suggestions, flags, stale). */
+  knowledge: number;
+  knowledgeOpen: boolean;
+  onKnowledge: () => void;
   briefingOpen: boolean;
   briefingStatus: BriefingStatus;
   onBriefing: () => void;
@@ -127,6 +131,16 @@ export function Header(props: {
           <MiloMark size={14} />
           <span className="bl">Briefing</span>
           {props.briefingStatus === 'new' && <span className="new-dot" aria-label="new" />}
+        </Button>
+        <Button
+          variant="ghost"
+          className="knowledge-btn"
+          data-tip="What agents know about this codebase and product. Review suggestions, flags and stale entries"
+          on={props.knowledgeOpen}
+          onClick={props.onKnowledge}
+          aria-pressed={props.knowledgeOpen}
+        >
+          Knowledge {props.knowledge > 0 && <span className="n hot">{props.knowledge}</span>}
         </Button>
         <Button
           variant="ghost"

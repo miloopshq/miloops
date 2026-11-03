@@ -2,6 +2,7 @@ import { BRIEF_SECTION_LABEL, type BriefSections, type DiscoveryBrief } from '@m
 import { useEffect, useState } from 'react';
 import { Button, Empty, Field, Panel } from '../../components/ui';
 import { ago } from '../../lib';
+import { PromoteButton } from '../knowledge';
 import { BriefProse } from './BriefProse';
 
 const PROSE: (keyof BriefSections)[] = [
@@ -47,6 +48,16 @@ export function BriefDialog(props: {
             <section key={k}>
               <h3 className="mono-label">{BRIEF_SECTION_LABEL[k]}</h3>
               <BriefProse text={s[k] as string} />
+              {(k === 'conventions' || k === 'productContext') && (s[k] as string).trim() && (
+                <PromoteButton
+                  draft={() => ({
+                    title: `${BRIEF_SECTION_LABEL[k]}: ${(s[k] as string).split('\n')[0].slice(0, 80)}`,
+                    body: s[k] as string,
+                    kind: k === 'conventions' ? 'convention' : 'business-rule',
+                    sources: [`brief:${b.mapId}`],
+                  })}
+                />
+              )}
             </section>
           ))}
           <section>

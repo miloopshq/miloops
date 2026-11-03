@@ -40,6 +40,8 @@ The landing site lives in its own repo, `miloopshq/miloops-landing`.
 - `<mission>/map.md`: mission frontmatter plus the map body (Destination, Notes, Decisions so far, Not yet specified, Out of scope). The format is shared by every adapter (`packages/core/src/model/mapBody.ts`).
 - `<mission>/tickets/<n>.md`: ticket frontmatter, body and comments. `<mission>/decisions/<D-n>.md`: decision records.
 - `verification.json`: the checks agents' completions run. Committed.
+- `briefs/<mapId>.md`: the mission's discovery brief and its status. A mission with a brief requires discovery: implementation tickets can't be claimed until the operator accepts it. Committed.
+- `knowledge/K-<n>.md`: project and product knowledge entries (suggested, confirmed, assumption, outdated). Committed, so teammates share it.
 - `.events/<mapId>.jsonl`: the append-only lifecycle journal (`packages/core/src/history/journalFile.ts`). Local only, git-ignored.
 - `.evidence/`: verification attempts, check output and git evidence per ticket.
 - `.agents/`: cross-process coordination between MCP processes and the command center, including sessions, answers, leases, callsigns and the server lock.
@@ -53,13 +55,15 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 - `planning/`: graph derivation (`derive.ts`), charting and other operations (`operations/`), lifecycle transitions (`lifecycle/`), decisions (`decisions/`), metrics and the away briefing (`briefing.ts`).
 - `verification/` and `evidence/`: checks, review, approvals, outcomes, git evidence and PR/CI sync.
 - `agents/`: leases, callsigns, agent docs and returning stalled claims to the queue.
+- `discovery/`: the discovery brief model, file format, gate (`claimableTypes`, `gateReason`) and store.
+- `knowledge/`: knowledge entries, file format, search, per-ticket selection (`selectKnowledge`), staleness from file hashes, and the store.
 - `activity/`: the activity stream, presence and usage.
 - `server/`: the HTTP bridge (`trackerBridge.ts`), its route handlers (`*Routes.ts`), the `/events` SSE stream and the background loops (`watchLeases.ts`, `watchVerification.ts`, `watchTrackerFolder.ts`).
 
 ### MCP server (`packages/cli/src/mcp`)
 
 - `server.ts` creates the server; `toolKit.ts` defines how tools are declared (zod schemas, results and errors).
-- Tools are grouped in `tools/` (`missionTools.ts`, `ticketTools.ts`, `workTools.ts`, `hitlTools.ts`). Their behaviour lives in `mission/` (mission ops, ticket ops, HITL, completion, reviews, leases, sessions).
+- Tools are grouped in `tools/` (`missionTools.ts`, `ticketTools.ts`, `workTools.ts`, `hitlTools.ts`, `knowledgeTools.ts`). Their behaviour lives in `mission/` (mission ops, ticket ops, HITL, completion, reviews, leases, sessions).
 - `instructions.ts` holds the server instructions every agent gets. `packages/cli/commands/milo.md` is the `/milo` command for Claude Code (and the Codex prompt).
 
 ### Command center (`apps/command-center/src`)

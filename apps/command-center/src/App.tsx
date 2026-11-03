@@ -20,6 +20,7 @@ import { StepZone, LogZone, ActivityStack } from './features/activity';
 import { DecisionsView } from './features/decisions';
 import { InboxPane } from './features/inbox';
 import { Inspector } from './features/inspector';
+import { KnowledgeContext, KnowledgeView, useKnowledgeStore } from './features/knowledge';
 import { MapSections } from './features/plan';
 import { Onboarding } from './features/settings';
 import { UpNext } from './features/up-next';
@@ -49,6 +50,7 @@ export function App() {
   useDocumentTitle(pending, snap?.map.title);
   const nav = useAppNavigation(api, bp);
   const discovery = useDiscoveryUi(snap);
+  const knowledge = useKnowledgeStore(discovery.briefText);
 
   const inbox = (
     <InboxPane
@@ -125,83 +127,86 @@ export function App() {
   );
 
   return (
-    <div className={`app bp-${bp}`}>
-      <AppHeader
-        api={api}
-        rt={rt}
-        repo={repo}
-        brief={brief}
-        decisionsOpen={!!nav.decisionsView}
-        onDecisions={() => (nav.decisionsView ? nav.setDecisionsView(null) : nav.openDecisions())}
-        onNewMission={() => setNewMission(true)}
-        onSettings={setSettingsOpen}
-      />
-      {bp === 'wide' && (
-        <>
-          {inbox}
-          {map}
-          {inspector(false)}
-          <StepZone {...zoneProps} />
-          <LogZone {...zoneProps} />
-          {plan(false)}
-          {decisions}
-        </>
-      )}
-      {bp === 'laptop' && (
-        <>
-          {inbox}
-          {map}
-          <LaptopSide
-            tab={nav.sideTab}
-            onTab={nav.setSideTab}
-            unspecified={snap?.map.sections.unspecified.length}
-            ticket={inspector(true)}
-            activity={<ActivityStack {...zoneProps} />}
-            plan={plan(true)}
-          />
-          {decisions}
-        </>
-      )}
-      {bp === 'mobile' && (
-        <>
-          <PhoneView
-            tab={nav.phoneTab}
-            decisions={decisions}
-            inbox={inbox}
-            map={map}
-            ticket={inspector(true)}
-            activity={<ActivityStack {...zoneProps} />}
-            plan={plan(true)}
-          />
-          <PhoneTabBar
-            tab={nav.phoneTab}
-            covered={!!nav.decisionsView}
-            pending={pending}
-            onPick={(id) => {
-              nav.setPhoneTab(id);
-              nav.setDecisionsView(null);
-            }}
-          />
-        </>
-      )}
-
-      {briefing}
-      {discovery.dialog}
-      {api.error && <div className="error-toast">{api.error}</div>}
-      {settingsOpen && (
-        <AppSettings
-          rt={rt}
+    <KnowledgeContext.Provider value={knowledge}>
+      <div className={`app bp-${bp}`}>
+        <AppHeader
           api={api}
-          prefs={prefs}
-          update={updatePrefs}
-          focus={settingsOpen}
-          onClose={() => setSettingsOpen(false)}
+          rt={rt}
+          repo={repo}
+          brief={brief}
+          decisionsOpen={!!nav.decisionsView}
+          onDecisions={() => (nav.decisionsView ? nav.setDecisionsView(null) : nav.openDecisions())}
+          onNewMission={() => setNewMission(true)}
+          onSettings={setSettingsOpen}
         />
-      )}
-      {newMission && (
-        <AppNewMission rt={rt} onClose={() => setNewMission(false)} onCreated={(id) => actions.selectMap(id)} />
-      )}
-      {!prefs.onboarded && <Onboarding prefs={prefs} update={updatePrefs} activeTracker={rt.kind} />}
-    </div>
+        {bp === 'wide' && (
+          <>
+            {inbox}
+            {map}
+            {inspector(false)}
+            <StepZone {...zoneProps} />
+            <LogZone {...zoneProps} />
+            {plan(false)}
+            {decisions}
+          </>
+        )}
+        {bp === 'laptop' && (
+          <>
+            {inbox}
+            {map}
+            <LaptopSide
+              tab={nav.sideTab}
+              onTab={nav.setSideTab}
+              unspecified={snap?.map.sections.unspecified.length}
+              ticket={inspector(true)}
+              activity={<ActivityStack {...zoneProps} />}
+              plan={plan(true)}
+            />
+            {decisions}
+          </>
+        )}
+        {bp === 'mobile' && (
+          <>
+            <PhoneView
+              tab={nav.phoneTab}
+              decisions={decisions}
+              inbox={inbox}
+              map={map}
+              ticket={inspector(true)}
+              activity={<ActivityStack {...zoneProps} />}
+              plan={plan(true)}
+            />
+            <PhoneTabBar
+              tab={nav.phoneTab}
+              covered={!!nav.decisionsView}
+              pending={pending}
+              onPick={(id) => {
+                nav.setPhoneTab(id);
+                nav.setDecisionsView(null);
+              }}
+            />
+          </>
+        )}
+
+        {briefing}
+        {discovery.dialog}
+        {api.error && <div className="error-toast">{api.error}</div>}
+        {settingsOpen && (
+          <AppSettings
+            rt={rt}
+            api={api}
+            prefs={prefs}
+            update={updatePrefs}
+            focus={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+          />
+        )}
+        {newMission && (
+          <AppNewMission rt={rt} onClose={() => setNewMission(false)} onCreated={(id) => actions.selectMap(id)} />
+        )}
+        {!prefs.onboarded && <Onboarding prefs={prefs} update={updatePrefs} activeTracker={rt.kind} />}
+        <KnowledgeView />
+      </div>
+    </KnowledgeContext.Provider>
   );
 }

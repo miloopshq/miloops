@@ -1,0 +1,124 @@
+/* ---------- Knowledge: header count, the view, inspector preview ---------- */
+.knowledge-btn .n.hot {
+  margin-left: var(--sp-4);
+  padding: 0 5px;
+  background: var(--amber);
+  color: #170b03;
+  font-size: var(--fs-xs);
+}
+.knowledge-view {
+  width: min(1100px, 96vw);
+  height: min(760px, 90vh);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-10);
+}
+.knowledge-view header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-10);
+}
+.kn-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-6);
+}
+.kn-filters .chip {
+  border: 1px solid var(--line2);
+  background: transparent;
+  color: var(--text);
+  padding: var(--sp-4) var(--sp-10);
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.kn-filters .chip.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.kn-filters .chip .n {
+  color: var(--dim);
+  margin-left: var(--sp-4);
+}
+.kn-search {
+  flex: 1;
+  min-width: 160px;
+}
+.kn-body-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 2fr) minmax(0, 3fr);
+  gap: var(--sp-14);
+}
+.kn-list {
+  overflow: auto;
+  border-right: 1px solid var(--line);
+  padding-right: var(--sp-8);
+}
+.kn-list button {
+  display: flex;
+  gap: var(--sp-8);
+  align-items: baseline;
+  width: 100%;
+}
+.kn-list .ttl {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kn-status {
+  flex: 0 0 auto;
+  font-family: var(--label);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.kn-status.st-suggested {
+  color: var(--amber);
+}
+.kn-status.st-confirmed {
+  color: var(--st-decided);
+}
+.kn-detail {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+}
+.kn-detail h3 {
+  margin: 0;
+}
+.kn-body {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: var(--lh-body);
+}
+.kn-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin: var(--sp-8) 0;
+}
+.kn-preview ul {
+  margin: 0;
+  padding-left: var(--sp-14);
+  display: grid;
+  gap: 2px;
+  font-size: var(--fs-sm);
+}
+@media (max-width: 860px) {
+  .kn-body-grid {
+    grid-template-columns: 1fr;
+  }
+  .kn-list {
+    border-right: 0;
+    max-height: 30vh;
+  }
+}

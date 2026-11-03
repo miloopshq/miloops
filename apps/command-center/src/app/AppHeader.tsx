@@ -1,4 +1,5 @@
 import { Header } from '../features/header';
+import { useKnowledge } from '../features/knowledge';
 import { useSlackStatus } from '../features/slack';
 import type { CommandCenterApi, useBriefing } from '../hooks';
 import type { Runtime } from '../lib';
@@ -17,6 +18,7 @@ export function AppHeader(props: {
   const { api, rt, brief } = props;
   const { snap, actions } = api;
   const [slack] = useSlackStatus(15000);
+  const knowledge = useKnowledge();
   const slackAlert =
     slack?.enabled && slack.state === 'auth-error' ? (slack.error ?? 'Slack rejected the tokens') : undefined;
   return (
@@ -36,6 +38,9 @@ export function AppHeader(props: {
       decisions={api.decisions.length}
       decisionsOpen={props.decisionsOpen}
       onDecisions={props.onDecisions}
+      knowledge={knowledge.attention}
+      knowledgeOpen={knowledge.open}
+      onKnowledge={() => knowledge.setOpen(!knowledge.open)}
       briefingOpen={brief.shown}
       briefingStatus={brief.status}
       onBriefing={() => (brief.shown ? brief.dismiss() : brief.open())}

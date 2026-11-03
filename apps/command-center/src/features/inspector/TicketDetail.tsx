@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react';
 import { Empty, Pill, Button, Card, Field, Meta } from '../../components/ui';
 import { type CommandCenterApi } from '../../hooks';
 import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
+import { KnowledgePreview, PromoteButton } from '../knowledge';
 import { PrFlagBadges } from '../pr-sync';
 import { VerificationPanel } from '../verification';
 import { LeaseFacts } from './LeaseFacts';
@@ -71,6 +72,18 @@ export function TicketDetail(props: {
       </dl>
 
       <PrFlagBadges mapId={snap.map.id} ticketId={t.id} />
+      <KnowledgePreview snap={snap} t={t} />
+      {t.closeReason === 'not_planned' && (
+        <PromoteButton
+          label="Save as dead end"
+          draft={() => ({
+            title: `Ruled out: ${t.title}`,
+            body: t.comments.at(-1)?.body ?? t.body,
+            kind: 'dead-end',
+            sources: [`mission:${snap.map.key}`, `ticket:${t.key}`],
+          })}
+        />
+      )}
 
       {lease && <LeaseFacts lease={lease} onRelease={() => actions.releaseLease(t.id)} />}
       <VerificationPanel mapId={snap.map.id} mission={snap.map.verification} ticket={t} state={state} />

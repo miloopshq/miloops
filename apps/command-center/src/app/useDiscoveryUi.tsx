@@ -8,7 +8,9 @@ export function useDiscoveryUi(snap?: MapSnapshot) {
   const [open, setOpen] = useState(false);
   const review = () => setOpen(true);
   const b = d.brief;
+  const s = b?.sections;
   return {
+    briefText: s ? [s.existing, s.conventions, s.dataModel, s.api].join('\n') : '',
     banner: b && <DiscoveryBanner brief={b} onReview={review} />,
     inboxCard: b && <BriefInboxCard brief={b} onReview={review} />,
     dialog: b && open && (
