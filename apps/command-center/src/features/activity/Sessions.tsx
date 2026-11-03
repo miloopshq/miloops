@@ -31,7 +31,7 @@ export function Sessions({
   const live = new Set(running.map((s) => s.ticketId));
   const held = heldLeases(leases, snap?.map.id);
   const claims = snap?.tickets.filter((t) => t.state === 'open' && t.assignee && !live.has(t.id)) ?? [];
-  if (!running.length && !claims.length) return <Empty>Idle</Empty>;
+  if (!running.length && !claims.length) return <Empty>No agent on a ticket</Empty>;
   return (
     <ul className="sessions-list">
       {running.map((s) => {

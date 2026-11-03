@@ -105,5 +105,5 @@ Follow `CONTRIBUTING.md`: one export per file, 200 lines max, the layout rules, 
 ## Checks
 
 - `npm run check` runs everything CI runs: lint, the Prettier check, typecheck, build, the vitest and node:test suites, and `verify:mcp` (needs a build and Chrome; set `CHROME` to its path). It must pass before a PR.
-- **Run the app on the dev seed:** `npm run dev` resets the dev project to the seed and starts the command center with hot reload. `npm run build -w miloops-cli && npm run dev:agent` adds real MCP agents working it.
+- **Run the app on the dev seed:** `npm run dev` resets the dev project to the seed and starts the command center with hot reload. `npm run build -w miloops-cli && npm run dev:agent` adds real MCP agents working it. `npm run dev:empty` starts on a brand-new empty tracker folder instead, for the first-run flow.
 - `main` is protected: one PR per change, merged after CI passes. Releases are covered in `CONTRIBUTING.md`.

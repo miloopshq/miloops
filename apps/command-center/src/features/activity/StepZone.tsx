@@ -8,6 +8,8 @@ import type { ZoneProps } from './types';
 /** Wide: current step + sessions in one fixed zone. */
 export function StepZone(props: ZoneProps) {
   const running = props.activity.sessions.filter(isRunning).length;
+  // Nobody working and nothing claimed: the step tracker's empty state says it all.
+  const idle = !props.activity.sessions.length && !props.snap?.tickets.some((t) => t.state === 'open' && t.assignee);
   return (
     <Panel className="zone step-zone" style={{ gridArea: 'step' }}>
       <SectionHeader
@@ -17,14 +19,18 @@ export function StepZone(props: ZoneProps) {
       />
       <div className="zone-b">
         <StepTracker activity={props.activity} snap={props.snap} />
-        <SessionsHead activity={props.activity} snap={props.snap} running={running} usage={false} />
-        <Sessions
-          snap={props.snap}
-          activity={props.activity}
-          leases={props.leases}
-          onSelect={(s) => s?.kind === 'ticket' && props.onTicket(s.id)}
-          onOpenChat={props.onOpenChat}
-        />
+        {!idle && (
+          <>
+            <SessionsHead activity={props.activity} snap={props.snap} running={running} usage={false} />
+            <Sessions
+              snap={props.snap}
+              activity={props.activity}
+              leases={props.leases}
+              onSelect={(s) => s?.kind === 'ticket' && props.onTicket(s.id)}
+              onOpenChat={props.onOpenChat}
+            />
+          </>
+        )}
       </div>
     </Panel>
   );

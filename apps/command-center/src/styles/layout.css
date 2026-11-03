@@ -104,3 +104,32 @@
 .tab.on .n {
   color: var(--dim);
 }
+
+/* A zone with nothing yet: small dim MILO mark, a pixel title and one hint line. Minimal next to the map's MILO. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-6);
+  min-height: 120px;
+  padding: var(--sp-14) var(--gutter);
+  text-align: center;
+}
+.empty-state .es-mark {
+  color: var(--faint);
+  opacity: 0.8;
+}
+.empty-state .es-title {
+  font-family: var(--display);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.empty-state .es-hint {
+  max-width: 34ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--faint);
+}

@@ -4,6 +4,7 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { Choice } from './Choice';
 export { Empty } from './Empty';
+export { EmptyState } from './EmptyState';
 export { Field } from './Field';
 export { InputRow } from './InputRow';
 export { InfoTip } from './InfoTip';

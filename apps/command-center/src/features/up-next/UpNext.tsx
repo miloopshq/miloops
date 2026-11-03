@@ -21,7 +21,7 @@ export function UpNext(props: {
     <div className="upnext">
       <SectionHeader title="Up next" count={<span className="n mono-label">{items.length}</span>} />
       {!snap ? (
-        <Empty>No mission</Empty>
+        <Empty>Ready tickets show here</Empty>
       ) : !items.length ? (
         <Empty>Nothing ready</Empty>
       ) : (

@@ -1,5 +1,5 @@
 import type { PendingQuestion, MapSnapshot } from '@miloops-hq/core';
-import { Empty, Card, Meta } from '../../components/ui';
+import { Card, EmptyState, Meta } from '../../components/ui';
 import { useNow } from '../../hooks';
 import { ago } from '../../lib';
 
@@ -14,7 +14,8 @@ export function InboxList(props: {
   onOpen: (sessionId: string, ticketId?: string) => void;
 }) {
   const now = useNow(1000);
-  if (!props.items.length) return <Empty>Nothing waiting</Empty>;
+  if (!props.items.length)
+    return <EmptyState title="Nothing waiting on you" hint="When an agent needs your call, its question lands here." />;
   const many = Object.keys(props.snaps).length > 1;
   return (
     <ul className="inbox-list">

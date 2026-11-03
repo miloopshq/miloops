@@ -1,10 +1,17 @@
 import type { ActivityState } from '@miloops-hq/core';
-import { MiloMark } from '../../components/ui';
+import { EmptyState, MiloMark } from '../../components/ui';
 import { clock } from '../../lib';
 
 /** Dense activity log: time, source, message. */
 export function ActivityLog({ activity, onTicket }: { activity: ActivityState; onTicket: (id: string) => void }) {
   const rows = activity.feed.slice(-120).reverse();
+  if (!rows.length)
+    return (
+      <EmptyState
+        title="Nothing has happened yet"
+        hint="Claims, steps, questions and decisions appear here as agents work."
+      />
+    );
   return (
     <div className="log">
       {rows.map((e) => (
