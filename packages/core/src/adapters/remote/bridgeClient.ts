@@ -12,7 +12,7 @@ import type {
   TicketType,
   TrackerEvent,
 } from '../../model/types';
-import type { MapInput, TrackerAdapter } from '../adapter';
+import type { MapInput, TicketEdit, TrackerAdapter } from '../adapter';
 import { TrackerError } from './http';
 import type { SyncStatus } from './sync/types';
 import type {
@@ -84,6 +84,11 @@ export class BridgeAdapter implements TrackerAdapter {
     this.call<Ticket>('createTicket', mapId, input);
   addBlocking = (mapId: string, blockerId: string, blockedId: string) =>
     this.call<void>('addBlocking', mapId, blockerId, blockedId);
+  removeBlocking = (mapId: string, blockerId: string, blockedId: string) =>
+    this.call<void>('removeBlocking', mapId, blockerId, blockedId);
+  editTicket = (mapId: string, ticketId: string, edit: TicketEdit) =>
+    this.call<void>('editTicket', mapId, ticketId, edit);
+  reopen = (mapId: string, ticketId: string) => this.call<void>('reopen', mapId, ticketId);
   assign = (mapId: string, ticketId: string, assignee: string | null) =>
     this.call<void>('assign', mapId, ticketId, assignee);
   comment = (mapId: string, ticketId: string, author: string, body: string) =>

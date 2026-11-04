@@ -189,6 +189,7 @@ export type TrackerEvent =
   | { kind: 'ticket.closed'; mapId: string; ticketId: string; reason: 'completed' | 'not_planned'; at: number }
   | { kind: 'ticket.commented'; mapId: string; ticketId: string; at: number }
   | { kind: 'edge.added'; mapId: string; blockerId: string; blockedId: string; at: number }
+  | { kind: 'edge.removed'; mapId: string; blockerId: string; blockedId: string; at: number }
   /** `external`: written by another process (API, agent, integration) and picked up by the watcher. */
   | { kind: 'decision.recorded'; mapId: string; decisionId: string; ticketId?: string; external?: boolean; at: number }
   | {

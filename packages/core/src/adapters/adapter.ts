@@ -27,6 +27,12 @@ import type {
  *   blockedBy      -> native "blocked by" relation
  *   out of scope   -> closed as not planned (+ line in the map's Out of scope)
  */
+/** A ticket's new text: the fields to replace. */
+export interface TicketEdit {
+  title?: string;
+  body?: string;
+}
+
 /** A new mission. `verification` unset means off. */
 export interface MapInput {
   title: string;
@@ -57,9 +63,15 @@ export interface TrackerAdapter {
     input: { title: string; type: TicketType; body: string; hitl?: boolean },
   ): Promise<Ticket>;
   addBlocking(mapId: string, blockerId: string, blockedId: string): Promise<void>;
+  /** Drops a blocking relation; nothing happens when it isn't there. */
+  removeBlocking(mapId: string, blockerId: string, blockedId: string): Promise<void>;
+  /** Rewrites a ticket's title and/or body (its MILOOPS metadata stays). */
+  editTicket(mapId: string, ticketId: string, edit: TicketEdit): Promise<void>;
   assign(mapId: string, ticketId: string, assignee: string | null): Promise<void>;
   comment(mapId: string, ticketId: string, author: string, body: string): Promise<void>;
   close(mapId: string, ticketId: string, reason: 'completed' | 'not_planned'): Promise<void>;
+  /** Opens a closed ticket again. Use `transition()` (the operator's `reopen`), not this directly. */
+  reopen(mapId: string, ticketId: string): Promise<void>;
   /** Lifecycle status (model/lifecycle.ts). Use `transition()`, not this directly. */
   setMeta(mapId: string, ticketId: string, patch: TicketMetaPatch): Promise<void>;
 

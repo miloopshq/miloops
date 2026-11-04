@@ -14,9 +14,11 @@ import { authoredBody, decisionComment, joinBody, mapLabels, mapBody, ticketLabe
 import { HttpClient, TrackerError, linear, type HttpOptions } from '../http';
 import { SyncedAdapter } from '../sync/syncedAdapter';
 import type { RemoteComment, SyncOptions } from '../sync/types';
+import { changedMissions } from './changedMissions';
 import { linearGql, type LinearGql } from './linearGql';
 import { fetchLinearTeam } from './linearTeam';
 import { linearTicket, readMission, type DecisionFound } from './readMission';
+import { removeBlocksRelation } from './removeBlocksRelation';
 import { CHANGES_QUERY, ISSUE_FIELDS, MISSION_QUERY, type LChanges, type LIssue } from './schema';
 
 /*
@@ -108,19 +110,7 @@ export class LinearAdapter extends SyncedAdapter {
     });
     const stamps = [...d.issues.nodes.map((i) => i.updatedAt), ...d.comments.nodes.map((c) => c.updatedAt)];
     this.cursor = stamps.reduce((m, s) => (s > m ? s : m), since);
-    const out: string[] = [];
-    const refs = [
-      ...d.issues.nodes.map((i) => ({ id: i.id, parent: i.parent?.id, labels: i.labels.nodes.map((l) => l.name) })),
-      ...d.comments.nodes
-        .filter((c) => c.issue)
-        .map((c) => ({ id: c.issue!.id, parent: c.issue!.parent?.id, labels: [] as string[] })),
-    ];
-    for (const r of refs) {
-      const mission = known(r.id) ?? (r.parent ? known(r.parent) : undefined);
-      if (mission) out.push(mission);
-      else if (r.labels.includes(MAP_LABEL)) return 'all';
-    }
-    return out;
+    return changedMissions(d, known);
   }
 
   private async create(input: Record<string, unknown>) {
@@ -186,6 +176,20 @@ export class LinearAdapter extends SyncedAdapter {
         input: { issueId: blocker.id, relatedIssueId: blocked.id, type: 'blocks' },
       },
     );
+  }
+
+  protected async remoteRemoveBlocking(_map: MapDoc, blocker: Ticket, blocked: Ticket) {
+    await removeBlocksRelation(this.gql, blocker.id, blocked.id);
+  }
+
+  protected async remoteEditTicket(_map: MapDoc, t: Ticket) {
+    await this.update(t.id, { title: t.title, description: joinBody(t.body, ticketMeta(t)) });
+  }
+
+  protected async remoteReopen(_map: MapDoc, t: Ticket) {
+    const m = await this.meta();
+    if (!m.open) throw new TrackerError('invalid', `Linear: team ${m.key} has no unstarted or backlog state`);
+    await this.update(t.id, { stateId: m.open });
   }
 
   protected async remoteSetMeta(_map: MapDoc, t: Ticket) {

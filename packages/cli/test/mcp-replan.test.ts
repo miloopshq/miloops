@@ -138,6 +138,47 @@ describe('adaptive missions over MCP', () => {
     });
   });
 
+  it('a replan edits a ticket, removes a dependency and reopens finished work, once approved', async () => {
+    const call = await connect();
+    const started = await call<Started>('start_mission', {
+      discovery: false,
+      title: 'Batch sync',
+      destination: 'Edits sync in batches',
+      tickets: [
+        { ref: 'look', title: 'Check the v2 API', type: 'research' },
+        { ref: 'batch', title: 'Batch writes', type: 'execute', blockedBy: ['look'] },
+        { ref: 'docs', title: 'Write the docs', type: 'task' },
+      ],
+    });
+    const mapId = started.mission.id;
+    const key = (ref: string) => started.tickets.find((t) => t.ref === ref)!.key;
+    const file = (ref: string) => fs.readFileSync(path.join(root, mapId, 'tickets', `${key(ref).slice(1)}.md`), 'utf8');
+    await call('claim_ticket', { ticket: key('look') });
+    await call('close_ticket', { resolution: 'v2 looks fine.' });
+    expect(file('look')).toMatch(/state: closed/);
+
+    const proposed = await call<{ id: string; status: string; frozen: string[] }>('propose_replan', {
+      reason: 'The API check missed rate limits, and the docs ticket is really a runbook',
+      evidence: 'docs/v2.md: 10 writes per second',
+      changes: [
+        { op: 'edit_ticket', ticket: key('docs'), title: 'Write the runbook', body: 'Rate limits and retries.' },
+        { op: 'rewire', ticket: key('batch'), removeBlockedBy: [key('look')] },
+        { op: 'reopen', ticket: key('look'), reason: 'Check the rate limits too' },
+      ],
+    });
+    expect(proposed).toMatchObject({ status: 'pending' });
+    expect(file('docs')).toMatch(/title: Write the docs/);
+    expect(file('batch')).toMatch(new RegExp(`blocked_by:.*${key('look').slice(1)}`));
+    await post('/replans/approve', { mapId, id: proposed.id });
+
+    expect(file('docs')).toMatch(/title: Write the runbook/);
+    expect(file('docs')).toContain('Rate limits and retries.');
+    expect(file('batch')).not.toMatch(new RegExp(`blocked_by:.*${key('look').slice(1)}`));
+    expect(file('look')).toMatch(/state: open/);
+    const claimed = await call<{ claimed: { key: string } }>('claim_ticket', { ticket: key('look') });
+    expect(claimed.claimed.key).toBe(key('look'));
+  });
+
   it('seeds the mission assumptions from the brief when the operator accepts it', async () => {
     const call = await connect();
     const started = await call<Started>('start_mission', {

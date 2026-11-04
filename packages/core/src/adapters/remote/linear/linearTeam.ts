@@ -10,6 +10,8 @@ export interface LinearTeam {
   /** First "completed" and first "canceled" workflow state ids ('' when the team has none). */
   done: string;
   canceled: string;
+  /** Where a reopened issue goes: the first "unstarted" state, else the first "backlog" one ('' when neither). */
+  open: string;
   /** MILOOPS label name → id. */
   labels: Map<string, string>;
 }
@@ -31,5 +33,12 @@ export async function fetchLinearTeam(gql: LinearGql, teamId: string): Promise<L
     );
     labels.set(l.name, r.issueLabelCreate.issueLabel.id);
   }
-  return { key: d.team.key, name: d.team.name, done: first('completed'), canceled: first('canceled'), labels };
+  return {
+    key: d.team.key,
+    name: d.team.name,
+    done: first('completed'),
+    canceled: first('canceled'),
+    open: first('unstarted') || first('backlog'),
+    labels,
+  };
 }
