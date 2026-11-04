@@ -32,11 +32,11 @@ Your agents can already write the code. What's missing is a place to run them li
 
 Where MILOOPS is heading, in the order we plan to build it:
 
-1. **Attention management.** One ranked queue of everything that needs you, so the most important call always comes first. Every later feature reaches you through it.
-2. **Project knowledge.** MILOOPS remembers what your missions learned, including the dead ends, so agents stop re-trying what already failed. New knowledge waits in your queue for review.
-3. **Adaptive missions.** When an assumption breaks, agents propose a replan instead of pushing on. You approve it from your queue, and the broken assumption becomes project knowledge.
-4. **Multi-repository supervision.** Run missions across all your repos from one command center, with a single merged queue.
-5. **Agent roles and specialists.** Give agents roles (reviewer, researcher, builder) and bring in specialists for focused jobs, starting with a built-in reviewer that wraps today's independent review.
+1. **Safe parallel work.** Each agent can work in its own copy of your project, and you hear about it before two of them change the same thing.
+2. **Multi-repository supervision.** Run missions across all your repos from one command center, with a single merged queue.
+3. **Agent roles and specialists.** Give agents roles (reviewer, researcher, builder) and bring in specialists for focused jobs, starting with a built-in reviewer that wraps today's independent review.
+
+Already shipped from this roadmap: one ranked queue of what needs you, project knowledge, and missions that adapt when an assumption breaks.
 
 Coming alongside: **model-aware claiming**, a per-mission switch that sends hard decisions to stronger models and routine work to cheaper ones. With roles, a role can set its own model tier.
 

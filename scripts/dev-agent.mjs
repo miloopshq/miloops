@@ -1,7 +1,9 @@
 // Real agents for local development: each one is an MCP client of the built CLI (`miloops mcp`), exactly as
 // Claude Code or Codex connect, working the seeded missions in ./<dataDir>. They claim ready tickets, report
 // progress with token usage, close agent-only work with a resolution, and ask you (with suggested replies) on
-// tickets that need a human, waiting for your answer in the command center. Nothing is simulated.
+// tickets that need a human, waiting for your answer in the command center. Grilling questions are urgent
+// (blocking), prototype reviews can wait (soon), and the first one comes with a side question (fyi) the agent doesn't
+// wait for, so the ranked queue has something to rank and batch. Nothing is simulated.
 // Usage: npm run build -w miloops-cli   (once, and after CLI changes)
 //        npm run dev                (seeds and starts the command center)
 //        npm run dev:agent [agents=2] [mission=#1]
@@ -23,6 +25,8 @@ const ASK = {
   grilling: (t) => ({
     say: `Grilling ${t.key}: I need your call before I can record a decision.`,
     question: t.title.endsWith('?') ? t.title : `${t.title}: what outcome would make this a clear yes for you?`,
+    // A grilling call stops the agent: nothing useful to do on the ticket until the human answers.
+    urgency: 'blocking',
     suggestions: [
       'Users never lose an edit',
       'Fewer than 1% of syncs need manual review',
@@ -32,6 +36,7 @@ const ASK = {
   prototype: (t) => ({
     say: `Prototype for ${t.key} is ready to look at.`,
     question: `Is the prototype for "${t.title}" good enough to build on?`,
+    urgency: 'soon',
     suggestions: ['Good enough, build on it', 'Try the other approach first'],
   }),
 };
@@ -61,6 +66,7 @@ async function agent(n) {
       ...(args.inputTokens ? { costUsd: (args.inputTokens * 3 + (args.outputTokens ?? 0) * 15) / 1e6 } : {}),
     });
   await call('resume_mission', { mission });
+  let askedFyi = false;
   for (;;) {
     let claimed;
     try {
@@ -76,8 +82,24 @@ async function agent(n) {
     if (claimed.attention === 'hitl') {
       const q = askFor(claimed);
       await report({ step: 'Resolve', say: q.say, inputTokens: 4_000, outputTokens: 400 });
+      if (!askedFyi) {
+        // A side question the agent doesn't wait for: it ranks low and batches with the urgent one below.
+        askedFyi = true;
+        await call('ask_human', {
+          question: `While on ${claimed.key}: should merge summaries name who made each edit?`,
+          suggestions: ['Yes, show names', 'No, keep it anonymous'],
+          urgency: 'fyi',
+          waitSeconds: 0,
+        });
+      }
       log(`asking: ${q.question}`);
-      const a = await call('ask_human', { question: q.question, suggestions: q.suggestions, waitSeconds: 3600 });
+      const a = await call('ask_human', {
+        question: q.question,
+        suggestions: q.suggestions,
+        urgency: q.urgency,
+        blocks: [claimed.key],
+        waitSeconds: 3600,
+      });
       if (!a.answered) {
         log('no answer within the hour; releasing the ticket');
         await call('release_ticket', { mission, reason: 'No answer yet' });

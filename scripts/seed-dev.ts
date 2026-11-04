@@ -1,6 +1,6 @@
 // Resets the local development tracker to a fixed, known project, so working on MILOOPS looks like real use.
 // It writes plain files through the same adapters a real install uses: missions, tickets, decisions,
-// verification config, discovery briefs and project knowledge. Live agents come from `npm run dev:agent`, a real MCP client.
+// verification config, discovery briefs, project knowledge, the risk policy, assumptions and replan proposals. Live agents come from `npm run dev:agent`, a real MCP client.
 // Run: npm run seed   (folder: $<DATA_DIR_ENV>, else <dataDir> at the repo root)
 // Safety: only a folder this script created (it holds DEV_MARKER) is wiped; anything else is refused.
 import fs from 'node:fs';
@@ -15,6 +15,7 @@ import {
 } from '@miloops-hq/core';
 import { writeBrief, writeKnowledge, writeTicketCriteria } from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
+import { seedSupervision } from './seedSupervision';
 
 const DEV_MARKER = '.dev-seed';
 // Bundled to node_modules/.cache before it runs, so the repo root comes from npm, not from the file's path.
@@ -97,9 +98,9 @@ await setMapMode(adapter, second.id, 'plan-only');
 // 3. Discovery: the mid-flight mission's brief is accepted; the plan-only one has a brief waiting for review.
 const day = 86_400_000;
 const now = Date.now();
-writeBrief(root, {
+const mainBrief = {
   mapId: main.id,
-  status: 'accepted',
+  status: 'accepted' as const,
   author: 'claude-01',
   submittedAt: now - 2 * day,
   decidedAt: now - 2 * day + 3_600_000,
@@ -120,7 +121,8 @@ writeBrief(root, {
     ],
     openQuestions: ['Do shared notebooks need a merge review?'],
   },
-});
+};
+writeBrief(root, mainBrief);
 const discovery = await adapter.createTicket(second.id, { ...DISCOVERY_TICKET, hitl: false });
 await adapter.addBlocking(second.id, discovery.id, roles.id);
 writeBrief(root, {
@@ -224,9 +226,13 @@ if (instrument)
     ],
   });
 
+// 6. Less supervision: risk policy, attention rules, a risky change, assumptions and two pending proposals.
+await seedSupervision({ root, adapter, main, second, mainBrief, now });
+
 console.log(`seeded ${root}`);
 console.log(`  ${main.key} ${main.title} · mid-flight`);
 console.log(`  ${second.key} ${second.title} · plan only, brief waiting for review`);
 console.log('  6 knowledge entries (confirmed, an assumption, 2 suggestions)');
+console.log('  policy.json, attention.json, 3 assumptions (one challenged), a pending replan, a destination challenge');
 console.log('Live agents: npm run dev:agent (needs npm run build -w miloops-cli once).');
 process.exit(0);
