@@ -1,21 +1,23 @@
 import { isDismissable, type AttentionItem, type MapSnapshot } from '@miloops-hq/core';
-import { Card, Meta } from '../../components/ui';
+import { MetaLine, Row } from '../../components/ui';
 import { ago } from '../../lib';
-import { KIND_LABEL } from './attentionLabels';
 import { IntegrationAction } from './IntegrationAction';
-import { ReasonChips } from './ReasonChips';
+import { ReasonLine } from './ReasonLine';
+import { contextParts, detailReasons, edgeFor } from './rowText';
 import { SnoozeMenu } from './SnoozeMenu';
 
-/** How long a new item carries the dot-matrix "Incoming" signal. */
+/** How long a new item's edge pulses, so it's noticed without a tag. */
 const INCOMING_MS = 15_000;
 
-/** One thing that needs the human: what, why it ranks here, how long it has waited, and "later". */
+/**
+ * One thing that needs the human, in the three levels: what (title), where and who (context), why it ranks here
+ * (detail). The edge says how urgent it is; "Later" appears on hover or focus.
+ */
 export function AttentionItemRow(props: {
   item: AttentionItem;
   snap?: MapSnapshot;
-  /** Show the mission name (more than one mission). */
-  many: boolean;
-  current: boolean;
+  /** The item belongs to a mission other than the one on screen. */
+  otherMission: boolean;
   selected: boolean;
   interrupting: boolean;
   now: number;
@@ -23,35 +25,32 @@ export function AttentionItemRow(props: {
   onSnooze: (minutes: number) => void;
   onDismiss: () => void;
 }) {
-  const { item, snap } = props;
-  const ticket = snap?.tickets.find((t) => t.id === item.ticketId);
-  const who = item.kind === 'question' ? item.agent : KIND_LABEL[item.kind];
-  const hot = props.interrupting || item.urgency === 'blocking';
-  const ticketLine = ticket && !item.title.includes(ticket.title) ? ticket.title : undefined;
+  const { item } = props;
+  const title = item.title.split('\n')[0];
+  const reasons = detailReasons(item);
+  const incoming = props.now - item.since < INCOMING_MS;
   return (
-    <li className={`att-item k-${item.kind} u-${item.urgency} ${props.selected ? 'sel' : ''}`}>
-      <Card as="button" tone={hot ? 'urgent' : undefined} on={props.selected} onClick={props.onOpen}>
-        <span className="row1">
-          <span className={`who ${item.kind}`}>{who}</span>
-          <span className="key">{ticket?.key}</span>
-          {item.urgency === 'blocking' && <span className="urgency-tag">Blocking</span>}
-          {props.now - item.since < INCOMING_MS && <span className="signal-tag">Incoming</span>}
-          <span className="age">{ago(props.now - item.since)}</span>
-        </span>
-        {props.many && (
-          <Meta className={`mission-tag ${props.current ? 'cur' : ''}`} parts={[snap?.map.title ?? item.mapId]} />
-        )}
-        {ticketLine && <span className="ttl">{ticketLine}</span>}
-        <span className="q t-title">{item.title.split('\n')[0]}</span>
-        <ReasonChips reasons={item.reasons} />
-      </Card>
-      {item.kind === 'integration' && <IntegrationAction item={item} />}
-      <SnoozeMenu
-        title={item.title}
-        canDismiss={isDismissable(item)}
-        onSnooze={props.onSnooze}
-        onDismiss={props.onDismiss}
-      />
-    </li>
+    <Row
+      as="li"
+      className={`att-item k-${item.kind} u-${item.urgency} ${props.selected ? 'sel' : ''} ${incoming ? 'incoming' : ''}`}
+      edge={edgeFor(item, props.interrupting)}
+      selected={props.selected}
+      title={title}
+      titleText={item.title}
+      context={<MetaLine parts={contextParts({ item, snap: props.snap, otherMission: props.otherMission })} />}
+      detail={reasons.length > 0 && <ReasonLine reasons={reasons} />}
+      detailText={reasons.join('\n')}
+      trailing={ago(props.now - item.since)}
+      onOpen={props.onOpen}
+      actions={
+        <SnoozeMenu
+          title={item.title}
+          canDismiss={isDismissable(item)}
+          onSnooze={props.onSnooze}
+          onDismiss={props.onDismiss}
+        />
+      }
+      below={item.kind === 'integration' && <IntegrationAction item={item} />}
+    />
   );
 }

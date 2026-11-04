@@ -31,20 +31,21 @@ export function AttentionQueue(props: {
         }
       />
     );
+  // Say it once: the mission on screen is implied; other missions are named.
   const many = Object.keys(props.snaps).length > 1;
+  const other = (mapId: string) => many && mapId !== props.currentMapId;
   const interrupting = new Set(view.interrupting);
   const sessionOf = (questionId: string) => props.pending.find((q) => q.id === questionId)?.sessionId;
   return (
     <div className="attention-queue">
       {batches(view.items).map((b) => (
-        <BatchGroup key={b.key} batch={b} mission={many ? props.snaps[b.mapId]?.map.title : undefined}>
+        <BatchGroup key={b.key} batch={b} mission={other(b.mapId) ? props.snaps[b.mapId]?.map.title : undefined}>
           {b.items.map((item) => (
             <AttentionItemRow
               key={item.id}
               item={item}
               snap={props.snaps[item.mapId]}
-              many={many}
-              current={item.mapId === props.currentMapId}
+              otherMission={other(item.mapId) && b.items.length < 2}
               selected={item.kind === 'question' && sessionOf(item.ref) === props.selected}
               interrupting={interrupting.has(item.id)}
               now={now}

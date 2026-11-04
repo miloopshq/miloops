@@ -18,7 +18,7 @@ ESLint (`eslint.config.js`) and Prettier (`.prettierrc.json`) enforce most of th
 - **Naming.** Components and classes use `PascalCase`, hooks `useCamelCase`, other modules `camelCase`, and folders `kebab-case`.
 - **Tests.** vitest suites are `*.test.ts` and node:test suites are `*.node.test.ts`. Both live in the package's `test/` folder, with fakes in `test/fakes/` and recorded fixtures in `test/fixtures/`.
 - **Formatting.** Run `npm run format` on the files you touch: single quotes, 120 columns, trailing commas.
-- **Readable code.** See below.
+- **Readable code** and **Presenting data**: see below.
 - **Behavior-neutral refactors.** Keep package exports and public names stable. Run the full `check` and compare command center screenshots before and after.
 
 ## Readable code
@@ -33,6 +33,23 @@ Code is read far more often than it's written, by people and by agents. Write it
 - **Positive conditions.** Write `if (ready)` and `ready ? a : b` rather than negations; don't put `!` in a ternary's condition.
 - **Name the steps.** Give intermediate values names instead of chaining everything into one expression. A name explains what a line is for; a comment explains only why it's unusual.
 - **Components.** Keep handlers inline unless they're reused, render each case in its own small component instead of `cond && cond2 && …` chains, and fetch data in the component that shows it.
+
+## Presenting data
+
+Every screen presents data the same way, so people never have to work out where to look. Dense doesn't have to mean cluttered: give each piece of information one place and one voice.
+
+- **Three levels, never more.** A **title** says what this is or what you need to do (at most two lines). One **context** line says where and who (ticket, agent, mission, kind). An optional **detail** line says why (reasons, files). Anything beyond that opens on click or shows in a tooltip.
+- **Four type roles** (tokens and classes in `apps/command-center/src/styles/design-system.css`):
+  - **title**: `--type-title` / `.t-title` (cards, heroes) and `--type-row-title` / `.t-row-title` (list rows);
+  - **body**: `--type-body` / `.t-body`, running text;
+  - **meta**: `--type-meta` / `.t-meta`, the quiet context and detail lines, sentence case;
+  - **label**: `--type-label` / `.t-label` (alias `.mono-label`), small caps for section, field and group labels only.
+- **Fonts have one job each.** Geist Pixel is for the brand and zone heroes (`.t-pixel`, `.t-heading.caps`). Mono (`.t-code`) is for code, paths, ids and ticket keys inside any role. Everything else is the sans.
+- **One accent, one meaning.** Red means "needs you now" (interrupting or blocking) and nothing else. Status is a thin left edge: `edge-urgent` (red), `edge-attention` (amber: work held up or at risk, such as blocked, flags, stalled claims, risky changes, replans, overlaps, integration), `edge-neutral` otherwise. Text stays neutral; a time turns red only on an urgent row.
+- **Say it once.** Don't repeat what the screen already shows: no mission name for the mission on screen, no ticket key the title already contains, no reason that restates the urgency, the wait or the group.
+- **Chips are for state only** (Done, Working, Blocking). Sentences and reasons are plain text joined with " · ".
+- **Actions appear when you reach for them.** Secondary actions show on hover or keyboard focus, in place of the trailing time, and are always visible on touch screens. Primary actions (Approve, Add ticket) stay visible.
+- **Build lists from the shared primitives** in `components/ui`: `Row` (edge, title, context, detail, trailing, actions, below) and `MetaLine` (parts joined with " · ", empty parts skipped, `code`, `strong` and `urgent` parts). Don't hand-style a new list row.
 
 ## Releasing
 

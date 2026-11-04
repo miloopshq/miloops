@@ -1,0 +1,154 @@
+/* ---------- Presenting data: list rows and the meta line (components/ui Row, MetaLine) ----------
+ * Three levels: title, one context line, an optional detail line. A thin status edge carries the state, so
+ * text stays neutral; red means "needs you now" and nothing else. */
+.ds-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-left: var(--edge-w) solid var(--edge-neutral);
+  background: rgba(var(--accent-rgb), 0.015);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.ds-row.edge-urgent {
+  border-left-color: var(--edge-urgent);
+  background: rgba(255, 77, 66, 0.06);
+}
+.ds-row.edge-attention {
+  border-left-color: var(--edge-attention);
+}
+.ds-row:hover,
+.ds-row:focus-within {
+  border-color: rgba(var(--line-rgb), 0.4);
+}
+.ds-row.on {
+  border-color: rgba(var(--accent-rgb), 0.6);
+  background: var(--accent-bg);
+}
+.ds-row.edge-urgent:hover,
+.ds-row.edge-urgent:focus-within,
+.ds-row.edge-urgent.on {
+  border-color: rgba(255, 77, 66, 0.5);
+}
+/* The edge keeps its colour whatever the border does. */
+.ds-row.edge-urgent,
+.ds-row.edge-urgent:hover,
+.ds-row.edge-urgent.on {
+  border-left-color: var(--edge-urgent);
+}
+.ds-row.edge-attention:hover,
+.ds-row.edge-attention.on {
+  border-left-color: var(--edge-attention);
+}
+
+.ds-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+  min-width: 0;
+  padding: var(--sp-8) var(--sp-10);
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+button.ds-row-main {
+  cursor: pointer;
+}
+button.ds-row-main:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+.ds-row-top {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-10);
+  min-width: 0;
+}
+.ds-row-title {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.ds-row-trail {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ds-row.edge-urgent .ds-row-trail {
+  color: var(--urgent);
+}
+.ds-row-context,
+.ds-row-detail {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ds-row-detail {
+  color: rgba(125, 145, 149, 0.85);
+}
+
+/* Actions sit over the trailing slot and appear on hover, keyboard focus or an open menu; the time steps aside. */
+.ds-row-actions {
+  position: absolute;
+  top: var(--sp-4);
+  right: var(--sp-4);
+  display: flex;
+  gap: var(--sp-4);
+  padding-left: var(--sp-8);
+  background: linear-gradient(90deg, transparent, var(--panel) 30%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.ds-row:hover .ds-row-actions,
+.ds-row:focus-within .ds-row-actions,
+.ds-row-actions:has([aria-expanded='true']) {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ds-row:has(.ds-row-actions):is(:hover, :focus-within) .ds-row-trail {
+  visibility: hidden;
+}
+@media (hover: none) {
+  .ds-row-actions {
+    position: static;
+    align-self: flex-end;
+    margin: calc(-1 * var(--sp-6)) var(--sp-6) var(--sp-6) 0;
+    background: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+.ds-row-below {
+  padding: 0 var(--sp-10) var(--sp-8);
+}
+
+/* ---------- The meta line: parts joined with " · " ---------- */
+.meta-line {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.meta-line .sep {
+  color: var(--faint);
+}
+.meta-line .strong {
+  color: var(--text);
+}
+.meta-line .urgent {
+  color: var(--urgent);
+}

@@ -19,13 +19,17 @@ export const integrationSource: AttentionSource = {
           kind: 'integration',
           mapId: o.mapId,
           ticketId: b.ticketId,
-          title: `${a.ticketKey} and ${b.ticketKey} changed the same files`,
+          title: 'Two branches changed the same files',
           since: o.at || now,
           urgency: 'soon',
           ref: `${a.ticketId}+${b.ticketId}`,
           agent: b.agent,
           holds: [],
-          notes: [`both changed ${shown}${more}`, 'add a ticket to bring them together'],
+          notes: [
+            `${a.ticketKey} and ${b.ticketKey}`,
+            `both changed ${shown}${more}`,
+            'add a ticket to bring them together',
+          ],
         },
       ];
     });

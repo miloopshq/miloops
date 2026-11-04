@@ -88,7 +88,7 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 
 ## Conventions
 
-Follow `CONTRIBUTING.md`: one export per file, 200 lines max, the layout rules, inline type imports, naming, where tests and fixtures go, and its **Readable code** rules (no nested ternaries, early returns, flat nesting, object parameters, small functions, explicit variants). Lint enforces the mechanical ones; write the rest in the same spirit. Run `npm run format` on files you touch.
+Follow `CONTRIBUTING.md`: one export per file, 200 lines max, the layout rules, inline type imports, naming, where tests and fixtures go, its **Readable code** rules (no nested ternaries, early returns, flat nesting, object parameters, small functions, explicit variants), and its **Presenting data** rules for the UI (three levels, four type roles, red only for "needs you now", say it once, lists built from `Row` and `MetaLine`). Lint enforces the mechanical ones; write the rest in the same spirit. Run `npm run format` on files you touch.
 
 ## Recipes
 
