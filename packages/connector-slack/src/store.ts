@@ -25,7 +25,6 @@ export interface SlackConfig {
   owners: SlackUser[];
   allow: SlackUser[];
   notify: SlackNotify;
-  summary: 'milo' | 'deterministic';
   command: string;
   /** Last mission used per channel, the default in the decision modal. */
   channelMission: Record<string, string>;
@@ -37,7 +36,6 @@ const DEFAULTS: SlackConfig = {
   owners: [],
   allow: [],
   notify: { target: 'dm', events: DEFAULT_NOTIFY_EVENTS, detail: 'full' },
-  summary: 'deterministic',
   command: DEFAULT_COMMAND,
   channelMission: {},
 };

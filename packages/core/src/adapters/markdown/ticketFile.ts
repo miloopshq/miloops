@@ -1,4 +1,4 @@
-import { HITL_LABEL, label } from '../../model/brand';
+import { HITL_LABEL, label, takesHitlLabel } from '../../model/brand';
 import { arr, iso, parseFront, str, time, writeFront, type Front } from '../../model/frontmatter';
 import { levelOf, TICKET_STATUSES } from '../../model/lifecycle';
 import type { Comment, Ticket, TicketType } from '../../model/types';
@@ -45,7 +45,7 @@ export function serializeTicket(t: Ticket) {
     id: t.id,
     title: t.title,
     type: t.type,
-    labels: [label(t.type), ...(t.type === 'task' && t.hitl ? [HITL_LABEL] : [])],
+    labels: [label(t.type), ...(takesHitlLabel(t.type) && t.hitl ? [HITL_LABEL] : [])],
     state: t.state,
     close_reason: t.closeReason ?? '',
     assignee: t.assignee ?? '',

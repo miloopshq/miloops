@@ -2,7 +2,7 @@
 
 # miloops
 
-MILOOPS, the Autonomous Agent Command Center. One command opens a local command center for the agents working in your repo.
+MILOOPS: a local command center for your AI coding agents. One command opens it for the agents working in your repo.
 
 ```bash
 npm i -g miloops-cli      # or skip the install: npx miloops-cli

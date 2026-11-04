@@ -13,7 +13,7 @@ function seedComments(s: SeedTicket, createdAt: number): Ticket['comments'] {
     return [{ id, author: 'claude-07', body: `**Resolution**\n\n${s.resolution}`, createdAt: createdAt + 1_800_000 }];
   if (s.status === 'ruled') {
     const body = '**Ruled out of scope**\n\nTransport is already TLS; at-rest E2EE is a separate initiative.';
-    return [{ id, author: 'mpocock', body, createdAt }];
+    return [{ id, author: 'arekom', body, createdAt }];
   }
   return [];
 }

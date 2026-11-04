@@ -1,4 +1,4 @@
-import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label } from '../../model/brand';
+import { BRAND, HITL_LABEL, MAP_LABEL, PLAN_ONLY_LABEL, label, takesHitlLabel } from '../../model/brand';
 import { levelOf, TICKET_STATUSES } from '../../model/lifecycle';
 import { serializeMapBody } from '../../model/mapBody';
 import {
@@ -144,7 +144,7 @@ export const typeFromLabels = (labels: string[]): TicketType =>
 
 export const ticketLabels = (type: TicketType, hitl?: boolean) => [
   label(type),
-  ...(type === 'task' && hitl ? [HITL_LABEL] : []),
+  ...(takesHitlLabel(type) && hitl ? [HITL_LABEL] : []),
 ];
 
 export const mapLabels = (mode: MapMode) => [MAP_LABEL, ...(mode === 'plan-only' ? [PLAN_ONLY_LABEL] : [])];
@@ -185,7 +185,7 @@ export function ticketFromIssue(p: IssueParts): Ticket {
     key: p.key,
     title: p.title,
     type,
-    hitl: (type === 'task' && p.labels.includes(HITL_LABEL)) || undefined,
+    hitl: (takesHitlLabel(type) && p.labels.includes(HITL_LABEL)) || undefined,
     body: text,
     state: p.closed ? 'closed' : 'open',
     closeReason: p.closed ? (p.closeReason ?? 'completed') : undefined,

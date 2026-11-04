@@ -21,7 +21,6 @@ export function updateSettings(ctx: SlackContext, patch: SlackSettingsPatch) {
     if (n.detail !== 'titles-only') n.detail = 'full';
     next.notify = n;
   }
-  if (patch.summary) next.summary = patch.summary;
   if (patch.enabled !== undefined) next.enabled = patch.enabled;
   ctx.store.update(next);
   if (patch.enabled === true) ctx.start();

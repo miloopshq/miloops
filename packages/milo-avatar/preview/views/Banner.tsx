@@ -44,7 +44,7 @@ export function Banner({
       ) : null}
       <div className="banner-copy">
         <Wordmark text={wordmark} />
-        <div className="social-cat">Autonomous Agent Command Center</div>
+        <div className="social-cat">Local command center for AI coding agents</div>
         <div className="social-tag">{TAGLINE}</div>
       </div>
       {layout === 'header' ? (

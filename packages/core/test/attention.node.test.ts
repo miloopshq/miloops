@@ -111,7 +111,10 @@ test('snooze hides an item and restore brings it back; the state file is gitigno
 test('prefs: bad input lists every error; focus mode holds interruptions back', async () => {
   const bad = await call<{ errors: string[] }>('PUT', '/attention/prefs', { v: 1, channel: 'pager', nope: 1 });
   assert.equal(bad.status, 400);
-  assert.deepEqual(bad.json.errors, ['nope: unknown key', 'channel: one of browser, slack-dm, slack-channel, none']);
+  assert.deepEqual(bad.json.errors, [
+    'unknown key "nope"',
+    '"channel" must be one of browser, slack-dm, slack-channel, none',
+  ]);
   const ok = await call('PUT', '/attention/prefs', { v: 1, channel: 'slack-dm', focusUntil: Date.now() + 60_000 });
   assert.equal(ok.status, 200);
   const view = await call<AttentionView>('GET', '/attention');

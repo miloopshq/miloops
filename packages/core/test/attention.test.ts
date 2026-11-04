@@ -284,11 +284,11 @@ describe('attention policy and prefs', () => {
   it('reports every problem in attention.json and keeps the defaults for bad values', () => {
     const r = parseAttentionPolicy({ v: 2, weights: { question: 120, gossip: 5, flag: 10 }, interrupt: 'x', extra: 1 });
     expect(r.errors).toEqual([
-      'extra: unknown key',
-      'v: expected 1',
-      'weights.question: expected a number from 0 to 100',
-      expect.stringMatching(/^weights.gossip: unknown kind/),
-      'interrupt: expected a number from 0 to 200',
+      'unknown key "extra"',
+      '"v" must be 1',
+      'weights.question must be a number from 0 to 100',
+      expect.stringMatching(/^unknown kind "gossip" in "weights"/),
+      '"interrupt" must be a number from 0 to 200',
     ]);
     expect(r.value.weights.question).toBe(DEFAULT_ATTENTION_POLICY.weights.question);
     expect(r.value.weights.flag).toBe(10);
@@ -300,8 +300,8 @@ describe('attention policy and prefs', () => {
 
   it('validates prefs', () => {
     expect(parseAttentionPrefs({ v: 1, channel: 'pager', focus: { from: '9', to: '17:00' } }).errors).toEqual([
-      'channel: one of browser, slack-dm, slack-channel, none',
-      'focus: "from" and "to" must be HH:MM',
+      '"channel" must be one of browser, slack-dm, slack-channel, none',
+      '"focus.from" and "focus.to" must be HH:MM',
     ]);
     expect(parseAttentionPrefs({ v: 1, focus: { from: '22:00', to: '07:00', days: [1] } }).value.focus).toEqual({
       from: '22:00',
