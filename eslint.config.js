@@ -102,7 +102,7 @@ export default tseslint.config(
       'no-restricted-syntax': [
         'error',
         ...["callee.object.name='adapter'", "callee.object.property.name='adapter'"].map((obj) => ({
-          selector: `CallExpression[callee.property.name=/^(assign|close|setMeta|setMapMeta)$/][${obj}]`,
+          selector: `CallExpression[callee.property.name=/^(assign|close|reopen|setMeta|setMapMeta)$/][${obj}]`,
           message: 'Change ticket state with transition() or an operation (claim, release, resolve), not the adapter.',
         })),
       ],

@@ -131,7 +131,13 @@ function withIds(ctx: AgentContext, snap: MapSnapshot, changes: ReplanChange[]):
   };
   return changes.map((c) => {
     if (c.op === 'add_ticket') return { ...c, blockedBy: (c.blockedBy ?? []).map(id) };
-    if (c.op === 'rewire') return { ...c, ticket: id(c.ticket), addBlockedBy: c.addBlockedBy.map(id) };
+    if (c.op === 'rewire')
+      return {
+        ...c,
+        ticket: id(c.ticket),
+        ...(c.addBlockedBy ? { addBlockedBy: c.addBlockedBy.map(id) } : {}),
+        ...(c.removeBlockedBy ? { removeBlockedBy: c.removeBlockedBy.map(id) } : {}),
+      };
     if ('ticket' in c) return { ...c, ticket: id(c.ticket) };
     return c;
   });

@@ -1,0 +1,61 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { readLease } from '../agents/leaseStore';
+import { git, gitText } from '../evidence/git';
+import type { WorkspaceRecord } from './workspace';
+import { dropWorkspace, readWorkspace } from './workspaceStore';
+
+export interface RemoveWorkspaceInput {
+  root: string;
+  mapId: string;
+  ticketId: string;
+  /** Remove even with uncommitted changes in the folder (the operator confirmed losing them). */
+  force?: boolean;
+}
+
+export type RemoveWorkspaceResult =
+  { kind: 'removed'; workspace: WorkspaceRecord } | { kind: 'refused'; reason: string; dirty?: boolean };
+
+const refused = (reason: string, dirty?: boolean): RemoveWorkspaceResult => ({ kind: 'refused', reason, dirty });
+
+/** True while an agent holds the ticket: a lease that hasn't been returned to the queue. */
+export const isClaimed = (root: string, mapId: string, ticketId: string) => {
+  const lease = readLease(root, mapId, ticketId);
+  return !!lease && !lease.returned;
+};
+
+/**
+ * The operator's "Remove workspace": deletes a finished ticket's worktree folder (`git worktree remove`, then
+ * `prune`) and forgets it. The branch stays: MILOOPS never deletes branches, merges or pushes. Refuses while the
+ * ticket is claimed, for the main checkout, and for uncommitted changes unless `force`.
+ */
+export async function removeWorkspace(i: RemoveWorkspaceInput): Promise<RemoveWorkspaceResult> {
+  const ws = readWorkspace(i.root, i.mapId, i.ticketId);
+  if (!ws) return refused('This ticket has no workspace.');
+  if (isClaimed(i.root, i.mapId, i.ticketId))
+    return refused(`${ws.ticketKey} is still claimed. Finish it or release it to the queue first.`);
+  if (!existsSync(ws.path)) {
+    dropWorkspace(i.root, i.mapId, i.ticketId);
+    return { kind: 'removed', workspace: ws };
+  }
+  const repo = await mainRepo(ws.path);
+  if (!repo) return refused(`${ws.path} is not a separate git worktree, so MILOOPS won't remove it.`);
+  const changes = (await gitText(ws.path, ['status', '--porcelain'])) ?? '';
+  if (changes && !i.force) {
+    const n = changes.split('\n').length;
+    return refused(`${ws.path} has uncommitted changes (${n} ${n === 1 ? 'file' : 'files'}).`, true);
+  }
+  const r = await git(repo, ['worktree', 'remove', ...(i.force ? ['--force'] : []), ws.path]);
+  if (r.code !== 0) return refused(r.stderr.trim().split('\n')[0] || 'git worktree remove failed');
+  await git(repo, ['worktree', 'prune']);
+  dropWorkspace(i.root, i.mapId, i.ticketId);
+  return { kind: 'removed', workspace: ws };
+}
+
+/** The main checkout a linked worktree belongs to; undefined when the folder is the main checkout itself. */
+async function mainRepo(worktree: string) {
+  const gitDir = await gitText(worktree, ['rev-parse', '--absolute-git-dir']);
+  const common = await gitText(worktree, ['rev-parse', '--path-format=absolute', '--git-common-dir']);
+  if (!gitDir || !common || path.resolve(gitDir) === path.resolve(common)) return undefined;
+  return path.dirname(common);
+}

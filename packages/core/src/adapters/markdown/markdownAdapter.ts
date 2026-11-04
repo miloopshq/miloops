@@ -15,8 +15,9 @@ import {
 } from '../../model/types';
 import { parseDecision, serializeDecision } from '../../planning/decisions/decisionFile';
 import { buildDecision, decisionNumber } from '../../planning/decisions/decisionRecord';
-import type { MapInput, TrackerAdapter } from '../adapter';
+import type { MapInput, TicketEdit, TrackerAdapter } from '../adapter';
 import { withMapMeta } from '../mapMeta';
+import { newTicket, reopened, withEdit, withoutBlocker } from '../ticketEdits';
 import { withMeta } from '../ticketMeta';
 import { ExternalChanges } from './externalChanges';
 import { parseMapFile, serializeMapFile } from './mapFile';
@@ -137,16 +138,7 @@ export class MarkdownAdapter implements TrackerAdapter {
 
   async createTicket(mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }) {
     const n = await nextNumber(this.fs);
-    const t: Ticket = {
-      id: String(n),
-      key: `#${n}`,
-      ...input,
-      state: 'open',
-      blockedBy: [],
-      comments: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+    const t = newTicket(String(n), `#${n}`, input);
     await this.writeTicket(mapId, t);
     this.events.emit({ kind: 'ticket.created', mapId, ticketId: t.id, at: Date.now() });
     return t;
@@ -161,6 +153,21 @@ export class MarkdownAdapter implements TrackerAdapter {
 
   private async update(mapId: string, ticketId: string, change: (t: Ticket) => Ticket) {
     await this.writeTicket(mapId, change(await this.readTicket(mapId, ticketId)));
+  }
+
+  async removeBlocking(mapId: string, blockerId: string, blockedId: string) {
+    await this.update(mapId, blockedId, (t) => withoutBlocker(t, blockerId));
+    this.events.emit({ kind: 'edge.removed', mapId, blockerId, blockedId, at: Date.now() });
+  }
+
+  async editTicket(mapId: string, ticketId: string, edit: TicketEdit) {
+    await this.update(mapId, ticketId, (t) => withEdit(t, edit));
+    this.events.emit({ kind: 'ticket.updated', mapId, ticketId, at: Date.now() });
+  }
+
+  async reopen(mapId: string, ticketId: string) {
+    await this.update(mapId, ticketId, reopened);
+    this.events.emit({ kind: 'ticket.updated', mapId, ticketId, at: Date.now() });
   }
 
   async assign(mapId: string, ticketId: string, assignee: string | null) {

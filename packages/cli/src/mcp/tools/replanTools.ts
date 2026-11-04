@@ -23,10 +23,15 @@ const change = z.discriminatedUnion('op', [
   z.object({
     op: z.literal('edit_ticket'),
     ticket: ref,
-    title: z.string().optional(),
-    body: z.string().optional().describe('Posted on the ticket as its revised scope.'),
+    title: z.string().optional().describe('The new title.'),
+    body: z.string().optional().describe('The new description; it replaces the old one.'),
   }),
-  z.object({ op: z.literal('rewire'), ticket: ref, addBlockedBy: z.array(ref).min(1) }),
+  z.object({
+    op: z.literal('rewire'),
+    ticket: ref,
+    addBlockedBy: z.array(ref).optional().describe('Tickets it must now wait for.'),
+    removeBlockedBy: z.array(ref).optional().describe('Current blockers it no longer waits for.'),
+  }),
   z.object({ op: z.literal('supersede_decision'), decision: ref.describe('D-<n>'), answer: text, rationale: text }),
   z.object({ op: z.literal('update_destination'), text }),
   z.object({ op: z.literal('add_unspecified'), text }),

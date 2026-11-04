@@ -1,0 +1,61 @@
+/* Workspaces: the prepared worktrees in Settings, and a finished ticket's workspace in the inspector. */
+.ws-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.ws-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--sp-2) var(--sp-8);
+  align-items: baseline;
+  padding: var(--sp-6) var(--sp-8);
+  border: 1px solid var(--line2);
+}
+.ws-row.finished {
+  color: var(--dim);
+}
+.ws-ticket {
+  font-family: var(--mono);
+  color: var(--text-hi);
+}
+.ws-branch,
+.ws-path {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-path {
+  grid-column: 1 / 3;
+  color: var(--dim);
+}
+.ws-row .ws-remove {
+  grid-column: 3;
+  justify-self: end;
+}
+.ws-remove {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-6);
+}
+.ticket-workspace {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  margin: var(--sp-10) 0;
+}
+.ticket-workspace p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.ticket-workspace code {
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+}

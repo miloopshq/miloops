@@ -35,6 +35,8 @@ export const TRANSITIONS: TransitionRule[] = [
   { event: 'unblock', from: ['blocked'], to: ['ready', 'rework', 'verifying'], actors: ['operator'] },
   /** The engine cancels review tickets whose review no longer applies. */
   { event: 'cancel', from: OPEN, to: ['cancelled'], actors: [...PEOPLE, 'engine'] },
+  /** Only the operator, by approving a replan that reopens finished work. */
+  { event: 'reopen', from: ['done', 'cancelled'], to: ['ready'], actors: ['operator'] },
 ];
 
 export const ruleFor = (event: LifecycleEvent) => TRANSITIONS.find((r) => r.event === event)!;

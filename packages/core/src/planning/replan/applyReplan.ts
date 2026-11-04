@@ -1,7 +1,5 @@
 import type { ReplanChange, ReplanProposal } from '../../model/replan';
-import type { MapSnapshot, Ticket } from '../../model/types';
 import { applyChange, replanMark, type ApplyEnv, type Step } from './applyChange';
-import { reopenTitle } from './replanDiff';
 
 export type { ApplyEnv } from './applyChange';
 
@@ -30,7 +28,7 @@ export async function applyReplan(env: ApplyEnv, proposal: ReplanProposal): Prom
   return p;
 }
 
-const creates = (c: ReplanChange) => c.op === 'add_ticket' || c.op === 'reopen';
+const creates = (c: ReplanChange): c is Extract<ReplanChange, { op: 'add_ticket' }> => c.op === 'add_ticket';
 
 /** A new ref resolves to the ticket its add_ticket created; anything else is a ticket id already. */
 function refResolver(p: ReplanProposal) {
@@ -41,32 +39,22 @@ function refResolver(p: ReplanProposal) {
   return (ref: string) => byRef.get(ref) ?? ref;
 }
 
-async function createFor(env: ApplyEnv, p: ReplanProposal, index: number, c: ReplanChange): Promise<string> {
+async function createFor(
+  env: ApplyEnv,
+  p: ReplanProposal,
+  index: number,
+  c: Extract<ReplanChange, { op: 'add_ticket' }>,
+): Promise<string> {
   const snap = await env.adapter.loadMap(p.mapId);
   const mark = replanMark(p, index);
   const landed = snap.tickets.find((t) => t.body.includes(mark));
   if (landed) return landed.id;
-  const input = ticketInput(snap, p, c);
+  const body = c.body?.trim() || p.reason;
   const t = await env.adapter.createTicket(p.mapId, {
-    ...input,
-    body: `${input.body}\n\nAdded by ${mark}. Part of mission ${snap.map.key}.`,
+    title: c.title,
+    type: c.type,
+    hitl: c.hitl,
+    body: `${body}\n\nAdded by ${mark}. Part of mission ${snap.map.key}.`,
   });
   return t.id;
-}
-
-function ticketInput(
-  snap: MapSnapshot,
-  p: ReplanProposal,
-  c: ReplanChange,
-): Pick<Ticket, 'title' | 'type' | 'hitl' | 'body'> {
-  if (c.op === 'add_ticket') return { title: c.title, type: c.type, hitl: c.hitl, body: c.body?.trim() || p.reason };
-  if (c.op !== 'reopen') throw new Error(`${c.op} creates no ticket`);
-  const old = snap.tickets.find((t) => t.id === c.ticket);
-  if (!old) throw new Error(`ticket ${c.ticket} not found`);
-  return {
-    title: reopenTitle(old),
-    type: old.type,
-    hitl: old.hitl,
-    body: `Picks ${old.key} up again: ${c.reason}\n\nOriginal: ${old.title}`,
-  };
 }

@@ -37,7 +37,7 @@ export function fakeLinear(opts: { start?: number } = {}) {
   const issues = new Map<string, LIssue>();
   const comments: { id: string; issueId: string; body: string; createdAt: string; updatedAt: string; user: string }[] =
     [];
-  const relations: { issueId: string; relatedIssueId: string; type: string }[] = [];
+  let relations: { id: string; issueId: string; relatedIssueId: string; type: string }[] = [];
   let seq = 0;
 
   const stateOf = (i: LIssue) => states.find((s) => s.id === i.stateId)!;
@@ -156,6 +156,7 @@ export function fakeLinear(opts: { start?: number } = {}) {
       case 'Update': {
         const i = issues.get(v.id)!;
         const inp = v.input;
+        if (inp.title !== undefined) i.title = inp.title;
         if (inp.description !== undefined) i.description = inp.description;
         if (inp.stateId) {
           i.stateId = inp.stateId;
@@ -169,8 +170,22 @@ export function fakeLinear(opts: { start?: number } = {}) {
         return { issueUpdate: { success: true } };
       }
       case 'Block':
-        relations.push({ issueId: v.input.issueId, relatedIssueId: v.input.relatedIssueId, type: v.input.type });
+        relations.push({
+          id: uid('rel'),
+          issueId: v.input.issueId,
+          relatedIssueId: v.input.relatedIssueId,
+          type: v.input.type,
+        });
         return { issueRelationCreate: { success: true } };
+      case 'Relations': {
+        const nodes = relations
+          .filter((r) => r.relatedIssueId === v.id)
+          .map((r) => ({ id: r.id, type: r.type, issue: { id: r.issueId } }));
+        return { issue: issues.has(v.id) ? { inverseRelations: { nodes } } : null };
+      }
+      case 'Unblock':
+        relations = relations.filter((r) => r.id !== v.id);
+        return { issueRelationDelete: { success: true } };
       case 'Comment': {
         const now = tick();
         const c = {

@@ -2,6 +2,7 @@ import type { DecisionRecord, MapDoc, MapMode, Ticket, TicketType } from '../../
 import { OperationError } from '../../../planning/operations/operationError';
 import type { MapInput } from '../../adapter';
 import { withMapMeta } from '../../mapMeta';
+import { reopened, withEdit } from '../../ticketEdits';
 import { withMeta } from '../../ticketMeta';
 import { isTransient, type TrackerError } from '../http';
 import { applyWrite, CHECKED, hasLanded, ticketOf, writeId } from './queuedWrites';
@@ -20,6 +21,11 @@ export abstract class SyncedWriter extends SyncedStore {
     input: { title: string; type: TicketType; body: string; hitl?: boolean },
   ): Promise<Ticket>;
   protected abstract remoteAddBlocking(map: MapDoc, blocker: Ticket, blocked: Ticket): Promise<void>;
+  /** Drop the relation; a relation that is already gone is not an error. */
+  protected abstract remoteRemoveBlocking(map: MapDoc, blocker: Ticket, blocked: Ticket): Promise<void>;
+  /** Persist the title and body (with its `ticketMeta`) of an already-edited ticket. */
+  protected abstract remoteEditTicket(map: MapDoc, t: Ticket): Promise<void>;
+  protected abstract remoteReopen(map: MapDoc, t: Ticket): Promise<void>;
   /** Persist the claim and status (`ticketMeta`) of an already-updated ticket. */
   protected abstract remoteSetMeta(map: MapDoc, t: Ticket): Promise<void>;
   /** `c.writeId` must be readable back as the comment's `writeId`. */
@@ -46,6 +52,12 @@ export abstract class SyncedWriter extends SyncedStore {
         return this.remoteUpdateMap(withMapMeta(map, c.patch));
       case 'blocking':
         return this.remoteAddBlocking(map, ticketOf(e, c.blockerId), ticketOf(e, c.blockedId));
+      case 'unblocking':
+        return this.remoteRemoveBlocking(map, ticketOf(e, c.blockerId), ticketOf(e, c.blockedId));
+      case 'edit':
+        return this.remoteEditTicket(map, withEdit(ticketOf(e, c.ticketId), c.edit));
+      case 'reopen':
+        return this.remoteReopen(map, reopened(ticketOf(e, c.ticketId)));
       case 'claim':
         return this.remoteSetMeta(map, { ...ticketOf(e, c.ticketId), assignee: c.assignee });
       case 'meta':

@@ -13,7 +13,7 @@ import { OperationError } from '../../../planning/operations/operationError';
 import type { MapInput, TrackerAdapter } from '../../adapter';
 import { roundtrip } from './fingerprint';
 import { ticketOf } from './queuedWrites';
-import { SyncedWriter } from './syncedWriter';
+import { SyncedEdits } from './syncedEdits';
 import type { EventInit } from './types';
 
 /**
@@ -31,7 +31,7 @@ import type { EventInit } from './types';
  * - polling (while subscribed) picks up changes made in the tracker and emits
  *   `external.changed` only when the mission really differs from the cache.
  */
-export abstract class SyncedAdapter extends SyncedWriter implements TrackerAdapter {
+export abstract class SyncedAdapter extends SyncedEdits implements TrackerAdapter {
   abstract readonly kind: 'github' | 'linear';
   abstract readonly label: string;
   abstract readonly location: string;

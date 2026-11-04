@@ -117,9 +117,8 @@ describe('replanDiff and freezing', () => {
       `${r.key} unchanged `,
       `${e.key} cancelled `,
       `${t.key} rewired q`,
-      `${d.key} unchanged `,
+      `${d.key} reopened `,
       `q added ${r.id}`,
-      `reopen:${d.id} reopened `,
     ]);
     expect(diff.outOfScope).toEqual(['Batch endpoint']);
     const p = { status: 'pending', id: 'R-1', changes } as ReplanProposal;
@@ -139,9 +138,12 @@ function instrumented(inner: TrackerAdapter, failCreateAt?: number) {
     'updateMapSections',
     'createTicket',
     'addBlocking',
+    'removeBlocking',
+    'editTicket',
     'assign',
     'comment',
     'close',
+    'reopen',
     'setMeta',
     'createDecision',
     'markSuperseded',
@@ -217,11 +219,11 @@ describe('propose, approve and apply', () => {
     expect(Object.keys(saved.created)).toEqual(['0']);
     const finished = await applyReplan({ adapter: m.a, actor: 'operator', save }, saved);
     expect(finished.applied).toEqual([0, 1, 2]);
-    const titles = (await m.a.loadMap(m.map.id)).tickets.map((t) => t.title);
-    expect(titles.filter((t) => t === 'Flush the queue')).toHaveLength(1);
-    expect(titles).toContain(`Reopen ${m.d.key}: Old spike`);
+    const after = (await m.a.loadMap(m.map.id)).tickets;
+    expect(after.map((t) => t.title).filter((t) => t === 'Flush the queue')).toHaveLength(1);
+    expect(after.find((t) => t.id === m.d.id)?.state).toBe('open');
     await applyReplan({ adapter: m.a, actor: 'operator', save }, finished);
-    expect((await m.a.loadMap(m.map.id)).tickets).toHaveLength(7);
+    expect((await m.a.loadMap(m.map.id)).tickets).toHaveLength(6);
   });
 
   it('supersedes the same agent’s pending proposal; rejecting puts challenged assumptions back', async () => {

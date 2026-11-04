@@ -1,11 +1,12 @@
 import type { Ticket } from '../../../model/types';
 import { OperationError } from '../../../planning/operations/operationError';
 import { withMapMeta } from '../../mapMeta';
+import { reopened, withEdit, withoutBlocker } from '../../ticketEdits';
 import { withMeta } from '../../ticketMeta';
 import type { CacheEntry, QueuedChange, QueuedWrite } from './types';
 
 /** Changes that would duplicate if sent twice; the rest set state, so sending them again is harmless. */
-export const CHECKED = new Set<QueuedChange['kind']>(['comment', 'decision', 'blocking']);
+export const CHECKED = new Set<QueuedChange['kind']>(['comment', 'decision', 'blocking', 'unblocking']);
 
 export function ticketOf(e: CacheEntry, id: string) {
   const t = e.snap.tickets.find((x) => x.id === id);
@@ -34,6 +35,24 @@ export function applyWrite(e: CacheEntry, w: QueuedWrite, now: () => number) {
     case 'blocking': {
       const t = ticketOf(e, c.blockedId);
       if (!t.blockedBy.includes(c.blockerId)) touch(t, { blockedBy: [...t.blockedBy, c.blockerId] }, now);
+      break;
+    }
+    case 'unblocking': {
+      const t = ticketOf(e, c.blockedId);
+      if (t.blockedBy.includes(c.blockerId)) touch(t, withoutBlocker(t, c.blockerId), now);
+      break;
+    }
+    case 'edit': {
+      const t = ticketOf(e, c.ticketId);
+      touch(t, withEdit(t, c.edit), now);
+      break;
+    }
+    case 'reopen': {
+      const t = ticketOf(e, c.ticketId);
+      const open = reopened(t);
+      delete t.closeReason;
+      delete t.closedAt;
+      touch(t, open, now);
       break;
     }
     case 'claim':
@@ -79,6 +98,7 @@ export function hasLanded(remote: CacheEntry, w: QueuedWrite) {
   const ticket = (id: string) => remote.snap.tickets.find((t) => t.id === id);
   if (c.kind === 'comment') return !!ticket(c.ticketId)?.comments.some((x) => x.writeId === w.id);
   if (c.kind === 'blocking') return !!ticket(c.blockedId)?.blockedBy.includes(c.blockerId);
+  if (c.kind === 'unblocking') return !ticket(c.blockedId)?.blockedBy.includes(c.blockerId);
   if (c.kind === 'decision')
     return remote.decisions.some(
       (d) => d.id === c.decision.id && d.decidedAt === c.decision.decidedAt && d.answer === c.decision.answer,

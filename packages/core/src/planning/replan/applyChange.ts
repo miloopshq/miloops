@@ -2,6 +2,7 @@ import type { TrackerAdapter } from '../../adapters/adapter';
 import type { Journal } from '../../model/lifecycle';
 import type { ReplanChange, ReplanProposal } from '../../model/replan';
 import type { MapSnapshot } from '../../model/types';
+import { transition } from '../lifecycle/transition';
 import { supersedeDecision } from '../operations/decisionOps';
 import { ruleOutOfScope } from '../operations/scope';
 
@@ -36,7 +37,8 @@ export async function applyChange(s: Step, c: ReplanChange): Promise<void> {
     case 'add_ticket':
       return wire(s, s.idOf(c.ref), c.blockedBy ?? []);
     case 'rewire':
-      return wire(s, c.ticket, c.addBlockedBy);
+      await unwire(s, c.ticket, c.removeBlockedBy ?? []);
+      return wire(s, c.ticket, c.addBlockedBy ?? []);
     case 'cancel_ticket':
       return cancel(s, snap, c);
     case 'edit_ticket':
@@ -50,7 +52,7 @@ export async function applyChange(s: Step, c: ReplanChange): Promise<void> {
     case 'add_out_of_scope':
       return appendLine(s, snap, { key: 'outOfScope', text: c.text });
     case 'reopen':
-      return;
+      return reopen(s, snap, c);
     default: {
       const unknown: never = c;
       throw new Error(`unknown change ${(unknown as { op?: string }).op}`);
@@ -60,6 +62,10 @@ export async function applyChange(s: Step, c: ReplanChange): Promise<void> {
 
 async function wire(s: Step, ticketId: string, blockers: string[]) {
   for (const b of blockers) await s.env.adapter.addBlocking(s.p.mapId, s.idOf(b), ticketId);
+}
+
+async function unwire(s: Step, ticketId: string, blockers: string[]) {
+  for (const b of blockers) await s.env.adapter.removeBlocking(s.p.mapId, b, ticketId);
 }
 
 async function cancel(s: Step, snap: MapSnapshot, c: Extract<ReplanChange, { op: 'cancel_ticket' }>) {
@@ -79,16 +85,34 @@ async function cancel(s: Step, snap: MapSnapshot, c: Extract<ReplanChange, { op:
   );
 }
 
+/** Rewrites the ticket's title and body, then leaves a one-line audit comment. Each step is skipped once done. */
 async function revise(s: Step, snap: MapSnapshot, c: Extract<ReplanChange, { op: 'edit_ticket' }>) {
   const t = snap.tickets.find((x) => x.id === c.ticket);
+  if (!t) return;
+  const edit = {
+    ...(c.title?.trim() ? { title: c.title.trim() } : {}),
+    ...(c.body?.trim() ? { body: c.body.trim() } : {}),
+  };
+  const changed =
+    (edit.title !== undefined && edit.title !== t.title) || (edit.body !== undefined && edit.body !== t.body);
+  if (changed) await s.env.adapter.editTicket(s.p.mapId, t.id, edit);
   const mark = replanMark(s.p, s.index);
-  if (!t || t.comments.some((x) => x.body.includes(mark))) return;
-  const parts = [
-    `**Revised by ${mark}**, approved by ${s.env.actor}`,
-    ...(c.title?.trim() ? [`**Title:** ${c.title.trim()}`] : []),
-    ...(c.body?.trim() ? [c.body.trim()] : []),
-  ];
-  await s.env.adapter.comment(s.p.mapId, t.id, s.p.by, parts.join('\n\n'));
+  if (t.comments.some((x) => x.body.includes(mark))) return;
+  await s.env.adapter.comment(s.p.mapId, t.id, s.env.actor, `Edited by ${mark}, approved by ${s.env.actor}.`);
+}
+
+/** Puts a done or cancelled ticket back in the queue through the operator's `reopen` transition. */
+async function reopen(s: Step, snap: MapSnapshot, c: Extract<ReplanChange, { op: 'reopen' }>) {
+  const t = snap.tickets.find((x) => x.id === c.ticket);
+  // a proposal applied before reopen existed made a follow-up ticket instead; leave that as it is
+  if (!t || t.state === 'open' || s.p.created[s.index]) return;
+  await transition(s.env.adapter, s.p.mapId, t.id, {
+    event: 'reopen',
+    actor: s.env.actor,
+    actorKind: 'operator',
+    reason: `${c.reason} (${replanMark(s.p, s.index)})`,
+    journal: s.env.journal,
+  });
 }
 
 async function supersede(s: Step, c: Extract<ReplanChange, { op: 'supersede_decision' }>) {

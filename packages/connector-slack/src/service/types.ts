@@ -20,8 +20,13 @@ export interface SlackServiceOptions {
   pollMs?: number;
   /** Mission changes are checked every n-th tick. */
   missionEvery?: number;
-  /** At most one notification message per mission per window. */
+  /**
+   * At most one notification message per mission per window. Unset: the team's digest cadence (`digestMinutes` in
+   * attention.json), re-read on every flush. Tests set it.
+   */
   batchMs?: number;
+  /** The clock, for tests. */
+  now?: () => number;
   /**
    * Post an agent question as its own message only when the attention queue says it interrupts now (at or above the
    * team's threshold, outside this person's focus hours); the rest go into the mission digest. The local server's

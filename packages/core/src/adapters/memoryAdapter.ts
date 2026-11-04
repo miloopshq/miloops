@@ -13,9 +13,17 @@ import {
   type MapDoc,
 } from '../model/types';
 import { buildDecision } from '../planning/decisions/decisionRecord';
-import type { MapInput, TrackerAdapter } from './adapter';
+import type { MapInput, TicketEdit, TrackerAdapter } from './adapter';
 import { withMapMeta } from './mapMeta';
+import { newTicket, reopened, withEdit, withoutBlocker } from './ticketEdits';
 import { withMeta } from './ticketMeta';
+
+const updated = (mapId: string, id: string): TrackerEvent => ({
+  kind: 'ticket.updated',
+  mapId,
+  ticketId: id,
+  at: Date.now(),
+});
 
 export interface MemoryAdapterOptions {
   /** Simulated network latency range in ms. */
@@ -138,16 +146,7 @@ export class MemoryAdapter implements TrackerAdapter {
   async createTicket(mapId: string, input: { title: string; type: TicketType; body: string; hitl?: boolean }) {
     await this.wait();
     const n = this.next++;
-    const t: Ticket = {
-      id: `t-${n}`,
-      key: `#${n}`,
-      ...input,
-      state: 'open',
-      blockedBy: [],
-      comments: [],
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
+    const t = newTicket(`t-${n}`, `#${n}`, input);
     this.tickets.get(mapId)!.push(t);
     this.emit({ kind: 'ticket.created', mapId, ticketId: t.id, at: Date.now() });
     return structuredClone(t);
@@ -160,36 +159,49 @@ export class MemoryAdapter implements TrackerAdapter {
     this.emit({ kind: 'edge.added', mapId, blockerId, blockedId, at: Date.now() });
   }
 
-  async assign(mapId: string, ticketId: string, assignee: string | null) {
+  /** Waits, rewrites one ticket with `change` and emits `event`. */
+  private async update(mapId: string, ticketId: string, change: (t: Ticket) => Ticket, event: TrackerEvent) {
     await this.wait();
-    const t = this.ticket(mapId, ticketId);
-    this.touch(mapId, { ...t, assignee: assignee ?? undefined });
-    this.emit(
-      assignee
-        ? { kind: 'ticket.claimed', mapId, ticketId, assignee, at: Date.now() }
-        : { kind: 'ticket.released', mapId, ticketId, at: Date.now() },
-    );
+    this.touch(mapId, change(this.ticket(mapId, ticketId)));
+    this.emit(event);
+  }
+
+  async removeBlocking(mapId: string, blockerId: string, blockedId: string) {
+    if (!this.ticket(mapId, blockedId).blockedBy.includes(blockerId)) return;
+    const event: TrackerEvent = { kind: 'edge.removed', mapId, blockerId, blockedId, at: Date.now() };
+    await this.update(mapId, blockedId, (t) => withoutBlocker(t, blockerId), event);
+  }
+
+  async editTicket(mapId: string, ticketId: string, edit: TicketEdit) {
+    await this.update(mapId, ticketId, (t) => withEdit(t, edit), updated(mapId, ticketId));
+  }
+
+  async reopen(mapId: string, ticketId: string) {
+    await this.update(mapId, ticketId, reopened, updated(mapId, ticketId));
+  }
+
+  async assign(mapId: string, ticketId: string, assignee: string | null) {
+    const event: TrackerEvent = assignee
+      ? { kind: 'ticket.claimed', mapId, ticketId, assignee, at: Date.now() }
+      : { kind: 'ticket.released', mapId, ticketId, at: Date.now() };
+    await this.update(mapId, ticketId, (t) => ({ ...t, assignee: assignee ?? undefined }), event);
   }
 
   async comment(mapId: string, ticketId: string, author: string, body: string) {
-    await this.wait();
-    const t = this.ticket(mapId, ticketId);
-    const c = { id: `c-${Date.now().toString(36)}${t.comments.length}`, author, body, createdAt: Date.now() };
-    this.touch(mapId, { ...t, comments: [...t.comments, c] });
-    this.emit({ kind: 'ticket.commented', mapId, ticketId, at: Date.now() });
+    const add = (t: Ticket): Ticket => {
+      const c = { id: `c-${Date.now().toString(36)}${t.comments.length}`, author, body, createdAt: Date.now() };
+      return { ...t, comments: [...t.comments, c] };
+    };
+    await this.update(mapId, ticketId, add, { kind: 'ticket.commented', mapId, ticketId, at: Date.now() });
   }
 
   async close(mapId: string, ticketId: string, reason: 'completed' | 'not_planned') {
-    await this.wait();
-    const t = this.ticket(mapId, ticketId);
-    this.touch(mapId, { ...t, state: 'closed', closeReason: reason, closedAt: Date.now() });
-    this.emit({ kind: 'ticket.closed', mapId, ticketId, reason, at: Date.now() });
+    const close = (t: Ticket): Ticket => ({ ...t, state: 'closed', closeReason: reason, closedAt: Date.now() });
+    await this.update(mapId, ticketId, close, { kind: 'ticket.closed', mapId, ticketId, reason, at: Date.now() });
   }
 
   async setMeta(mapId: string, ticketId: string, patch: TicketMetaPatch) {
-    await this.wait();
-    this.touch(mapId, withMeta(this.ticket(mapId, ticketId), patch));
-    this.emit({ kind: 'ticket.updated', mapId, ticketId, at: Date.now() });
+    await this.update(mapId, ticketId, (t) => withMeta(t, patch), updated(mapId, ticketId));
   }
 
   async listDecisions(mapId: string) {

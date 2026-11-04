@@ -7,17 +7,19 @@ export interface MapPreview {
   marks: Map<string, DiffMark>;
   /** Edges the proposal adds, as `<blocker>><blocked>`. */
   newEdges: Set<string>;
+  /** Edges the proposal removes, still drawn (struck) so the change is visible. */
+  removedEdges: Set<string>;
   frozen: Set<string>;
 }
 
 export const edgeKey = (blocker: string, blocked: string) => `${blocker}>${blocked}`;
 
-/** Builds the preview from a proposal's dry-run diff; added and reopened tickets become ghosts keyed by their ref. */
+/** Builds the preview from a proposal's dry-run diff; added tickets become ghosts keyed by their ref. */
 export function mapPreview(snap: MapSnapshot, diff: ReplanDiff, frozen: string[] = []): MapPreview {
   const byId = new Map(snap.tickets.map((t) => [t.id, t]));
   const tickets = diff.nodes.map((n): Ticket => {
     const real = byId.get(n.id);
-    if (real) return { ...real, blockedBy: n.blockedBy };
+    if (real) return { ...real, blockedBy: [...n.blockedBy, ...(n.removedEdges ?? [])] };
     return {
       id: n.id,
       key: '+',
@@ -35,6 +37,7 @@ export function mapPreview(snap: MapSnapshot, diff: ReplanDiff, frozen: string[]
     tickets,
     marks: new Map(diff.nodes.map((n) => [n.id, n.mark])),
     newEdges: new Set(diff.nodes.flatMap((n) => n.newEdges.map((b) => edgeKey(b, n.id)))),
+    removedEdges: new Set(diff.nodes.flatMap((n) => (n.removedEdges ?? []).map((b) => edgeKey(b, n.id)))),
     frozen: new Set(frozen),
   };
 }
