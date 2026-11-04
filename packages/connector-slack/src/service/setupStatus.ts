@@ -22,7 +22,6 @@ export function statusOf(ctx: SlackContext): SlackStatus {
     owners: c.owners,
     allow: c.allow,
     notify: c.notify,
-    summary: c.summary,
     command: c.command,
     links: {
       create: slackLinks.create(c.command),

@@ -42,7 +42,7 @@ export const SEED_TICKETS: SeedTicket[] = [
     title: 'Spike Automerge on React Native with 10k notes',
     blockedBy: [145],
     status: 'claimed',
-    assignee: 'mpocock',
+    assignee: 'arekom',
   },
   { n: 147, type: 'grilling', title: 'Is silent auto-merge acceptable for shared notebooks?', blockedBy: [144] },
   { n: 148, type: 'research', title: 'Survey background-sync limits on iOS and Android', blockedBy: [144] },

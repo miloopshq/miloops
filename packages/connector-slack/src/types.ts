@@ -44,7 +44,6 @@ export interface SlackStatus {
   owners: SlackUser[];
   allow: SlackUser[];
   notify: SlackNotify;
-  summary: 'milo' | 'deterministic';
   command: string;
   links: { create: string; app?: string; install?: string; home?: string; homeWeb?: string };
   /** Tracker folder of the other `miloops` that holds this machine's Slack connection. */
@@ -63,5 +62,4 @@ export interface SlackSettingsPatch {
   enabled?: boolean;
   allow?: SlackUser[];
   notify?: Partial<SlackNotify>;
-  summary?: SlackStatus['summary'];
 }

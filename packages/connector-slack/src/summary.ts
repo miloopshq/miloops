@@ -25,7 +25,7 @@ export function plainText(text: string, names: Record<string, string> = {}) {
 
 /**
  * Deterministic thread summary: first message, the clicked message, and the last two replies, each trimmed.
- * Used when `slack.summary` is `deterministic` or no model is available; the user can edit it before saving.
+ * MILOOPS never calls a model, so this is the summary; the user can edit it before saving.
  */
 export function deterministicSummary(messages: ThreadMessage[], clickedTs?: string): string {
   if (!messages.length) return '';

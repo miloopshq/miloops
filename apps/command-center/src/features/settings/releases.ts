@@ -28,6 +28,7 @@ export const RELEASES: Release[] = [
       'Warnings before a clash: agents say which files they expect to change. When two of them plan to change the same files, the second one is warned, and you see it in Waiting on you; open it to release either claim',
       'When two agents’ branches did change the same files, Waiting on you suggests a ticket to bring the work together. One click adds it, waiting on both tickets, with the files listed',
       'The ticket inspector shows which files an agent expects to change and the branch it works on',
+      'Fix: an execute ticket marked as needing you keeps that mark when saved to local files, GitHub Issues or Linear',
     ],
   },
   {

@@ -3,6 +3,8 @@
  * editing this file (plus the package.json names, which npm cannot read from code).
  * Changing `slug` also changes tracker labels, so existing maps would need relabelling.
  */
+import type { TicketType } from './types';
+
 const slug = 'miloops';
 
 export const BRAND = {
@@ -13,7 +15,7 @@ export const BRAND = {
   name: 'MILOOPS',
   /** Two-tone wordmark: `lead + ops` spells `name`; `ops` renders in the brand amber. */
   wordmark: { lead: 'MILO', ops: 'OPS' },
-  category: 'Autonomous Agent Command Center',
+  category: 'Local command center for AI coding agents',
   tagline: 'One command center. Every agent. Total operational awareness.',
   /** The platform's own voice: coordinator/system lines and onboarding. Worker agents keep their own ids. */
   assistant: {
@@ -36,4 +38,6 @@ export const PREFS_KEY = `${slug}.prefs`;
 export const label = (kind: string) => `${BRAND.labelPrefix}:${kind}`;
 export const MAP_LABEL = label('map');
 export const HITL_LABEL = label('hitl');
+/** Types whose HITL flag is a choice (and so a label): grilling and prototype are always HITL, research never. */
+export const takesHitlLabel = (type: TicketType) => type === 'task' || type === 'execute';
 export const PLAN_ONLY_LABEL = label('plan-only');

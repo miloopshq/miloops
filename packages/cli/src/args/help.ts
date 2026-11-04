@@ -1,6 +1,6 @@
 import { BRAND, DEFAULT_LEASE_MINUTES, LEASE_MINUTES_ENV } from '@miloops-hq/core';
 
-export const HELP = `${BRAND.name} — ${BRAND.category}
+export const HELP = `${BRAND.name}: ${BRAND.category}
 
 Usage: ${BRAND.slug} [options]
        ${BRAND.slug} mcp [--dir <path>] [--agent <callsign>] [--lease-minutes <n>]

@@ -95,9 +95,9 @@ export async function seedDecisions(
     alternatives: ['Commuters with patchy transit signal'],
     rationale:
       'Interviews with six field teams: dead zones last 3 to 9 days, and lost field notes are unrecoverable. Commuter outages are covered by the same design.',
-    decidedBy: 'mpocock',
+    decidedBy: 'arekom',
     decidedAt: t144,
-    participants: [{ id: 'mpocock' }, { id: OP }],
+    participants: [{ id: 'arekom' }, { id: OP }],
     source: { kind: 'tracker', ref: mapFile(144), label: 'edited in tracker' },
   });
 
@@ -127,9 +127,9 @@ export async function seedDecisions(
       ...tk(155),
       question: 'End-to-end encryption of sync payloads',
       answer: 'Out of scope: Transport is already TLS; at-rest E2EE is a separate initiative.',
-      decidedBy: 'mpocock',
+      decidedBy: 'arekom',
       decidedAt: at(155),
-      participants: [{ id: 'mpocock' }],
+      participants: [{ id: 'arekom' }],
       source: { kind: 'tracker', ref: mapFile(155), label: 'closed as not planned' },
     },
     { appendToMission: false },

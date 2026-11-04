@@ -14,7 +14,7 @@ interface SeedInput {
 }
 
 const CLAIMS = [
-  { title: 'Spike Automerge', agent: 'mpocock', touches: ['src/sync/**', 'package.json'], ago: 50 },
+  { title: 'Spike Automerge', agent: 'arekom', touches: ['src/sync/**', 'package.json'], ago: 50 },
   {
     title: 'Show sync status in the note list',
     agent: 'codex-01',
