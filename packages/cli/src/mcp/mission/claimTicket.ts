@@ -15,6 +15,7 @@ import type { AgentContext } from './agentContext';
 import { criteriaView } from './criteria';
 import { assertClaimable, briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
+import { claimParallel } from './parallel';
 import { recoverStalled } from './recoverStalled';
 import { frozenOn } from './replans';
 import { sessionView } from './reporting';
@@ -27,7 +28,10 @@ import { baselineView } from './verificationView';
  * `claim_ticket`: claims the given ticket (or the best ready one), opens a session for it,
  * holds the lease and records the git baseline. Returns what the agent needs to start.
  */
-export async function claimTicket(ctx: AgentContext, input: { ticket?: string; mission?: string } = {}) {
+export async function claimTicket(
+  ctx: AgentContext,
+  input: { ticket?: string; mission?: string; touches?: string[]; workspace?: boolean } = {},
+) {
   const recovered = await recoverStalled(ctx);
   const snap = await ctx.resolveMission(input.mission);
   ctx.mission = snap.map.id;
@@ -40,9 +44,16 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
     : await claim(ctx.adapter, snap.map.id, target.id, { assignee: agent, journal: ctx.journal });
   const s = await sessionFor(ctx, snap, t);
   const lease = ctx.leases.hold(agent, snap.map.id, t, { sessionId: s.id });
+  const parallel = await claimParallel(ctx, {
+    mapId: snap.map.id,
+    ticket: t,
+    agent,
+    touches: input.touches,
+    workspace: input.workspace,
+  });
   const baseline = await baselineForClaim({
     root: ctx.root,
-    cwd: repoRootOf(ctx.verifyEnv()),
+    cwd: parallel.workspace?.path ?? repoRootOf(ctx.verifyEnv()),
     mapId: snap.map.id,
     ticket: t,
     agent,
@@ -66,6 +77,9 @@ export async function claimTicket(ctx: AgentContext, input: { ticket?: string; m
       renewedBy: 'every tool call of yours; report_progress notes are kept for whoever resumes if you go silent',
     },
     ...(recovered.length ? { recovered } : {}),
+    ...(parallel.workspace ? { workspace: parallel.workspace } : {}),
+    ...(parallel.workspaceNote ? { workspaceNote: parallel.workspaceNote } : {}),
+    ...(parallel.warnings.length ? { warnings: parallel.warnings } : {}),
   };
 }
 

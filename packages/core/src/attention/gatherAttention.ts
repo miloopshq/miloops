@@ -6,6 +6,7 @@ import { readTicketSyncs } from '../evidence/syncStore';
 import { listKnowledge } from '../knowledge/knowledgeStore';
 import type { AttentionPolicy } from '../model/attention';
 import { approvalItems } from '../verification/approvals';
+import { readIntegrationScan } from '../workspaces/integrationStore';
 import { readAttentionState } from './attentionStore';
 import { readViolations } from './readViolations';
 import { replanInputs } from './replanInputs';
@@ -35,8 +36,14 @@ export async function gatherAttention(input: {
     briefs,
     ...(await replanInputs({ root, adapter, snaps, syncs })),
     violations: await readViolations({ root, adapter, snaps, docs }),
+    integrations: integrationsOf(root),
     policy,
     state: readAttentionState(root),
     now,
   };
+}
+
+function integrationsOf(root: string) {
+  const scan = readIntegrationScan(root);
+  return scan.overlaps.map((o) => ({ ...o, at: scan.at }));
 }

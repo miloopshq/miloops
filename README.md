@@ -32,11 +32,10 @@ Your agents can already write the code. What's missing is a place to run them li
 
 Where MILOOPS is heading, in the order we plan to build it:
 
-1. **Safe parallel work.** Each agent can work in its own copy of your project, and you hear about it before two of them change the same thing.
-2. **Multi-repository supervision.** Run missions across all your repos from one command center, with a single merged queue.
-3. **Agent roles and specialists.** Give agents roles (reviewer, researcher, builder) and bring in specialists for focused jobs, starting with a built-in reviewer that wraps today's independent review.
+1. **Multi-repository supervision.** Run missions across all your repos from one command center, with a single merged queue.
+2. **Agent roles and specialists.** Give agents roles (reviewer, researcher, builder) and bring in specialists for focused jobs, starting with a built-in reviewer that wraps today's independent review.
 
-Already shipped from this roadmap: one ranked queue of what needs you, project knowledge, and missions that adapt when an assumption breaks.
+Already shipped from this roadmap: one ranked queue of what needs you, project knowledge, missions that adapt when an assumption breaks, and safe parallel work (a separate workspace per task, and a warning before two agents change the same files).
 
 Coming alongside: **model-aware claiming**, a per-mission switch that sends hard decisions to stronger models and routine work to cheaper ones. With roles, a role can set its own model tier.
 

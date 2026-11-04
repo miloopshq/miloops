@@ -90,4 +90,16 @@ export {
   type AttentionPolicyRead,
 } from './attention/attentionStore';
 export { gatherAttention } from './attention/gatherAttention';
+export {
+  listWorkspaces,
+  readWorkspace,
+  readWorkspaceSettings,
+  writeWorkspace,
+  writeWorkspaceSettings,
+  type WorkspaceSettingsRead,
+} from './workspaces/workspaceStore';
+export { prepareWorktree, worktreeLocation, type Prepared, type PrepareInput } from './workspaces/prepareWorktree';
+export { branchChanges } from './workspaces/integration';
+export { readIntegrationScan, writeIntegrationScan } from './workspaces/integrationStore';
+export { scanIntegrations } from './workspaces/scanIntegrations';
 export { attentionView } from './attention/attentionView';

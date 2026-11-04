@@ -20,9 +20,11 @@ import { createTrackerRoutes } from './trackerRoutes';
 import { handleVerification } from './verificationRoutes';
 import { handleVerificationSync } from './verificationSyncRoutes';
 import { watchAttention } from './watchAttention';
+import { watchIntegration } from './watchIntegration';
 import { watchLeases } from './watchLeases';
 import { watchTrackerFolder } from './watchTrackerFolder';
 import { watchVerification } from './watchVerification';
+import { handleWorkspaces } from './workspaceRoutes';
 
 /**
  * HTTP API for the local-markdown tracker. Shared by the Vite dev plugin and
@@ -34,6 +36,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
     url: publicUrl = () => undefined,
     leases: leaseTiming,
     reconciler: reconcilerTiming,
+    integration: integrationTiming,
     ...trackers
   } = options;
   const abs = path.resolve(root);
@@ -50,6 +53,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
   const ctx = { root: abs, active: () => routes.active() };
   const reconciler = watchVerification(ctx, { access: routes.ciAccess, send }, reconcilerTiming);
   const unwatchAttention = watchAttention(ctx, send, { configDir: trackers.configDir });
+  const unwatchIntegration = watchIntegration(abs, integrationTiming);
 
   type Route = (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<boolean>;
   /** Tried in order; the first that handles the request answers it. */
@@ -74,6 +78,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
     (req, res, url) => handleCriteria(abs, req, res, url),
     (req, res, url) => handlePolicy(ctx, req, res, url),
     (req, res, url) => handleAttention({ ...ctx, configDir: trackers.configDir }, req, res, url),
+    (req, res, url) => handleWorkspaces(ctx, req, res, url),
   ];
 
   /** The live event stream and raw file access to the tracker folder. */
@@ -121,6 +126,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       unwatch();
       unwatchLeases();
       unwatchAttention();
+      unwatchIntegration();
       reconciler.stop();
       for (const c of clients) c.end();
       clients.clear();

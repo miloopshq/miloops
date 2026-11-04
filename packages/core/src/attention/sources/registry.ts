@@ -4,7 +4,9 @@ import { blockedSource } from './blockedSource';
 import { briefSource } from './briefSource';
 import { flagSource } from './flagSource';
 import { hitlReadySource } from './hitlReadySource';
+import { integrationSource } from './integrationSource';
 import { knowledgeSource } from './knowledgeSource';
+import { overlapSource } from './overlapSource';
 import { policySource } from './policySource';
 import { questionSource } from './questionSource';
 import { replanSource } from './replanSource';
@@ -27,4 +29,6 @@ export const ATTENTION_SOURCES: AttentionSource[] = [
   replanSource,
   replanSuggestedSource,
   policySource,
+  overlapSource,
+  integrationSource,
 ];

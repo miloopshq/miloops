@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import type { TrackerAdapter } from '../adapters/adapter';
 import type { CriterionEvidence } from '../criteria/criteria';
@@ -9,6 +10,7 @@ import type { VerificationAttempt } from '../model/verification';
 import { transition } from '../planning/lifecycle/transition';
 import { OperationError } from '../planning/operations/operationError';
 import { resolve, type DecisionMeta } from '../planning/operations/resolve';
+import { readWorkspace } from '../workspaces/workspaceStore';
 import { DEFAULT_CONFIG } from './config';
 import { readVerificationConfig, type ConfigRead } from './configFile';
 import { nextAttemptId, readAttempts, writeAttempt } from './evidenceStore';
@@ -34,6 +36,12 @@ export interface VerifyEnv {
 
 /** The repo a tracker's checks and git evidence use. */
 export const repoRootOf = (env: Pick<VerifyEnv, 'root' | 'repoRoot'>) => env.repoRoot ?? path.dirname(env.root);
+
+/** Where one ticket's checks and git evidence run: its worktree when it has one, else the repo. */
+const checkoutOf = (env: Pick<VerifyEnv, 'root' | 'repoRoot'>, mapId: string, ticketId: string) => {
+  const ws = env.repoRoot ? undefined : readWorkspace(env.root, mapId, ticketId);
+  return ws && existsSync(ws.path) ? ws.path : repoRootOf(env);
+};
 
 /** What the agent claimed, kept on the attempt and used to resolve the ticket when it passes. */
 export interface Submission {
@@ -116,7 +124,7 @@ export async function verify(env: VerifyEnv, job: VerifyJob): Promise<{ attemptI
   const done = (async (): Promise<Settled> => {
     let attempt: VerificationAttempt;
     try {
-      const repoRoot = repoRootOf(env);
+      const repoRoot = checkoutOf(env, mapId, t.id);
       const git = await completionEvidence({
         ...env,
         repoRoot,

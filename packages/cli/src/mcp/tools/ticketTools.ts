@@ -32,7 +32,23 @@ export function registerTicketTools(tool: DefineTool, agent: MissionAgent) {
       description:
         'Assign a ticket to you (default: the next ready one) and start working it. Fails if another agent got it first.',
     },
-    { mission, ticket: ticket.optional() },
+    {
+      mission,
+      ticket: ticket.optional(),
+      touches: z
+        .array(z.string().min(1).max(300))
+        .max(50)
+        .optional()
+        .describe(
+          'Path globs you expect to change (e.g. ["src/notify/**", "package.json"]). Another live claim on the same files comes back as a warning, and the human sees the overlap.',
+        ),
+      workspace: z
+        .boolean()
+        .optional()
+        .describe(
+          'Ask for your own git worktree and branch for this ticket (default: the project setting). The result gives its path: edit files there.',
+        ),
+    },
     (a) => agent.claimTicket(a),
   );
 
