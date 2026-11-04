@@ -1,23 +1,28 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { useState, useRef, useEffect } from 'react';
 import { SectionHeader, Empty, Meta, InputRow } from '../../components/ui';
-import { clock, isRunning } from '../../lib';
+import { clock, isRunning, pickPending } from '../../lib';
 import { QuestionAvatar } from './QuestionAvatar';
 
 export function Conversation(props: {
   activity: ActivityState;
   snaps: Record<string, MapSnapshot>;
   sessionId?: string;
+  /** The question the operator opened, when the agent has more than one open. */
+  questionId?: string;
   onAnswer: (questionId: string, text: string) => void;
   onBack?: () => void;
 }) {
   const { activity, sessionId } = props;
   const [draft, setDraft] = useState('');
+  const [chosen, setChosen] = useState<string>();
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const session = activity.sessions.find((s) => s.id === sessionId);
   const messages = activity.chats.filter((m) => m.sessionId === sessionId);
-  const pending = activity.pending.find((p) => p.sessionId === sessionId);
+  const pending = pickPending(activity.pending, sessionId, chosen ?? props.questionId);
+  const otherOpen = new Set(activity.pending.filter((p) => p.sessionId === sessionId).map((p) => p.id));
+  if (pending) otherOpen.delete(pending.id);
   const mission = session ? props.snaps[session.mapId] : undefined;
   const ticket = session?.ticketId ? mission?.tickets.find((t) => t.id === session.ticketId) : undefined;
 
@@ -79,6 +84,11 @@ export function Conversation(props: {
                   {open && <QuestionAvatar id={m.id} text={m.text} />}
                   <Meta parts={[m.author, clock(m.at)]} />
                   <div className="msg-text">{m.text}</div>
+                  {m.questionId && otherOpen.has(m.questionId) && (
+                    <button className="answer-this" onClick={() => setChosen(m.questionId)}>
+                      Answer this
+                    </button>
+                  )}
                 </div>
               );
             })}

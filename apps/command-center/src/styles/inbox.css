@@ -9,10 +9,15 @@
   flex: 0 1 auto;
   max-height: 38%;
 }
+.inbox-part > .sec-h {
+  flex-shrink: 0;
+}
 .inbox.split:not(.has-conv) .inbox-part {
   max-height: 60%;
 }
 .hitl-readout {
+  /* Keeps its line when the column is short; the list below scrolls instead. */
+  flex-shrink: 0;
   display: flex;
   gap: var(--sp-14);
   padding: 0 var(--gutter) var(--sp-8);
@@ -314,4 +319,22 @@
 }
 :is(.inbox-list, .att-list) .who.held {
   color: var(--st-held);
+}
+
+/* Another open question from the same agent (a side question): answer it next. */
+.msg .answer-this {
+  margin-top: var(--sp-4);
+  padding: var(--sp-2) var(--sp-6);
+  border: 1px solid var(--line2);
+  background: none;
+  color: var(--dim);
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-data);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.msg .answer-this:hover {
+  border-color: var(--accent);
+  color: var(--text-hi);
 }

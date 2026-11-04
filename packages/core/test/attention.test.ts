@@ -218,7 +218,7 @@ describe('attention queue', () => {
     ]);
     expect(q.items[0].urgency).toBe('blocking');
     expect(q.items[1].reasons).toContain('fyi, when convenient');
-    expect(q.items[1].reasons.some((r) => r.includes('idle'))).toBe(false);
+    expect(q.items[1].reasons.some((r) => r.includes('idle') || r.includes('waiting for you'))).toBe(false);
   });
 
   it('old clients without urgency count as soon, and their waiting agent as idle', () => {
@@ -226,7 +226,7 @@ describe('attention queue', () => {
       input({ questions: [question('old')], sessions: [session('s-old', { waitingOn: 'old' })] }),
     );
     expect(q.items[0]).toMatchObject({ urgency: 'soon', kind: 'question' });
-    expect(q.items[0].reasons[0]).toMatch(/^claude-01 idle/);
+    expect(q.items[0].reasons[0]).toMatch(/^claude-01 (idle|is waiting)/);
   });
 
   it('fewer questions rank better, and a batch stays together', () => {

@@ -25,6 +25,7 @@ export function InboxPane(props: {
   above?: ReactNode;
 }) {
   const [view, setView] = useState<'list' | 'conv'>('list');
+  const [questionId, setQuestionId] = useState<string>();
   useEffect(() => {
     if (props.convRequest) setView('conv');
   }, [props.convRequest]);
@@ -34,7 +35,9 @@ export function InboxPane(props: {
   };
   const openQuestion = (questionId: string) => {
     const q = props.activity.pending.find((p) => p.id === questionId);
-    if (q) open(q.sessionId, q.ticketId);
+    if (!q) return;
+    setQuestionId(q.id);
+    open(q.sessionId, q.ticketId);
   };
 
   const list = (
@@ -55,6 +58,7 @@ export function InboxPane(props: {
       activity={props.activity}
       snaps={props.snaps}
       sessionId={props.sessionId}
+      questionId={questionId}
       onAnswer={props.onAnswer}
       onBack={props.layout === 'stack' ? () => setView('list') : undefined}
     />
