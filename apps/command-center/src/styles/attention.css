@@ -32,7 +32,13 @@
 }
 .att-item .card {
   width: 100%;
-  padding-right: calc(var(--sp-10) + 44px);
+  /* Room for the "Later" button in the corner. */
+  padding-right: calc(var(--sp-10) + 60px);
+}
+/* In a narrow column the kind, tags and wait time wrap instead of squeezing together. */
+.att-item .row1 {
+  flex-wrap: wrap;
+  row-gap: var(--sp-2);
 }
 .att-item .who.question {
   color: var(--text-hi);
