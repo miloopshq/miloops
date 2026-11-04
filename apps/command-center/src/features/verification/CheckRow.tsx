@@ -13,9 +13,9 @@ export function CheckRow({ check: c }: { check: CheckResult }) {
     <details className={`vf-row ${ok ? 'ok' : 'bad'}`} open={!ok}>
       <summary>
         <span className="vf-mark">{ok ? '✓' : '✕'}</span>
-        <span className="mono-label">{c.name}</span>
-        <span className="dim">{exit}</span>
-        <span className="dim vf-dur">{dur(c.durationMs)}</span>
+        <span className="t-code vf-name">{c.name}</span>
+        <span className="t-meta">{exit}</span>
+        <span className="t-meta vf-dur">{dur(c.durationMs)}</span>
       </summary>
       <code className="vf-argv">{c.argv.join(' ')}</code>
       {c.error && <p className="vf-note">{c.error}</p>}

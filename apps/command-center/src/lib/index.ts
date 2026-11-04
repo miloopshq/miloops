@@ -3,7 +3,7 @@ export { cx } from './cx';
 export { createMission } from './createMission';
 export { download } from './download';
 export { ago, clock, day, dur, hhmm, hm, hms, stamp, syncedAgo, tokens, usd } from './format';
-export { STATE_LABEL, STATE_TEXT, TYPE_CODE } from './labels';
+export { STATE_LABEL, STATE_TEXT, TYPE_TEXT } from './labels';
 export { heldLeases } from './leases';
 export { OPERATOR } from './operator';
 export { prSync, type PrSyncSnapshot, worstFlag } from './prSync';

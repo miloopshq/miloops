@@ -1,12 +1,13 @@
 import type { TicketType, NodeState } from '@miloops-hq/core';
 
-export const TYPE_CODE: Record<TicketType, string> = {
-  research: 'RSCH',
-  prototype: 'PROT',
-  grilling: 'GRIL',
-  task: 'TASK',
-  execute: 'EXEC',
-  review: 'REVW',
+/** Ticket types as people read them, in sentence case. */
+export const TYPE_TEXT: Record<TicketType, string> = {
+  research: 'Research',
+  prototype: 'Prototype',
+  grilling: 'Grilling',
+  task: 'Task',
+  execute: 'Execute',
+  review: 'Review',
 };
 
 /** Ticket phases as people read them (core lifecycle.ts); `blocked` and `parked` are both backlog. */

@@ -200,10 +200,6 @@
 .status-panel .mix li {
   line-height: 1.3;
 }
-/* Every node carries its HITL / AFK tag, so the strip leaves the key out. */
-.status-panel .legend-extra {
-  display: none;
-}
 /* Narrow maps keep the status counts; the type mix goes. */
 @container (max-width: 640px) {
   .status-panel {
@@ -229,12 +225,8 @@
   grid-template-columns: 14px 1fr auto;
   align-items: center;
   gap: var(--sp-8);
-  font-family: var(--label);
-  font-size: var(--fs-sm);
-  letter-spacing: var(--ls-data);
-  text-transform: uppercase;
+  font: var(--type-meta);
   color: var(--text);
-  font-weight: 500;
 }
 .status-panel li i {
   width: 12px;
@@ -256,9 +248,9 @@
   background: repeating-linear-gradient(45deg, var(--c) 0 2px, transparent 2px 4px);
 }
 .status-panel li b {
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-hi);
-  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
 }
 .status-panel li.zero {
   color: var(--faint);
@@ -271,11 +263,6 @@
 }
 .status-panel li.st-waiting:not(.zero) b {
   color: var(--urgent);
-}
-.legend-extra {
-  display: flex;
-  gap: var(--sp-14);
-  margin-top: auto;
 }
 .sp-block {
   display: flex;
@@ -292,9 +279,9 @@
 }
 .mix li {
   display: grid;
-  grid-template-columns: 34px 1fr 18px;
+  grid-template-columns: max-content minmax(24px, 1fr) max-content;
   align-items: center;
-  gap: var(--sp-6);
+  gap: var(--sp-4);
 }
 .mix-bar {
   display: flex;
@@ -309,11 +296,11 @@
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 .mix b {
-  font-family: var(--data);
-  font-weight: 400;
-  font-size: var(--fs-label);
+  font: var(--type-meta);
+  font-weight: 500;
   color: var(--text-hi);
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .sp-head {
   display: flex;
@@ -326,7 +313,6 @@
 }
 .bp-laptop .status-panel li {
   font-size: var(--fs-label);
-  letter-spacing: var(--ls-text);
 }
 
 .legend {
@@ -378,25 +364,7 @@
     stroke 0.3s,
     fill 0.3s;
 }
-.node .badge {
-  fill: var(--c);
-  fill-opacity: 0.16;
-}
-.node .badge-t {
-  font-family: var(--mono);
-  font-size: var(--fs-node-meta);
-  letter-spacing: var(--ls-data);
-  fill: var(--c);
-}
-.node .key {
-  font-family: var(--mono);
-  font-size: var(--fs-node-meta);
-  fill: var(--dim);
-}
-.node .state {
-  font-family: var(--mono);
-  font-size: var(--fs-node-meta);
-  letter-spacing: var(--ls-data);
+.node .edge-bar {
   fill: var(--c);
 }
 .node .title {
@@ -405,27 +373,26 @@
   fill: var(--text-hi);
   font-weight: 500;
 }
-.node .att rect {
-  fill: none;
-  stroke: var(--line2);
-}
-.node .att text {
-  font-family: var(--mono);
-  font-size: var(--fs-node-tag);
-  letter-spacing: var(--ls-data);
+.node .meta {
+  font-family: var(--sans);
+  font-size: var(--fs-node-meta);
   fill: var(--dim);
 }
-.node .att.hitl rect {
-  stroke: var(--amber);
-  stroke-opacity: 0.7;
+.node .meta .key {
+  font-family: var(--mono);
 }
-.node .att.hitl text {
+.node .meta .agent {
+  fill: var(--st-claimed);
+}
+.node .meta .warn {
   fill: var(--amber);
 }
+.node .meta .urgent {
+  fill: var(--urgent);
+}
 .node .live-tag {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: var(--fs-node-meta);
-  letter-spacing: var(--ls-data);
   fill: var(--st-claimed);
 }
 .node .halo {
@@ -635,7 +602,7 @@
   stroke-opacity: 0.9;
   stroke-dasharray: 4 3;
 }
-.node.mark-added .key {
+.node.mark-added .meta .key {
   fill: var(--amber);
 }
 .node.mark-cancelled {
@@ -652,9 +619,8 @@
   stroke-opacity: 0.8;
 }
 .node .replan-tag {
-  font-family: var(--mono);
-  font-size: var(--fs-node-tag);
-  letter-spacing: var(--ls-data);
+  font-family: var(--sans);
+  font-size: var(--fs-node-meta);
   fill: var(--amber);
 }
 .node .freeze {

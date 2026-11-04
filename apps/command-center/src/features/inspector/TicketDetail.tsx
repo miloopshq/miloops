@@ -1,8 +1,8 @@
-import { type MapSnapshot, type SessionInfo, deriveStates, attention, label } from '@miloops-hq/core';
+import { type MapSnapshot, type SessionInfo, deriveStates } from '@miloops-hq/core';
 import { useState, type FormEvent } from 'react';
-import { Empty, Pill, Button, Card, Field } from '../../components/ui';
+import { Empty, Button, Card, Field } from '../../components/ui';
 import { type CommandCenterApi } from '../../hooks';
-import { OPERATOR, STATE_TEXT, heldLeases, isRunning } from '../../lib';
+import { OPERATOR, heldLeases, isRunning } from '../../lib';
 import { CriteriaSection } from '../criteria';
 import { KnowledgePreview, PromoteButton } from '../knowledge';
 import { PrFlagBadges } from '../pr-sync';
@@ -12,6 +12,7 @@ import { LeaseFacts } from './LeaseFacts';
 import { OtherComments } from './OtherComments';
 import { ResolutionNote } from './ResolutionNote';
 import { TicketActions } from './TicketActions';
+import { TicketFacts } from './TicketFacts';
 import type { Form } from './types';
 
 export function TicketDetail(props: {
@@ -33,14 +34,6 @@ export function TicketDetail(props: {
   const t = snap.tickets.find((x) => x.id === props.id);
   if (!t) return <Empty>Ticket not found.</Empty>;
   const state = deriveStates(snap.tickets, snap.map.mode).get(t.id)!;
-  const byId = new Map(snap.tickets.map((x) => [x.id, x]));
-  const blocks = snap.tickets.filter((x) => x.blockedBy.includes(t.id));
-  const blockerLabel = (b: string) => {
-    const done = byId.get(b)?.state === 'closed' ? ' ✓' : '';
-    return `${byId.get(b)?.key ?? b}${done}`;
-  };
-  const blockedBy = t.blockedBy.map(blockerLabel).join(', ');
-  const att = attention(t);
   const session = props.sessions.find((s) => s.ticketId === t.id && isRunning(s));
   const mine = t.assignee === OPERATOR;
   const lease = t.state === 'open' ? heldLeases(api.leases, snap.map.id).get(t.id) : undefined;
@@ -50,30 +43,7 @@ export function TicketDetail(props: {
 
   return (
     <div className="detail">
-      <div className="d-head">
-        <span className="key">{t.key}</span>
-        <Pill tone="state" className={`st-${state}`}>
-          {STATE_TEXT[state]}
-        </Pill>
-        <span className={`meta att-${att}`}>{att === 'hitl' ? 'HITL' : 'AFK'}</span>
-      </div>
-      <h3 className="t-heading t-pixel">{t.title}</h3>
-      <dl className="facts">
-        <dt>Type</dt>
-        <dd>{label(t.type)}</dd>
-        <dt>Assignee</dt>
-        <dd>{t.assignee ?? '—'}</dd>
-        <dt>Blocked by</dt>
-        <dd>{blockedBy || '—'}</dd>
-        <dt>Blocks</dt>
-        <dd>{blocks.map((b) => b.key).join(', ') || '—'}</dd>
-        {t.reviewOf && (
-          <>
-            <dt>Reviews</dt>
-            <dd>{byId.get(t.reviewOf)?.key ?? t.reviewOf}</dd>
-          </>
-        )}
-      </dl>
+      <TicketFacts t={t} state={state} tickets={snap.tickets} />
 
       <PrFlagBadges mapId={snap.map.id} ticketId={t.id} />
       <CriteriaSection snap={snap} t={t} />

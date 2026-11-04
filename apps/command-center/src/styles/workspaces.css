@@ -45,17 +45,10 @@
   gap: var(--sp-6);
 }
 .ticket-workspace {
-  display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: var(--sp-4);
-  margin: var(--sp-10) 0;
+  margin: var(--sp-4) 0;
 }
 .ticket-workspace p {
   margin: 0;
   overflow-wrap: anywhere;
-}
-.ticket-workspace code {
-  font-family: var(--mono);
-  font-size: var(--fs-xs);
 }
