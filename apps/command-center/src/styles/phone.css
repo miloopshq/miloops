@@ -2,8 +2,9 @@
 /* Phone: repo + actions on the first row so the mission title gets the full width below. */
 .bp-mobile .header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: 'repo right' 'title title' 'dest dest';
+  grid-template-columns: minmax(0, 1fr);
+  /* The buttons get their own row under the mission, wrapping, so nothing runs off the side. */
+  grid-template-areas: 'repo' 'title' 'dest' 'right';
   align-items: center;
   column-gap: var(--sp-10);
   row-gap: var(--sp-4);
@@ -30,6 +31,9 @@
 }
 .bp-mobile .h-right {
   grid-area: right;
+  flex-wrap: wrap;
+  gap: var(--sp-6);
+  padding-top: var(--sp-4);
 }
 .bp-mobile .h-brand,
 .bp-mobile .h-line1 .sep,

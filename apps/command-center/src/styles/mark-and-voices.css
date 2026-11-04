@@ -48,8 +48,9 @@
 .log-row.src-tracker.lv-ok .msg {
   color: var(--text);
 }
+/* MILO's lines: its mark carries the accent; the words read as normal text (color is for meaning, not voice). */
 .log-row.src-system .msg {
-  color: var(--accent);
+  color: var(--text);
 }
 
 /* ---------- Signal moments: mono caps, used sparingly ---------- */
