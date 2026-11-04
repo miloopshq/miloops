@@ -1,6 +1,6 @@
 import { type NodeState, type MapSnapshot, type ActivityState, stateCounts, typeMix } from '@miloops-hq/core';
 import { Label } from '../../components/ui';
-import { TYPE_CODE, isWaiting } from '../../lib';
+import { TYPE_TEXT, isWaiting } from '../../lib';
 
 export const ORDER: [NodeState, string][] = [
   ['decided', 'Done'],
@@ -18,7 +18,7 @@ const VERIFY_ORDER: [NodeState, string][] = [
   ['held', 'Blocked'],
 ];
 
-/** Mission status counters (also the map legend) and the type mix. */
+/** Mission status counts (also the map legend) and the type mix, in plain words and plain numbers. */
 export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: ActivityState['sessions'] }) {
   const c = stateCounts(snap);
   const n = (s: NodeState) => c[s];
@@ -32,29 +32,29 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
       <div className="sp-col sp-status">
         <div className="sp-head">
           <Label as="h3">Status</Label>
-          <span className="mono-label">{c.total} tickets</span>
+          <span className="t-meta">{c.total} tickets</span>
         </div>
         <ul>
           {rows.map(([s, label]) => (
             <li key={s} className={`st-${s} ${n(s) ? '' : 'zero'}`}>
               <i />
               <span>{label}</span>
-              <b>{String(n(s)).padStart(2, '0')}</b>
+              <b>{n(s)}</b>
             </li>
           ))}
           <li className={`st-waiting ${waiting ? '' : 'zero'}`}>
             <i />
             <span>Waiting on you</span>
-            <b>{String(waiting).padStart(2, '0')}</b>
+            <b>{waiting}</b>
           </li>
         </ul>
       </div>
       <div className="sp-block sp-col">
-        <span className="mono-label">Type mix</span>
+        <span className="t-label">Type mix</span>
         <ul className="mix">
           {mix.map((m) => (
             <li key={m.type} title={`${m.type}: ${m.closed} closed, ${m.open} open`}>
-              <span className="mono-label xs">{TYPE_CODE[m.type]}</span>
+              <span className="t-meta">{TYPE_TEXT[m.type]}</span>
               <span className="mix-bar">
                 <i className="closed" style={{ width: `${(m.closed / mixMax) * 100}%` }} />
                 <i className="open" style={{ width: `${(m.open / mixMax) * 100}%` }} />
@@ -63,10 +63,6 @@ export function StatusPanel({ snap, sessions }: { snap: MapSnapshot; sessions: A
             </li>
           ))}
         </ul>
-      </div>
-      <div className="legend-extra mono-label">
-        <span>● HITL</span>
-        <span>○ AFK</span>
       </div>
     </div>
   );

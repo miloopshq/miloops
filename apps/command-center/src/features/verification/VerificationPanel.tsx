@@ -1,6 +1,6 @@
 import type { NodeState, Ticket } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Label, Meta } from '../../components/ui';
+import { Label, MetaLine } from '../../components/ui';
 import { hhmm, OPERATOR } from '../../lib';
 import { type ActionRequest, LEVEL_TEXT, verificationApi } from '../../lib/verification';
 import { AttemptRow } from './AttemptRow';
@@ -34,9 +34,7 @@ export function VerificationPanel(props: {
     <section className="vf-panel">
       <div className="vf-head">
         <Label as="h4">Verification</Label>
-        <span className="dim">
-          {LEVEL_TEXT[data.level.level]} · {SOURCE[data.level.source]}
-        </span>
+        <MetaLine parts={[LEVEL_TEXT[data.level.level], SOURCE[data.level.source]]} />
         {t.state === 'open' && (
           <LevelControl
             value={t.verification}
@@ -62,7 +60,7 @@ export function VerificationPanel(props: {
         <AttemptRow key={a.id} attempt={a} latest={i === 0} />
       ))}
       {!data.attempts.length && !running && (
-        <Meta parts={[`Checks: ${data.level.checks.join(', ') || 'none'}`, 'run when the ticket is submitted']} />
+        <MetaLine parts={[`Checks: ${data.level.checks.join(', ') || 'none'}`, 'run when the ticket is submitted']} />
       )}
     </section>
   );

@@ -1,5 +1,5 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
-import { Empty } from '../../components/ui';
+import { Empty, MetaLine, Row } from '../../components/ui';
 import type { Selection } from '../../lib';
 import { AssumptionList } from './AssumptionList';
 import { MissionReport } from './MissionReport';
@@ -29,39 +29,46 @@ export function PlanTabBody({
     case 'decisions':
       if (!s.decisions.length) return <Empty>None</Empty>;
       return (
-        <ol className="list decisions">
+        <ol className="row-list decisions">
           {[...s.decisions].reverse().map((d, i) => (
-            <li key={`${d.ticketKey}-${i}`}>
-              <button onClick={() => d.ticketId && onSelect({ kind: 'ticket', id: d.ticketId })}>
-                <span className="key">{d.ticketKey}</span>
-                <span>{d.text}</span>
-              </button>
-            </li>
+            <Row
+              key={`${d.ticketKey}-${i}`}
+              as="li"
+              title={d.text}
+              titleText={d.text}
+              context={d.ticketKey && <MetaLine parts={[{ text: d.ticketKey, code: true }]} />}
+              onOpen={d.ticketId ? () => onSelect({ kind: 'ticket', id: d.ticketId! }) : undefined}
+            />
           ))}
         </ol>
       );
     case 'unspecified':
       if (!s.unspecified.length) return <Empty>None</Empty>;
       return (
-        <ul className="list unspecified">
+        <ul className="row-list unspecified">
           {s.unspecified.map((f) => (
-            <li key={f} className={selection?.kind === 'unspecified' && selection.item === f ? 'sel' : ''}>
-              <button onClick={() => onSelect({ kind: 'unspecified', item: f })}>{f}</button>
-            </li>
+            <Row
+              key={f}
+              as="li"
+              title={f}
+              titleText={f}
+              selected={selection?.kind === 'unspecified' && selection.item === f}
+              onOpen={() => onSelect({ kind: 'unspecified', item: f })}
+            />
           ))}
         </ul>
       );
     case 'oos':
       if (!s.outOfScope.length) return <Empty>None</Empty>;
       return (
-        <ul className="list oos">
+        <ul className="row-list oos">
           {s.outOfScope.map((o) => (
-            <li key={o}>{o}</li>
+            <Row key={o} as="li" title={o} titleText={o} />
           ))}
         </ul>
       );
     case 'notes':
-      return <p className="notes">{s.notes || '—'}</p>;
+      return <p className="notes t-body">{s.notes || 'No notes yet.'}</p>;
     default: {
       const unknown: never = tab;
       return unknown;

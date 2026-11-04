@@ -101,17 +101,20 @@
   line-height: var(--lh-body);
 }
 .kn-preview {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  margin: var(--sp-8) 0;
+  margin: var(--sp-4) 0;
 }
-.kn-preview ul {
-  margin: 0;
-  padding-left: var(--sp-14);
-  display: grid;
-  gap: 2px;
-  font-size: var(--fs-sm);
+.kn-preview .kn-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.kn-preview .kn-open:hover {
+  color: var(--accent);
+}
+.kn-preview .warn {
+  color: var(--amber);
 }
 @media (max-width: 860px) {
   .kn-body-grid {

@@ -1,4 +1,5 @@
 import { pathsIn, selectKnowledge, type MapSnapshot, type Ticket } from '@miloops-hq/core';
+import { MetaLine } from '../../components/ui';
 import { useKnowledge } from './knowledgeContext';
 
 /** In the inspector: the knowledge an agent gets when it claims this ticket, and why each entry was picked. */
@@ -16,23 +17,27 @@ export function KnowledgePreview({ snap, t }: { snap: MapSnapshot; t: Ticket }) 
     (e) => k.stale[e.id] ?? [],
   );
   return (
-    <div className="kn-preview">
+    <div className="kn-preview d-section">
       <span
-        className="mono-label"
+        className="t-label"
         data-tip="Picked by paths, words, mission and kind; confirmed entries and assumptions only"
       >
         Knowledge this agent gets · {picked.length}
       </span>
       {picked.length > 0 && (
-        <ul>
+        <ul className="item-list inline">
           {picked.map((p) => (
             <li key={p.id}>
-              <button className="link" onClick={() => k.setOpen(true)} data-tip={p.why.join(' · ')}>
-                {p.id}
-              </button>{' '}
-              {p.title}
-              {p.status === 'assumption' && <span className="dim"> (assumption)</span>}
-              {p.mayBeOutdated && <span className="urgent-text"> · may be outdated</span>}
+              <button className="item-text kn-open" onClick={() => k.setOpen(true)} data-tip={p.why.join(' · ')}>
+                {p.title}
+              </button>
+              <MetaLine
+                parts={[
+                  { text: p.id, code: true },
+                  p.status === 'assumption' && 'assumption',
+                  p.mayBeOutdated && { text: 'may be outdated', className: 'warn' },
+                ]}
+              />
             </li>
           ))}
         </ul>

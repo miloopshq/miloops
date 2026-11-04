@@ -1,9 +1,12 @@
 import { attention, type DiffMark, type LaidOutNode, NODE_H, NODE_W, type SessionInfo } from '@miloops-hq/core';
-import { type Selection, STATE_LABEL, TYPE_CODE } from '../../lib';
+import { type Selection, STATE_LABEL } from '../../lib';
 import { ReplanMarks } from './ReplanMarks';
 import { wrap } from './wrap';
 
-/** One ticket on the graph: state styling, type badge, key, title, HITL/AFK tag and the live session line. */
+/**
+ * One ticket on the graph, in the three levels of the presenting-data rules: a state edge on the left, the title
+ * (what it is, two lines at most), and one quiet line (key · type · state). The live session line sits under it.
+ */
 export function GraphNode({
   n,
   session: s,
@@ -28,23 +31,16 @@ export function GraphNode({
   frozen?: boolean;
 }) {
   const t = n.ticket;
-  const lines = wrap(t.title, 22);
+  const lines = wrap(t.title, 29);
   const hitl = attention(t) === 'hitl';
   const waiting = !!s?.waitingOn;
-  const classes = [
-    'node',
-    `st-${n.state}`,
-    hitl ? 'hitl' : 'afk',
-    selected ? 'sel' : '',
-    s ? 'live' : '',
-    waiting ? 'waiting' : '',
-    stalled && !waiting ? 'stalled' : '',
-    mark ? `mark-${mark}` : '',
-    frozen ? 'frozen' : '',
-  ];
+  const marked = !!mark && mark !== 'unchanged';
+  const state = marked ? undefined : statePart(n, { waiting, stalled });
+  const needsYou = hitl && !marked && (t.type === 'task' || t.type === 'execute');
+  const flags = { hitl, selected, live: !!s, waiting, stalled, mark, frozen };
   return (
     <g
-      className={classes.join(' ')}
+      className={nodeClasses(n, flags)}
       style={{ transform: `translate(${n.x}px, ${n.y}px)` }}
       onClick={(e) => {
         e.stopPropagation();
@@ -58,43 +54,57 @@ export function GraphNode({
         <rect width={NODE_W} height={NODE_H} fill="url(#hatch-dim)" />
       )}
       {n.state === 'out-of-scope' && <rect width={NODE_W} height={NODE_H} fill="url(#hatch-oos)" />}
-      <rect className="badge" width={34} height={NODE_H} />
-      <text className="badge-t" x={17} y={NODE_H / 2 + 4} textAnchor="middle">
-        {TYPE_CODE[t.type]}
-      </text>
-      <text className="key" x={42} y={14}>
-        {t.key}
-      </text>
-      <text className="state" x={NODE_W - 6} y={14} textAnchor="end">
-        {stateLabel(n, { waiting, stalled })}
-      </text>
+      <rect className="edge-bar" width={3} height={NODE_H} />
       {lines.map((l, i) => (
-        <text key={i} className="title" x={42} y={30 + i * 13}>
+        <text key={i} className="title" x={12} y={19 + i * 14}>
           {l}
         </text>
       ))}
-      <g className={`att ${hitl ? 'hitl' : 'afk'}`} transform={`translate(${NODE_W - 30} ${NODE_H - 13})`}>
-        <rect width={26} height={10} />
-        <text x={13} y={8} textAnchor="middle">
-          {hitl ? 'HITL' : 'AFK'}
-        </text>
-      </g>
+      <text className="meta" x={12} y={NODE_H - 8}>
+        <tspan className="key">{t.key}</tspan>
+        <tspan> · {t.type}</tspan>
+        {state && <tspan className={state.tone}> · {state.text}</tspan>}
+        {needsYou && <tspan> · needs you</tspan>}
+      </text>
       {flag && <circle className={`pr-flag-dot ${flag}`} cx={NODE_W - 2} cy={2} r={4} />}
       <ReplanMarks mark={mark} frozen={frozen} />
       {s && !waiting && (
         <text className="live-tag" x={NODE_W} y={NODE_H + 13} textAnchor="end">
-          {s.agent} · {s.mode.toUpperCase()} {s.step}/{s.total} {s.stepLabel.toUpperCase()}
+          {s.agent} · step {s.step}/{s.total} · {s.stepLabel.toLowerCase()}
         </text>
       )}
     </g>
   );
 }
 
-/** The node's top-right label: waiting on you beats stalled beats claimed beats the plain state. */
-function stateLabel(n: LaidOutNode, flags: { waiting: boolean; stalled?: boolean }) {
+/** The node's classes: its state, who it's for, and what's going on around it (selection, a session, a replan). */
+function nodeClasses(
+  n: LaidOutNode,
+  f: {
+    hitl: boolean;
+    selected: boolean;
+    live: boolean;
+    waiting: boolean;
+    stalled?: boolean;
+    mark?: DiffMark;
+    frozen?: boolean;
+  },
+) {
+  const classes = ['node', `st-${n.state}`, f.hitl ? 'hitl' : 'afk'];
+  if (f.selected) classes.push('sel');
+  if (f.live) classes.push('live');
+  if (f.waiting) classes.push('waiting');
+  if (f.stalled && !f.waiting) classes.push('stalled');
+  if (f.mark) classes.push(`mark-${f.mark}`);
+  if (f.frozen) classes.push('frozen');
+  return classes.join(' ');
+}
+
+/** The state part of the meta line: waiting on you beats stalled beats who holds it beats the plain state. */
+function statePart(n: LaidOutNode, flags: { waiting: boolean; stalled?: boolean }) {
   const assignee = n.ticket.assignee;
-  if (flags.waiting) return '▲ WAITING ON YOU';
-  if (flags.stalled) return `◇ STALLED · ${assignee}`;
-  if (n.state === 'claimed') return `◆ ${assignee}`;
-  return STATE_LABEL[n.state].toUpperCase();
+  if (flags.waiting) return { text: 'waiting on you', tone: 'urgent' };
+  if (flags.stalled) return { text: `stalled · ${assignee}`, tone: 'warn' };
+  if (n.state === 'claimed') return { text: assignee ?? 'working', tone: 'agent' };
+  return { text: STATE_LABEL[n.state], tone: '' };
 }

@@ -145,10 +145,10 @@
   margin: var(--sp-6) 0 0;
   color: var(--text);
 }
-.vf-flag.lv-warn .mono-label {
+.vf-flag.lv-warn .t-code {
   color: var(--amber);
 }
-.vf-flag.lv-alert .mono-label {
+.vf-flag.lv-alert .t-code {
   color: var(--urgent);
 }
 .vf-files ul {
@@ -240,36 +240,11 @@
   color: var(--amber);
 }
 .criteria-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--sp-4);
-  margin: var(--sp-8) 0;
+  margin: var(--sp-4) 0;
 }
-.criteria-list {
-  margin: 0;
-  padding-left: var(--sp-14);
-  display: grid;
-  gap: 2px;
-  font-size: var(--fs-sm);
-}
-.criteria-list .key {
-  font-family: var(--mono);
-  color: var(--accent);
-}
-.criteria-list .kind {
-  font-family: var(--label);
-  font-size: var(--fs-xs);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  color: var(--dim);
-}
-.crit-uncovered {
-  margin: 0;
-  font-size: var(--fs-sm);
-  /* A sentence listing rules, not a short label: wrap inside the inspector. */
-  white-space: normal;
-  overflow-wrap: anywhere;
+.criteria-section .ok-text {
+  text-transform: none;
+  letter-spacing: 0;
 }
 .ok-text {
   color: var(--st-decided);

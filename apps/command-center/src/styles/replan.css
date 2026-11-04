@@ -1,19 +1,4 @@
 /* ---------- Replans: banner over the map, review dialog, assumptions in the plan ---------- */
-.replan-banner {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-10);
-  padding: var(--sp-6) var(--gutter);
-  border-bottom: 1px solid rgba(var(--amber-rgb), 0.4);
-  background: rgba(var(--amber-rgb), 0.1);
-  font-size: var(--fs-sm);
-}
-.replan-banner .rb-text {
-  flex: 1;
-  min-width: 0;
-  color: var(--text);
-}
 .replan-dialog {
   width: min(760px, 94vw);
   max-height: 86vh;
@@ -46,8 +31,6 @@
 }
 .replan-evidence {
   white-space: pre-wrap;
-  font-family: var(--mono);
-  font-size: var(--fs-sm);
   color: var(--text);
 }
 .replan-destination {
@@ -56,9 +39,8 @@
   background: rgba(var(--amber-rgb), 0.08);
 }
 .replan-destination-why {
-  font-family: var(--display);
-  font-size: var(--fs-title);
-  color: var(--amber);
+  font: var(--type-title);
+  color: var(--text-hi);
 }
 .replan-destination-diff {
   display: grid;
@@ -72,114 +54,22 @@
 .replan-destination-diff .after {
   color: var(--text-hi);
 }
-.replan-changes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-6);
-}
-.replan-change {
-  display: flex;
-  gap: var(--sp-10);
-  align-items: baseline;
-}
-.replan-op {
-  flex: 0 0 120px;
-  color: var(--accent);
-}
-.replan-change.op-cancel_ticket .replan-op {
-  color: var(--urgent);
-}
-.replan-change.op-add_ticket .replan-op,
-.replan-change.op-update_destination .replan-op {
-  color: var(--amber);
-}
-.replan-change-text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  min-width: 0;
-}
-.replan-change-detail {
-  color: var(--dim);
-  font-size: var(--fs-sm);
+/* The detail line of a change can be a sentence: let it wrap inside the dialog. */
+.replan-change .ds-row-detail {
+  white-space: normal;
 }
 
-/* Assumptions in the mission plan. */
-.assumptions {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-.assumptions li {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-4);
-  padding: var(--sp-6) var(--sp-8);
-  border-bottom: 1px solid var(--line);
-}
-.assumption-head .key {
-  white-space: nowrap;
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: var(--fs-sm);
-}
-.assumption-head .btn {
-  flex: 0 0 auto;
-}
-.assumption {
-  --c: rgba(var(--accent-rgb), 0.75);
-}
-.assumption.st-challenged {
-  --c: var(--amber);
-}
-.assumption.st-invalidated {
-  --c: var(--urgent);
-}
-.assumption.st-confirmed {
-  --c: var(--accent);
-}
-.assumption-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-6);
-}
-.assumption-text {
-  flex: 1;
-  min-width: 0;
-  color: var(--text-hi);
-}
-.assumption.st-invalidated .assumption-text {
+/* Assumptions in the mission plan: rows; invalidated ones are struck through. */
+.assumption.st-invalidated .ds-row-title {
   text-decoration: line-through;
-  color: var(--dim);
-}
-.assumption-tickets,
-.assumption-challenge,
-.assumption-settled {
-  margin: 0;
-  font-size: var(--fs-sm);
   color: var(--dim);
 }
 .assumption-tickets .link {
   margin-left: var(--sp-4);
 }
-.assumption-challenge {
-  white-space: pre-wrap;
-  color: var(--text);
-}
 
 @media (max-width: 1023px) {
   .replan-destination-diff {
     grid-template-columns: 1fr;
-  }
-  .replan-op {
-    flex-basis: 84px;
-  }
-  .replan-banner {
-    flex-wrap: wrap;
   }
 }

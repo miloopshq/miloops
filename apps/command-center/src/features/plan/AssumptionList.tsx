@@ -15,7 +15,7 @@ export function AssumptionList({ snap, onSelect }: { snap: MapSnapshot; onSelect
   return (
     <>
       {error && <p className="urgent-text">{error}</p>}
-      <ul className="assumptions">
+      <ul className="assumptions row-list">
         {all.map((a) => {
           const open = a.status === 'holding' || a.status === 'challenged';
           return (

@@ -1,6 +1,6 @@
 import type { MapSnapshot } from '@miloops-hq/core';
 import { useEffect, useState } from 'react';
-import { Button, Empty, Field, Panel } from '../../components/ui';
+import { Button, Empty, Field, MetaLine, Panel } from '../../components/ui';
 import { ago } from '../../lib';
 import { ReplanChangeRow } from './ReplanChangeRow';
 import { ReplanDestination } from './ReplanDestination';
@@ -26,7 +26,9 @@ export function ReplanDialog(props: {
     window.addEventListener('keydown', k);
     return () => window.removeEventListener('keydown', k);
   }, [props]);
-  const name = ticketNamer(snap, p.changes);
+  const short = ticketNamer(snap, p.changes);
+  const titles = new Map(snap.tickets.map((t) => [t.id, `${t.key} ${t.title}`]));
+  const name = (idOrRef: string) => titles.get(idOrRef) ?? short(idOrRef);
   const assumptions = snap.map.sections.assumptions ?? [];
   const invalidated = p.invalidates.map((id) => assumptions.find((a) => a.id === id) ?? { id, text: '' });
   const pending = p.status === 'pending';
@@ -36,9 +38,7 @@ export function ReplanDialog(props: {
       <Panel as="div" className="dialog replan-dialog" onClick={(e) => e.stopPropagation()}>
         <header>
           <h2 className="t-heading caps">{challenge ? 'Destination challenged' : 'Replan proposal'}</h2>
-          <span className="mono-label">
-            {p.id} · {p.status} · by {p.by} · {ago(Date.now() - p.at)} ago
-          </span>
+          <MetaLine parts={[{ text: p.id, code: true }, p.status, `by ${p.by}`, `${ago(Date.now() - p.at)} ago`]} />
         </header>
         <div className="replan-body">
           {challenge && <ReplanDestination reason={p.destinationReason} destination={p.diff?.destination} />}
@@ -53,10 +53,11 @@ export function ReplanDialog(props: {
           {invalidated.length > 0 && (
             <section>
               <h3 className="mono-label">Assumptions it invalidates</h3>
-              <ul className="brief-list">
+              <ul className="item-list">
                 {invalidated.map((a) => (
                   <li key={a.id}>
-                    <span className="key">{a.id}</span> {a.text}
+                    <span className="item-text">{a.text}</span>
+                    <MetaLine parts={[{ text: a.id, code: true }]} />
                   </li>
                 ))}
               </ul>
@@ -64,7 +65,7 @@ export function ReplanDialog(props: {
           )}
           <section>
             <h3 className="mono-label">Changes · {p.changes.length}</h3>
-            <ul className="replan-changes">
+            <ul className="replan-changes row-list">
               {p.changes.map((c, i) => (
                 <ReplanChangeRow key={i} change={c} name={name} />
               ))}
@@ -72,7 +73,17 @@ export function ReplanDialog(props: {
           </section>
           <section>
             <h3 className="mono-label">Frozen until you decide</h3>
-            {p.frozen?.length ? <p>{p.frozen.map(name).join(', ')}</p> : <Empty>No tickets frozen</Empty>}
+            {p.frozen?.length ? (
+              <ul className="item-list">
+                {p.frozen.map((id) => (
+                  <li key={id} className="item-text">
+                    {name(id)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Empty>No tickets frozen</Empty>
+            )}
           </section>
           {p.note && (
             <section>

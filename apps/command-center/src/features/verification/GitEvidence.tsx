@@ -1,5 +1,5 @@
 import type { VerificationAttempt } from '@miloops-hq/core';
-import { Meta } from '../../components/ui';
+import { MetaLine } from '../../components/ui';
 
 const short = (sha?: string | null) => sha?.slice(0, 8) ?? 'none';
 const count = (n: number | null) => (n === null ? '·' : String(n));
@@ -11,10 +11,12 @@ export function GitEvidence({ attempt }: { attempt: VerificationAttempt }) {
   const { files, add, del } = g.stats;
   return (
     <div className="vf-git">
-      <Meta
+      <MetaLine
         parts={[
-          g.tree ? `${g.base ? `${short(g.base.head)} → ` : ''}${short(g.tree.head)}` : 'not a git repo',
-          g.tree && (g.tree.branch ?? 'detached HEAD'),
+          g.tree
+            ? { text: `${g.base ? `${short(g.base.head)} → ` : ''}${short(g.tree.head)}`, code: true }
+            : 'not a git repo',
+          g.tree && { text: g.tree.branch ?? 'detached HEAD', code: !!g.tree.branch },
           g.tree && `${files} file${files === 1 ? '' : 's'} +${add} −${del}`,
         ]}
       />
@@ -22,12 +24,12 @@ export function GitEvidence({ attempt }: { attempt: VerificationAttempt }) {
         .filter((f) => f.kind !== 'no-git')
         .map((f) => (
           <p key={f.kind} className={`vf-flag lv-${f.level}`} title={f.files?.join('\n')}>
-            <span className="mono-label">{f.kind}</span> {f.message}
+            <span className="t-code">{f.kind}</span> {f.message}
           </p>
         ))}
       {g.changed.length > 0 && (
         <details className="vf-files">
-          <summary className="mono-label">Changed files</summary>
+          <summary className="t-label">Changed files</summary>
           <ul>
             {g.changed.map((c) => (
               <li key={c.path}>

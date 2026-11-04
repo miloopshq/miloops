@@ -1,5 +1,5 @@
 import type { VerificationAttempt } from '@miloops-hq/core';
-import { Meta, Pill } from '../../components/ui';
+import { MetaLine, Pill } from '../../components/ui';
 import { dur, hhmm } from '../../lib';
 import { RESULT_TEXT } from '../../lib/verification';
 import { CheckRow } from './CheckRow';
@@ -13,7 +13,9 @@ export function AttemptRow({ attempt: a, latest }: { attempt: VerificationAttemp
         <Pill tone="state" className={`r-${a.result}`}>
           {RESULT_TEXT[a.result]}
         </Pill>
-        <Meta parts={[a.id, a.agent, hhmm(a.submittedAt), dur(a.finishedAt - a.submittedAt)]} />
+        <MetaLine
+          parts={[{ text: a.id, code: true }, a.agent, hhmm(a.submittedAt), dur(a.finishedAt - a.submittedAt)]}
+        />
       </summary>
       <p className="vf-claim">{a.summary ?? a.resolution}</p>
       {a.note && <p className="vf-note">{a.note}</p>}
