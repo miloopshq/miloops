@@ -91,6 +91,7 @@ export {
 } from './attention/attentionStore';
 export { gatherAttention } from './attention/gatherAttention';
 export {
+  dropWorkspace,
   listWorkspaces,
   readWorkspace,
   readWorkspaceSettings,
@@ -100,6 +101,7 @@ export {
 } from './workspaces/workspaceStore';
 export { prepareWorktree, worktreeLocation, type Prepared, type PrepareInput } from './workspaces/prepareWorktree';
 export { branchChanges } from './workspaces/integration';
+export { isClaimed, removeWorkspace, type RemoveWorkspaceResult } from './workspaces/removeWorkspace';
 export { readIntegrationScan, writeIntegrationScan } from './workspaces/integrationStore';
 export { scanIntegrations } from './workspaces/scanIntegrations';
 export { attentionView } from './attention/attentionView';

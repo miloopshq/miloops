@@ -59,8 +59,8 @@ export function AttentionSection() {
         </ul>
       )}
       <span className="mono-label">
-        Team rules ({view.policy.exists ? file : 'defaults'}): interrupt at {team.interrupt}, digest every{' '}
-        {team.digestMinutes} min.
+        Team rules ({view.policy.exists ? file : 'defaults'}): interrupt at {team.interrupt},{' '}
+        {team.digestMinutes ? `Slack digest every ${team.digestMinutes} min` : 'Slack digest off'}.
       </span>
       {error && <span className="vf-err">{error}</span>}
     </SettingsSection>

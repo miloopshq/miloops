@@ -1,12 +1,12 @@
 import { BRAND } from '@miloops-hq/core';
 import { useState } from 'react';
 import { Button } from '../../components/ui';
+import { useWorkspaces, WorkspaceList } from '../workspaces';
 import { SettingsSection } from './SettingsSection';
-import { useWorkspaces } from './useWorkspaces';
 
 /** Parallel work: a separate git worktree and branch for each claimed ticket. MILOOPS never merges or pushes. */
 export function WorkspacesSection() {
-  const { view, save } = useWorkspaces();
+  const { view, save, remove } = useWorkspaces();
   const [error, setError] = useState<string>();
   if (!view) return null;
   const on = view.settings.worktrees;
@@ -27,9 +27,10 @@ export function WorkspacesSection() {
         </Button>
       </div>
       <span className="mono-label">
-        {BRAND.dataDir}/workspaces.json · {view.workspaces.length} active
-        {view.workspaces.length === 1 ? ' worktree' : ' worktrees'}
+        {BRAND.dataDir}/workspaces.json · {count(view.workspaces.filter((w) => w.active).length, 'active')} ·{' '}
+        {count(view.workspaces.filter((w) => !w.active).length, 'finished')}
       </span>
+      <WorkspaceList rows={view.workspaces} onRemove={remove} />
       {view.errors.length > 0 && (
         <ul className="vf-errors">
           {view.errors.map((e) => (
@@ -41,3 +42,5 @@ export function WorkspacesSection() {
     </SettingsSection>
   );
 }
+
+const count = (n: number, what: string) => `${n} ${what}`;

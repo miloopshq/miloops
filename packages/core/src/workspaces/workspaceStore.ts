@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { AGENTS_DIR } from '../agents/agentLink';
 import { readJsonFile, writeJsonAtomic } from '../lib/jsonFile';
@@ -36,6 +36,11 @@ export function readWorkspace(root: string, mapId: string, ticketId: string) {
 
 export function writeWorkspace(root: string, r: WorkspaceRecord) {
   writeJsonAtomic(recordFile(root, r.mapId, r.ticketId), r);
+}
+
+/** Forgets a worktree once its folder is removed. */
+export function dropWorkspace(root: string, mapId: string, ticketId: string) {
+  rmSync(recordFile(root, mapId, ticketId), { force: true });
 }
 
 /** Every prepared worktree whose folder still exists. */

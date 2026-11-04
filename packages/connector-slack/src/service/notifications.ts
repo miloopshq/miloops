@@ -4,6 +4,7 @@ import type { SlackConfig } from '../store';
 import { syncApprovals } from './approvals';
 import { syncAsks } from './asks';
 import { day } from './constants';
+import { digestWindowMs } from './digestWindow';
 import { missionChanges, notesOf } from './missionChanges';
 import { queueLine } from './queueLine';
 import type { SlackContext } from './slackContext';
@@ -42,11 +43,20 @@ export async function syncMissions(ctx: SlackContext, docs: AgentSessionDoc[], c
   await syncApprovals(ctx, snaps, c);
 }
 
-/** One message per mission per window; later ones thread under that day's first message for the mission. */
+/**
+ * One digest message per mission per window (the team's digest cadence); later ones thread under that day's first
+ * message for the mission. With the digest off, queued lines are dropped: Waiting on you still has everything.
+ */
 export async function flushBatches(ctx: SlackContext) {
-  const now = Date.now();
+  const now = ctx.o.now?.() ?? Date.now();
+  const window = digestWindowMs(ctx.o);
   for (const b of ctx.batches.values()) {
-    if (!b.lines.length || now - b.lastAt < (ctx.o.batchMs ?? 30_000)) continue;
+    if (!b.lines.length) continue;
+    if (window === undefined) {
+      b.lines = [];
+      continue;
+    }
+    if (now - b.lastAt < window) continue;
     const channel = await ctx.target();
     if (!channel) return;
     const text = b.lines.join('\n');

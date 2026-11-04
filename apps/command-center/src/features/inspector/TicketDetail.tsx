@@ -7,6 +7,7 @@ import { CriteriaSection } from '../criteria';
 import { KnowledgePreview, PromoteButton } from '../knowledge';
 import { PrFlagBadges } from '../pr-sync';
 import { VerificationPanel } from '../verification';
+import { TicketWorkspace } from '../workspaces';
 import { LeaseFacts } from './LeaseFacts';
 import { OtherComments } from './OtherComments';
 import { ResolutionNote } from './ResolutionNote';
@@ -90,6 +91,7 @@ export function TicketDetail(props: {
       )}
 
       {lease && <LeaseFacts lease={lease} onRelease={() => actions.releaseLease(t.id)} />}
+      {!lease && <TicketWorkspace mapId={snap.map.id} ticketId={t.id} />}
       <VerificationPanel mapId={snap.map.id} mission={snap.map.verification} ticket={t} state={state} />
 
       <TicketActions
