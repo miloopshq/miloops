@@ -1,0 +1,32 @@
+{
+  "name": "miloops-cli",
+  "version": "0.0.0",
+  "description": "MILOOPS: a local command center for your AI coding agents. Coming soon.",
+  "type": "module",
+  "bin": {
+    "miloops": "index.js"
+  },
+  "files": [
+    "index.js",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "agents",
+    "command-center",
+    "mcp",
+    "claude-code",
+    "codex"
+  ],
+  "license": "FSL-1.1-ALv2",
+  "homepage": "https://miloops.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miloopshq/miloops.git"
+  },
+  "bugs": {
+    "url": "https://github.com/miloopshq/miloops/issues"
+  }
+}

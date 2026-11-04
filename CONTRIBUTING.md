@@ -42,9 +42,11 @@ Code is read far more often than it's written, by people and by agents. Write it
 gh workflow run release.yml -f channel=next                      # prerelease: npx miloops-cli@next
 gh workflow run release.yml -f channel=latest                    # stable: the version in packages/cli/package.json
 gh workflow run release.yml -f channel=latest -f version=0.8.0   # stable: a version you name
+gh workflow run release.yml -f channel=stub                      # until launch: refresh the placeholder on latest
 ```
 
 - **next** publishes `<upcoming>-next.<run>` under the `next` tag. `latest` doesn't move, so it's safe to run from any branch.
 - **latest** must be higher than the current npm `latest`. It publishes, tags the commit `vX.Y.Z` and creates the GitHub release with generated notes.
+- **stub**: until launch, `latest` is a placeholder from `.github/stub/` that only prints "not released yet". It publishes the next `0.0.x` so the npm page shows the current README and links, and refuses once a real release is on `latest`.
 - Each run first does the full `npm run check` on the exact commit it publishes.
 - Publishing uses npm trusted publishing: no npm token is stored, and every version carries provenance linking it to its commit and run.

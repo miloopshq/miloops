@@ -1,5 +1,5 @@
 // Picks the version the Release workflow publishes and prints `version=<v>` for $GITHUB_OUTPUT.
-// CHANNEL=next|latest, REQUESTED=<x.y.z> (latest only, optional). Reads npm's current `latest` for miloops.
+// CHANNEL=next|latest|stub, REQUESTED=<x.y.z> (latest only, optional). Reads npm's current `latest` for miloops.
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
@@ -43,6 +43,11 @@ if (channel === 'latest') {
   const afterLatest = `${a}.${b}.${c + 1}`;
   const upcoming = cmp(pkg, afterLatest) >= 0 ? pkg : afterLatest;
   version = `${upcoming}-next.${process.env.GITHUB_RUN_NUMBER ?? '0'}`;
+} else if (channel === 'stub') {
+  // The placeholder lives at 0.0.x; once a real release is on latest, there is nothing to refresh.
+  const [a, b, c] = parse(latest);
+  if (a !== 0 || b !== 0) fail(`npm's latest is ${latest}, a real release: the placeholder is retired`);
+  version = `0.0.${c + 1}`;
 } else fail(`unknown channel ${channel}`);
 
 console.error(`npm latest ${latest} · package.json ${pkg} → ${version}`);

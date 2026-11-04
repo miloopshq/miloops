@@ -7,7 +7,7 @@ The final MILO CRT mascot, rendered at exact pixel sizes. Source and re-renderin
 | `github-org-avatar.png` | 1000×1000 | GitHub organization avatar |
 | `github-social-preview.png` | 1280×640 | GitHub repository social preview (Settings → Social preview) |
 | `miloops-banner.gif` | 1280×640 | Animated README banner: MILO loops watching → processing → transmitting → decision waiting (still platforms use the PNGs) |
-| `og-image-1200x630.png` | 1200×630 | Open Graph / Twitter card image for miloops.app and link previews |
+| `og-image-1200x630.png` | 1200×630 | Open Graph / Twitter card image for miloops.vercel.app and link previews |
 | `x-avatar-400.png` | 400×400 | X (Twitter) profile picture |
 | `x-header-1500x500.png` | 1500×500 | X (Twitter) header banner |
 | `wordmark-lockup.png` | 960×240 | Logo lockup (mini MILO + MILO/OPS) for docs, decks and press |
