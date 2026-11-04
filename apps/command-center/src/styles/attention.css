@@ -6,6 +6,10 @@
   overflow: auto;
   padding-bottom: var(--sp-10);
 }
+/* A scrolling column: its rows keep their height instead of shrinking into each other. */
+.attention-queue > * {
+  flex-shrink: 0;
+}
 .attention-queue .att-list {
   overflow: visible;
   padding-bottom: var(--sp-6);

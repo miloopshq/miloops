@@ -52,7 +52,8 @@ export function scoreCandidate(input: {
   const waited = Math.max(0, now - c.since);
   if (c.idleAgent) {
     score += 15;
-    reasons.push(`${c.idleAgent} idle for ${waitLabel(waited)}`);
+    const idle = waited < 60_000 ? `${c.idleAgent} is waiting for you` : `${c.idleAgent} idle for ${waitLabel(waited)}`;
+    reasons.push(idle);
   }
 
   const quarters = Math.floor(waited / (15 * 60_000));

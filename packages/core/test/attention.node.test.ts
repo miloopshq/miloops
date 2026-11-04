@@ -72,7 +72,9 @@ test('GET /attention ranks the open question, with reasons and the default polic
     [['question::q1', 'blocking']],
   );
   assert.ok(r.json.items[0].reasons.includes('marked blocking'));
-  assert.ok(r.json.items[0].reasons.some((x) => x.startsWith('claude-01 idle')));
+  assert.ok(
+    r.json.items[0].reasons.some((x) => x.startsWith('claude-01 idle') || x === 'claude-01 is waiting for you'),
+  );
   assert.deepEqual(r.json.interrupting, ['question::q1']);
   assert.equal(r.json.policy.exists, false);
   assert.deepEqual(r.json.policy.errors, []);
