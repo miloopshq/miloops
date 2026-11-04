@@ -45,10 +45,6 @@
   line-height: var(--lh-tight);
   color: var(--text-hi);
 }
-.bf-tile .meta {
-  text-transform: none;
-  letter-spacing: 0;
-}
 .bf-tile.urgent .mono-label,
 .bf-tile.urgent b {
   color: var(--urgent);
@@ -120,14 +116,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.bf-row .meta {
+.bf-row .t-meta {
   white-space: nowrap;
 }
 .bf-row:hover .t {
   color: var(--accent);
 }
-.bf-list.urgent .bf-row .key {
-  color: var(--urgent);
+.bf-row .key {
+  color: var(--dim);
 }
 .bp-laptop .bf-tile.opt {
   display: none;

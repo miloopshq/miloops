@@ -25,7 +25,7 @@ export function ConnectorCard(props: {
   return (
     <div className={classes.join(' ')}>
       <div className="card-row">
-        <b className="card-title">{props.name}</b>
+        <b className="choice-title t-row-title">{props.name}</b>
         {active && <span className="pill on">Active</span>}
       </div>
       {showLocation && <div className="c-loc">{props.location}</div>}

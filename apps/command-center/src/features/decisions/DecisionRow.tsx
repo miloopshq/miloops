@@ -1,7 +1,15 @@
-import { type AuditDecision, decisionStatus } from '@miloops-hq/core';
+import { type AuditDecision, decisionStatus, DECISION_SOURCES } from '@miloops-hq/core';
+import { MetaLine, Row } from '../../components/ui';
 import { day, hm } from '../../lib';
-import { SourceTag } from './SourceTag';
 
+/** Where the decision stands in a supersession chain, when it's part of one. */
+function chainNote(d: AuditDecision) {
+  if (decisionStatus(d) === 'superseded') return `Replaced by ${d.supersededBy}`;
+  if (d.supersedes) return `Replaces ${d.supersedes}`;
+  return undefined;
+}
+
+/** One decision: the question, then who decided it where, then the answer. */
 export function DecisionRow(props: {
   d: AuditDecision;
   newDay: boolean;
@@ -12,27 +20,32 @@ export function DecisionRow(props: {
 }) {
   const { d } = props;
   const status = decisionStatus(d);
-  let statusText = 'active';
-  if (status === 'superseded') statusText = `→ ${d.supersededBy}`;
-  else if (d.supersedes) statusText = `↺ ${d.supersedes}`;
   return (
     <>
-      {props.newDay && <li className="dv-day mono-label">{day(d.decidedAt)}</li>}
-      <li className={`dv-row ${props.on ? 'on' : ''} ${status}`}>
-        <button onClick={props.onClick}>
-          <span className="t">{hm(d.decidedAt)}</span>
-          <span className="id">{d.id}</span>
-          <SourceTag kind={d.source.kind} />
-          {props.showMission && <span className="key">{props.mission}</span>}
-          <span className="key tk">{d.ticketKey ?? '—'}</span>
-          <span className="sum">
-            <span className="q">{d.question}</span>
-            <span className="a">{d.summary}</span>
-          </span>
-          <span className="by">{d.decidedBy}</span>
-          <span className={`st ${status}`}>{statusText}</span>
-        </button>
-      </li>
+      {props.newDay && <li className="dv-day t-label">{day(d.decidedAt)}</li>}
+      <Row
+        as="li"
+        className={`dv-row ${status}`}
+        selected={props.on}
+        onOpen={props.onClick}
+        title={d.question}
+        titleText={d.question}
+        trailing={hm(d.decidedAt)}
+        context={
+          <MetaLine
+            parts={[
+              { text: d.id, code: true },
+              d.ticketKey && { text: d.ticketKey, code: true },
+              props.showMission && props.mission,
+              d.decidedBy,
+              DECISION_SOURCES[d.source.kind].label,
+              chainNote(d),
+            ]}
+          />
+        }
+        detail={d.summary}
+        detailText={d.summary}
+      />
     </>
   );
 }

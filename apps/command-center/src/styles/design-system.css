@@ -661,15 +661,11 @@ button.card.urgent:hover,
   gap: var(--sp-8);
   min-width: 0;
 }
-.card-title {
-  font-family: var(--label);
-  font-size: var(--fs-sm);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
+/* An option or connector name: the row-title role, accent when selected. */
+.choice-title {
   color: var(--text-hi);
-  font-weight: 500;
 }
-.card.on .card-title {
+.card.on .choice-title {
   color: var(--accent);
 }
 

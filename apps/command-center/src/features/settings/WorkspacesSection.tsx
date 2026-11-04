@@ -1,6 +1,6 @@
 import { BRAND } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Button } from '../../components/ui';
+import { Button, MetaLine } from '../../components/ui';
 import { useWorkspaces, WorkspaceList } from '../workspaces';
 import { SettingsSection } from './SettingsSection';
 
@@ -20,16 +20,20 @@ export function WorkspacesSection() {
         Give each agent its own copy of the repo for every ticket it claims, on its own branch, so agents working at the
         same time don't step on each other. You review and merge the branches; {BRAND.name} never merges or pushes.
       </p>
-      <div className="att-settings-row">
-        <span>A worktree per ticket</span>
+      <div className="att-settings-row set-field">
+        <span className="set-field-label">A worktree per ticket</span>
         <Button size="sm" on={on} aria-pressed={on} className="worktrees-toggle" onClick={toggle}>
           {on ? 'On' : 'Off'}
         </Button>
       </div>
-      <span className="mono-label">
-        {BRAND.dataDir}/workspaces.json · {count(view.workspaces.filter((w) => w.active).length, 'active')} ·{' '}
-        {count(view.workspaces.filter((w) => !w.active).length, 'finished')}
-      </span>
+      <MetaLine
+        className="set-hint"
+        parts={[
+          { text: `${BRAND.dataDir}/workspaces.json`, code: true },
+          count(view.workspaces.filter((w) => w.active).length, 'active'),
+          count(view.workspaces.filter((w) => !w.active).length, 'finished'),
+        ]}
+      />
       <WorkspaceList rows={view.workspaces} onRemove={remove} />
       {view.errors.length > 0 && (
         <ul className="vf-errors">

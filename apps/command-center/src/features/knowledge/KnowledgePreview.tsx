@@ -32,7 +32,7 @@ export function KnowledgePreview({ snap, t }: { snap: MapSnapshot; t: Ticket }) 
               </button>{' '}
               {p.title}
               {p.status === 'assumption' && <span className="dim"> (assumption)</span>}
-              {p.mayBeOutdated && <span className="urgent-text"> · may be outdated</span>}
+              {p.mayBeOutdated && <span className="kn-warn"> · may be outdated</span>}
             </li>
           ))}
         </ul>

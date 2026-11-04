@@ -55,36 +55,20 @@
   gap: var(--sp-14);
 }
 .kn-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  margin: 0;
+  padding: 0 var(--sp-8) 0 0;
+  list-style: none;
   overflow: auto;
   border-right: 1px solid var(--line);
-  padding-right: var(--sp-8);
 }
-.kn-list button {
-  display: flex;
-  gap: var(--sp-8);
-  align-items: baseline;
-  width: 100%;
-}
-.kn-list .ttl {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.kn-status {
-  flex: 0 0 auto;
-  font-family: var(--label);
-  font-size: var(--fs-xs);
-  letter-spacing: var(--ls-label);
-  text-transform: uppercase;
-  color: var(--dim);
-}
-.kn-status.st-suggested {
+/* A calm amber note: the entry needs your review, but nothing is on fire. */
+.kn-warn {
+  margin: 0;
   color: var(--amber);
-}
-.kn-status.st-confirmed {
-  color: var(--st-decided);
+  font-size: var(--fs-sm);
 }
 .kn-detail {
   overflow: auto;

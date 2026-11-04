@@ -6,11 +6,10 @@ import {
   DECISION_SOURCES,
 } from '@miloops-hq/core';
 import { useState, useEffect, type FormEvent } from 'react';
-import { Pill, Meta, Button, Card, Field, Empty } from '../../components/ui';
+import { Pill, Meta, MetaLine, Button, Card, Field, Empty } from '../../components/ui';
 import type { CommandCenterApi } from '../../hooks';
 import { stamp, ago, day, hm } from '../../lib';
 import { PromoteButton } from '../knowledge';
-import { SourceTag } from './SourceTag';
 
 export function DecisionDetail(props: {
   d: AuditDecision;
@@ -43,8 +42,7 @@ export function DecisionDetail(props: {
         <Pill tone="state" className={`dv-st-${status}`}>
           {status}
         </Pill>
-        <SourceTag kind={d.source.kind} />
-        <Meta as="span" parts={[stamp(d.decidedAt), `${ago(now - d.decidedAt)} ago`]} />
+        <MetaLine parts={[stamp(d.decidedAt), `${ago(now - d.decidedAt)} ago`]} />
       </div>
       <h3 className="t-heading">{d.question}</h3>
       <div className="resolution">
@@ -116,7 +114,7 @@ export function DecisionDetail(props: {
                   <i />
                   <span className="id">{c.id}</span>
                   <span className="a">{c.summary}</span>
-                  <Meta as="span" parts={[c.decidedBy, day(c.decidedAt)]} />
+                  <MetaLine parts={[c.decidedBy, day(c.decidedAt)]} />
                 </button>
               </li>
             ))}

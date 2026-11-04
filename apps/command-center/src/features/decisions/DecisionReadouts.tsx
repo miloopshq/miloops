@@ -1,7 +1,7 @@
 import { type decisionStats, DECISION_SOURCE_KINDS, DECISION_SOURCES } from '@miloops-hq/core';
-import { Readout, Pill } from '../../components/ui';
+import { MetaLine, Readout } from '../../components/ui';
 
-/** `metrics.decisionStats` readouts. */
+/** `metrics.decisionStats` readouts, then where the decisions came from. */
 export function DecisionReadouts({ stats }: { stats: ReturnType<typeof decisionStats> }) {
   return (
     <span className="dv-readouts">
@@ -13,13 +13,12 @@ export function DecisionReadouts({ stats }: { stats: ReturnType<typeof decisionS
         label="Human"
         value={`${stats.total ? Math.round((stats.human / stats.total) * 100) : 0}%`}
       />
-      <span className="dv-src-mix" title="Decisions per source">
-        {DECISION_SOURCE_KINDS.filter((k) => stats.bySource[k]).map((k) => (
-          <Pill key={k} className={`src-${k}`}>
-            {DECISION_SOURCES[k].code} {stats.bySource[k]}
-          </Pill>
-        ))}
-      </span>
+      <MetaLine
+        className="dv-src-mix"
+        parts={DECISION_SOURCE_KINDS.filter((k) => stats.bySource[k]).map(
+          (k) => `${DECISION_SOURCES[k].label} ${stats.bySource[k]}`,
+        )}
+      />
     </span>
   );
 }

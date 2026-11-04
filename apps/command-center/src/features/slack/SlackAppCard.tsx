@@ -16,7 +16,7 @@ export function SlackAppCard(props: {
   return (
     <Card className={cardClass(s, setup)}>
       <div className="card-row">
-        <b className="card-title">MILO app</b>
+        <b className="choice-title t-row-title">MILO app</b>
         {connected && <Pill className={s.enabled ? 'on' : ''}>{s.enabled ? 'On' : 'Off'}</Pill>}
       </div>
       {connected && <div className="c-loc">{workspaceLine(s)}</div>}
