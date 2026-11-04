@@ -20,13 +20,13 @@ export function ActivityLog({ activity, onTicket }: { activity: ActivityState; o
           className={`log-row lv-${e.level} src-${e.source} ${e.signal ? 'signal' : ''}`}
           onClick={() => e.ticketId && onTicket(e.ticketId)}
         >
-          <span className="t">{clock(e.at)}</span>
-          <span className="src">
+          <span className="t t-meta">{clock(e.at)}</span>
+          <span className="src t-meta">
             {e.source === 'system' && <MiloMark variant="voice" size={10} />}
             {e.agent ?? e.source}
           </span>
           <span className="msg">
-            {e.tag && <span className="tag">{e.tag} · </span>}
+            {e.tag && <span className="tag t-meta">{e.tag} · </span>}
             {e.text}
           </span>
         </div>

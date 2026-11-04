@@ -26,17 +26,19 @@ export function UpNext(props: {
         <ul className="ticket-list">
           {items.map((t) => {
             const st = states.get(t.id)!;
-            let stateText = STATE_TEXT[st].toLowerCase();
-            if (waiting.has(t.id)) stateText = 'waiting';
-            else if (st === 'claimed') stateText = t.assignee ?? '';
+            const stateText = upNextState({
+              state: st,
+              waiting: waiting.has(t.id),
+              assignee: t.assignee,
+              hitl: attention(t) === 'hitl',
+            });
             return (
               <li key={t.id} className={`${selId === t.id ? 'sel' : ''} st-${waiting.has(t.id) ? 'waiting' : st}`}>
                 <button onClick={() => props.onSelect({ kind: 'ticket', id: t.id })}>
                   <i className="dot" />
-                  <span className="key">{t.key}</span>
-                  <span className="ttl">{t.title}</span>
-                  <span className="human">{attention(t) === 'hitl' ? '●' : '○'}</span>
-                  <span className="st-text">{stateText}</span>
+                  <span className="key t-code">{t.key}</span>
+                  <span className="ttl t-body">{t.title}</span>
+                  <span className="st-text t-meta">{stateText}</span>
                 </button>
               </li>
             );
@@ -45,4 +47,12 @@ export function UpNext(props: {
       )}
     </div>
   );
+}
+
+/** The quiet state on the right: who has it, "waiting on you" (the only red one), or ready, saying when it needs you. */
+function upNextState(t: { state: NodeState; waiting: boolean; assignee?: string; hitl: boolean }) {
+  if (t.waiting) return 'waiting on you';
+  if (t.state === 'claimed') return t.assignee ?? 'claimed';
+  const ready = STATE_TEXT[t.state].toLowerCase();
+  return t.hitl ? `${ready}, needs you` : ready;
 }

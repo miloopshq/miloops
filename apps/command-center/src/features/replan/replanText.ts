@@ -19,7 +19,7 @@ export function describeChange(c: ReplanChange, name: (idOrRef: string) => strin
   switch (c.op) {
     case 'add_ticket': {
       const after = c.blockedBy?.length ? `after ${c.blockedBy.map(name).join(', ')}` : undefined;
-      return { verb: 'Add', text: `${c.type}: ${c.title}`, detail: after };
+      return { verb: 'Add', text: c.title, detail: [`new ${c.type} ticket`, after].filter(Boolean).join(' · ') };
     }
     case 'cancel_ticket':
       return { verb: 'Cancel', text: name(c.ticket), detail: c.reason };

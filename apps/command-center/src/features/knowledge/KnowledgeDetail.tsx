@@ -1,6 +1,6 @@
 import type { KnowledgeEntry } from '@miloops-hq/core';
 import { useEffect, useState } from 'react';
-import { Button, Field } from '../../components/ui';
+import { Button, Field, MetaLine } from '../../components/ui';
 import { useKnowledge } from './knowledgeContext';
 
 const STATUS_TEXT: Record<KnowledgeEntry['status'], string> = {
@@ -24,9 +24,7 @@ export function KnowledgeDetail({ e }: { e: KnowledgeEntry }) {
   const stale = k.stale[e.id];
   return (
     <div className="kn-detail">
-      <span className="mono-label">
-        {e.id} · {e.kind.replace('-', ' ')} · {e.status}
-      </span>
+      <MetaLine parts={[{ text: e.id, code: true }, e.kind.replace('-', ' '), e.status]} />
       {editing ? (
         <>
           <Field label="Title">
@@ -44,12 +42,12 @@ export function KnowledgeDetail({ e }: { e: KnowledgeEntry }) {
       )}
       <p className="dim">{STATUS_TEXT[e.status]}</p>
       {e.flag && (
-        <p className="urgent-text">
+        <p className="kn-warn">
           Flagged by {e.flag.by}: {e.flag.reason}
         </p>
       )}
       {stale && e.status !== 'outdated' && (
-        <p className="urgent-text">
+        <p className="kn-warn">
           May be outdated: {stale.join(', ')} changed since it was confirmed. Re-confirm or edit it.
         </p>
       )}
@@ -75,7 +73,7 @@ export function KnowledgeDetail({ e }: { e: KnowledgeEntry }) {
           </>
         )}
       </dl>
-      {k.error && <p className="urgent-text">{k.error}</p>}
+      {k.error && <p className="vf-err">{k.error}</p>}
       <div className="actions">
         {editing ? (
           <>

@@ -12,11 +12,12 @@
   justify-content: space-between;
   gap: var(--sp-8);
 }
-.st-status.running {
-  color: var(--st-claimed);
+.st-meta .meta-line {
+  flex: 1;
 }
-.st-status.done {
-  color: var(--st-decided);
+.st-status {
+  flex: none;
+  color: var(--dim);
 }
 .st-status.urgent {
   color: var(--urgent);
@@ -38,14 +39,12 @@
   color: var(--urgent);
 }
 .st-ticket {
-  color: var(--dim);
-  font-size: var(--fs-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .st-key {
-  color: var(--accent);
+  color: var(--dim);
 }
 .pipeline {
   list-style: none;
@@ -88,7 +87,7 @@
   color: var(--dim);
 }
 .pipeline li.cur span {
-  color: var(--st-claimed);
+  color: var(--text-hi);
 }
 
 .sessions-list {
@@ -99,52 +98,12 @@
   flex-direction: column;
   gap: var(--sp-6);
 }
-.sessions-list .card {
-  padding: var(--sp-6) var(--sp-8);
-}
-.sessions-list .row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-8);
-  min-width: 0;
-  font-size: var(--fs-sm);
-}
-.callsign {
-  font-family: var(--label);
-  font-size: var(--fs-sm);
-  letter-spacing: var(--ls-data);
-  text-transform: uppercase;
-  color: var(--text-hi);
-  font-weight: 500;
-}
-.timer {
-  margin-left: auto;
-  font-family: var(--data);
-  font-size: var(--fs-body);
-  color: var(--text-hi);
-  letter-spacing: var(--ls-data);
-}
-.sessions-list .tkt {
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-  flex: 1;
-}
 .usage {
   font-family: var(--data);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-text);
   color: var(--dim);
   white-space: nowrap;
-}
-.sessions-list .usage {
-  margin-left: auto;
-  color: var(--text);
-}
-.sessions-list .usage + .timer {
-  margin-left: var(--sp-8);
 }
 .sessions-head .usage {
   color: var(--text);
@@ -154,23 +113,15 @@
 .sessions-head .usage .mono-label {
   margin-right: var(--sp-4);
 }
-.usage-src {
-  margin-left: var(--sp-4);
-  padding: 0 3px;
-  border: 1px solid currentColor;
-  font-size: var(--fs-xs);
-  letter-spacing: var(--ls-data);
-  line-height: 1.3;
-}
-.usage-src.tag-log {
-  color: var(--st-decided);
-}
-.usage-src.tag-self {
-  color: var(--dim);
-}
 .sessions-list .segs {
   display: flex;
   gap: var(--sp-2);
+}
+.sessions-list .ds-row-below {
+  padding-top: var(--sp-2);
+}
+.sessions-list .meta-line .pill {
+  margin-left: var(--sp-6);
 }
 .sessions-list .segs i {
   flex: 1;
@@ -212,25 +163,17 @@
   border-bottom: 1px solid rgba(var(--accent-rgb), 0.04);
 }
 .log-row .t {
-  font-family: var(--mono);
   color: var(--faint);
+  font-variant-numeric: tabular-nums;
 }
 .log-row .src {
-  font-family: var(--label);
-  font-size: var(--fs-label);
-  letter-spacing: var(--ls-data);
-  text-transform: uppercase;
-  color: var(--dim);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 500;
 }
-.log-row.src-operator .src {
-  color: var(--amber);
-}
+.log-row.src-operator .src,
 .log-row.src-system .src {
-  color: var(--accent);
+  color: var(--text);
 }
 .log-row .msg {
   max-width: none;
@@ -242,18 +185,20 @@
   overflow-wrap: anywhere;
 }
 .log-row .tag {
-  color: var(--st-claimed);
-  font-family: var(--label);
-  font-size: var(--fs-label);
-  letter-spacing: var(--ls-data);
-  text-transform: uppercase;
-  font-weight: 500;
+  color: var(--dim);
 }
-.log-row.lv-warn .msg {
-  color: var(--amber);
+/* Warnings and alerts carry the status edge, not coloured text: amber held up or at risk, red needs you now. */
+.log-row.lv-warn,
+.log-row.lv-alert {
+  margin-left: calc(-1 * var(--sp-6));
+  padding-left: calc(var(--sp-6) - var(--edge-w));
+  border-left: var(--edge-w) solid var(--edge-attention);
+}
+.log-row.lv-alert {
+  border-left-color: var(--edge-urgent);
 }
 .log-row.lv-alert .msg {
-  color: var(--urgent);
+  color: var(--text-hi);
 }
 .log-row.lv-ok .msg {
   color: var(--text-hi);

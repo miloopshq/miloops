@@ -27,61 +27,25 @@
 .batch-head {
   display: block;
   padding: var(--sp-4) var(--sp-10) var(--sp-6);
-  color: var(--dim);
 }
 
-/* A row: the card, then the "Later" control in its top-right corner. */
-.att-item {
-  position: relative;
+/* A row is the shared Row (rows.css). Here: the reason line, the new-item pulse, and the "Later" menu. */
+.reason-line .sep {
+  color: var(--faint);
 }
-.att-item .card {
-  width: 100%;
-  /* Room for the "Later" button in the corner. */
-  padding-right: calc(var(--sp-10) + 60px);
+.att-item.incoming {
+  animation:
+    arrive 0.45s ease-out,
+    edge-pulse 1.2s ease-out 2;
 }
-/* In a narrow column the kind, tags and wait time wrap instead of squeezing together. */
-.att-item .row1 {
-  flex-wrap: wrap;
-  row-gap: var(--sp-2);
-}
-.att-item .who.question {
-  color: var(--text-hi);
-}
-.att-item.u-fyi .who {
-  color: var(--dim);
-}
-.urgency-tag {
-  color: var(--urgent);
-  font-family: var(--label);
-  font-size: var(--fs-label);
-  letter-spacing: var(--ls-data);
-  text-transform: uppercase;
-}
-.reason-chips {
-  max-width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-4);
-  margin-top: var(--sp-2);
-}
-.reason-chip {
-  /* Long reasons (file paths) end in "…"; the full list is in the chips' tooltip. */
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 var(--sp-6);
-  border: 1px solid var(--line2);
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: var(--fs-xs);
-  letter-spacing: var(--ls-data);
-  white-space: nowrap;
+@keyframes edge-pulse {
+  50% {
+    box-shadow: inset 3px 0 0 currentColor;
+  }
 }
 
 .snooze {
-  position: absolute;
-  top: var(--sp-6);
-  right: var(--sp-6);
+  position: relative;
 }
 .snooze-btn {
   padding: var(--sp-2) var(--sp-6);

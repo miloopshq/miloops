@@ -1,5 +1,5 @@
 import type { ApprovalItem, MapSnapshot } from '@miloops-hq/core';
-import { Card, Meta } from '../../components/ui';
+import { MetaLine, Row } from '../../components/ui';
 import { useNow } from '../../hooks';
 import { ago } from '../../lib';
 
@@ -12,28 +12,25 @@ export function ApprovalList(props: {
 }) {
   const now = useNow(1000);
   if (!props.items.length) return null;
-  const many = Object.keys(props.snaps).length > 1;
   return (
     <ul className="inbox-list approvals">
-      {props.items.map((a) => (
-        <li key={`${a.mapId}/${a.ticketId}`}>
-          <Card as="button" tone="urgent" onClick={() => props.onOpen(a.mapId, a.ticketId)}>
-            <span className="row1">
-              <span className={`who ${a.kind}`}>{a.kind === 'approve' ? 'Approve' : 'Held'}</span>
-              <span className="key">{a.ticketKey}</span>
-              <span className="age">{ago(now - a.at)}</span>
-            </span>
-            {many && (
-              <Meta
-                className={`mission-tag ${a.mapId === props.currentMapId ? 'cur' : ''}`}
-                parts={[props.snaps[a.mapId]?.map.title ?? a.mapId]}
-              />
-            )}
-            <span className="ttl">{a.title}</span>
-            <span className="q t-title">{a.reason}</span>
-          </Card>
-        </li>
-      ))}
+      {props.items.map((a) => {
+        const held = a.kind !== 'approve';
+        const otherMission = a.mapId !== props.currentMapId ? props.snaps[a.mapId]?.map.title : undefined;
+        return (
+          <Row
+            key={`${a.mapId}/${a.ticketId}`}
+            as="li"
+            edge={held ? 'attention' : 'neutral'}
+            title={`${held ? 'Decide' : 'Approve'}: ${a.title}`}
+            context={<MetaLine parts={[held ? 'Held' : 'Verified', { text: a.ticketKey, code: true }, otherMission]} />}
+            detail={a.reason}
+            detailText={a.reason}
+            trailing={ago(now - a.at)}
+            onOpen={() => props.onOpen(a.mapId, a.ticketId)}
+          />
+        );
+      })}
     </ul>
   );
 }

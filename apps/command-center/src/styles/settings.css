@@ -71,9 +71,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-6);
-  font-family: var(--mono);
-  font-size: var(--fs-label);
-  letter-spacing: var(--ls-text);
+  font: var(--type-meta);
   color: var(--dim);
 }
 .sync-line .dot {
@@ -297,7 +295,11 @@
   padding-left: var(--sp-18);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--sp-8);
+  max-width: 68ch;
+  color: var(--text);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
 }
 .changelog .set-sec:first-child {
   border-top: 0;
@@ -409,6 +411,14 @@
   color: var(--urgent);
   font-size: var(--fs-sm);
 }
-.vf-hint {
-  font-size: var(--fs-label);
+/* A setting: its name in the body role, the control beside it; hints below in the meta role. */
+.set-field .set-field-label,
+.set-field-label {
+  min-width: 150px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--fs-sm);
+}
+.set-hint {
+  white-space: normal;
 }

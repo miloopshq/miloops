@@ -7,11 +7,14 @@ export function ReplanBanner({ replan, onReview }: { replan: ReplanView; onRevie
   const frozen = replan.frozen?.length ?? 0;
   const what = challenge ? 'challenges the destination' : 'proposes a new plan';
   const freezes = frozen ? ` ${frozen} ticket${frozen === 1 ? ' is' : 's are'} frozen until you decide.` : '';
+  const rest = `${replan.reason.replace(/\.$/, '')}.${freezes}`;
   return (
-    <div className="replan-banner" role="status">
-      <span className="mono-label">{challenge ? 'Destination' : 'Replan'}</span>
-      <span className="rb-text">
-        {replan.by} {what}: {replan.reason.replace(/\.$/, '')}.{freezes}
+    <div className="replan-banner map-banner edge-attention" role="status" title={rest}>
+      <span className="mb-text">
+        <span className="mb-lead">
+          {replan.by} {what}
+        </span>
+        <span className="t-meta">{rest}</span>
       </span>
       <InfoTip text="An agent found that an assumption or the plan no longer holds and proposes changes. The map shows them: dashed outlines are tickets it adds, struck ones it cancels, ❄ marks tickets frozen until you approve or reject. Nothing changes until you decide." />
       <Button size="sm" variant="primary" onClick={onReview}>

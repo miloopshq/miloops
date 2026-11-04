@@ -1,18 +1,18 @@
 import { type DiffMark, NODE_H, NODE_W } from '@miloops-hq/core';
 
-/** What a pending replan does to a node: a strike for cancelled tickets, a tag for the rest, ❄ when frozen. */
+/** What a pending replan does to a node: a strike for cancelled tickets, a word for the rest, ❄ when frozen. */
 export function ReplanMarks({ mark, frozen }: { mark?: DiffMark; frozen?: boolean }) {
-  const tag = mark && mark !== 'unchanged' && mark !== 'cancelled' ? mark.toUpperCase() : undefined;
+  const tag = mark && mark !== 'unchanged' && mark !== 'cancelled' ? mark : undefined;
   return (
     <>
-      {mark === 'cancelled' && <line className="strike" x1={38} y1={NODE_H / 2} x2={NODE_W - 4} y2={NODE_H / 2} />}
+      {mark === 'cancelled' && <line className="strike" x1={8} y1={NODE_H / 2} x2={NODE_W - 8} y2={NODE_H / 2} />}
       {tag && (
-        <text className="replan-tag" x={42} y={NODE_H - 4}>
+        <text className="replan-tag" x={NODE_W - 8} y={NODE_H - 8} textAnchor="end">
           {tag}
         </text>
       )}
       {frozen && (
-        <text className="freeze" x={NODE_W - 36} y={NODE_H - 4} textAnchor="end">
+        <text className="freeze" x={NODE_W - (tag ? 58 : 8)} y={NODE_H - 8} textAnchor="end">
           ❄
         </text>
       )}

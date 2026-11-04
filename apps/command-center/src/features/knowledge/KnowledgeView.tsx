@@ -1,10 +1,17 @@
 import { KNOWLEDGE_KINDS, type KnowledgeEntry } from '@miloops-hq/core';
 import { useEffect, useMemo, useState } from 'react';
-import { Empty, InfoTip, Panel, Select } from '../../components/ui';
+import { Empty, InfoTip, MetaLine, Panel, Row, Select } from '../../components/ui';
 import { useKnowledge } from './knowledgeContext';
 import { KnowledgeDetail } from './KnowledgeDetail';
 
 type Filter = 'review' | 'confirmed' | 'assumption' | 'outdated' | 'all';
+
+const STATUS_LABEL: Record<KnowledgeEntry['status'], string> = {
+  suggested: 'Suggested',
+  confirmed: 'Confirmed',
+  assumption: 'Assumption',
+  outdated: 'Outdated',
+};
 
 /** Project knowledge: what agents get with their claims. Review suggestions, flags and stale entries here. */
 export function KnowledgeView() {
@@ -72,18 +79,28 @@ export function KnowledgeView() {
           <input className="kn-search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
         <div className="kn-body-grid">
-          <ul className="list kn-list">
+          <ul className="kn-list">
             {shown.length ? (
               shown.map((e) => (
-                <li key={e.id} className={e === current ? 'sel' : ''}>
-                  <button onClick={() => setSel(e.id)}>
-                    <span className="key">{e.id}</span>
-                    <span className="ttl">{e.title}</span>
-                    <span className={`kn-status st-${e.status}`}>
-                      {needsYou(e) && e.status !== 'suggested' ? 'check' : e.status}
-                    </span>
-                  </button>
-                </li>
+                <Row
+                  key={e.id}
+                  as="li"
+                  className={`kn-row st-${e.status}`}
+                  edge={needsYou(e) ? 'attention' : 'neutral'}
+                  selected={e === current}
+                  onOpen={() => setSel(e.id)}
+                  title={e.title}
+                  titleText={e.title}
+                  context={
+                    <MetaLine
+                      parts={[
+                        { text: e.id, code: true },
+                        e.kind.replace('-', ' '),
+                        needsYou(e) && e.status !== 'suggested' ? 'Needs a check' : STATUS_LABEL[e.status],
+                      ]}
+                    />
+                  }
+                />
               ))
             ) : (
               <Empty>{filter === 'review' ? 'Nothing needs you' : 'No entries'}</Empty>

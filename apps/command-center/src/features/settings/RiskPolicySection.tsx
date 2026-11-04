@@ -51,7 +51,7 @@ export function RiskPolicySection() {
         </>
       )}
       {view.defaults && view.errors.length === 0 && (
-        <span className="mono-label">Defaults. Changing anything saves {file}, so your team shares it.</span>
+        <span className="set-hint t-meta">Defaults. Changing anything saves {file}, so your team shares it.</span>
       )}
       {error && <span className="vf-err">{error}</span>}
     </SettingsSection>

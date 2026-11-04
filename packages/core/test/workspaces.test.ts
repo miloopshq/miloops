@@ -247,7 +247,8 @@ describe('attention', () => {
     );
     const items = q.items.filter((i) => i.kind === 'overlap');
     expect(items.map((i) => [i.ticketId, i.ref])).toEqual([['2', '1+2']]);
-    expect(items[0].reasons[0]).toBe('both touch src/app.ts and src/**');
+    expect(items[0].title).toBe('Two agents may change the same files');
+    expect(items[0].reasons.slice(0, 2)).toEqual(['agent-2 on #2, agent-1 on #1', 'both touch src/app.ts and src/**']);
   });
 
   it('suggests an integration ticket until one exists', () => {
@@ -261,7 +262,8 @@ describe('attention', () => {
       ] as [never, never],
     };
     const one = buildAttention(input({ integrations: [overlap] })).items.filter((i) => i.kind === 'integration');
-    expect(one.map((i) => i.title)).toEqual(['#1 and #2 changed the same files']);
+    expect(one.map((i) => i.title)).toEqual(['Two branches changed the same files']);
+    expect(one[0].reasons[0]).toBe('#1 and #2');
     const s = snap();
     s.tickets.push({ ...s.tickets[0], id: '3', key: '#3', title: 'Bring together #1 and #2', blockedBy: ['1', '2'] });
     expect(

@@ -1,5 +1,5 @@
 import { type ActivityState, type MapSnapshot, STEPS } from '@miloops-hq/core';
-import { EmptyState } from '../../components/ui';
+import { EmptyState, MetaLine } from '../../components/ui';
 import { featured } from './featured';
 
 const STATUS = { running: 'Working', done: 'Done', failed: 'Stopped' } as const;
@@ -21,16 +21,14 @@ export function StepTracker({ activity, snap }: { activity: ActivityState; snap?
   return (
     <div className={`step-tracker ${s.waitingOn ? 'waiting' : ''}`}>
       <div className="st-meta">
-        <span className="mono-label">
-          <span className="callsign">{s.agent}</span> · {s.mode}, step {s.step} of {s.total}
-        </span>
-        <span className={`mono-label st-status ${s.waitingOn ? 'urgent' : s.status}`}>{status}</span>
+        <MetaLine parts={[{ text: s.agent, strong: true }, `${s.mode}, step ${s.step} of ${s.total}`]} />
+        <span className={`t-label st-status ${s.waitingOn ? 'urgent' : ''}`}>{status}</span>
       </div>
       <div className="st-big">
         {s.stepLabel}
         {t && <span className="st-key"> {t.key}</span>}
       </div>
-      {t && <div className="st-ticket">{t.title}</div>}
+      {t && <div className="st-ticket t-meta">{t.title}</div>}
       <ol className="pipeline">
         {steps.map((label, i) => {
           const n = i + 1;

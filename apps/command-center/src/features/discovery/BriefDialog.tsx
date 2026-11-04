@@ -1,6 +1,6 @@
 import { BRIEF_SECTION_LABEL, type BriefSections, type DiscoveryBrief } from '@miloops-hq/core';
 import { useEffect, useState } from 'react';
-import { Button, Empty, Field, Panel } from '../../components/ui';
+import { Button, Empty, Field, MetaLine, Panel } from '../../components/ui';
 import { ago } from '../../lib';
 import { PromoteButton } from '../knowledge';
 import { BriefProse } from './BriefProse';
@@ -32,15 +32,17 @@ export function BriefDialog(props: {
     return () => window.removeEventListener('keydown', k);
   }, [props]);
   const s = b.sections;
+  const filled = PROSE.filter((k) => (s[k] as string).trim());
+  const empty = PROSE.filter((k) => !(s[k] as string).trim());
   return (
     <div className="scrim" onClick={props.onClose}>
       <Panel as="div" className="dialog brief-dialog" onClick={(e) => e.stopPropagation()}>
         <header>
           <h2 className="t-heading caps">Discovery brief</h2>
-          <span className="mono-label">{statusLine(b)}</span>
+          <span className="t-meta">{statusLine(b)}</span>
         </header>
         <div className="brief-body">
-          {PROSE.map((k) => (
+          {filled.map((k) => (
             <section key={k}>
               <h3 className="mono-label">{BRIEF_SECTION_LABEL[k]}</h3>
               <BriefProse text={s[k] as string} />
@@ -59,10 +61,11 @@ export function BriefDialog(props: {
           <section>
             <h3 className="mono-label">{BRIEF_SECTION_LABEL.assumptions}</h3>
             {s.assumptions.length ? (
-              <ul className="brief-list">
+              <ul className="item-list">
                 {s.assumptions.map((a) => (
                   <li key={a.id}>
-                    <span className="key">{a.id}</span> {a.text}
+                    <span className="item-text">{a.text}</span>
+                    <MetaLine parts={[{ text: a.id, code: true }]} />
                   </li>
                 ))}
               </ul>
@@ -82,6 +85,11 @@ export function BriefDialog(props: {
               <Empty>None</Empty>
             )}
           </section>
+          {empty.length > 0 && (
+            <p className="t-meta brief-empty">
+              Nothing noted on {empty.map((k) => BRIEF_SECTION_LABEL[k].toLowerCase()).join(', ')}.
+            </p>
+          )}
           {b.note && (
             <section>
               <h3 className="mono-label">Your last request</h3>

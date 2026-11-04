@@ -23,7 +23,7 @@ function suggested(e: KnowledgeEntry): Candidate | undefined {
   return {
     kind: 'knowledge',
     mapId: '',
-    title: clip(`Review suggested knowledge ${e.id}: ${e.title}`),
+    title: clip(`Review ${e.id}: ${e.title}`),
     since: e.createdAt,
     urgency: 'fyi',
     ref: e.id,

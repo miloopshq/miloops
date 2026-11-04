@@ -1,5 +1,5 @@
 import type { VerificationVerdict } from '@miloops-hq/core';
-import { Meta } from '../../components/ui';
+import { MetaLine } from '../../components/ui';
 import { hhmm } from '../../lib';
 
 const TEXT = { PASS: 'Passed', FAIL: 'Sent back', NEEDS_HUMAN: 'Needs you' } as const;
@@ -8,10 +8,10 @@ const TEXT = { PASS: 'Passed', FAIL: 'Sent back', NEEDS_HUMAN: 'Needs you' } as 
 export function ReviewVerdict({ verdict: v }: { verdict: VerificationVerdict }) {
   return (
     <div className={`vf-verdict v-${v.verdict.toLowerCase()}`}>
-      <Meta
+      <MetaLine
         parts={[
-          v.id,
-          v.byKind === 'operator' && v.verdict === 'PASS' ? 'Approved' : TEXT[v.verdict],
+          { text: v.byKind === 'operator' && v.verdict === 'PASS' ? 'Approved' : TEXT[v.verdict], strong: true },
+          { text: v.id, code: true },
           v.byKind === 'operator' ? v.by : `review ${v.by}`,
           v.sessionId && `session ${v.sessionId.slice(0, 8)}`,
           `on ${v.attemptId}`,

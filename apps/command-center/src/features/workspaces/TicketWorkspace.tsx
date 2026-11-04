@@ -7,10 +7,13 @@ export function TicketWorkspace(props: { mapId: string; ticketId: string }) {
   const ws = view?.workspaces.find((w) => w.mapId === props.mapId && w.ticketId === props.ticketId);
   if (!ws || ws.active) return null;
   return (
-    <section className="ticket-workspace">
-      <span className="mono-label">Workspace</span>
-      <p>
-        <code>{ws.branch}</code> in <code title={ws.path}>{ws.path}</code>
+    <section className="ticket-workspace d-section">
+      <span className="t-label">Workspace</span>
+      <p className="t-meta">
+        Branch <code className="t-code">{ws.branch}</code> in{' '}
+        <code className="t-code" title={ws.path}>
+          {ws.path}
+        </code>
       </p>
       <RemoveWorkspaceButton
         label="Remove workspace"

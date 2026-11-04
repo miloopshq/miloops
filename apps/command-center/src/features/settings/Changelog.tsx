@@ -1,5 +1,5 @@
 import { BRAND } from '@miloops-hq/core';
-import { Meta, Wordmark } from '../../components/ui';
+import { MetaLine, Wordmark } from '../../components/ui';
 import { NEXT, RELEASES } from './releases';
 import { SettingsSection } from './SettingsSection';
 
@@ -10,7 +10,7 @@ export function Changelog() {
         <Wordmark className="about-name" />
         <span className="mono-label">{BRAND.category}</span>
         <p className="onb-tagline">{BRAND.tagline}</p>
-        <Meta as="p" parts={[BRAND.assistant.name, BRAND.assistant.expansion]} />
+        <MetaLine parts={[BRAND.assistant.name, BRAND.assistant.expansion]} />
       </div>
       <SettingsSection title="Next">
         {NEXT.map((n) => (

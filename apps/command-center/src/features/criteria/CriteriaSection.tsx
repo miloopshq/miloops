@@ -1,5 +1,5 @@
 import { pathsIn, selectKnowledge, uncoveredRules, type MapSnapshot, type Ticket } from '@miloops-hq/core';
-import { Button } from '../../components/ui';
+import { Button, MetaLine } from '../../components/ui';
 import { useKnowledge } from '../knowledge';
 import { useCriteria } from './useCriteria';
 
@@ -17,28 +17,38 @@ export function CriteriaSection({ snap, t }: { snap: MapSnapshot; t: Ticket }) {
   const uncovered = rules.filter((r) => uncoveredRules(criteria, [r.id]).length);
   if (!criteria.length && !uncovered.length) return null;
   return (
-    <div className="criteria-section">
+    <div className="criteria-section d-section">
       <span
-        className="mono-label"
+        className="t-label"
         data-tip="Agreed before the work starts; each needs evidence before the ticket counts as done"
       >
         Acceptance criteria · {criteria.length}
         {entry?.confirmed && <span className="ok-text"> · confirmed by you</span>}
       </span>
       {criteria.length > 0 && (
-        <ul className="criteria-list">
+        <ul className="criteria-list item-list">
           {criteria.map((c) => (
             <li key={c.id}>
-              <span className="key">{c.id}</span> <span className="kind">{c.kind.replace('-', ' ')}</span> {c.text}
-              {c.source && <span className="dim"> ({c.source})</span>}
+              <span className="item-text">{c.text}</span>
+              <MetaLine
+                parts={[{ text: c.id, code: true }, c.kind.replace('-', ' '), c.source && `from ${c.source}`]}
+              />
             </li>
           ))}
         </ul>
       )}
       {uncovered.length > 0 && (
-        <p className="urgent-text crit-uncovered">
-          Rules no criterion covers yet: {uncovered.map((r) => `${r.id} ${r.title}`).join('; ')}
-        </p>
+        <div className="crit-uncovered edge-note edge-attention">
+          <p className="t-meta">No criterion covers these rules yet:</p>
+          <ul className="item-list">
+            {uncovered.map((r) => (
+              <li key={r.id}>
+                <span className="item-text">{r.title}</span>
+                <MetaLine parts={[{ text: r.id, code: true }, 'business rule']} />
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {criteria.length > 0 && t.state === 'open' && (
         <Button

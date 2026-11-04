@@ -75,7 +75,7 @@ export function NewMissionDialog({
             <AgentCommand command="/milo resume" label="Copy command" />
           </div>
         ) : (
-          error && <p className="urgent-text">{error}</p>
+          error && <p className="vf-err">{error}</p>
         )}
         <footer>
           <Button variant="ghost" onClick={onClose}>
