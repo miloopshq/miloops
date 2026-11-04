@@ -14,7 +14,7 @@ import {
   useDocumentTitle,
   useRepoName,
   useScopedActivity,
-  useDiscoveryUi,
+  useMissionUi,
 } from './app/index';
 import { StepZone, LogZone, ActivityStack } from './features/activity';
 import { DecisionsView } from './features/decisions';
@@ -49,8 +49,8 @@ export function App() {
   const scoped = useScopedActivity(activity, api.mapId);
   useDocumentTitle(pending, snap?.map.title);
   const nav = useAppNavigation(api, bp);
-  const discovery = useDiscoveryUi(snap);
-  const knowledge = useKnowledgeStore(discovery.briefText);
+  const mission = useMissionUi(snap, actions.selectMap);
+  const knowledge = useKnowledgeStore(mission.briefText);
 
   const inbox = (
     <InboxPane
@@ -64,7 +64,7 @@ export function App() {
       onAnswer={actions.answer}
       onOpenTicket={nav.openTicket}
       below={<UpNext snap={snap} sessions={scoped.sessions} selection={selection} onSelect={nav.select} />}
-      above={discovery.inboxCard}
+      above={mission.inboxCard}
     />
   );
   const map = (
@@ -75,7 +75,7 @@ export function App() {
       onNewMission={() => setNewMission(true)}
       compact={bp === 'mobile'}
       minFit={bp === 'mobile' ? 0.7 : 0}
-      banner={discovery.banner}
+      mission={mission}
     />
   );
   const inspector = (bare: boolean) => (
@@ -189,7 +189,7 @@ export function App() {
         )}
 
         {briefing}
-        {discovery.dialog}
+        {mission.dialog}
         {api.error && <div className="error-toast">{api.error}</div>}
         {settingsOpen && (
           <AppSettings

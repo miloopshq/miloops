@@ -25,6 +25,7 @@ export function MapSections({
   const s = snap?.map.sections;
   const tabs: { id: Tab; label: string; n?: number }[] = [
     { id: 'unspecified', label: 'Not yet specified', n: s?.unspecified.length },
+    { id: 'assumptions', label: 'Assumptions', n: s?.assumptions?.length },
     { id: 'decisions', label: 'Decisions', n: s?.decisions.length },
     { id: 'oos', label: 'Out of scope', n: s?.outOfScope.length },
     { id: 'notes', label: 'Notes' },
@@ -44,7 +45,7 @@ export function MapSections({
         <SectionHeader
           className="zone-title"
           title="Mission plan"
-          info="The parts of the plan that aren't tickets yet: open questions still to specify, decisions already made, what's ruled out, and notes. Report shows how the mission is going: lead times, your interventions, rework, reviews and cost per verified ticket."
+          info="The parts of the plan that aren't tickets yet: open questions still to specify, the assumptions the plan relies on, decisions already made, what's ruled out, and notes. Report shows how the mission is going: lead times, your interventions, rework, reviews and cost per verified ticket."
         />
       )}
       <div className="sections-tabs">

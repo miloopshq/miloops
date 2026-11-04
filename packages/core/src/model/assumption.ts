@@ -26,7 +26,7 @@ export interface Assumption {
   /** Where it came from, e.g. `brief:A-2` when seeded from the accepted discovery brief. */
   source?: string;
   challenge?: AssumptionChallenge;
-  /** The replan that invalidated or confirmed it. */
+  /** The replan that invalidated it (`R-<n>`), or who confirmed it (`operator`). */
   decidedBy?: string;
 }
 

@@ -3,7 +3,9 @@ import type { DiscoveryBrief } from '../discovery/brief';
 import type { KnowledgeEntry } from '../knowledge/knowledge';
 import type { AttentionItem, AttentionKind, AttentionPolicy, AttentionState } from '../model/attention';
 import type { TicketSync } from '../model/prEvidence';
+import type { ReplanProposal } from '../model/replan';
 import type { MapSnapshot, PendingQuestion, SessionInfo } from '../model/types';
+import type { ReplanSuggestion } from '../planning/replan/replanTriggers';
 import type { ApprovalItem } from '../verification/approvals';
 
 /** Everything the queue is built from, already read from disk; `buildAttention` is pure over it. */
@@ -19,6 +21,10 @@ export interface AttentionInput {
   leases: TicketLease[];
   knowledge: KnowledgeEntry[];
   briefs: DiscoveryBrief[];
+  /** Pending replan proposals with the tickets each freezes. Missing: none. */
+  replans?: { proposal: ReplanProposal; frozen: string[] }[];
+  /** Signs a replan may be needed (replanTriggers). Missing: none. */
+  suggestions?: ReplanSuggestion[];
   /** Missing: the defaults. */
   policy?: AttentionPolicy;
   /** Missing: nothing snoozed or dismissed. */

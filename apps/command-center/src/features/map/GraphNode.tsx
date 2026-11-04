@@ -1,5 +1,6 @@
-import { attention, type LaidOutNode, NODE_H, NODE_W, type SessionInfo } from '@miloops-hq/core';
+import { attention, type DiffMark, type LaidOutNode, NODE_H, NODE_W, type SessionInfo } from '@miloops-hq/core';
 import { type Selection, STATE_LABEL, TYPE_CODE } from '../../lib';
+import { ReplanMarks } from './ReplanMarks';
 import { wrap } from './wrap';
 
 /** One ticket on the graph: state styling, type badge, key, title, HITL/AFK tag and the live session line. */
@@ -10,6 +11,8 @@ export function GraphNode({
   flag,
   selected,
   onSelect,
+  mark,
+  frozen,
 }: {
   n: LaidOutNode;
   session?: SessionInfo;
@@ -19,6 +22,10 @@ export function GraphNode({
   flag?: 'alert' | 'warn';
   selected: boolean;
   onSelect: (s: Selection) => void;
+  /** How a pending replan would change the ticket (map preview). */
+  mark?: DiffMark;
+  /** Frozen by a pending replan: it can't be claimed until the operator decides. */
+  frozen?: boolean;
 }) {
   const t = n.ticket;
   const lines = wrap(t.title, 22);
@@ -32,6 +39,8 @@ export function GraphNode({
     s ? 'live' : '',
     waiting ? 'waiting' : '',
     stalled && !waiting ? 'stalled' : '',
+    mark ? `mark-${mark}` : '',
+    frozen ? 'frozen' : '',
   ];
   return (
     <g
@@ -71,6 +80,7 @@ export function GraphNode({
         </text>
       </g>
       {flag && <circle className={`pr-flag-dot ${flag}`} cx={NODE_W - 2} cy={2} r={4} />}
+      <ReplanMarks mark={mark} frozen={frozen} />
       {s && !waiting && (
         <text className="live-tag" x={NODE_W} y={NODE_H + 13} textAnchor="end">
           {s.agent} · {s.mode.toUpperCase()} {s.step}/{s.total} {s.stepLabel.toUpperCase()}

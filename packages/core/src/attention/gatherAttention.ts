@@ -7,6 +7,7 @@ import { listKnowledge } from '../knowledge/knowledgeStore';
 import type { AttentionPolicy } from '../model/attention';
 import { approvalItems } from '../verification/approvals';
 import { readAttentionState } from './attentionStore';
+import { replanInputs } from './replanInputs';
 import type { AttentionInput } from './types';
 
 /** Reads everything the queue is built from: the tracker, agent session docs and the local evidence. */
@@ -21,15 +22,17 @@ export async function gatherAttention(input: {
   const snaps = await Promise.all(maps.map((m) => adapter.loadMap(m.id)));
   const docs = await readAgentDocs(root);
   const briefs = snaps.map((s) => readBrief(root, s.map.id)).filter((b) => b !== undefined);
+  const syncs = readTicketSyncs(root).filter((s) => s.flags.length);
   return {
     snaps,
     questions: docs.flatMap((d) => d.pending),
     sessions: docs.map((d) => d.session),
     approvals: snaps.flatMap((s) => approvalItems(root, s)),
-    syncs: readTicketSyncs(root).filter((s) => s.flags.length),
+    syncs,
     leases: readLeases(root),
     knowledge: listKnowledge(root),
     briefs,
+    ...(await replanInputs({ root, adapter, snaps, syncs })),
     policy,
     state: readAttentionState(root),
     now,

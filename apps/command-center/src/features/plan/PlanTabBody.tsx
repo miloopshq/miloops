@@ -1,6 +1,7 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { Empty } from '../../components/ui';
 import type { Selection } from '../../lib';
+import { AssumptionList } from './AssumptionList';
 import { MissionReport } from './MissionReport';
 import type { Tab } from './types';
 
@@ -23,6 +24,8 @@ export function PlanTabBody({
     case 'report':
       if (!activity) return <Empty>No activity yet</Empty>;
       return <MissionReport snap={snap} activity={activity} onTicket={(id) => onSelect({ kind: 'ticket', id })} />;
+    case 'assumptions':
+      return <AssumptionList snap={snap} onSelect={onSelect} />;
     case 'decisions':
       if (!s.decisions.length) return <Empty>None</Empty>;
       return (

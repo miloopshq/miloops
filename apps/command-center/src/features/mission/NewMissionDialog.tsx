@@ -13,7 +13,9 @@ export function NewMissionDialog({
 }: {
   onClose: () => void;
   tracker: string;
-  onCreate: (input: { title: string; destination: string; notes: string }) => Promise<{ key: string }>;
+  onCreate: (input: { title: string; destination: string; notes: string; assumptions: string[] }) => Promise<{
+    key: string;
+  }>;
 }) {
   const [created, setCreated] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -21,6 +23,7 @@ export function NewMissionDialog({
   const [title, setTitle] = useState('');
   const [dest, setDest] = useState('');
   const [notes, setNotes] = useState('');
+  const [assumptions, setAssumptions] = useState('');
   const idea = [title.trim(), dest.trim(), notes.trim()].filter(Boolean).join('. ').replace(/"/g, "'");
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -46,6 +49,15 @@ export function NewMissionDialog({
         </Field>
         <Field label="Notes">
           <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </Field>
+        <Field label="Assumptions (optional, one per line)">
+          <textarea
+            className="new-mission-assumptions"
+            rows={2}
+            value={assumptions}
+            onChange={(e) => setAssumptions(e.target.value)}
+            placeholder="What the plan takes for granted, e.g. The v2 API supports batch writes"
+          />
         </Field>
         <div className="agent-draft">
           <span className="dim">
@@ -76,7 +88,13 @@ export function NewMissionDialog({
               data-tip="Put the mission on the map now; any agent picks it up with /milo resume"
               onClick={() => {
                 setBusy(true);
-                onCreate({ title: title.trim(), destination: dest.trim(), notes: notes.trim() })
+                const lines = assumptions.split('\n').map((l) => l.trim());
+                onCreate({
+                  title: title.trim(),
+                  destination: dest.trim(),
+                  notes: notes.trim(),
+                  assumptions: lines.filter(Boolean),
+                })
                   .then((m) => setCreated(m.key))
                   .catch((e: Error) => setError(e.message))
                   .finally(() => setBusy(false));

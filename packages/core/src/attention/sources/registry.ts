@@ -6,6 +6,8 @@ import { flagSource } from './flagSource';
 import { hitlReadySource } from './hitlReadySource';
 import { knowledgeSource } from './knowledgeSource';
 import { questionSource } from './questionSource';
+import { replanSource } from './replanSource';
+import { replanSuggestedSource } from './replanSuggestedSource';
 import { stalledSource } from './stalledSource';
 
 /**
@@ -21,4 +23,6 @@ export const ATTENTION_SOURCES: AttentionSource[] = [
   hitlReadySource,
   knowledgeSource,
   briefSource,
+  replanSource,
+  replanSuggestedSource,
 ];

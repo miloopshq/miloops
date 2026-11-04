@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { journalFile } from '../history/journalFile';
 import type { ReplanProposal } from '../model/replan';
+import { confirmAssumption } from '../planning/assumptions/confirmAssumption';
 import { OperationError } from '../planning/operations/operationError';
 import { approveReplan, rejectReplan } from '../planning/replan/decideReplan';
 import { replanView, ReplanInvalid, type ReplanEnv } from '../planning/replan/replanFlow';
@@ -19,7 +20,8 @@ const text = (v: unknown, max = 200) => typeof v === 'string' && v.length > 0 &&
  * `/replans` and `/assumptions` routes; false when none matches.
  * GET `/replans?map=` lists proposals (pending first, with their diff and frozen tickets; decided ones without),
  * GET `/replans/<id>?map=` reads one; POST `/replans/approve` and `/replans/reject` (`mapId`, `id`, `note`, `by`)
- * are the operator's calls, journaled and applied through the existing operations. GET `/assumptions?map=`.
+ * are the operator's calls, journaled and applied through the existing operations. GET `/assumptions?map=`, and
+ * POST `/assumptions/confirm` (`mapId`, `id`), the operator confirming one holds.
  */
 export async function handleReplans(ctx: RouteContext, req: IncomingMessage, res: ServerResponse, url: URL) {
   const { pathname } = url;
@@ -28,6 +30,7 @@ export async function handleReplans(ctx: RouteContext, req: IncomingMessage, res
     sendJson(res, 200, { assumptions: snap.map.sections.assumptions ?? [] });
     return true;
   }
+  if (pathname === '/assumptions/confirm' && req.method === 'POST') return (await confirm(ctx, req, res), true);
   if (!pathname.startsWith('/replans')) return false;
   if (req.method === 'GET') return (await getReplans(ctx, res, url), true);
   if (req.method !== 'POST') return false;
@@ -65,6 +68,18 @@ async function getReplans(ctx: RouteContext, res: ServerResponse, url: URL) {
   ];
   const replans = await Promise.all(ordered.map((p) => (p.status === 'pending' ? withView(ctx, p) : p)));
   sendJson(res, 200, { replans, pending: replans.filter((p) => p.status === 'pending').length });
+}
+
+/** POST `/assumptions/confirm` (`mapId`, `id`): the operator confirms an assumption holds. */
+async function confirm(ctx: RouteContext, req: IncomingMessage, res: ServerResponse) {
+  const b = await readJson<{ mapId?: unknown; id?: unknown }>(req, '{}');
+  if (!text(b.mapId) || !text(b.id)) throw new BadRequest('"mapId" and "id" are required');
+  try {
+    const input = { mapId: b.mapId as string, id: b.id as string, by: 'operator' };
+    sendJson(res, 200, { assumption: await confirmAssumption(await ctx.active(), input) });
+  } catch (e) {
+    sendDecisionError(res, e);
+  }
 }
 
 /** A proposal with its dry-run diff and the tickets it freezes. */

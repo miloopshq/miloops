@@ -43,6 +43,7 @@ export { decisionsByRisk, type RiskGroup, type RiskGroupLevel } from './policy/d
 export * from './model/assumption';
 export * from './model/replan';
 export * from './planning/assumptions/assumptionOps';
+export { confirmAssumption } from './planning/assumptions/confirmAssumption';
 export { validateReplan, type ReplanDraft } from './planning/replan/validateReplan';
 export { replanDiff, reopenTitle } from './planning/replan/replanDiff';
 export { frozenTickets } from './planning/replan/frozenTickets';

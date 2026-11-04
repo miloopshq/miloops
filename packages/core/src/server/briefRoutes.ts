@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { decided, EMPTY_SECTIONS } from '../discovery/brief';
+import type { TrackerAdapter } from '../adapters/adapter';
+import { decided, EMPTY_SECTIONS, type DiscoveryBrief } from '../discovery/brief';
 import { readBrief, writeBrief } from '../discovery/briefStore';
 import { seedFromBrief } from '../planning/assumptions/assumptionOps';
 import { BadRequest, readJson, sendJson } from './http';
@@ -51,16 +52,30 @@ export async function handleBriefs(
   const kind = DECISION_ROUTES[url.pathname];
   if (!kind) return false;
   if (!brief) return (sendJson(res, 404, { error: 'this mission has no discovery brief' }), true);
+  let next: DiscoveryBrief;
   try {
-    const next = decided(
+    next = decided(
       brief,
       kind === 'accept' ? { kind } : { kind, note: typeof b.note === 'string' ? b.note.slice(0, 2000) : '' },
     );
-    writeBrief(root, next);
-    const seeded = kind === 'accept' ? await seedFromBrief(await active(), next) : [];
-    sendJson(res, 200, { brief: next, ...(seeded.length ? { assumptions: seeded } : {}) });
   } catch (e) {
-    sendJson(res, 409, { error: (e as Error).message });
+    return (sendJson(res, 409, { error: (e as Error).message }), true);
   }
+  writeBrief(root, next);
+  const seeded = kind === 'accept' ? await seedAssumptions(await active(), next) : [];
+  sendJson(res, 200, { brief: next, ...(seeded.length ? { assumptions: seeded } : {}) });
   return true;
+}
+
+/**
+ * The accepted brief's assumptions become the mission's. The brief is already accepted by then, so a failure here
+ * (the tracker unreachable, say) is logged and the accept still succeeds; accepting again seeds what's missing.
+ */
+async function seedAssumptions(adapter: TrackerAdapter, brief: DiscoveryBrief) {
+  try {
+    return await seedFromBrief(adapter, brief);
+  } catch (e) {
+    console.error(`could not add the brief's assumptions to the mission: ${(e as Error).message}`);
+    return [];
+  }
 }
