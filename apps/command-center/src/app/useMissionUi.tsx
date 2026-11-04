@@ -12,6 +12,7 @@ export function useMissionUi(snap?: MapSnapshot, selectMap?: (mapId: string) => 
   return {
     briefText: discovery.briefText,
     inboxCard: discovery.inboxCard,
+    review: discovery.review,
     banner: (
       <>
         {discovery.banner}

@@ -4,6 +4,7 @@ import {
   DEFAULT_MAP_MODE,
   buildAttention,
   heldTickets,
+  isDismissable,
   isFocused,
   isInterrupting,
   parseAttentionPolicy,
@@ -254,6 +255,28 @@ describe('attention queue', () => {
     expect(hidden.hidden).toBe(2);
     const later = buildAttention(input({ questions: qs, state, now: now + 11 * min }));
     expect(ids(later.items)).toEqual(['question:m1:a']);
+  });
+
+  it('flags high-risk changes made without asking, until the human sets the flag aside', () => {
+    const violation = {
+      mapId: 'm1',
+      ticketId: '4',
+      ticketKey: '#4',
+      agent: 'codex-02',
+      attemptId: 'A-1',
+      at: now - 5 * min,
+      paths: ['db/migrations/001.sql'],
+      globs: ['**/migrations/**'],
+      reason: 'codex-02 changed db/migrations/001.sql matching **/migrations/** without asking you',
+    };
+    const base = input({ snaps: [snap([ticket('4')])], violations: [violation] });
+    const [item] = buildAttention(base).items;
+    expect(item).toMatchObject({ id: 'policy:m1:4', kind: 'policy', ticketId: '4', agent: 'codex-02' });
+    expect(item.title).toBe('Check #4: high-risk files changed without asking');
+    expect(item.reasons[0]).toBe(violation.reason);
+    expect(isDismissable(item)).toBe(true);
+    const state = { v: 1 as const, snoozed: {}, dismissed: ['policy:m1:4'] };
+    expect(buildAttention({ ...base, state }).items).toEqual([]);
   });
 });
 

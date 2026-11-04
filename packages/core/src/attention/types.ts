@@ -6,6 +6,7 @@ import type { TicketSync } from '../model/prEvidence';
 import type { ReplanProposal } from '../model/replan';
 import type { MapSnapshot, PendingQuestion, SessionInfo } from '../model/types';
 import type { ReplanSuggestion } from '../planning/replan/replanTriggers';
+import type { PolicyViolation } from '../policy/policyViolations';
 import type { ApprovalItem } from '../verification/approvals';
 
 /** Everything the queue is built from, already read from disk; `buildAttention` is pure over it. */
@@ -25,6 +26,8 @@ export interface AttentionInput {
   replans?: { proposal: ReplanProposal; frozen: string[] }[];
   /** Signs a replan may be needed (replanTriggers). Missing: none. */
   suggestions?: ReplanSuggestion[];
+  /** High-risk changes made without the human (policy/policyViolations.ts). Missing: none. */
+  violations?: PolicyViolation[];
   /** Missing: the defaults. */
   policy?: AttentionPolicy;
   /** Missing: nothing snoozed or dismissed. */

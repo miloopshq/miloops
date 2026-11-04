@@ -2,6 +2,7 @@ import type { AttentionItem, AttentionState } from '../model/attention';
 import { orderInBatches } from './batch';
 import { DEFAULT_ATTENTION_POLICY, EMPTY_ATTENTION_STATE } from './defaults';
 import { heldTickets } from './heldTickets';
+import { isDismissable } from './isDismissable';
 import { scoreCandidate } from './score';
 import { ATTENTION_SOURCES } from './sources/registry';
 import type { AttentionInput, AttentionSource, Candidate } from './types';
@@ -15,7 +16,7 @@ export interface AttentionQueue {
 
 function hiddenBy(state: AttentionState, item: AttentionItem, now: number): boolean {
   if ((state.snoozed[item.id] ?? 0) > now) return true;
-  return item.urgency === 'fyi' && state.dismissed.includes(item.id);
+  return isDismissable(item) && state.dismissed.includes(item.id);
 }
 
 /**

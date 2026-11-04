@@ -82,6 +82,7 @@ export function slackPlugin(
   return (ctx: BridgeContext): BridgePlugin => {
     const service = new SlackService({
       pollMs: 1000,
+      interruptOnly: true,
       ...o,
       configDir: o.configDir ?? configDir(o.env),
       root: ctx.root,

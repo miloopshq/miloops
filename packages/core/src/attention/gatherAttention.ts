@@ -7,6 +7,7 @@ import { listKnowledge } from '../knowledge/knowledgeStore';
 import type { AttentionPolicy } from '../model/attention';
 import { approvalItems } from '../verification/approvals';
 import { readAttentionState } from './attentionStore';
+import { readViolations } from './readViolations';
 import { replanInputs } from './replanInputs';
 import type { AttentionInput } from './types';
 
@@ -33,6 +34,7 @@ export async function gatherAttention(input: {
     knowledge: listKnowledge(root),
     briefs,
     ...(await replanInputs({ root, adapter, snaps, syncs })),
+    violations: await readViolations({ root, adapter, snaps, docs }),
     policy,
     state: readAttentionState(root),
     now,

@@ -5,6 +5,7 @@ import { syncApprovals } from './approvals';
 import { syncAsks } from './asks';
 import { day } from './constants';
 import { missionChanges, notesOf } from './missionChanges';
+import { queueLine } from './queueLine';
 import type { SlackContext } from './slackContext';
 
 export function tick(ctx: SlackContext): Promise<void> {
@@ -36,15 +37,9 @@ export async function syncMissions(ctx: SlackContext, docs: AgentSessionDoc[], c
     const prev = ctx.missions.get(m.id);
     ctx.missions.set(m.id, now);
     if (!prev) continue;
-    for (const line of missionChanges({ snap, docs, prev, now, events: ev })) queue(ctx, m.id, line);
+    for (const line of missionChanges({ snap, docs, prev, now, events: ev })) queueLine(ctx, m.id, line);
   }
   await syncApprovals(ctx, snaps, c);
-}
-
-export function queue(ctx: SlackContext, mapId: string, line: string) {
-  const b = ctx.batches.get(mapId) ?? { lines: [], lastAt: 0 };
-  b.lines.push(line);
-  ctx.batches.set(mapId, b);
 }
 
 /** One message per mission per window; later ones thread under that day's first message for the mission. */

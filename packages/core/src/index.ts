@@ -68,6 +68,7 @@ export { parseAttentionPrefs } from './attention/parsePrefs';
 export { isFocused, isInterrupting } from './attention/focus';
 export { waitLabel } from './attention/score';
 export { heldTickets } from './attention/heldTickets';
+export { isDismissable } from './attention/isDismissable';
 export { Emitter, sleep, uid } from './lib/emitter';
 
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memoryAdapter';

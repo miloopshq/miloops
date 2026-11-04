@@ -8,6 +8,7 @@ import {
   missionUsageSources,
   USAGE_SOURCE,
 } from '@miloops-hq/core';
+import type { ReactNode } from 'react';
 import { Panel, MiloMark, Label, Readout, Button } from '../../components/ui';
 import { type BriefingStatus, useNow } from '../../hooks';
 import { hms, tokens, usd } from '../../lib';
@@ -36,6 +37,8 @@ export function Header(props: {
   /** Set when the Slack connection needs attention (revoked token, app uninstalled). */
   slackAlert?: string;
   onSlack: () => void;
+  /** Focus mode and what interrupts now; replaces the plain waiting count when given. */
+  attention?: ReactNode;
   decisions: number;
   decisionsOpen: boolean;
   onDecisions: () => void;
@@ -93,7 +96,8 @@ export function Header(props: {
             )}
           </span>
         )}
-        {waiting > 0 && (
+        {props.attention}
+        {!props.attention && waiting > 0 && (
           <span className="waiting-chip" title={`${waiting} waiting on you`}>
             <MiloMark variant="alert" size={14} />
             <b>{waiting}</b>
