@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/miloopshq/miloops/main/brand/miloops-banner.gif" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="100%" />
+
 # miloops
 
 MILOOPS, the Autonomous Agent Command Center. One command opens a local command center for the agents working in your repo.

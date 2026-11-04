@@ -43,7 +43,7 @@ mkdirSync(BRAND, { recursive: true });
 const KIT = [
   ['github-org-avatar.png', 'GitHub org avatar', 1000, 1000, 'square', '&n=1000'],
   ['github-social-preview.png', 'GitHub repo social preview', 1280, 640, 'banner', '&w=1280&h=640'],
-  ['og-image-1200x630.png', 'Open Graph · miloops.app', 1200, 630, 'banner', '&w=1200&h=630'],
+  ['og-image-1200x630.png', 'Open Graph · miloops.vercel.app', 1200, 630, 'banner', '&w=1200&h=630'],
   ['x-header-1500x500.png', 'X header', 1500, 500, 'banner', '&w=1500&h=500&layout=header'],
   ['wordmark-lockup.png', 'Logo lockup', 960, 240, 'lockup', '&w=960&h=240'],
   ['x-avatar-400.png', 'X avatar', 400, 400, 'square', '&n=400'],
