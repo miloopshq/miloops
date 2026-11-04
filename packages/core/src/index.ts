@@ -45,7 +45,7 @@ export * from './model/replan';
 export * from './planning/assumptions/assumptionOps';
 export { confirmAssumption } from './planning/assumptions/confirmAssumption';
 export { validateReplan, type ReplanDraft } from './planning/replan/validateReplan';
-export { replanDiff, reopenTitle } from './planning/replan/replanDiff';
+export { replanDiff } from './planning/replan/replanDiff';
 export { frozenTickets } from './planning/replan/frozenTickets';
 export * from './planning/replan/replanTriggers';
 export { applyReplan, type ApplyEnv } from './planning/replan/applyReplan';

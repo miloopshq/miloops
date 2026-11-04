@@ -33,6 +33,7 @@ export function validateReplan(snap: MapSnapshot, decisions: DecisionRecord[], d
     ...draft.changes.flatMap((c, i) => changeErrors(scope, c).map((message) => ({ change: i, message }))),
     ...duplicateErrors(scope, draft.changes),
     ...cycleChanges(snap.tickets, draft.changes).map((change) => ({
+      // removed edges are taken out first, so only additions can close a cycle
       change,
       message: 'this blocking edge would create a cycle',
     })),
@@ -95,10 +96,22 @@ function addTicketErrors(s: Scope, c: Extract<ReplanChange, { op: 'add_ticket' }
 }
 
 function rewireErrors(s: Scope, c: Extract<ReplanChange, { op: 'rewire' }>): string[] {
+  const add = c.addBlockedBy ?? [];
+  const remove = c.removeBlockedBy ?? [];
   const errors = openTicketErrors(s, c.ticket);
-  if (!c.addBlockedBy.length) errors.push('"addBlockedBy" needs at least one ticket');
-  for (const b of c.addBlockedBy) errors.push(...blockerErrors(s, b));
+  if (!add.length && !remove.length) errors.push('rewire needs "addBlockedBy" or "removeBlockedBy"');
+  for (const b of add) errors.push(...blockerErrors(s, b));
+  for (const b of remove) errors.push(...removalErrors(s, c.ticket, b));
   return errors;
+}
+
+/** A removed blocker must be one of the ticket's current blockers. */
+function removalErrors(s: Scope, ticket: string, ref: string): string[] {
+  const blocker = s.byId.get(ref);
+  if (!blocker) return [`unknown ticket ${ref}`];
+  const t = s.byId.get(ticket);
+  if (!t || t.blockedBy.includes(ref)) return [];
+  return [`${blocker.key} does not block ${t.key}`];
 }
 
 function blockerErrors(s: Scope, ref: string): string[] {

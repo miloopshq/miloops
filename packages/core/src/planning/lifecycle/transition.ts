@@ -48,6 +48,7 @@ async function apply(adapter: TrackerAdapter, mapId: string, t: Ticket, step: { 
       return;
     case 'ready':
     case 'rework':
+      if (t.state === 'closed') await adapter.reopen(mapId, t.id);
       await status(to === 'rework' ? 'rework' : null);
       if (t.assignee) await adapter.assign(mapId, t.id, null);
       return;

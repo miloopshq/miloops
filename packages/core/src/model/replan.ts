@@ -5,9 +5,8 @@ import type { TicketType } from './types';
  * operator approves. Tickets are named by id; tickets the proposal adds are named by their `ref`, which later changes
  * in the same proposal may use (`blockedBy`, `ticket`).
  *
- * The tracker adapters can add blocking edges but not remove them, and cannot rewrite a ticket's text, so:
- * `rewire` only adds blockers (to drop a dependency, cancel the ticket and add a replacement), and `edit_ticket`
- * posts the revised title and body on the ticket. `reopen` adds a follow-up ticket for a done or cancelled one.
+ * `edit_ticket` rewrites a ticket's title and body, `rewire` adds and removes blockers, and `reopen` puts a done or
+ * cancelled ticket back in the queue, all through the tracker itself.
  */
 export type ReplanChange =
   | {
@@ -21,7 +20,7 @@ export type ReplanChange =
     }
   | { op: 'cancel_ticket'; ticket: string; reason: string }
   | { op: 'edit_ticket'; ticket: string; title?: string; body?: string }
-  | { op: 'rewire'; ticket: string; addBlockedBy: string[] }
+  | { op: 'rewire'; ticket: string; addBlockedBy?: string[]; removeBlockedBy?: string[] }
   | { op: 'supersede_decision'; decision: string; answer: string; rationale: string }
   | { op: 'update_destination'; text: string }
   | { op: 'add_unspecified'; text: string }
@@ -105,6 +104,8 @@ export interface DiffNode {
   blockedBy: string[];
   /** Edges this proposal adds, as blocker ids or refs. */
   newEdges: string[];
+  /** Edges this proposal removes, as blocker ids (not in `blockedBy`). */
+  removedEdges?: string[];
 }
 
 /** The dry-run result: every ticket before and after, plus the mission-level lines that change. */

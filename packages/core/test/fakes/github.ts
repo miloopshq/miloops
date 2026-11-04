@@ -207,6 +207,14 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
       issue.updated_at = tick();
       return ok(rest(blocker), 201);
     }
+    const dep = sub.match(/^\/dependencies\/blocked_by\/(\d+)$/);
+    if (method === 'DELETE' && dep) {
+      const blockerId = Number(dep[1]);
+      if (!issue.blockedBy.includes(blockerId)) return notFound;
+      issue.blockedBy = issue.blockedBy.filter((b) => b !== blockerId);
+      issue.updated_at = tick();
+      return ok(rest(issue));
+    }
     if (method === 'POST' && sub === '/comments') {
       const c = { id: nextComment++, body: (body as { body: string }).body, created_at: tick(), user: login };
       issue.comments.push(c);

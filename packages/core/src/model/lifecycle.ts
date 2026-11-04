@@ -44,7 +44,8 @@ export type LifecycleEvent =
   | 'reject'
   | 'accept'
   | 'unblock'
-  | 'cancel';
+  | 'cancel'
+  | 'reopen';
 
 /**
  * How much evidence a completion needs before the ticket is done. Missions

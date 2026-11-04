@@ -179,6 +179,7 @@ export function MapGraph(props: {
                 to={to}
                 direction={L.direction}
                 added={preview?.newEdges.has(edgeKey(from.ticket.id, to.ticket.id))}
+                removed={preview?.removedEdges.has(edgeKey(from.ticket.id, to.ticket.id))}
               />
             ))}
 

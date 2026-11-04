@@ -26,11 +26,7 @@ export function describeChange(c: ReplanChange, name: (idOrRef: string) => strin
     case 'edit_ticket':
       return { verb: 'Revise', text: name(c.ticket), detail: c.title ? `New title: ${c.title}` : 'New description' };
     case 'rewire':
-      return {
-        verb: 'Rewire',
-        text: name(c.ticket),
-        detail: `now also after ${c.addBlockedBy.map(name).join(', ')}`,
-      };
+      return { verb: 'Rewire', text: name(c.ticket), detail: rewireDetail(c, name) };
     case 'supersede_decision':
       return { verb: 'Supersede', text: c.decision, detail: `${c.answer}. ${c.rationale}` };
     case 'update_destination':
@@ -40,10 +36,19 @@ export function describeChange(c: ReplanChange, name: (idOrRef: string) => strin
     case 'add_out_of_scope':
       return { verb: 'Out of scope', text: c.text };
     case 'reopen':
-      return { verb: 'Reopen', text: name(c.ticket), detail: c.reason };
+      return { verb: 'Reopen', text: name(c.ticket), detail: `Back in the queue: ${c.reason}` };
     default: {
       const unknown: never = c;
       return unknown;
     }
   }
+}
+
+/** "now also after #3 · no longer after #2" */
+function rewireDetail(c: Extract<ReplanChange, { op: 'rewire' }>, name: (idOrRef: string) => string) {
+  const parts = [
+    ...(c.addBlockedBy?.length ? [`now also after ${c.addBlockedBy.map(name).join(', ')}`] : []),
+    ...(c.removeBlockedBy?.length ? [`no longer after ${c.removeBlockedBy.map(name).join(', ')}`] : []),
+  ];
+  return parts.join(' · ');
 }

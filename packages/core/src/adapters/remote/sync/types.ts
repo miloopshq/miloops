@@ -1,5 +1,6 @@
 import type { MapMetaPatch, TicketMetaPatch } from '../../../model/lifecycle';
 import type { DecisionRecord, MapMode, MapSections, MapSnapshot, TrackerEvent } from '../../../model/types';
+import type { TicketEdit } from '../../adapter';
 import type { RateInfo } from '../http';
 
 export type SyncState = 'connecting' | 'online' | 'offline' | 'rate-limited' | 'auth-error';
@@ -36,6 +37,9 @@ export type QueuedChange =
   | { kind: 'sections'; sections: MapSections }
   | { kind: 'mapMeta'; patch: MapMetaPatch }
   | { kind: 'blocking'; blockerId: string; blockedId: string }
+  | { kind: 'unblocking'; blockerId: string; blockedId: string }
+  | { kind: 'edit'; ticketId: string; edit: TicketEdit }
+  | { kind: 'reopen'; ticketId: string }
   | { kind: 'claim'; ticketId: string; assignee?: string }
   | { kind: 'meta'; ticketId: string; patch: TicketMetaPatch }
   | { kind: 'comment'; ticketId: string; author: string; body: string }

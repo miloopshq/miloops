@@ -11,7 +11,6 @@ import type {
 } from '../../../model/types';
 import type { MapInput } from '../../adapter';
 import {
-  ALL_LABELS,
   authoredBody,
   decisionComment,
   joinBody,
@@ -24,6 +23,7 @@ import {
 import { TrackerError, type HttpOptions } from '../http';
 import { SyncedAdapter } from '../sync/syncedAdapter';
 import type { RemoteComment, SyncOptions } from '../sync/types';
+import { ensureGitHubLabels } from './ensureGitHubLabels';
 import { GitHubClient } from './githubClient';
 import { readMission } from './readMission';
 import { labelNames, MISSION_QUERY, type GqlIssue, type RestIssue } from './schema';
@@ -69,15 +69,7 @@ export class GitHubAdapter extends SyncedAdapter {
     return this.gh.rate;
   }
 
-  private ensureLabels = cachedUntilFailure(async () => {
-    const r = await this.gh.repo<{ name: string }[]>('GET', '/labels?per_page=100');
-    const have = new Set(r.body.map((l) => l.name));
-    for (const l of ALL_LABELS.filter((x) => !have.has(x.name))) {
-      await this.gh.repo('POST', '/labels', l).catch((e) => {
-        if (!(e instanceof TrackerError && e.code === 'invalid')) throw e; // 422: created concurrently
-      });
-    }
-  });
+  private ensureLabels = cachedUntilFailure(() => ensureGitHubLabels(this.gh));
 
   protected async fetchMaps(): Promise<MapSummary[]> {
     const r = await this.gh.repo<RestIssue[]>(
@@ -187,6 +179,21 @@ export class GitHubAdapter extends SyncedAdapter {
     await this.gh.repo('POST', `/issues/${blocked.id}/dependencies/blocked_by`, {
       issue_id: await this.issueId(blocker.id),
     });
+  }
+
+  protected async remoteRemoveBlocking(_map: MapDoc, blocker: Ticket, blocked: Ticket) {
+    const path = `/issues/${blocked.id}/dependencies/blocked_by/${await this.issueId(blocker.id)}`;
+    await this.gh.repo('DELETE', path).catch((e) => {
+      if (!(e instanceof TrackerError && e.code === 'not_found')) throw e; // already removed
+    });
+  }
+
+  protected async remoteEditTicket(_map: MapDoc, t: Ticket) {
+    await this.gh.repo('PATCH', `/issues/${t.id}`, { title: t.title, body: joinBody(t.body, ticketMeta(t)) });
+  }
+
+  protected async remoteReopen(_map: MapDoc, t: Ticket) {
+    await this.gh.repo('PATCH', `/issues/${t.id}`, { state: 'open', state_reason: 'reopened' });
   }
 
   protected async remoteSetMeta(_map: MapDoc, t: Ticket) {

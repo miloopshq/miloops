@@ -46,6 +46,13 @@ export function describeTrackerEvent(
         ticketId: e.blockedId,
         text: `${k(e.blockerId)} blocks ${k(e.blockedId)}`,
       };
+    case 'edge.removed':
+      return {
+        source: 'tracker',
+        level: 'info',
+        ticketId: e.blockedId,
+        text: `${k(e.blockerId)} no longer blocks ${k(e.blockedId)}`,
+      };
     case 'decision.recorded':
       return {
         source: 'tracker',

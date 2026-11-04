@@ -22,8 +22,9 @@ export const NEXT: { area: string; items: string[] }[] = [
 export const RELEASES: Release[] = [
   {
     version: '0.21.0',
-    date: '2026-11-04',
+    date: '2026-11-05',
     items: [
+      'New plans can now edit a ticket, remove a dependency and reopen finished work, instead of working around it',
       "Slack digests follow the team's digest setting (digestMinutes in attention.json); 0 turns them off, and everything still waits in Waiting on you",
       "Remove a finished task's workspace from Settings → Workspaces or the ticket; the branch stays, and MILOOPS asks before discarding uncommitted changes",
     ],
