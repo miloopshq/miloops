@@ -627,3 +627,47 @@
     animation: none;
   }
 }
+
+/* A pending replan drawn over the map: ghosts for added tickets, a strike for cancelled ones, ❄ for frozen ones. */
+.node.mark-added .body,
+.node.mark-reopened .body {
+  fill: rgba(var(--amber-rgb), 0.05);
+  stroke: var(--amber);
+  stroke-opacity: 0.9;
+  stroke-dasharray: 4 3;
+}
+.node.mark-added .key,
+.node.mark-reopened .key {
+  fill: var(--amber);
+}
+.node.mark-cancelled {
+  opacity: 0.55;
+}
+.node .strike {
+  stroke: var(--urgent);
+  stroke-width: 1.4;
+}
+.node.mark-revised .body,
+.node.mark-rewired .body {
+  stroke: var(--amber);
+  stroke-opacity: 0.8;
+}
+.node .replan-tag {
+  font-family: var(--mono);
+  font-size: var(--fs-node-tag);
+  letter-spacing: var(--ls-data);
+  fill: var(--amber);
+}
+.node .freeze {
+  font-size: 11px;
+  fill: rgb(150, 210, 255);
+}
+.node.frozen .body {
+  stroke: rgb(150, 210, 255);
+  stroke-opacity: 0.8;
+}
+.edge-added {
+  stroke: var(--amber);
+  stroke-opacity: 0.85;
+  stroke-dasharray: 5 4;
+}

@@ -9,6 +9,23 @@ export { LEASE_REAPER, reclaimExpired, returnToQueue, type ReturnOutcome } from 
 export { journalFile, journalPath, JOURNAL_DIR } from './history/journalFile';
 export { briefPath, readBrief, writeBrief } from './discovery/briefStore';
 export { criteriaOf, readCriteria, writeTicketCriteria } from './criteria/criteriaStore';
+export { POLICY_FILE, policyPath, readPolicy, writePolicy, type PolicyRead } from './policy/policyStore';
+export {
+  createReplan,
+  listAllReplans,
+  listReplans,
+  readReplan,
+  REPLANS_DIR,
+  writeReplan,
+} from './planning/replan/replanStore';
+export {
+  proposeReplan,
+  replanView,
+  ReplanInvalid,
+  type ProposeInput,
+  type ReplanEnv,
+} from './planning/replan/replanFlow';
+export { approveReplan, rejectReplan, type ReplanDecision } from './planning/replan/decideReplan';
 export {
   blobHash,
   listKnowledge,
@@ -64,3 +81,13 @@ export { staleAction, staleness } from './evidence/stale';
 export { GitHubCiProvider, type GitHubCiOptions } from './evidence/github/GitHubCiProvider';
 export { reconcile, type ReconcileEnv, type ReconcileResult } from './evidence/reconcile';
 export { readSyncStatus, readTicketSync, readTicketSyncs } from './evidence/syncStore';
+export {
+  readAttentionPolicy,
+  readAttentionPrefs,
+  readAttentionState,
+  updateAttentionState,
+  writeAttentionPrefs,
+  type AttentionPolicyRead,
+} from './attention/attentionStore';
+export { gatherAttention } from './attention/gatherAttention';
+export { attentionView } from './attention/attentionView';

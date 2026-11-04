@@ -4,6 +4,7 @@ import { MarkdownAdapter } from '../adapters/markdown/markdownAdapter';
 import { nodeMarkdownFs } from '../adapters/markdown/nodeMarkdownFs';
 import { AnswerError } from '../agents/agentDocs';
 import { handleAgents } from './agentRoutes';
+import { handleAttention } from './attentionRoutes';
 import type { BridgeOptions, TrackerBridge } from './bridgeTypes';
 import { handleBriefs } from './briefRoutes';
 import { handleCriteria } from './criteriaRoutes';
@@ -12,10 +13,13 @@ import { BadRequest, openEventStream, readText, sendJson } from './http';
 import { handleJournal } from './journalRoutes';
 import { handleKnowledge } from './knowledgeRoutes';
 import { handleLeases } from './leaseRoutes';
+import { handlePolicy } from './policyRoutes';
+import { handleReplans } from './replanRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
 import { handleVerification } from './verificationRoutes';
 import { handleVerificationSync } from './verificationSyncRoutes';
+import { watchAttention } from './watchAttention';
 import { watchLeases } from './watchLeases';
 import { watchTrackerFolder } from './watchTrackerFolder';
 import { watchVerification } from './watchVerification';
@@ -45,6 +49,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
   const unwatchLeases = watchLeases(abs, () => routes.active(), send, leaseTiming);
   const ctx = { root: abs, active: () => routes.active() };
   const reconciler = watchVerification(ctx, { access: routes.ciAccess, send }, reconcilerTiming);
+  const unwatchAttention = watchAttention(ctx, send, { configDir: trackers.configDir });
 
   type Route = (req: IncomingMessage, res: ServerResponse, url: URL) => Promise<boolean>;
   /** Tried in order; the first that handles the request answers it. */
@@ -63,9 +68,12 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
     (req, res, url) => handleVerification(ctx, req, res, url),
     (req, res, url) => handleVerificationSync({ ...ctx, watch: reconciler }, req, res, url),
     (req, res, url) => handleAgents(abs, req, res, url),
-    (req, res, url) => handleBriefs(abs, req, res, url),
+    (req, res, url) => handleBriefs(ctx, req, res, url),
+    (req, res, url) => handleReplans(ctx, req, res, url),
     (req, res, url) => handleKnowledge(abs, req, res, url),
     (req, res, url) => handleCriteria(abs, req, res, url),
+    (req, res, url) => handlePolicy(ctx, req, res, url),
+    (req, res, url) => handleAttention({ ...ctx, configDir: trackers.configDir }, req, res, url),
   ];
 
   /** The live event stream and raw file access to the tracker folder. */
@@ -112,6 +120,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
       routes.close();
       unwatch();
       unwatchLeases();
+      unwatchAttention();
       reconciler.stop();
       for (const c of clients) c.end();
       clients.clear();

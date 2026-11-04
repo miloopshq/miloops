@@ -30,20 +30,24 @@ npm workspaces monorepo. Node 20+, TypeScript, ESM.
 | `apps/command-center` | The React + Vite web UI, bundled into the CLI. |
 | `packages/connector-slack` | The optional Slack connector: questions, approvals and briefings in Slack. |
 | `packages/milo-avatar` | The MILO pixel avatar: a React component and a framework-free renderer (`mountMilo`). |
-| `scripts` | Dev tooling: the seed (`scripts/seed-dev.ts`), scripted MCP dev agents (`scripts/dev-agent.mjs`), the end-to-end check (`scripts/verify-mcp.mjs`) and the local npm registry (`scripts/registry-local.mjs`). |
+| `scripts` | Dev tooling: the seed (`scripts/seed-dev.ts`, with M4's policy, assumptions and proposals in `scripts/seedSupervision.ts`), scripted MCP dev agents (`scripts/dev-agent.mjs`), the end-to-end check (`scripts/verify-mcp.mjs`, M4 steps in `scripts/verifySupervision.mjs`) and the local npm registry (`scripts/registry-local.mjs`). |
 | `.github/workflows` | CI (`ci.yml`, runs `npm run check`) and the manual Release workflow (`release.yml`). |
 
 The landing site lives in its own repo, `miloopshq/miloops-landing`.
 
 ### Tracker data (`.miloops/` in the user's repo)
 
-- `<mission>/map.md`: mission frontmatter plus the map body (Destination, Notes, Decisions so far, Not yet specified, Out of scope). The format is shared by every adapter (`packages/core/src/model/mapBody.ts`).
+- `<mission>/map.md`: mission frontmatter plus the map body (Destination, Notes, Assumptions, Decisions so far, Not yet specified, Out of scope). Assumptions are `S-<n>` lines with their status (holding, challenged, invalidated, confirmed), linked tickets and challenge in an HTML comment marker (`packages/core/src/model/assumptionLine.ts`); accepting a brief adds its assumptions. The format is shared by every adapter (`packages/core/src/model/mapBody.ts`).
 - `<mission>/tickets/<n>.md`: ticket frontmatter, body and comments. `<mission>/decisions/<D-n>.md`: decision records.
 - `verification.json`: the checks agents' completions run. Committed.
 - `briefs/<mapId>.md`: the mission's discovery brief and its status. A mission with a brief requires discovery: implementation tickets can't be claimed until the operator accepts it. Committed.
 - `criteria/<mapId>.md`: acceptance criteria per ticket (`AC-<n>`, kind, optional knowledge source) and the operator's confirmation. Required for implementation tickets on missions with a brief; each needs evidence when the work is completed. Committed.
 - `knowledge/K-<n>.md`: project and product knowledge entries (suggested, confirmed, assumption, outdated). Committed, so teammates share it.
-- `.events/<mapId>.jsonl`: the append-only lifecycle journal (`packages/core/src/history/journalFile.ts`). Local only, git-ignored.
+- `policy.json`: the risk policy, what always needs the human: a level (low, medium, high) per category and path rules (`packages/core/src/policy/`). Agents can't record high-risk decisions themselves. Optional (defaults apply); committed.
+- `attention.json`: the team's attention policy (kind weights, the interrupt threshold, the digest cadence). Optional; committed. Each person's focus hours and notification channel live in `attention.json` in their user config dir, never in the repo.
+- `.attention/state.json`: snoozes and dismissals of attention items. Local only, git-ignored.
+- `.events/<mapId>.jsonl`: the append-only lifecycle journal (`packages/core/src/history/journalFile.ts`): transitions and replan steps. Local only, git-ignored.
+- `.replans/<mapId>/R-<n>.json`: replan proposals (typed changes, status, what was applied). A pending one freezes the tickets it touches; only the operator approves or rejects. Local only, git-ignored.
 - `.evidence/`: verification attempts, check output and git evidence per ticket.
 - `.agents/`: cross-process coordination between MCP processes and the command center, including sessions, answers, leases, callsigns and the server lock.
 
@@ -59,13 +63,16 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 - `discovery/`: the discovery brief model, file format, gate (`claimableTypes`, `gateReason`) and store.
 - `criteria/`: acceptance criteria, matching them to completion evidence (`checkCriteria`), and the store.
 - `knowledge/`: knowledge entries, file format, search, per-ticket selection (`selectKnowledge`), staleness from file hashes, and the store.
+- `policy/`: the risk policy: defaults, file parser, store, `riskLevelFor` (the level of a call from its category and paths), `policyViolations` and `decisionsByRisk`.
+- `planning/assumptions/` and `planning/replan/`: mission assumptions (add, seed from the brief, challenge, confirm, settle) and replan proposals: `validateReplan`, `replanDiff` (the dry run), `frozenTickets`, `applyReplan` (idempotent, resumable), the store and `replanTriggers` (signs a replan may be needed).
+- `attention/`: the attention queue. `buildAttention` ranks everything that needs the human (pure, explainable `reasons`), one source per kind in `attention/sources/` registered in `sources/registry.ts`, scoring, batching, the policy and prefs parsers, and `isInterrupting` (focus hours).
 - `activity/`: the activity stream, presence and usage.
-- `server/`: the HTTP bridge (`trackerBridge.ts`), its route handlers (`*Routes.ts`), the `/events` SSE stream and the background loops (`watchLeases.ts`, `watchVerification.ts`, `watchTrackerFolder.ts`).
+- `server/`: the HTTP bridge (`trackerBridge.ts`), its route handlers (`*Routes.ts`), the `/events` SSE stream and the background loops (`watchLeases.ts`, `watchVerification.ts`, `watchTrackerFolder.ts`, `watchAttention.ts`).
 
 ### MCP server (`packages/cli/src/mcp`)
 
 - `server.ts` creates the server; `toolKit.ts` defines how tools are declared (zod schemas, results and errors).
-- Tools are grouped in `tools/` (`missionTools.ts`, `ticketTools.ts`, `workTools.ts`, `hitlTools.ts`, `knowledgeTools.ts`). Their behaviour lives in `mission/` (mission ops, ticket ops, HITL, completion, reviews, leases, sessions).
+- Tools are grouped in `tools/` (`missionTools.ts`, `ticketTools.ts`, `workTools.ts`, `hitlTools.ts`, `knowledgeTools.ts`, `replanTools.ts`). Their behaviour lives in `mission/` (mission ops, ticket ops, HITL, completion, reviews, leases, sessions, the risk check, the attention summary, assumptions and replans).
 - `instructions.ts` holds the server instructions every agent gets. `packages/cli/commands/milo.md` is the `/milo` command for Claude Code (and the Codex prompt).
 
 ### Command center (`apps/command-center/src`)

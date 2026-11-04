@@ -1,5 +1,6 @@
 export { AppBriefing } from './AppBriefing';
 export { AppHeader } from './AppHeader';
+export { AppInbox } from './AppInbox';
 export { AppNewMission } from './AppNewMission';
 export { AppSettings } from './AppSettings';
 export { LaptopSide } from './LaptopSide';
@@ -12,4 +13,5 @@ export { useAppNavigation } from './useAppNavigation';
 export { useDocumentTitle } from './useDocumentTitle';
 export { useRepoName } from './useRepoName';
 export { useScopedActivity } from './useScopedActivity';
-export { useDiscoveryUi } from './useDiscoveryUi';
+export { useMissionUi } from './useMissionUi';
+export { useAttentionUi } from './useAttentionUi';

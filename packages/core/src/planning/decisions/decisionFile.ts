@@ -1,6 +1,7 @@
 import { type Front, iso, writeFront, parseFront, str, arr, time } from '../../model/frontmatter';
 import type { Participant, DecisionRecord, TranscriptEntry, DecisionSource } from '../../model/types';
 import { isSourceKind, firstSentence } from './decisionRecord';
+import { riskFront, riskOf } from './decisionRiskFront';
 
 /* ---------- local-markdown file: <mission>/decisions/<id>.md ---------- */
 
@@ -28,6 +29,8 @@ export function serializeDecision(d: DecisionRecord): string {
     ...(d.source.meta ? { source_meta: Object.entries(d.source.meta).map(([k, v]) => `${k}=${v}`) } : {}),
     ...(d.supersedes ? { supersedes: d.supersedes } : {}),
     ...(d.supersededBy ? { superseded_by: d.supersededBy } : {}),
+    ...riskFront(d.risk),
+    ...(d.assumes?.length ? { assumes: d.assumes } : {}),
   };
   const list = (xs: string[]) => (xs.length ? xs.map((x) => `- ${x}`).join('\n') : '_None._');
   const transcript = d.transcript.length
@@ -100,6 +103,8 @@ export function parseDecision(md: string): DecisionRecord {
     source,
     supersedes: str(front.supersedes) || undefined,
     supersededBy: str(front.superseded_by) || undefined,
+    ...(arr(front.assumes).length ? { assumes: arr(front.assumes) } : {}),
     transcript,
+    ...riskOf(front),
   };
 }

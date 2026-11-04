@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Panel, Button } from '../components/ui';
-import { MapGraph } from '../features/map';
+import { MapGraph, type MapPreview } from '../features/map';
 import { AgentCommand, CommandBar, FloatingMilo } from '../features/mission';
 import { StatusPanel } from '../features/status';
 import type { CommandCenterApi } from '../hooks';
@@ -14,14 +14,14 @@ export function MapZone(props: {
   onNewMission: () => void;
   compact: boolean;
   minFit: number;
-  /** Shown under the title bar, above the map (the discovery banner). */
-  banner?: ReactNode;
+  /** The mission's banners (discovery, replan) above the map, and a pending replan's preview drawn on it. */
+  mission?: { banner?: ReactNode; preview?: MapPreview };
 }) {
   const { snap, selection } = props.api;
   return (
     <Panel as="main" className="zone map-zone" style={{ gridArea: 'map' }}>
       {snap && <CommandBar />}
-      {props.banner}
+      {props.mission?.banner}
       <div className="map-area">
         {snap && !props.compact && <StatusPanel snap={snap} sessions={props.sessions} />}
         {snap ? (
@@ -32,6 +32,7 @@ export function MapZone(props: {
             selection={selection}
             onSelect={props.onSelect}
             minFit={props.minFit}
+            preview={props.mission?.preview}
           />
         ) : (
           <div className="nomap">

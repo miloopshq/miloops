@@ -1,4 +1,5 @@
 import type { TrackerAdapter } from '../../adapters/adapter';
+import type { DecisionRisk } from '../../model/risk';
 import type { Participant, DecisionSource, TranscriptEntry } from '../../model/types';
 import { firstSentence } from '../decisions/decisionRecord';
 import { transition } from '../lifecycle/transition';
@@ -17,6 +18,10 @@ export interface DecisionMeta {
   source?: DecisionSource;
   /** Kept on the record even when only a summary is posted to the ticket. */
   transcript?: TranscriptEntry[];
+  /** The policy level of the call (see riskLevelFor). */
+  risk?: DecisionRisk;
+  /** Mission assumptions (`S-<n>`) the decision relies on. */
+  assumes?: string[];
 }
 
 /** How the ticket gets to done: `complete` without verification, else the verdict that passed it. */
@@ -75,6 +80,8 @@ export async function resolve(
       participants: d.participants,
       source: d.source ?? { kind: 'agent', label: input.author },
       transcript: d.transcript,
+      ...(d.risk ? { risk: d.risk } : {}),
+      ...(d.assumes?.length ? { assumes: d.assumes } : {}),
     },
     { missionLine: input.missionLine },
   );

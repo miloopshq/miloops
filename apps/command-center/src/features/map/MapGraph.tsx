@@ -5,6 +5,7 @@ import { type Selection, heldLeases, isRunning, prSync, worstFlag } from '../../
 import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
+import { edgeKey, type MapPreview } from './mapPreview';
 import { useFocusSelected } from './useFocusSelected';
 import { useWheelZoom } from './useWheelZoom';
 
@@ -21,8 +22,11 @@ export function MapGraph(props: {
   onSelect: (s: Selection) => void;
   /** Smallest zoom the initial fit may use; keeps text readable on phones. */
   minFit?: number;
+  /** A pending replan drawn over the map: ghost, struck and frozen tickets, dashed new edges. */
+  preview?: MapPreview;
 }) {
-  const { snap, selection, onSelect } = props;
+  const { snap, selection, onSelect, preview } = props;
+  const tickets = preview?.tickets ?? snap.tickets;
   const box = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   useEffect(() => {
@@ -34,11 +38,11 @@ export function MapGraph(props: {
   }, []);
 
   const base = useMemo(() => {
-    const lr = layout(snap.tickets, 'LR', snap.map.mode);
-    const tb = layout(snap.tickets, 'TB', snap.map.mode);
+    const lr = layout(tickets, 'LR', snap.map.mode);
+    const tb = layout(tickets, 'TB', snap.map.mode);
     const fit = (l: typeof lr) => Math.min(size.w / (l.width + PAD * 2), size.h / (l.height + PAD * 2 + 16));
     return fit(lr) >= fit(tb) ? lr : tb;
-  }, [snap.tickets, snap.map.mode, size.w, size.h]);
+  }, [tickets, snap.map.mode, size.w, size.h]);
   const fitK = (w: number, h: number) => Math.min(1.25, Math.max(props.minFit ?? 0, Math.min(size.w / w, size.h / h)));
 
   // Out-of-scope strip sits on the bottom edge of the zone: the spare height at fit goes between the graph and it.
@@ -169,7 +173,13 @@ export function MapGraph(props: {
             )}
 
             {L.edges.map(({ from, to }) => (
-              <GraphEdge key={`${from.ticket.id}-${to.ticket.id}`} from={from} to={to} direction={L.direction} />
+              <GraphEdge
+                key={`${from.ticket.id}-${to.ticket.id}`}
+                from={from}
+                to={to}
+                direction={L.direction}
+                added={preview?.newEdges.has(edgeKey(from.ticket.id, to.ticket.id))}
+              />
             ))}
 
             {L.nodes.map((n) => (
@@ -181,6 +191,8 @@ export function MapGraph(props: {
                 flag={worstFlag(prSync.ticket(sync, snap.map.id, n.ticket.id))}
                 selected={selId === n.ticket.id}
                 onSelect={onSelect}
+                mark={preview?.marks.get(n.ticket.id)}
+                frozen={preview?.frozen.has(n.ticket.id)}
               />
             ))}
           </g>

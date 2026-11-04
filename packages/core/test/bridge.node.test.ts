@@ -181,3 +181,27 @@ test('token resolution order and remote parsing', async () => {
     assert.equal(parseGitHubRemote(u), 'octo-org/launchpad', u);
   assert.equal(parseGitHubRemote('https://gitlab.com/a/b.git'), undefined);
 });
+
+test('risk policy: defaults without a file, PUT validates and saves policy.json', async () => {
+  const empty = await call<{ defaults: boolean; errors: string[]; policy: { categories: Record<string, string> } }>(
+    'GET',
+    '/policy',
+  );
+  assert.equal(empty.status, 200);
+  assert.equal(empty.json.defaults, true);
+  assert.equal(empty.json.policy.categories.schema, 'high');
+  const bad = await call<{ errors: string[] }>('PUT', '/policy', { v: 1, categories: { schema: 'urgent' } });
+  assert.equal(bad.status, 400);
+  assert.deepEqual(bad.json.errors, ['categories.schema must be one of low, medium, high']);
+  const policy = { v: 1, categories: { dependencies: 'low' }, paths: [{ glob: 'infra/**', level: 'high' }] };
+  const saved = await call<{ defaults: boolean; policy: { categories: Record<string, string> } }>(
+    'PUT',
+    '/policy',
+    policy,
+  );
+  assert.equal(saved.status, 200);
+  assert.equal(saved.json.defaults, false);
+  assert.equal(saved.json.policy.categories.dependencies, 'low');
+  const file = JSON.parse(readFileSync(path.join(trackerDir, 'policy.json'), 'utf8'));
+  assert.deepEqual(file.paths, [{ glob: 'infra/**', level: 'high' }]);
+});

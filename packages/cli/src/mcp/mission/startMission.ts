@@ -9,6 +9,7 @@ import {
 } from '@miloops-hq/core';
 import { readVerificationConfig, writeBrief } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { addMissionAssumptions, type AssumptionPlanInput } from './assumptions';
 import { saveCriteria } from './criteria';
 import { briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
@@ -26,6 +27,8 @@ interface StartInput {
   outOfScope?: string[];
   /** Default on: implementation waits for an accepted discovery brief. Off only when the human says to skip it. */
   discovery?: boolean;
+  /** What the mission relies on; `tickets` are plan refs. */
+  assumptions?: AssumptionPlanInput[];
 }
 
 const EMPTY_BRIEF = {
@@ -48,7 +51,7 @@ export async function startMission(ctx: AgentContext, input: StartInput) {
   s.step(1, input.destination);
   s.step(2, `${planned.length} tickets proposed`);
   for (const t of planned) s.log(`proposed ${t.type} · ${t.title}`);
-  assertKnownRefs(planned);
+  assertKnownRefs(planned, input.assumptions ?? []);
   s.step(3, input.title);
   const { map, tickets } = await chartMap(ctx.adapter, chartInput(ctx, input), {
     onMapCreated: (m) => {
@@ -59,6 +62,7 @@ export async function startMission(ctx: AgentContext, input: StartInput) {
   });
   ctx.mission = map.id;
   saveAllCriteria(ctx, { map, tickets, planned });
+  await saveAssumptions(ctx, { map, tickets, planned, items: input.assumptions ?? [] });
   const discoveryTicket = withDiscovery ? tickets.find((t) => t.title === DISCOVERY_TICKET.title) : undefined;
   if (discoveryTicket)
     writeBrief(ctx.root, { mapId: map.id, status: 'draft', ticketId: discoveryTicket.id, sections: EMPTY_BRIEF });
@@ -89,11 +93,15 @@ export async function startMission(ctx: AgentContext, input: StartInput) {
   };
 }
 
-function assertKnownRefs(planned: TicketPlanInput[]) {
+function assertKnownRefs(planned: TicketPlanInput[], assumptions: AssumptionPlanInput[]) {
   const refs = new Set(planned.map((t) => t.ref));
   for (const t of planned) {
     const unknown = (t.blockedBy ?? []).find((b) => !refs.has(b));
     if (unknown) throw new OperationError(`ticket "${t.ref}" is blocked by unknown ref "${unknown}"`);
+  }
+  for (const a of assumptions) {
+    const unknown = (a.tickets ?? []).find((r) => !refs.has(r));
+    if (unknown) throw new OperationError(`assumption "${a.text}" names unknown ticket ref "${unknown}"`);
   }
 }
 
@@ -115,6 +123,22 @@ function chartInput(ctx: AgentContext, input: StartInput) {
     },
     tickets: [...discovery, ...(input.tickets ?? []).map((t) => ({ ...t, body: t.body ?? '' }))],
   };
+}
+
+/** start_mission's assumptions, their plan refs resolved to the tickets just created. */
+async function saveAssumptions(
+  ctx: AgentContext,
+  made: { map: MapDoc; tickets: Ticket[]; planned: TicketPlanInput[]; items: AssumptionPlanInput[] },
+) {
+  if (!made.items.length) return;
+  const byRef = new Map<string, string>();
+  for (const pt of made.planned) {
+    const t = made.tickets.find((x) => x.title === pt.title);
+    if (t) byRef.set(pt.ref, t.id);
+  }
+  const snap = await ctx.load(made.map.id);
+  const items = made.items.map((a) => ({ ...a, tickets: (a.tickets ?? []).map((r) => byRef.get(r) ?? r) }));
+  await addMissionAssumptions(ctx, snap, items);
 }
 
 function saveAllCriteria(ctx: AgentContext, made: { map: MapDoc; tickets: Ticket[]; planned: TicketPlanInput[] }) {

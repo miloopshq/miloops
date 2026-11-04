@@ -59,6 +59,11 @@ export class MissionAgent {
     return ticketView(snap, t, records);
   }
 
+  /** Runs a mission operation with this agent's context; newer tools call through here instead of a method each. */
+  with<A, R>(fn: (ctx: AgentContext, input: A) => R, input: A): R {
+    return fn(this.ctx, input);
+  }
+
   status(missionRef?: string) {
     return status(this.ctx, missionRef);
   }
@@ -163,9 +168,9 @@ export class MissionAgent {
     return defaultWaitSeconds(this.ctx);
   }
 
-  /** Open questions from every connected agent on this tracker. */
-  inbox() {
-    return inbox(this.ctx);
+  /** Open questions from every connected agent on this tracker, plus the ranked attention queue. */
+  inbox(input: Input<typeof inbox> = {}) {
+    return inbox(this.ctx, input);
   }
 
   /** Answer a question from the agent chat, as the operator. Works for any connected agent's question. */

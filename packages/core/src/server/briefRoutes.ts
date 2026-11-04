@@ -1,7 +1,10 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { decided, EMPTY_SECTIONS } from '../discovery/brief';
+import type { TrackerAdapter } from '../adapters/adapter';
+import { decided, EMPTY_SECTIONS, type DiscoveryBrief } from '../discovery/brief';
 import { readBrief, writeBrief } from '../discovery/briefStore';
+import { seedFromBrief } from '../planning/assumptions/assumptionOps';
 import { BadRequest, readJson, sendJson } from './http';
+import type { RouteContext } from './routeContext';
 
 const text = (v: unknown, max = 300) => typeof v === 'string' && v.length > 0 && v.length <= max;
 
@@ -9,13 +12,19 @@ const text = (v: unknown, max = 300) => typeof v === 'string' && v.length > 0 &&
  * `/briefs` routes over the discovery briefs under `root`; false when none matches.
  * GET `?mapId=` reads a mission's brief; POST `/briefs/accept`, `/briefs/request-changes` (`note`) are the operator's
  * calls on a submitted brief; POST `/briefs/create` (`ticketId`) starts discovery for a mission created in the UI.
+ * Accepting a brief adds its assumptions to the mission's Assumptions section (once).
  */
 const DECISION_ROUTES: Record<string, 'accept' | 'request-changes' | undefined> = {
   '/briefs/accept': 'accept',
   '/briefs/request-changes': 'request-changes',
 };
 
-export async function handleBriefs(root: string, req: IncomingMessage, res: ServerResponse, url: URL) {
+export async function handleBriefs(
+  { root, active }: RouteContext,
+  req: IncomingMessage,
+  res: ServerResponse,
+  url: URL,
+) {
   if (!url.pathname.startsWith('/briefs')) return false;
   if (url.pathname === '/briefs' && req.method === 'GET') {
     const mapId = url.searchParams.get('mapId');
@@ -43,15 +52,30 @@ export async function handleBriefs(root: string, req: IncomingMessage, res: Serv
   const kind = DECISION_ROUTES[url.pathname];
   if (!kind) return false;
   if (!brief) return (sendJson(res, 404, { error: 'this mission has no discovery brief' }), true);
+  let next: DiscoveryBrief;
   try {
-    const next = decided(
+    next = decided(
       brief,
       kind === 'accept' ? { kind } : { kind, note: typeof b.note === 'string' ? b.note.slice(0, 2000) : '' },
     );
-    writeBrief(root, next);
-    sendJson(res, 200, { brief: next });
   } catch (e) {
-    sendJson(res, 409, { error: (e as Error).message });
+    return (sendJson(res, 409, { error: (e as Error).message }), true);
   }
+  writeBrief(root, next);
+  const seeded = kind === 'accept' ? await seedAssumptions(await active(), next) : [];
+  sendJson(res, 200, { brief: next, ...(seeded.length ? { assumptions: seeded } : {}) });
   return true;
+}
+
+/**
+ * The accepted brief's assumptions become the mission's. The brief is already accepted by then, so a failure here
+ * (the tracker unreachable, say) is logged and the accept still succeeds; accepting again seeds what's missing.
+ */
+async function seedAssumptions(adapter: TrackerAdapter, brief: DiscoveryBrief) {
+  try {
+    return await seedFromBrief(adapter, brief);
+  } catch (e) {
+    console.error(`could not add the brief's assumptions to the mission: ${(e as Error).message}`);
+    return [];
+  }
 }

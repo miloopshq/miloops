@@ -1,4 +1,4 @@
-import { TICKET_TYPES, type TicketType } from '@miloops-hq/core';
+import { RISK_CATEGORIES, TICKET_TYPES, type TicketType } from '@miloops-hq/core';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { OperationError, type MissionAgent, type WaitControl } from './agent';
@@ -9,6 +9,13 @@ export const mission = z
   .optional()
   .describe('Mission id, key (#3) or title. Default: the current mission, else the most recently active one.');
 export const ticket = z.string().describe('Ticket key (#12) or id (12).');
+export const riskCategory = z
+  .enum(RISK_CATEGORIES)
+  .describe("What the call touches, for the project's risk policy: high-risk categories are the human's to decide.");
+export const riskPaths = z
+  .array(z.string())
+  .max(200)
+  .describe('Repo-relative files the decision changes; checked against the risk policy path rules.');
 
 type Extra = {
   signal: AbortSignal;

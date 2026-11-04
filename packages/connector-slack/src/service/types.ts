@@ -22,6 +22,12 @@ export interface SlackServiceOptions {
   missionEvery?: number;
   /** At most one notification message per mission per window. */
   batchMs?: number;
+  /**
+   * Post an agent question as its own message only when the attention queue says it interrupts now (at or above the
+   * team's threshold, outside this person's focus hours); the rest go into the mission digest. The local server's
+   * plugin turns this on; off, every question is posted.
+   */
+  interruptOnly?: boolean;
   backoffMs?: (attempt: number) => number;
   sleep?: (ms: number) => Promise<void>;
   /** Lock owner id; distinct per service so tests can run several in one process. */

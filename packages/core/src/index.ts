@@ -34,8 +34,41 @@ export * from './knowledge/knowledge';
 export { parseKnowledge, serializeKnowledge } from './knowledge/knowledgeFile';
 export * from './knowledge/select';
 export * from './knowledge/staleness';
+export * from './model/risk';
+export { DEFAULT_POLICY } from './policy/defaultPolicy';
+export { parsePolicy, serializePolicy } from './policy/policyFile';
+export { riskLevelFor, type RiskSubject } from './policy/riskLevelFor';
+export { policyViolations, type PolicyViolation, type ViolationInput } from './policy/policyViolations';
+export { decisionsByRisk, type RiskGroup, type RiskGroupLevel } from './policy/decisionsByRisk';
+export * from './model/assumption';
+export * from './model/replan';
+export * from './planning/assumptions/assumptionOps';
+export { confirmAssumption } from './planning/assumptions/confirmAssumption';
+export { validateReplan, type ReplanDraft } from './planning/replan/validateReplan';
+export { replanDiff, reopenTitle } from './planning/replan/replanDiff';
+export { frozenTickets } from './planning/replan/frozenTickets';
+export * from './planning/replan/replanTriggers';
+export { applyReplan, type ApplyEnv } from './planning/replan/applyReplan';
 export * from './agents/agentLink';
 export * from './agents/ticketLease';
+export * from './model/attention';
+export {
+  ATTENTION_FILE,
+  ATTENTION_KINDS,
+  DEFAULT_ATTENTION_POLICY,
+  DEFAULT_ATTENTION_PREFS,
+  DEFAULT_WEIGHTS,
+  EMPTY_ATTENTION_STATE,
+} from './attention/defaults';
+export { buildAttention, type AttentionQueue } from './attention/buildAttention';
+export type { AttentionInput, AttentionSource, Candidate } from './attention/types';
+export { ATTENTION_SOURCES } from './attention/sources/registry';
+export { parseAttentionPolicy, type Parsed } from './attention/parsePolicy';
+export { parseAttentionPrefs } from './attention/parsePrefs';
+export { isFocused, isInterrupting } from './attention/focus';
+export { waitLabel } from './attention/score';
+export { heldTickets } from './attention/heldTickets';
+export { isDismissable } from './attention/isDismissable';
 export { Emitter, sleep, uid } from './lib/emitter';
 
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memoryAdapter';

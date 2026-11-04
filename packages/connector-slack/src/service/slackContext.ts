@@ -26,6 +26,8 @@ export class SlackContext {
   readonly answering = new Set<string>();
   readonly missions = new Map<string, MissionNotes>();
   readonly batches = new Map<string, Batch>();
+  /** Questions already put in a mission digest instead of their own message (interrupt gating). */
+  readonly digested = new Set<string>();
   /** Approval messages with live buttons, kept across restarts. */
   readonly approvals;
   /** Approval messages already brought up to date by this process. */

@@ -8,15 +8,19 @@ import {
   type CriterionEvidence,
   type DecisionMeta,
   type DecisionRecord,
+  type DecisionRisk,
+  type RiskCategory,
   type MapSnapshot,
   type SessionHandle,
   type Ticket,
 } from '@miloops-hq/core';
 import { levelFor } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { assertAssumes } from './assumptions';
 import { claimTicket } from './claimTicket';
 import { submitVerified } from './completion';
 import { assertCriteria } from './criteria';
+import { checkRisk } from './riskCheck';
 import type { WaitControl } from './types';
 
 export interface CloseInput {
@@ -36,6 +40,11 @@ export interface CloseInput {
   waitSeconds?: number;
   /** Evidence per acceptance criterion. */
   criteria?: CriterionEvidence[];
+  /** What the call touches and the files it changes, for the risk policy. */
+  category?: RiskCategory;
+  paths?: string[];
+  /** Mission assumptions (`S-<n>`) the decision relies on. */
+  assumes?: string[];
 }
 
 type Wait = { seconds: number; ctl?: WaitControl };
@@ -50,6 +59,8 @@ interface Closing {
   agent: string;
   session: SessionHandle;
   source: { kind: 'agent'; ref: string; label: string };
+  /** The policy level of this resolution; a high one only gets here when the human made the call. */
+  risk?: DecisionRisk;
 }
 
 /** A completion either finished (with any verification fields to report) or stopped early with a result. */
@@ -91,6 +102,9 @@ async function startClosing(ctx: AgentContext, input: CloseInput): Promise<Closi
   const agent = await ctx.agentId();
   let ticket = ctx.findTicket(snap, ref);
   assertCloseable(ticket, agent);
+  const asked = running ? (ctx.sessions.transcript(running.id) ?? []) : [];
+  const decidedBy = lastHumanIn(asked) ?? agent;
+  const risk = checkRisk({ root: ctx.root, category: input.category, paths: input.paths, decidedBy });
   if (!ticket.assignee && input.outcome !== 'out_of_scope') {
     await claimTicket(ctx, { ticket: ticket.id, mission: snap.map.id });
     const id = ticket.id;
@@ -99,7 +113,7 @@ async function startClosing(ctx: AgentContext, input: CloseInput): Promise<Closi
   const current = ctx.sessions.running();
   const session = current?.info.ticketId === ticket.id ? current : await ctx.ensureSession();
   const source = { kind: 'agent' as const, ref: `${session.id}/${ticket.id}`, label: `${agent} session` };
-  return { ctx, input, snap, ticket, agent, session, source };
+  return { ctx, input, snap, ticket, agent, session, source, risk };
 }
 
 function assertCloseable(t: Ticket, agent: string) {
@@ -114,6 +128,7 @@ function assertCloseable(t: Ticket, agent: string) {
 async function complete(c: Closing, wait: Wait): Promise<Completion> {
   const { ctx, input, snap, ticket: t, session: s } = c;
   const log = ctx.sessions.transcript(s.id) ?? [];
+  assertAssumes(snap, input.assumes);
   const meta = decisionMeta(c, log);
   const wantsTranscript = input.postTranscript && log.length > 0;
   const transcript = wantsTranscript ? log.map((e) => `**${e.author}:** ${e.text}`).join('\n\n') : undefined;
@@ -156,16 +171,19 @@ async function complete(c: Closing, wait: Wait): Promise<Completion> {
 /** Who decided and who took part: the last human who answered, or the agent itself. */
 function decisionMeta(c: Closing, log: Transcript): DecisionMeta {
   const human = log.filter((e) => e.from === 'human');
-  const lastHuman = human.at(-1);
   return {
     rationale: c.input.rationale,
     alternatives: c.input.alternatives,
-    decidedBy: lastHuman ? lastHuman.author : c.agent,
+    decidedBy: lastHumanIn(log) ?? c.agent,
     participants: [...new Set([c.agent, ...human.map((e) => e.author)])].map((id) => ({ id })),
     source: c.source,
     transcript: log,
+    ...(c.risk ? { risk: c.risk } : {}),
+    ...(c.input.assumes?.length ? { assumes: c.input.assumes } : {}),
   };
 }
+
+const lastHumanIn = (log: Transcript) => log.filter((e) => e.from === 'human').at(-1)?.author;
 
 async function resolveDirectly(c: Closing, parts: { meta: DecisionMeta; transcript?: string }) {
   const { ctx, input, snap, ticket: t, session: s } = c;

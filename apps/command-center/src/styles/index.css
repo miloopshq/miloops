@@ -13,9 +13,12 @@
 @import './dialogs.css';
 @import './briefing.css';
 @import './settings.css';
+@import './policy.css';
 @import './verification.css';
 @import './mark-and-voices.css';
 @import './decisions.css';
 @import './pr-sync.css';
 @import './discovery.css';
 @import './knowledge.css';
+@import './replan.css';
+@import './attention.css';

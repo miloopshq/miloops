@@ -23,7 +23,7 @@
 .hitl-readout .readout > .mono-label {
   font-size: var(--fs-xs);
 }
-.inbox-list {
+:is(.inbox-list, .att-list) {
   list-style: none;
   margin: 0;
   padding: 0 var(--sp-10) var(--sp-10);
@@ -33,7 +33,7 @@
   overflow: auto;
   min-height: 0;
 }
-.inbox-list li {
+:is(.inbox-list, .att-list) li {
   animation: arrive 0.45s ease-out;
 }
 @keyframes arrive {
@@ -46,10 +46,10 @@
     transform: none;
   }
 }
-.inbox-list .card {
+:is(.inbox-list, .att-list) .card {
   gap: var(--sp-2);
 }
-.inbox-list .row1 {
+:is(.inbox-list, .att-list) .row1 {
   display: flex;
   gap: var(--sp-8);
   align-items: baseline;
@@ -57,22 +57,22 @@
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-data);
 }
-.inbox-list .who {
+:is(.inbox-list, .att-list) .who {
   color: var(--text-hi);
   text-transform: uppercase;
 }
-.inbox-list .age {
+:is(.inbox-list, .att-list) .age {
   margin-left: auto;
   color: var(--urgent);
 }
-.inbox-list .ttl {
+:is(.inbox-list, .att-list) .ttl {
   color: var(--dim);
   font-size: var(--fs-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.inbox-list .q {
+:is(.inbox-list, .att-list) .q {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -312,6 +312,6 @@
   text-transform: uppercase;
   font-weight: 500;
 }
-.inbox-list .who.held {
+:is(.inbox-list, .att-list) .who.held {
   color: var(--st-held);
 }

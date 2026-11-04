@@ -14,6 +14,18 @@ export const NEXT: { area: string; items: string[] }[] = [
 
 export const RELEASES: Release[] = [
   {
+    version: '0.19.0',
+    date: '2026-11-04',
+    items: [
+      'Risk policy: you decide what always needs you, such as database changes, logins and permissions, billing, deleting data or new dependencies (Settings → Risk policy). Agents can no longer make those calls on their own; they ask you. Their other decisions are labelled by risk in the briefing, and work that touched risky files without asking comes to you to check',
+      'One ranked list of everything that needs you in Waiting on you: questions, approvals, blocked work, briefs, knowledge and new plans, most important first, each with the reason (for example “blocks 3 tickets” or “claude-02 is waiting”). Related items are grouped so you answer them together; snooze what can wait',
+      'Fewer interruptions: agents say how urgent a question is, and only urgent items notify you (browser or Slack). Focus for an hour from the header, set quiet hours in Settings → Attention, and the rest waits in the list and the digest',
+      'Plans that adapt: missions list the assumptions they rely on, starting with the ones in the discovery brief. When an agent finds one is wrong, it shows the evidence and proposes a new plan; the tickets it would change are paused, the map previews the change, and nothing happens until you approve',
+      'Challenge the destination: an agent can tell you the work already exists, the mission targets the wrong problem, or it should be rescoped, with evidence and a suggested new goal',
+      'Assumptions on the Plan tab (confirm the ones you know are true) and an assumptions field when you create a mission',
+    ],
+  },
+  {
     version: '0.18.0',
     date: '2026-11-04',
     items: [

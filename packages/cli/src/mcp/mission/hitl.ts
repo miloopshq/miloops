@@ -1,19 +1,19 @@
-import { OperationError } from '@miloops-hq/core';
+import { OperationError, type AttentionKind, type RiskCategory } from '@miloops-hq/core';
 import { readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/agents';
 import type { AgentContext } from './agentContext';
+import { rankedAttention } from './attention';
 import { callsignFamily } from './callsign';
 import { OPERATOR, type AskResult, type WaitControl } from './types';
 
-export async function ask(
-  ctx: AgentContext,
-  input: { question: string; suggestions?: string[]; waitSeconds?: number; framing?: boolean },
-  ctl: WaitControl = {},
-): Promise<AskResult> {
+export async function ask(ctx: AgentContext, input: AskInput, ctl: WaitControl = {}): Promise<AskResult> {
   const s = input.framing ? await ctx.chartSession() : await ctx.ensureSession();
   if (input.framing && s.info.step === 0) s.step(1, 'framing interview');
   ctx.sessions.note(s, 'agent', s.info.agent, input.question);
-  const answer = s.ask(input.question, input.suggestions?.length ? input.suggestions : undefined);
+  const blocks = await blockedIds(ctx, s.info.mapId, input.blocks);
+  const suggestions = input.suggestions?.length ? input.suggestions : undefined;
+  const answer = s.ask(input.question, suggestions, { urgency: input.urgency, blocks });
   const q = ctx.activity.snapshot.pending.filter((p) => p.sessionId === s.id).at(-1)!;
+  if (input.category) q.category = input.category;
   ctx.writer.flush();
   const sid = s.id;
   ctx.waits.set(
@@ -27,6 +27,25 @@ export async function ask(
     }),
   );
   return waitForAnswer(ctx, { questionId: q.id, waitSeconds: input.waitSeconds }, ctl);
+}
+
+export interface AskInput {
+  question: string;
+  /** What the call touches (risk policy). */
+  category?: RiskCategory;
+  suggestions?: string[];
+  waitSeconds?: number;
+  framing?: boolean;
+  urgency?: 'blocking' | 'soon' | 'fyi';
+  /** Ticket refs that can't move until this is answered. */
+  blocks?: string[];
+}
+
+/** Ticket refs to ids in the session's mission; none before the mission exists (framing). */
+async function blockedIds(ctx: AgentContext, mapId: string, refs?: string[]): Promise<string[] | undefined> {
+  if (!refs?.length || !mapId) return undefined;
+  const snap = await ctx.load(mapId);
+  return refs.map((r) => ctx.findTicket(snap, r).id);
 }
 
 export async function waitForAnswer(
@@ -76,7 +95,8 @@ export function defaultWaitSeconds(ctx: AgentContext) {
   return callsignFamily(ctx.opts.client?.()) === 'codex' ? 50 : 600;
 }
 
-export async function inbox(ctx: AgentContext) {
+/** Open questions (oldest first, unchanged shape) plus the ranked attention queue. */
+export async function inbox(ctx: AgentContext, input: { kinds?: AttentionKind[] } = {}) {
   const docs = await readAgentDocs(ctx.root);
   const maps = new Map((await ctx.adapter.listMaps()).map((m) => [m.id, m]));
   return {
@@ -91,9 +111,11 @@ export async function inbox(ctx: AgentContext) {
         ticket: q.ticketId ? ctx.keyOf(q.ticketId) : undefined,
         question: q.text,
         suggestions: q.suggestions,
+        ...(q.category ? { category: q.category } : {}),
         askedSecondsAgo: Math.round((Date.now() - q.at) / 1000),
         step: d.session.stepLabel,
       })),
+    attention: await rankedAttention(ctx, input.kinds),
     commandCenter: ctx.commandCenter(),
   };
 }

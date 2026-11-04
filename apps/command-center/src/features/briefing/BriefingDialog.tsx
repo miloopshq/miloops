@@ -1,11 +1,12 @@
-import type {
-  PendingQuestion,
-  SessionInfo,
-  Briefing,
-  MapSnapshot,
-  MissionBriefing,
-  Ticket,
-  DecisionRecord,
+import {
+  decisionsByRisk,
+  type PendingQuestion,
+  type SessionInfo,
+  type Briefing,
+  type MapSnapshot,
+  type MissionBriefing,
+  type Ticket,
+  type DecisionRecord,
 } from '@miloops-hq/core';
 import { MiloAvatar } from '@miloops-hq/milo-avatar';
 import { useEffect, type ReactNode } from 'react';
@@ -49,15 +50,17 @@ export function BriefingDialog(
     const ticket = (x: Ticket, meta?: ReactNode) => (
       <BriefingRow key={x.id} k={x.key} text={x.title} meta={meta} onClick={() => props.onTicket(m.mapId, x.id)} />
     );
-    const decision = (d: DecisionRecord) => (
+    const decision = (d: DecisionRecord, meta?: string) => (
       <BriefingRow
         key={d.id}
         k={d.id}
         text={d.summary || d.answer}
-        title={d.question}
+        title={d.risk ? `${d.question}\n\n${d.risk.reason}` : d.question}
+        meta={meta}
         onClick={() => props.onDecision(d.id)}
       />
     );
+    const byRisk = decisionsByRisk(m.agentDecisions).flatMap((g) => g.decisions.map((d) => decision(d, g.label)));
     const left = [
       <BriefingList key="done" title="Done">
         {m.done.map((x) => ticket(x))}
@@ -83,7 +86,7 @@ export function BriefingDialog(
         ))}
       </BriefingList>,
       <BriefingList key="agent" title="Agent decisions">
-        {phone ? [] : m.agentDecisions.map(decision)}
+        {phone ? [] : byRisk}
       </BriefingList>,
       <BriefingList key="active" title="Active sessions">
         {phone
