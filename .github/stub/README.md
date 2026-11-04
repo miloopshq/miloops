@@ -11,6 +11,7 @@
 - **You decide what's always yours:** database changes, logins, billing, deleting data. Agents ask instead of deciding.
 - **Done means proven:** you agree on what done means up front, and every point needs proof from your tests, a second agent or you.
 - **Plans that change when the facts do:** when an assumption breaks, an agent proposes a new plan. Nothing changes until you approve.
+- **Agents side by side, without clashes:** each task can get its own copy of your repo, and you hear about it before two agents change the same files. MILOOPS never merges for you.
 - **Your data stays yours:** missions are plain files in your repo. There is no MILOOPS server.
 
 Works with any coding agent that connects over MCP. Claude Code and Codex are the primary supported agents.
