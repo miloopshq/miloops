@@ -267,6 +267,9 @@
 .crit-uncovered {
   margin: 0;
   font-size: var(--fs-sm);
+  /* A sentence listing rules, not a short label: wrap inside the inspector. */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .ok-text {
   color: var(--st-decided);
