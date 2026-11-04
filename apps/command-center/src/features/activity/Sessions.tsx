@@ -2,17 +2,22 @@ import {
   type MapSnapshot,
   type ActivityState,
   attention,
-  usageDetail,
+  leaseHealth,
   sessionTokens,
-  USAGE_SOURCE,
   type TicketLease,
 } from '@miloops-hq/core';
-import { Empty, Card, Pill, MiloMark } from '../../components/ui';
+import { Empty, MetaLine, Row, type EdgeTone } from '../../components/ui';
 import { useNow } from '../../hooks';
 import { type Selection, tokens, usd, hms, isRunning, heldLeases } from '../../lib';
 import { LeasePill } from './LeasePill';
+import { Segments } from './Segments';
 
-/** Who is working on what: agent sessions with live timers, plus claims without a session (e.g. teammates). */
+type Session = ActivityState['sessions'][number];
+
+/**
+ * Who is working on what: one row per agent session (the ticket as the title; the agent, its step and spend as
+ * the context; the timer on the right; progress below), plus claims without a session (e.g. teammates).
+ */
 export function Sessions({
   snap,
   activity,
@@ -32,83 +37,69 @@ export function Sessions({
   const held = heldLeases(leases, snap?.map.id);
   const claims = snap?.tickets.filter((t) => t.state === 'open' && t.assignee && !live.has(t.id)) ?? [];
   if (!running.length && !claims.length) return <Empty>No agent on a ticket</Empty>;
+  const stalled = (l?: TicketLease) => !!l && leaseHealth(l, now) !== 'live';
   return (
     <ul className="sessions-list">
       {running.map((s) => {
         const t = snap?.tickets.find((x) => x.id === s.ticketId);
-        const att = t ? attention(t) : undefined;
+        const hitl = t ? attention(t) === 'hitl' : false;
+        const lease = t && held.get(t.id);
         return (
-          <li key={s.id} className={s.waitingOn ? 'waiting' : ''}>
-            <Card
-              as="button"
-              tone={s.waitingOn ? 'urgent' : undefined}
-              onClick={() => {
-                if (t) onSelect({ kind: 'ticket', id: t.id });
-                if (att === 'hitl') onOpenChat(s.id);
-              }}
-            >
-              <span className="row">
-                <span className="callsign">{s.agent}</span>
-                {att && <Pill tone={att === 'hitl' ? 'fill' : undefined}>{att === 'hitl' ? 'HITL' : 'AFK'}</Pill>}
-                <LeasePill lease={t && held.get(t.id)} now={now} />
-                {s.usage && (
-                  <span className="usage" title={usageDetail(s.usage)}>
-                    {tokens(sessionTokens(s))} tok · {usd(s.usage.costUsd)}
-                    {s.usage.source && (
-                      <span className={`usage-src tag-${USAGE_SOURCE[s.usage.source].tag.toLowerCase()}`}>
-                        {USAGE_SOURCE[s.usage.source].tag}
-                      </span>
-                    )}
-                  </span>
-                )}
-                <span className="timer">{hms(now - s.startedAt)}</span>
-              </span>
-              <span className="segs">
-                {Array.from({ length: s.total }, (_, i) => (
-                  <i key={i} className={segmentClass(i + 1, s.step)} />
-                ))}
-              </span>
-              <span className="row">
-                {s.waitingOn ? (
-                  <span className="urgent-text">
-                    <MiloMark variant="alert" size={11} /> Waiting on you
-                  </span>
-                ) : (
-                  <span className="dim">
-                    {s.mode} · {s.stepLabel.toLowerCase()}
-                  </span>
-                )}
-                <span className="tkt">{ticketLabel(t, s.mode)}</span>
-              </span>
-            </Card>
-          </li>
+          <Row
+            key={s.id}
+            as="li"
+            className={s.waitingOn ? 'waiting' : undefined}
+            edge={sessionEdge(s, stalled(lease))}
+            title={ticketLabel(t, s.mode) || s.agent}
+            context={
+              <MetaLine
+                parts={[
+                  { text: s.agent, strong: true },
+                  s.waitingOn ? { text: 'Waiting on you', urgent: true } : `${s.mode} · ${s.stepLabel.toLowerCase()}`,
+                  hitl && !s.waitingOn && 'with you',
+                  usageText(s),
+                ]}
+              >
+                <LeasePill lease={lease} now={now} />
+              </MetaLine>
+            }
+            trailing={hms(now - s.startedAt)}
+            below={<Segments total={s.total} step={s.step} />}
+            onOpen={() => {
+              if (t) onSelect({ kind: 'ticket', id: t.id });
+              if (hitl) onOpenChat(s.id);
+            }}
+          />
         );
       })}
       {claims.map((t) => (
-        <li key={t.id} className="claim">
-          <Card as="button" onClick={() => onSelect({ kind: 'ticket', id: t.id })}>
-            <span className="row">
-              <span className="callsign">{t.assignee}</span>
-              <Pill>claim</Pill>
+        <Row
+          key={t.id}
+          as="li"
+          className="claim"
+          edge={stalled(held.get(t.id)) ? 'attention' : 'neutral'}
+          title={`${t.key} ${t.title}`}
+          context={
+            <MetaLine parts={[{ text: t.assignee ?? '', strong: true }, 'claimed, no live session']}>
               <LeasePill lease={held.get(t.id)} now={now} />
-            </span>
-            <span className="row">
-              <span className="tkt">
-                {t.key} {t.title}
-              </span>
-            </span>
-          </Card>
-        </li>
+            </MetaLine>
+          }
+          onOpen={() => onSelect({ kind: 'ticket', id: t.id })}
+        />
       ))}
     </ul>
   );
 }
 
-/** A step before the current one is done; the current one is highlighted. */
-function segmentClass(n: number, step: number) {
-  if (n < step) return 'done';
-  if (n === step) return 'cur';
-  return '';
+function sessionEdge(s: Session, stalled: boolean): EdgeTone {
+  if (s.waitingOn) return 'urgent';
+  return stalled ? 'attention' : 'neutral';
+}
+
+/** Spend in plain words (where the numbers come from is in the mission spend tooltip). */
+function usageText(s: Session) {
+  if (!s.usage) return undefined;
+  return `${tokens(sessionTokens(s))} tok · ${usd(s.usage.costUsd)}`;
 }
 
 function ticketLabel(t: { key: string; title: string } | undefined, mode: string) {

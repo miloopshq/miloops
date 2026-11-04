@@ -152,3 +152,14 @@ button.ds-row-main:focus-visible {
 .meta-line .urgent {
   color: var(--urgent);
 }
+
+/* Rows with actions keep room for them in the trailing slot, so the title never runs under "Later". */
+.ds-row:has(.ds-row-actions) .ds-row-trail {
+  min-width: 4.5em;
+  text-align: right;
+}
+.ds-row:has(.ds-row-actions) .ds-row-top:not(:has(.ds-row-trail))::after {
+  content: '';
+  flex: none;
+  width: 4.5em;
+}

@@ -1,9 +1,16 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { useState, useRef, useEffect } from 'react';
-import { SectionHeader, Empty, Meta, InputRow } from '../../components/ui';
-import { clock, isRunning, pickPending } from '../../lib';
-import { QuestionAvatar } from './QuestionAvatar';
+import { SectionHeader, Empty, InputRow } from '../../components/ui';
+import { isRunning, pickPending } from '../../lib';
+import { ChatMessage } from './ChatMessage';
+import { ConversationTicket } from './ConversationTicket';
+import { OpenQuestion } from './OpenQuestion';
+import { Suggestions } from './Suggestions';
 
+/**
+ * The HITL line: the ticket as the zone's title, the transcript (scrolls), the open question pinned under it, then
+ * the suggested replies and the answer row. Red only while your answer is needed.
+ */
 export function Conversation(props: {
   activity: ActivityState;
   snaps: Record<string, MapSnapshot>;
@@ -21,25 +28,16 @@ export function Conversation(props: {
   const session = activity.sessions.find((s) => s.id === sessionId);
   const messages = activity.chats.filter((m) => m.sessionId === sessionId);
   const pending = pickPending(activity.pending, sessionId, chosen ?? props.questionId);
-  const otherOpen = new Set(activity.pending.filter((p) => p.sessionId === sessionId).map((p) => p.id));
-  if (pending) otherOpen.delete(pending.id);
+  const openIds = new Set(activity.pending.filter((p) => p.sessionId === sessionId).map((p) => p.id));
+  const openChat = messages.find((m) => !!pending && m.questionId === pending.id);
+  const history = messages.filter((m) => m !== openChat);
   const mission = session ? props.snaps[session.mapId] : undefined;
   const ticket = session?.ticketId ? mission?.tickets.find((t) => t.id === session.ticketId) : undefined;
 
   useEffect(() => {
     const log = logRef.current;
-    if (!log) return;
-    const bottom = log.scrollHeight - log.clientHeight;
-    const q = log.querySelector<HTMLElement>('.open-q');
-    /* A question taller than the log is pinned by its top, so its avatar and label are never cut off above. */
-    const qTop = q
-      ? q.getBoundingClientRect().top -
-        log.getBoundingClientRect().top +
-        log.scrollTop -
-        parseFloat(getComputedStyle(log).paddingTop)
-      : bottom;
-    log.scrollTo({ top: Math.min(bottom, qTop), behavior: 'smooth' });
-  }, [messages.length, pending?.id]);
+    log?.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
+  }, [history.length, pending?.id]);
   useEffect(() => {
     if (pending && !props.onBack) inputRef.current?.focus({ preventScroll: true });
     // Refocus only when a different question arrives, not on every update of the same one.
@@ -57,7 +55,7 @@ export function Conversation(props: {
     <div className={`comms ${pending ? 'asking' : ''}`}>
       <SectionHeader
         title="HITL line"
-        right={session ? <span className={`status ${pending ? 'urgent' : session.status}`}>{status}</span> : undefined}
+        right={session ? <span className={`status ${pending ? 'urgent' : ''}`}>{status}</span> : undefined}
       >
         {props.onBack && (
           <button className="back" onClick={props.onBack} aria-label="Back to inbox">
@@ -69,39 +67,19 @@ export function Conversation(props: {
         <Empty>No conversation</Empty>
       ) : (
         <>
-          <div className="comms-ticket t-title t-pixel">
-            <span className="key">{ticket?.key}</span> {ticket?.title}
-            <Meta parts={[mission?.map.title, session.agent]} />
-          </div>
+          <ConversationTicket ticket={ticket} mission={mission?.map.title} agent={session.agent} />
           <div className="comms-log" ref={logRef}>
-            {messages.map((m) => {
-              const open = !!m.questionId && m.questionId === pending?.id;
-              return (
-                <div
-                  key={m.id}
-                  className={`msg from-${m.from} voice-${m.from === 'human' ? 'human' : 'agent'} ${open ? 'open-q' : ''}`}
-                >
-                  {open && <QuestionAvatar id={m.id} text={m.text} />}
-                  <Meta parts={[m.author, clock(m.at)]} />
-                  <div className="msg-text">{m.text}</div>
-                  {m.questionId && otherOpen.has(m.questionId) && (
-                    <button className="answer-this" onClick={() => setChosen(m.questionId)}>
-                      Answer this
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+            {history.map((m) => (
+              <ChatMessage
+                key={m.id}
+                m={m}
+                stillOpen={!!m.questionId && openIds.has(m.questionId)}
+                onAnswerThis={() => setChosen(m.questionId)}
+              />
+            ))}
           </div>
-          {pending?.suggestions && (
-            <div className="suggest">
-              {pending.suggestions.map((s) => (
-                <button key={s} className="chip" onClick={() => send(s)}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
+          {pending && <OpenQuestion q={pending} chatId={openChat?.id} />}
+          <Suggestions options={pending?.suggestions} onPick={send} />
           <InputRow
             ref={inputRef}
             className="comms-input"

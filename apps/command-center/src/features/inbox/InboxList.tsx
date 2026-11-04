@@ -1,11 +1,12 @@
 import type { PendingQuestion, MapSnapshot } from '@miloops-hq/core';
-import { Card, EmptyState, Meta } from '../../components/ui';
+import { EmptyState, MetaLine, Row } from '../../components/ui';
 import { useNow } from '../../hooks';
 import { ago } from '../../lib';
 
-/** How long a new decision request carries the dot-matrix "Incoming" signal. */
-export const INCOMING_MS = 15_000;
-
+/**
+ * Open questions before the ranked queue has loaded (or where the server has none): the question as the title,
+ * who asks and on which ticket as the context line, and the wait on the right.
+ */
 export function InboxList(props: {
   items: PendingQuestion[];
   snaps: Record<string, MapSnapshot>;
@@ -16,36 +17,36 @@ export function InboxList(props: {
   const now = useNow(1000);
   if (!props.items.length)
     return <EmptyState title="Nothing waiting on you" hint="When an agent needs your call, its question lands here." />;
-  const many = Object.keys(props.snaps).length > 1;
   return (
     <ul className="inbox-list">
       {props.items.map((q) => {
         const s = props.snaps[q.mapId];
         const t = s?.tickets.find((x) => x.id === q.ticketId);
+        const otherMission = q.mapId !== props.currentMapId ? s?.map.title : undefined;
+        const title = q.text.split('\n')[0];
         return (
-          <li key={q.id} className={q.sessionId === props.selected ? 'sel' : ''}>
-            <Card
-              as="button"
-              tone="urgent"
-              on={q.sessionId === props.selected}
-              onClick={() => props.onOpen(q.sessionId, q.ticketId)}
-            >
-              <span className="row1">
-                <span className="who">{q.agent}</span>
-                <span className="key">{t?.key}</span>
-                {now - q.at < INCOMING_MS && <span className="signal-tag">Incoming</span>}
-                <span className="age">{ago(now - q.at)}</span>
-              </span>
-              {many && (
-                <Meta
-                  className={`mission-tag ${q.mapId === props.currentMapId ? 'cur' : ''}`}
-                  parts={[s?.map.title ?? q.mapId]}
-                />
-              )}
-              <span className="ttl">{t?.title}</span>
-              <span className="q t-title">{q.text.split('\n')[0]}</span>
-            </Card>
-          </li>
+          <Row
+            key={q.id}
+            as="li"
+            className={q.sessionId === props.selected ? 'sel' : undefined}
+            edge={q.urgency === 'blocking' ? 'urgent' : 'neutral'}
+            selected={q.sessionId === props.selected}
+            title={title}
+            titleText={q.text}
+            context={
+              <MetaLine
+                parts={[
+                  q.urgency === 'blocking' && { text: 'Blocking', urgent: true },
+                  `${q.agent} asks`,
+                  t && { text: t.key, code: true },
+                  t?.title,
+                  otherMission,
+                ]}
+              />
+            }
+            trailing={ago(now - q.at)}
+            onOpen={() => props.onOpen(q.sessionId, q.ticketId)}
+          />
         );
       })}
     </ul>
