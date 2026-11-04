@@ -1,4 +1,4 @@
-import { type Briefing, buildBriefing, briefingLine } from '@miloops-hq/core';
+import { type AttentionItem, type Briefing, buildBriefing, briefingLine } from '@miloops-hq/core';
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { type Runtime, type Prefs } from '../lib';
 import type { CommandCenterApi } from './useCommandCenter';
@@ -17,7 +17,13 @@ export type BriefingStatus = 'new' | 'seen' | 'none';
  * the app, or coming back after being away longer than the threshold, shows a
  * briefing of what changed since each mission was last seen, unless nothing did.
  */
-export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['briefing']) {
+export function useBriefing(
+  rt: Runtime,
+  api: CommandCenterApi,
+  prefs: Prefs['briefing'],
+  /** The ranked attention queue, so "needs you" comes in the same order as Waiting on you. */
+  attention?: AttentionItem[],
+) {
   const [since, setSince] = useState<Record<string, number> | null>(null);
   /** A briefing was built this session (so the button can reopen it), and whether it has been opened. */
   const [available, setAvailable] = useState(false);
@@ -29,6 +35,8 @@ export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['br
   const awayMs = prefs.awayMinutes * 60_000;
   const apiRef = useRef(api);
   apiRef.current = api;
+  const attentionRef = useRef(attention);
+  attentionRef.current = attention;
 
   const compute = useCallback(
     (seen: Record<string, number>, any?: number): Briefing => {
@@ -40,6 +48,7 @@ export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['br
         ledger: rt.activity.ledger,
         since: (id) => seen[id] ?? any ?? a.allSnaps[id]?.map.createdAt ?? Date.now(),
         currentMapId: a.mapId,
+        attention: attentionRef.current,
       });
     },
     [rt],
@@ -109,7 +118,7 @@ export function useBriefing(rt: Runtime, api: CommandCenterApi, prefs: Prefs['br
     () => (since ? compute(since, lastSince.current?.any) : undefined),
     // Recomputed live while open so answers and new results show up.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [since, compute, api.allSnaps, api.decisions, api.activity],
+    [since, compute, api.allSnaps, api.decisions, api.activity, attention],
   );
   const line = useMemo(() => (briefing ? briefingLine(briefing) : ''), [briefing]);
 

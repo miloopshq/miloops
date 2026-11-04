@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Header } from '../features/header';
 import { useKnowledge } from '../features/knowledge';
 import { useSlackStatus } from '../features/slack';
@@ -10,6 +11,8 @@ export function AppHeader(props: {
   rt: Runtime;
   repo: string;
   brief: ReturnType<typeof useBriefing>;
+  /** Focus mode and the interrupting count (features/attention), in place of the plain waiting count. */
+  attention?: ReactNode;
   decisionsOpen: boolean;
   onDecisions: () => void;
   onNewMission: () => void;
@@ -33,6 +36,7 @@ export function AppHeader(props: {
       onSelectMap={actions.selectMap}
       onToggleMode={() => snap && actions.setMode(snap.map.mode === 'plan-only' ? 'plan+execute' : 'plan-only')}
       onSettings={() => props.onSettings('top')}
+      attention={props.attention}
       slackAlert={slackAlert}
       onSlack={() => props.onSettings('slack')}
       decisions={api.decisions.length}

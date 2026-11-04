@@ -7,6 +7,7 @@ import { listKnowledge } from '../knowledge/knowledgeStore';
 import type { AttentionPolicy } from '../model/attention';
 import { approvalItems } from '../verification/approvals';
 import { readAttentionState } from './attentionStore';
+import { readViolations } from './readViolations';
 import type { AttentionInput } from './types';
 
 /** Reads everything the queue is built from: the tracker, agent session docs and the local evidence. */
@@ -30,6 +31,7 @@ export async function gatherAttention(input: {
     leases: readLeases(root),
     knowledge: listKnowledge(root),
     briefs,
+    violations: await readViolations({ root, adapter, snaps, docs }),
     policy,
     state: readAttentionState(root),
     now,

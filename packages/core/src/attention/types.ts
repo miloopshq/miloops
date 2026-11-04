@@ -4,6 +4,7 @@ import type { KnowledgeEntry } from '../knowledge/knowledge';
 import type { AttentionItem, AttentionKind, AttentionPolicy, AttentionState } from '../model/attention';
 import type { TicketSync } from '../model/prEvidence';
 import type { MapSnapshot, PendingQuestion, SessionInfo } from '../model/types';
+import type { PolicyViolation } from '../policy/policyViolations';
 import type { ApprovalItem } from '../verification/approvals';
 
 /** Everything the queue is built from, already read from disk; `buildAttention` is pure over it. */
@@ -19,6 +20,8 @@ export interface AttentionInput {
   leases: TicketLease[];
   knowledge: KnowledgeEntry[];
   briefs: DiscoveryBrief[];
+  /** High-risk changes made without the human (policy/policyViolations.ts). Missing: none. */
+  violations?: PolicyViolation[];
   /** Missing: the defaults. */
   policy?: AttentionPolicy;
   /** Missing: nothing snoozed or dismissed. */

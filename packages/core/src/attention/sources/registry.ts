@@ -5,6 +5,7 @@ import { briefSource } from './briefSource';
 import { flagSource } from './flagSource';
 import { hitlReadySource } from './hitlReadySource';
 import { knowledgeSource } from './knowledgeSource';
+import { policySource } from './policySource';
 import { questionSource } from './questionSource';
 import { stalledSource } from './stalledSource';
 
@@ -21,4 +22,5 @@ export const ATTENTION_SOURCES: AttentionSource[] = [
   hitlReadySource,
   knowledgeSource,
   briefSource,
+  policySource,
 ];

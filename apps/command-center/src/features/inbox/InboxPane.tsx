@@ -1,11 +1,9 @@
 import type { ActivityState, MapSnapshot } from '@miloops-hq/core';
 import { type ReactNode, useState, useEffect } from 'react';
-import { SectionHeader, MiloMark, Badge, Panel } from '../../components/ui';
-import { ApprovalList } from './ApprovalList';
+import { SectionHeader, Panel } from '../../components/ui';
+import type { AttentionApi, AttentionHandlers } from '../attention';
 import { Conversation } from './Conversation';
-import { HitlReadout } from './HitlReadout';
-import { InboxList } from './InboxList';
-import { useApprovals } from './useApprovals';
+import { WaitingOnYou } from './WaitingOnYou';
 
 export function InboxPane(props: {
   activity: ActivityState;
@@ -18,6 +16,9 @@ export function InboxPane(props: {
   onAnswer: (questionId: string, text: string) => void;
   /** Opens a ticket waiting on approval in the inspector. */
   onOpenTicket: (mapId: string, ticketId: string) => void;
+  /** The ranked queue and where its items open (questions open here, in the conversation). */
+  attention?: AttentionApi;
+  handlers?: Omit<AttentionHandlers, 'openQuestion'>;
   /** Rendered under the inbox in the same column (the Up next list). */
   below?: ReactNode;
   /** Shown above the inbox list (a discovery brief waiting for review). */
@@ -27,43 +28,27 @@ export function InboxPane(props: {
   useEffect(() => {
     if (props.convRequest) setView('conv');
   }, [props.convRequest]);
-  const items = [...props.activity.pending].sort((a, b) => a.at - b.at);
-  const approvals = useApprovals(props.snaps);
-  const waiting = items.length + approvals.length;
   const open = (sessionId: string, ticketId?: string) => {
     props.onOpen(sessionId, ticketId);
     setView('conv');
   };
+  const openQuestion = (questionId: string) => {
+    const q = props.activity.pending.find((p) => p.id === questionId);
+    if (q) open(q.sessionId, q.ticketId);
+  };
 
   const list = (
-    <div className="inbox-part">
-      <SectionHeader
-        hot={waiting > 0}
-        title={
-          <>
-            {waiting > 0 && <MiloMark variant="alert" size={12} />}
-            Waiting on you
-          </>
-        }
-        count={<Badge key={waiting} n={waiting} urgent={waiting > 0} pop />}
-      />
-      <HitlReadout activity={props.activity} />
-      <ApprovalList
-        items={approvals}
-        snaps={props.snaps}
-        currentMapId={props.currentMapId}
-        onOpen={props.onOpenTicket}
-      />
-      {(items.length > 0 || !approvals.length) && (
-        <InboxList
-          items={items}
-          snaps={props.snaps}
-          currentMapId={props.currentMapId}
-          selected={props.sessionId}
-          onOpen={open}
-        />
-      )}
-    </div>
+    <WaitingOnYou
+      activity={props.activity}
+      snaps={props.snaps}
+      currentMapId={props.currentMapId}
+      sessionId={props.sessionId}
+      attention={props.attention}
+      handlers={props.handlers && { ...props.handlers, openQuestion }}
+      briefShown={!!props.above}
+      onOpenQuestion={open}
+      onOpenTicket={props.onOpenTicket}
+    />
   );
   const conv = (
     <Conversation
@@ -95,7 +80,7 @@ export function InboxPane(props: {
       <SectionHeader
         className="zone-title"
         title="Communication"
-        info="Where your agents reach you: questions waiting on you, the conversation with the agent that asked, and the tickets coming up next."
+        info="Where your agents reach you: everything waiting on you, ranked with the reasons why, the conversation with the agent that asked, and the tickets coming up next."
       />
       {props.above}
       {list}

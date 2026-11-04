@@ -12,6 +12,7 @@ import { Panel, Tabs, Choice } from '../../components/ui';
 import type { Prefs, TrackerChoice } from '../../lib';
 import { ModeChoice } from '../mission';
 import { TrackerConnectors } from '../trackers';
+import { AttentionSection } from './AttentionSection';
 import { BriefingChoice } from './BriefingChoice';
 import { Changelog } from './Changelog';
 import { RiskPolicySection } from './RiskPolicySection';
@@ -74,6 +75,8 @@ export function SettingsPanel(props: {
             <VerificationSection map={props.map} />
 
             <RiskPolicySection />
+
+            <AttentionSection />
 
             <SettingsSection title="Labels">
               <div className="label-codes">

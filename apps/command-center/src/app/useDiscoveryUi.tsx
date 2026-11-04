@@ -10,6 +10,8 @@ export function useDiscoveryUi(snap?: MapSnapshot) {
   const b = d.brief;
   const s = b?.sections;
   return {
+    /** Opens the review dialog for the current mission's brief. */
+    review,
     briefText: s ? [s.existing, s.conventions, s.dataModel, s.api].join('\n') : '',
     banner: b && <DiscoveryBanner brief={b} onReview={review} />,
     inboxCard: b && <BriefInboxCard brief={b} onReview={review} />,

@@ -1,7 +1,9 @@
 import { BRAND, type AgentSessionDoc, type PendingQuestion, type TrackerAdapter } from '@miloops-hq/core';
-import { AnswerError, readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/bridge';
+import { AnswerError, attentionView, readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/bridge';
 import { askClosedMessage, askMessage, clip, escape, type AskRef, type AskView } from '../blocks';
 import type { SlackConfig } from '../store';
+import { askRoute } from './askRoute';
+import { queueLine } from './queueLine';
 import type { SlackContext } from './slackContext';
 
 export async function askView(
@@ -95,22 +97,42 @@ export async function closeAsk(ctx: SlackContext, questionId: string, docs?: Age
 
 export async function syncAsks(ctx: SlackContext, docs: AgentSessionDoc[], c: SlackConfig) {
   const asks = ctx.asks.read();
-  const open = new Set<string>();
-  let adapter: TrackerAdapter | undefined;
-  for (const d of docs)
-    for (const q of d.pending) {
-      open.add(q.id);
-      if (asks[q.id] || !c.notify.events.includes('awaiting')) continue;
-      const channel = await ctx.target();
-      if (!channel) return;
-      adapter ??= await ctx.o.active();
-      const view = await askView(ctx, q, adapter);
-      const r = await ctx.call<{ channel: string; ts: string }>('chat.postMessage', {
-        channel,
-        ...askMessage(view, { url: ctx.o.url(), detail: c.notify.detail }),
-      });
-      asks[q.id] = { sessionId: q.sessionId, channel: r.channel, ts: r.ts, view };
-      ctx.asks.write(asks);
-    }
+  const pending = docs.flatMap((d) => d.pending);
+  const fresh = c.notify.events.includes('awaiting') ? pending.filter((q) => !asks[q.id]) : [];
+  if (fresh.length && !(await postAsks(ctx, fresh, c))) return;
+  const open = new Set(pending.map((q) => q.id));
   for (const [id, rec] of Object.entries(asks)) if (!rec.closed && !open.has(id)) await closeAsk(ctx, id, docs);
+}
+
+/** Posts new questions as asks, or with interrupt gating puts the ones that don't interrupt in the digest. */
+async function postAsks(ctx: SlackContext, fresh: PendingQuestion[], c: SlackConfig): Promise<boolean> {
+  let adapter: TrackerAdapter | undefined;
+  const queue = ctx.o.interruptOnly
+    ? await attentionView({ root: ctx.o.root, adapter: (adapter = await ctx.o.active()), configDir: ctx.o.configDir })
+    : undefined;
+  for (const q of fresh) {
+    if (askRoute(q, queue) === 'digest') {
+      digestOnce(ctx, q);
+      continue;
+    }
+    const channel = await ctx.target();
+    if (!channel) return false;
+    adapter ??= await ctx.o.active();
+    const view = await askView(ctx, q, adapter);
+    const r = await ctx.call<{ channel: string; ts: string }>('chat.postMessage', {
+      channel,
+      ...askMessage(view, { url: ctx.o.url(), detail: c.notify.detail }),
+    });
+    const asks = ctx.asks.read();
+    asks[q.id] = { sessionId: q.sessionId, channel: r.channel, ts: r.ts, view };
+    ctx.asks.write(asks);
+  }
+  return true;
+}
+
+/** A question that doesn't interrupt: one line in its mission's next digest, once. */
+function digestOnce(ctx: SlackContext, q: PendingQuestion) {
+  if (ctx.digested.has(q.id)) return;
+  ctx.digested.add(q.id);
+  queueLine(ctx, q.mapId, `${escape(q.agent)} asks: ${escape(clip(q.text, 200))} (answer in ${BRAND.name})`);
 }

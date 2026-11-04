@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   AppBriefing,
   AppHeader,
+  AppInbox,
   AppNewMission,
   AppSettings,
   LaptopSide,
@@ -15,15 +16,14 @@ import {
   useRepoName,
   useScopedActivity,
   useDiscoveryUi,
+  useAttentionUi,
 } from './app/index';
 import { StepZone, LogZone, ActivityStack } from './features/activity';
 import { DecisionsView } from './features/decisions';
-import { InboxPane } from './features/inbox';
 import { Inspector } from './features/inspector';
 import { KnowledgeContext, KnowledgeView, useKnowledgeStore } from './features/knowledge';
 import { MapSections } from './features/plan';
 import { Onboarding } from './features/settings';
-import { UpNext } from './features/up-next';
 import { useBriefing, useBreakpoint, usePrefs, useCommandCenter } from './hooks';
 import { createRuntime, trackerKind } from './lib';
 
@@ -44,29 +44,16 @@ export function App() {
   const [newMission, setNewMission] = useState(false);
   const repo = useRepoName(rt.kind);
   const bp = useBreakpoint();
-  const brief = useBriefing(rt, api, prefs.briefing);
   const pending = activity.pending.length;
   const scoped = useScopedActivity(activity, api.mapId);
   useDocumentTitle(pending, snap?.map.title);
   const nav = useAppNavigation(api, bp);
   const discovery = useDiscoveryUi(snap);
   const knowledge = useKnowledgeStore(discovery.briefText);
+  const attn = useAttentionUi({ api, nav, knowledge, reviewBrief: discovery.review });
+  const brief = useBriefing(rt, api, prefs.briefing, attn.attention.view?.items);
 
-  const inbox = (
-    <InboxPane
-      activity={activity}
-      snaps={api.allSnaps}
-      currentMapId={api.mapId}
-      sessionId={api.chatSession}
-      layout={bp === 'mobile' ? 'stack' : 'split'}
-      convRequest={nav.convRequest}
-      onOpen={nav.openChat}
-      onAnswer={actions.answer}
-      onOpenTicket={nav.openTicket}
-      below={<UpNext snap={snap} sessions={scoped.sessions} selection={selection} onSelect={nav.select} />}
-      above={discovery.inboxCard}
-    />
-  );
+  const inbox = <AppInbox api={api} nav={nav} bp={bp} scoped={scoped} attn={attn} above={discovery.inboxCard} />;
   const map = (
     <MapZone
       api={api}
@@ -134,6 +121,7 @@ export function App() {
           rt={rt}
           repo={repo}
           brief={brief}
+          attention={attn.header}
           decisionsOpen={!!nav.decisionsView}
           onDecisions={() => (nav.decisionsView ? nav.setDecisionsView(null) : nav.openDecisions())}
           onNewMission={() => setNewMission(true)}
