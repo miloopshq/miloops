@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Card, Meta } from '../../components/ui';
+import { Card, MetaLine } from '../../components/ui';
 
 export function BriefingTile(props: {
   label: string;
@@ -12,7 +12,7 @@ export function BriefingTile(props: {
     <Card tone={props.urgent ? 'urgent' : undefined} className={`bf-tile ${props.className ?? ''}`}>
       <span className="mono-label">{props.label}</span>
       <b>{props.value}</b>
-      {props.sub && <Meta parts={[props.sub]} />}
+      {props.sub && <MetaLine parts={[]}>{props.sub}</MetaLine>}
     </Card>
   );
 }

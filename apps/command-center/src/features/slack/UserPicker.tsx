@@ -12,7 +12,7 @@ export function UserPicker(props: { value: SlackUser[]; owners: SlackUser[]; onC
   const owner = new Set(props.owners.map((o) => o.id));
   const on = new Set(props.value.map((u) => u.id));
   if (error) return <div className="test-line alert">✕ {error}</div>;
-  if (!members) return <span className="mono-label dim">Loading members…</span>;
+  if (!members) return <span className="t-meta">Loading members…</span>;
   return (
     <div className="choice-row compact sl-members">
       {members.map((m) => (

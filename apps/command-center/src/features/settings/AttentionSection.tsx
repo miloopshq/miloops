@@ -1,5 +1,5 @@
 import { BRAND, type AttentionPrefs, type NotifyChannel } from '@miloops-hq/core';
-import { Select, type SelectOption } from '../../components/ui';
+import { MetaLine, Select, type SelectOption } from '../../components/ui';
 import { useAttention } from '../attention';
 import { FocusHoursRow } from './FocusHoursRow';
 import { SettingsSection } from './SettingsSection';
@@ -31,8 +31,8 @@ export function AttentionSection() {
         Everything that needs you is ranked in Waiting on you. Only items scoring {team.interrupt} or more interrupt
         you; the rest wait in the queue, and Slack gets them in a digest.
       </p>
-      <div className="att-settings-row">
-        <span>Interrupt me by</span>
+      <div className="att-settings-row set-field">
+        <span className="set-field-label">Interrupt me by</span>
         <Select
           compact
           aria-label="Interrupt me by"
@@ -48,7 +48,7 @@ export function AttentionSection() {
         <span className="vf-err">The browser blocks notifications for this page. Allow them in its site settings.</span>
       )}
       <FocusHoursRow focus={view.prefs.focus} onChange={(focus) => save({ focus })} />
-      <span className="mono-label">Your channel and quiet hours stay on this machine.</span>
+      <span className="set-hint t-meta">Your channel and quiet hours stay on this machine.</span>
       {view.policy.errors.length > 0 && (
         <ul className="vf-errors">
           {view.policy.errors.map((e) => (
@@ -58,10 +58,14 @@ export function AttentionSection() {
           ))}
         </ul>
       )}
-      <span className="mono-label">
-        Team rules ({view.policy.exists ? file : 'defaults'}): interrupt at {team.interrupt},{' '}
-        {team.digestMinutes ? `Slack digest every ${team.digestMinutes} min` : 'Slack digest off'}.
-      </span>
+      <MetaLine
+        className="set-hint"
+        parts={[
+          view.policy.exists ? { text: file, code: true } : 'Team defaults',
+          `interrupt at ${team.interrupt}`,
+          team.digestMinutes ? `Slack digest every ${team.digestMinutes} min` : 'Slack digest off',
+        ]}
+      />
       {error && <span className="vf-err">{error}</span>}
     </SettingsSection>
   );

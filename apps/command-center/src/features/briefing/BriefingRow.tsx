@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Meta } from '../../components/ui';
 
 export function BriefingRow(props: {
   k: string;
@@ -11,9 +10,9 @@ export function BriefingRow(props: {
   return (
     <li>
       <button className="bf-row" onClick={props.onClick} title={props.title}>
-        <span className="key">{props.k}</span>
+        <span className="key t-code">{props.k}</span>
         <span className="t">{props.text}</span>
-        {props.meta && <Meta as="span" parts={[props.meta]} />}
+        {props.meta && <span className="t-meta">{props.meta}</span>}
       </button>
     </li>
   );

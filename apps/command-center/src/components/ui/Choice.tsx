@@ -17,7 +17,7 @@ export function Choice({
 }) {
   return (
     <Card as="button" type="button" className="choice" on={on} disabled={disabled} onClick={onClick}>
-      <b className="card-title">{title}</b>
+      <b className="choice-title t-row-title">{title}</b>
       {sub && <span className="c-sub">{sub}</span>}
     </Card>
   );

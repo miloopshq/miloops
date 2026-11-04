@@ -1,6 +1,6 @@
 import { BRAND, DEFAULT_CONFIG, VERIFICATION_LEVELS, type MapDoc } from '@miloops-hq/core';
 import { useState } from 'react';
-import { Choice, Meta } from '../../components/ui';
+import { Choice, MetaLine } from '../../components/ui';
 import { OPERATOR } from '../../lib';
 import { LEVEL_HELP, LEVEL_TEXT, verificationApi } from '../../lib/verification';
 import { SettingsSection } from './SettingsSection';
@@ -25,7 +25,7 @@ export function VerificationSection(props: { map?: MapDoc }) {
       </p>
       {map && (
         <>
-          <span className="mono-label">How much checking for mission {map.key}</span>
+          <span className="set-field-label">How much checking for mission {map.key}</span>
           <div className="choice-row vf-levels">
             {VERIFICATION_LEVELS.map((l) => (
               <Choice
@@ -70,10 +70,11 @@ export function VerificationSection(props: { map?: MapDoc }) {
           <div className="sync-line ok" title={view.hash}>
             <span className="dot" />
             <span>
-              {file} · {c.run.length} checks run on every completion
+              <span className="t-code">{file}</span> · {c.run.length} checks run on every completion
             </span>
           </div>
-          <Meta
+          <MetaLine
+            className="set-hint"
             parts={[
               `New missions start at ${LEVEL_TEXT[c.default]}`,
               `${c.maxAttempts} attempts before it waits for you`,
@@ -83,7 +84,7 @@ export function VerificationSection(props: { map?: MapDoc }) {
           <div className="vf-checks">
             {Object.entries(c.checks).map(([name, spec]) => (
               <div key={name} className="vf-check">
-                <span className="mono-label">{c.run.includes(name) ? name : `${name} (on request)`}</span>
+                <span className="t-code">{c.run.includes(name) ? name : `${name} (on request)`}</span>
                 <code>{spec.run.join(' ')}</code>
                 <span className="dim">
                   {spec.timeoutSec} s{spec.cwd && spec.cwd !== '.' ? ` · in ${spec.cwd}` : ''}
@@ -93,7 +94,7 @@ export function VerificationSection(props: { map?: MapDoc }) {
           </div>
         </>
       )}
-      <span className="dim vf-hint">
+      <span className="set-hint t-meta">
         MILOOPS never edits {file}. Change checks in the repo, so no agent can change what verifies its own work.
       </span>
     </SettingsSection>

@@ -2,7 +2,7 @@ import type { SlackStatus } from '@miloops-hq/connector-slack';
 
 export function StepFact({ s, n }: { s: SlackStatus; n: number }) {
   const fact = stepFact(s, n);
-  return fact ? <span className="mono-label dim">{fact}</span> : null;
+  return fact ? <span className="t-meta">{fact}</span> : null;
 }
 
 /** What setup step n already knows: the app (3), the workspace and bot (4), the owner (5). */

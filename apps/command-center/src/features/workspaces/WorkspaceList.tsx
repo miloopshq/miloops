@@ -1,3 +1,4 @@
+import { MetaLine, Row } from '../../components/ui';
 import { RemoveWorkspaceButton } from './RemoveWorkspaceButton';
 import type { RemoveOutcome, WorkspaceRow } from './useWorkspaces';
 
@@ -10,15 +11,23 @@ export function WorkspaceList(props: {
   return (
     <ul className="ws-list">
       {props.rows.map((w) => (
-        <li key={`${w.mapId}/${w.ticketId}`} className={`ws-row ${w.active ? 'active' : 'finished'}`}>
-          <span className="ws-ticket">{w.ticketKey}</span>
-          <code className="ws-branch">{w.branch}</code>
-          <span className="ws-status mono-label">{w.active ? `Active · ${w.agent}` : 'Finished'}</span>
-          <code className="ws-path" title={w.path}>
-            {w.path}
-          </code>
-          {!w.active && <RemoveWorkspaceButton onRemove={(force) => props.onRemove(w.mapId, w.ticketId, force)} />}
-        </li>
+        <Row
+          key={`${w.mapId}/${w.ticketId}`}
+          as="li"
+          className={`ws-row ${w.active ? 'active' : 'finished'}`}
+          title={<span className="t-code">{w.branch}</span>}
+          titleText={w.branch}
+          context={
+            <MetaLine parts={[{ text: w.ticketKey, code: true }, w.active ? `Active · ${w.agent}` : 'Finished']} />
+          }
+          detail={<span className="t-code">{w.path}</span>}
+          detailText={w.path}
+          below={
+            w.active ? undefined : (
+              <RemoveWorkspaceButton onRemove={(force) => props.onRemove(w.mapId, w.ticketId, force)} />
+            )
+          }
+        />
       ))}
     </ul>
   );
