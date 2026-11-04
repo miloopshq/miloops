@@ -13,6 +13,8 @@ export const KIND_LABEL: Record<AttentionKind, string> = {
   policy: 'Risk',
   replan: 'Replan',
   'replan-suggested': 'Replan?',
+  overlap: 'Overlap',
+  integration: 'Integrate',
 };
 
 /** What a batch of one kind is called: "3 questions from Reminders, answer together". */
@@ -28,6 +30,8 @@ export const KIND_PLURAL: Record<AttentionKind, string> = {
   policy: 'risky changes',
   replan: 'replans',
   'replan-suggested': 'suggested replans',
+  overlap: 'overlapping claims',
+  integration: 'clashing branches',
 };
 
 /** Snooze choices, in minutes. */

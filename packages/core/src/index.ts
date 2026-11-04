@@ -69,6 +69,11 @@ export { isFocused, isInterrupting } from './attention/focus';
 export { waitLabel } from './attention/score';
 export { heldTickets } from './attention/heldTickets';
 export { isDismissable } from './attention/isDismissable';
+export * from './workspaces/workspace';
+export { parseWorkspaceSettings, serializeWorkspaceSettings } from './workspaces/workspaceFile';
+export { globsOverlap, touchOverlaps, pairsLabel, type TouchOverlap } from './workspaces/touches';
+export { findIntegrations } from './workspaces/findIntegrations';
+export { addIntegrationTicket, integrationTicketFor, INTEGRATION_TITLE } from './workspaces/integrationTicket';
 export { Emitter, sleep, uid } from './lib/emitter';
 
 export { MemoryAdapter, type MemoryAdapterOptions } from './adapters/memoryAdapter';

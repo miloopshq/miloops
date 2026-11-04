@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { chromium } from 'playwright-core';
+import { verifyParallel } from './verifyParallel.mjs';
 import { verifySupervision } from './verifySupervision.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -450,6 +451,9 @@ log(
 const discoveryKey = disc.tickets.find((t) => t.title.startsWith('Discovery brief')).key;
 const supervisionOk = await verifySupervision({ call, page, shot, log, repo, mapId: disc.mission.id, discoveryKey });
 
+// Safe parallel work: worktrees, overlapping claims and an integration ticket, on a scratch git repo.
+const parallelOk = await verifyParallel({ browser, cli, log, shots });
+
 await client.close();
 await page.waitForTimeout(1500);
 const after = await page.locator('.sessions-list li:not(.claim)').count();
@@ -476,7 +480,8 @@ if (
   !verifiedOk ||
   !reviewOk ||
   !discoveryOk ||
-  !supervisionOk
+  !supervisionOk ||
+  !parallelOk
 )
   process.exit(1);
 console.log('\nOK');

@@ -2,6 +2,7 @@ import { isDismissable, type AttentionItem, type MapSnapshot } from '@miloops-hq
 import { Card, Meta } from '../../components/ui';
 import { ago } from '../../lib';
 import { KIND_LABEL } from './attentionLabels';
+import { IntegrationAction } from './IntegrationAction';
 import { ReasonChips } from './ReasonChips';
 import { SnoozeMenu } from './SnoozeMenu';
 
@@ -44,6 +45,7 @@ export function AttentionItemRow(props: {
         <span className="q t-title">{item.title.split('\n')[0]}</span>
         <ReasonChips reasons={item.reasons} />
       </Card>
+      {item.kind === 'integration' && <IntegrationAction item={item} />}
       <SnoozeMenu
         title={item.title}
         canDismiss={isDismissable(item)}

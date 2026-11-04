@@ -18,7 +18,9 @@ export type AttentionKind =
   | 'brief'
   | 'policy'
   | 'replan'
-  | 'replan-suggested';
+  | 'replan-suggested'
+  | 'overlap'
+  | 'integration';
 
 /** `blocking`: the agent can do no useful work until answered. `soon`: the default. `fyi`: whenever convenient. */
 export type AttentionUrgency = 'blocking' | 'soon' | 'fyi';

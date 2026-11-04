@@ -27,6 +27,8 @@ export function openItem(item: AttentionItem, h: AttentionHandlers) {
     case 'flag':
     case 'stalled':
     case 'hitl-ready':
+    case 'overlap':
+    case 'integration':
       return openTicketOrMission(item, h);
     case 'knowledge':
       return h.openKnowledge();

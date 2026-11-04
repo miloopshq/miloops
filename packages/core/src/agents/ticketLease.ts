@@ -47,6 +47,10 @@ export interface TicketLease {
   notes: string[];
   /** Decisions recorded while holding the claim, as `D-3 · summary`. */
   decisions: string[];
+  /** Path globs the agent said it will change (claim_ticket `touches`). */
+  touches?: string[];
+  /** The worktree prepared for this claim, when there is one. */
+  workspace?: { path: string; branch: string; base: string };
   /** Set once the ticket went back to the queue; the file is then a tombstone. */
   returned?: { at: number; reason: LeaseReturnReason; by: string };
 }

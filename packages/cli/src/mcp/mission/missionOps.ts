@@ -6,6 +6,7 @@ import { attentionSummary } from './attention';
 import { deliveryView } from './deliveryView';
 import { briefView, claimable } from './discovery';
 import { knowledgeFor } from './knowledge';
+import { parallelView } from './parallel';
 import { adaptiveView, frozenOn } from './replans';
 import { ticketInfo } from './ticketInfo';
 import { missionView } from './views';
@@ -40,6 +41,7 @@ export async function status(ctx: AgentContext, missionRef?: string) {
     mission: missionView(snap, docs, records, (id) => ctx.keyOf(id)),
     delivery: deliveryView(ctx.root, snap, docs),
     adaptive: adaptiveView(ctx, snap),
+    parallel: parallelView(ctx, snap),
   };
 }
 

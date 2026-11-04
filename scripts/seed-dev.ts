@@ -15,6 +15,7 @@ import {
 } from '@miloops-hq/core';
 import { writeBrief, writeKnowledge, writeTicketCriteria } from '@miloops-hq/core/agents';
 import { nodeMarkdownFs } from '@miloops-hq/core/node';
+import { seedParallel } from './seedParallel';
 import { seedSupervision } from './seedSupervision';
 
 const DEV_MARKER = '.dev-seed';
@@ -229,10 +230,16 @@ if (instrument)
 // 6. Less supervision: risk policy, attention rules, a risky change, assumptions and two pending proposals.
 await seedSupervision({ root, adapter, main, second, mainBrief, now });
 
+// 7. Safe parallel work: the worktree setting and two claims whose declared files overlap.
+await seedParallel({ root, adapter, main, now });
+
 console.log(`seeded ${root}`);
 console.log(`  ${main.key} ${main.title} · mid-flight`);
 console.log(`  ${second.key} ${second.title} · plan only, brief waiting for review`);
 console.log('  6 knowledge entries (confirmed, an assumption, 2 suggestions)');
 console.log('  policy.json, attention.json, 3 assumptions (one challenged), a pending replan, a destination challenge');
+console.log(
+  '  workspaces.json (worktrees off), two claims whose declared files overlap (#5 and the sync status ticket)',
+);
 console.log('Live agents: npm run dev:agent (needs npm run build -w miloops-cli once).');
 process.exit(0);

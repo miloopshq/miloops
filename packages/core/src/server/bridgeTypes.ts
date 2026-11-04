@@ -58,4 +58,6 @@ export interface BridgeOptions extends Omit<TrackerRoutesOptions, 'root' | 'mark
   leases?: { pollMs?: number; reapMs?: number };
   /** PR/CI reconciler (watchVerification.ts): delay before the first tick. Later ticks follow `github.pollSec`. */
   reconciler?: { firstMs?: number };
+  /** How often active claim branches are compared for overlapping changes (watchIntegration.ts). */
+  integration?: { pollMs?: number };
 }

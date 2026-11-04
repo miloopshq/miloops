@@ -20,6 +20,7 @@ import { SettingsSection } from './SettingsSection';
 import { SlackSection } from './SlackSection';
 import { TranscriptChoice } from './TranscriptChoice';
 import { VerificationSection } from './VerificationSection';
+import { WorkspacesSection } from './WorkspacesSection';
 
 export function SettingsPanel(props: {
   prefs: Prefs;
@@ -77,6 +78,8 @@ export function SettingsPanel(props: {
             <RiskPolicySection />
 
             <AttentionSection />
+
+            <WorkspacesSection />
 
             <SettingsSection title="Labels">
               <div className="label-codes">

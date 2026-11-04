@@ -125,3 +125,24 @@
   font-size: var(--fs-sm);
   color: var(--dim);
 }
+
+/* The claim's worktree branch and the files it said it would change. */
+.lease-branch code,
+.lease-touches code {
+  margin-right: var(--sp-4);
+  padding: 0 var(--sp-4);
+  border: 1px solid var(--line2);
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--text-hi);
+  white-space: nowrap;
+}
+.lease-touches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) 0;
+  align-items: baseline;
+}
+.lease-touches code {
+  margin-left: var(--sp-4);
+}

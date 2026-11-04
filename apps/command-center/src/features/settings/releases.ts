@@ -8,11 +8,28 @@ export interface Release {
 }
 
 export const NEXT: { area: string; items: string[] }[] = [
-  { area: 'Agents', items: ['Start agent sessions from the command center', 'Cursor'] },
-  { area: 'Packaging', items: ['Publish to npm'] },
+  { area: 'Every repo', items: ['All your projects in one view, with one list of what needs you across them'] },
+  {
+    area: 'Agents',
+    items: [
+      'Smarter model choice: hard calls to stronger models, routine work to cheaper ones, based on past results',
+      'Agent roles (reviewer, researcher, builder) and specialists you can add to a mission',
+    ],
+  },
+  { area: 'MILOOPS Cloud', items: ['Agents that run in the cloud, steered from the same command center'] },
 ];
 
 export const RELEASES: Release[] = [
+  {
+    version: '0.20.0',
+    date: '2026-11-04',
+    items: [
+      'Separate workspaces: switch on Settings → Workspaces and each ticket an agent claims gets its own copy of the repo on its own branch, so agents working at the same time don’t step on each other. When the work is done you get the branch to review; MILOOPS never merges or pushes for you',
+      'Warnings before a clash: agents say which files they expect to change. When two of them plan to change the same files, the second one is warned, and you see it in Waiting on you; open it to release either claim',
+      'When two agents’ branches did change the same files, Waiting on you suggests a ticket to bring the work together. One click adds it, waiting on both tickets, with the files listed',
+      'The ticket inspector shows which files an agent expects to change and the branch it works on',
+    ],
+  },
   {
     version: '0.19.0',
     date: '2026-11-04',
@@ -23,6 +40,7 @@ export const RELEASES: Release[] = [
       'Plans that adapt: missions list the assumptions they rely on, starting with the ones in the discovery brief. When an agent finds one is wrong, it shows the evidence and proposes a new plan; the tickets it would change are paused, the map previews the change, and nothing happens until you approve',
       'Challenge the destination: an agent can tell you the work already exists, the mission targets the wrong problem, or it should be rescoped, with evidence and a suggested new goal',
       'Assumptions on the Plan tab (confirm the ones you know are true) and an assumptions field when you create a mission',
+      'Fix: when an agent asks two questions at once, your answer goes to the one you opened; the inbox stats line no longer gets covered by the list',
     ],
   },
   {

@@ -20,6 +20,7 @@ import { assertAssumes } from './assumptions';
 import { claimTicket } from './claimTicket';
 import { submitVerified } from './completion';
 import { assertCriteria } from './criteria';
+import { withReview } from './parallel';
 import { checkRisk } from './riskCheck';
 import type { WaitControl } from './types';
 
@@ -86,11 +87,11 @@ export async function closeTicket(ctx: AgentContext, input: CloseInput, wait: Wa
     );
   } else {
     const done = await complete(c, wait);
-    if (done.kind === 'stopped') return done.result;
+    if (done.kind === 'stopped') return withReview(c, done.result);
     verified = done.verified;
   }
   const decision = await findDecision(c);
-  return finish(c, { before, verified, decision });
+  return withReview(c, await finish(c, { before, verified, decision }));
 }
 
 /** Finds the ticket, checks this agent may close it, claims it if nobody has, and picks the session. */
