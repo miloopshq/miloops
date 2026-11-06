@@ -1,5 +1,5 @@
 // A private npm registry on this machine (Verdaccio), for trying MILOOPS exactly as a user would install it,
-// without publishing anything to npmjs.com. Only `miloops-cli` lives here; every other package is proxied from
+// without publishing anything to npmjs.com. Only `teamtrail` lives here; every other package is proxied from
 // npmjs.com, so installs behave normally.
 //
 //   npm run registry:local              start the registry (http://127.0.0.1:4873), leave it running
@@ -49,7 +49,7 @@ uplinks:
     url: https://registry.npmjs.org/
 packages:
   # Only the local build: no proxy, so the npm placeholder never mixes in.
-  miloops-cli:
+  teamtrail:
     access: $all
     publish: $all
     unpublish: $all
@@ -74,16 +74,16 @@ log: { type: stdout, format: pretty, level: warn }
   const original = fs.readFileSync(pkgFile, 'utf8');
   try {
     fs.writeFileSync(pkgFile, original.replace(`"version": "${base}"`, `"version": "${version}"`));
-    npm(['publish', '-w', 'miloops-cli', '--tag', 'latest']);
+    npm(['publish', '-w', 'teamtrail', '--tag', 'latest']);
   } finally {
     fs.writeFileSync(pkgFile, original);
   }
-  console.log(`\nPublished miloops-cli@${version} to ${url}.`);
-  console.log(`Use it like a user would:  npm config set registry ${url}   then  npx miloops-cli`);
+  console.log(`\nPublished teamtrail@${version} to ${url}.`);
+  console.log(`Use it like a user would:  npm config set registry ${url}   then  npx teamtrail`);
   console.log('Back to npmjs.com:         npm config delete registry');
 } else if (cmd === 'status') {
   await ensureToken();
-  npm(['view', 'miloops-cli', 'versions', 'dist-tags']);
+  npm(['view', 'teamtrail', 'versions', 'dist-tags']);
 } else {
   console.error(`unknown command: ${cmd} (start | publish | status)`);
   process.exit(1);

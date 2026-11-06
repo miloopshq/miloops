@@ -241,5 +241,5 @@ console.log('  policy.json, attention.json, 3 assumptions (one challenged), a pe
 console.log(
   '  workspaces.json (worktrees off), two claims whose declared files overlap (#5 and the sync status ticket)',
 );
-console.log('Live agents: npm run dev:agent (needs npm run build -w miloops-cli once).');
+console.log('Live agents: npm run dev:agent (needs npm run build -w teamtrail once).');
 process.exit(0);

@@ -88,7 +88,7 @@ export function installClaudeHook(file: string, dir?: string) {
   }
   const command = hookCommand(dir);
   const ours = (h: { command?: string }) =>
-    !!h.command && new RegExp(`\\b${BRAND.slug}\\b.*\\bhook claude\\b`).test(h.command);
+    !!h.command && new RegExp(`\\b(${BRAND.npm}|${BRAND.slug})\\b.*\\bhook claude\\b`).test(h.command);
   const entries = settings.hooks?.SessionStart ?? [];
   const kept = entries
     .map((e) => ({ ...e, hooks: (e.hooks ?? []).filter((h) => !ours(h)) }))

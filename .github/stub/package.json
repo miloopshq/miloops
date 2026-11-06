@@ -1,10 +1,10 @@
 {
-  "name": "miloops-cli",
-  "version": "0.0.0",
-  "description": "MILOOPS: a local command center for your AI coding agents. Coming soon.",
+  "name": "teamtrail",
+  "version": "0.0.1",
+  "description": "TeamTrail: a local command center for your AI coding agents. Coming soon.",
   "type": "module",
   "bin": {
-    "miloops": "index.js"
+    "teamtrail": "index.js"
   },
   "files": [
     "index.js",
@@ -15,18 +15,16 @@
   },
   "keywords": [
     "agents",
-    "command-center",
     "mcp",
     "claude-code",
     "codex"
   ],
   "license": "FSL-1.1-ALv2",
-  "homepage": "https://miloops.vercel.app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/miloopshq/miloops.git"
+    "url": "git+https://github.com/teamtrailhq/teamtrail.git"
   },
   "bugs": {
-    "url": "https://github.com/miloopshq/miloops/issues"
+    "url": "https://github.com/teamtrailhq/teamtrail/issues"
   }
 }

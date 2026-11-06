@@ -1,11 +1,11 @@
-<img src="https://raw.githubusercontent.com/miloopshq/miloops/main/brand/miloops-banner.gif" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="100%" />
+<img src="https://raw.githubusercontent.com/teamtrailhq/teamtrail/main/brand/miloops-banner.gif" alt="MILO, the MILOOPS operator, next to the MILOOPS wordmark." width="100%" />
 
 # miloops
 
 MILOOPS: a local command center for your AI coding agents. One command opens it for the agents working in your repo.
 
 ```bash
-npm i -g miloops-cli      # or skip the install: npx miloops-cli
+npm i -g teamtrail      # or skip the install: npx teamtrail
 cd your-repo
 miloops
 ```
@@ -28,13 +28,13 @@ The same package ships an MCP server, `miloops mcp`, that your agent starts over
 ### Claude Code
 
 ```bash
-claude mcp add miloops -- npx -y miloops-cli mcp
+claude mcp add miloops -- npx -y teamtrail mcp
 ```
 
 Or let `miloops` do it and add the `/milo` command to the repo (`.claude/commands/milo.md`):
 
 ```bash
-npx miloops-cli connect claude
+npx teamtrail connect claude
 ```
 
 Then, in Claude Code:
@@ -49,7 +49,7 @@ Then, in Claude Code:
 ### Codex
 
 ```bash
-codex mcp add miloops -- npx -y miloops-cli mcp
+codex mcp add miloops -- npx -y teamtrail mcp
 ```
 
 or in `~/.codex/config.toml`:
@@ -57,16 +57,16 @@ or in `~/.codex/config.toml`:
 ```toml
 [mcp_servers.miloops]
 command = "npx"
-args = ["-y", "miloops-cli", "mcp"]
+args = ["-y", "teamtrail", "mcp"]
 # ask_human waits for your answer; Codex cancels tool calls after 60 s by default.
 tool_timeout_sec = 900
 ```
 
-`npx miloops-cli connect codex` prints this and installs the same command as a Codex prompt (`~/.codex/prompts/milo.md`): `/prompts:milo new "<idea>"`, `/prompts:milo resume`, and so on.
+`npx teamtrail connect codex` prints this and installs the same command as a Codex prompt (`~/.codex/prompts/milo.md`): `/prompts:milo new "<idea>"`, `/prompts:milo resume`, and so on.
 
 ### Other agents
 
-Any MCP client works: run `npx -y miloops-cli mcp` over stdio in the repo. `--dir <path>` (or `$MILOOPS_DIR`) picks another tracker folder; `--agent <callsign>` fixes the session name, which otherwise comes from the client (`claude-01`, `codex-01`).
+Any MCP client works: run `npx -y teamtrail mcp` over stdio in the repo. `--dir <path>` (or `$MILOOPS_DIR`) picks another tracker folder; `--agent <callsign>` fixes the session name, which otherwise comes from the client (`claude-01`, `codex-01`).
 
 ### Tools
 

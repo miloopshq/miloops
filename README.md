@@ -44,7 +44,7 @@ Coming alongside: **model-aware claiming**, a per-mission switch that sends hard
 Requires Node 20+.
 
 ```bash
-npm i -g miloops-cli      # or, without installing: npx miloops-cli
+npm i -g teamtrail      # or, without installing: npx teamtrail
 cd your-repo
 miloops
 ```
@@ -54,8 +54,8 @@ miloops
 Connect your agent once, then use `/milo new "<idea>"`, `/milo resume`, `/milo status` and `/milo inbox`:
 
 ```bash
-claude mcp add miloops -- npx -y miloops-cli mcp   # Claude Code; `npx miloops-cli connect claude` also adds /milo
-codex mcp add miloops -- npx -y miloops-cli mcp    # Codex; see packages/cli for the config.toml entry
+claude mcp add miloops -- npx -y teamtrail mcp   # Claude Code; `npx teamtrail connect claude` also adds /milo
+codex mcp add miloops -- npx -y teamtrail mcp    # Codex; see packages/cli for the config.toml entry
 ```
 
 Details for both agents are in [`packages/cli/README.md`](packages/cli/README.md#connect-your-coding-agent).
@@ -65,19 +65,19 @@ Details for both agents are in [`packages/cli/README.md`](packages/cli/README.md
 | Path | Package | |
 | --- | --- | --- |
 | [`packages/core`](packages/core) | `@miloops-hq/core` | UI-free engine: missions, tickets, trackers, metrics, decision records |
-| [`packages/cli`](packages/cli) | [`miloops-cli`](https://www.npmjs.com/package/miloops-cli) | The `miloops` command: serves the command center and the tracker API |
+| [`packages/cli`](packages/cli) | [`teamtrail`](https://www.npmjs.com/package/teamtrail) | The `miloops` command: serves the command center and the tracker API |
 | [`packages/milo-avatar`](packages/milo-avatar) | `@miloops-hq/milo-avatar` | Pixel-art MILO avatar (React component and framework-free renderer) |
 | [`apps/command-center`](apps/command-center) | private | The command-center web UI bundled into the CLI |
 | [`brand`](brand) | | Logos, avatars and social images |
 
-The landing site lives in [miloopshq/miloops-landing](https://github.com/miloopshq/miloops-landing).
+The landing site lives in [teamtrailhq/teamtrail-landing](https://github.com/teamtrailhq/teamtrail-landing).
 
 ## Develop
 
 ```bash
 npm install
 npm run dev           # resets the dev project to the seed, then the command center with hot reload
-npm run dev:agent     # real MCP agents working the dev project (after npm run build -w miloops-cli)
+npm run dev:agent     # real MCP agents working the dev project (after npm run build -w teamtrail)
 npm run dev:empty     # the command center on a brand-new empty folder: the first-run, no-mission flow
 npm run typecheck     # every workspace
 npm test              # unit and MCP tests (vitest)

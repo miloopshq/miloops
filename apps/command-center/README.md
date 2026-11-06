@@ -9,7 +9,7 @@ A sci-fi-inspired HUD for planning with agents: a live map of decision tickets, 
 Requires Node 20+. One package, one command:
 
 ```bash
-npm i -g miloops-cli            # or, without installing: npx miloops-cli
+npm i -g teamtrail            # or, without installing: npx teamtrail
 cd your-repo
 miloops
 ```
@@ -36,7 +36,7 @@ From the repo root:
 npm install
 npm run dev                 # resets the dev project (npm run seed), then Vite with hot reload, http://localhost:5173
 npm run dev:keep            # the same server without reseeding, keeping what you changed
-npm run dev:agent           # real MCP agents working the dev project (after npm run build -w miloops-cli)
+npm run dev:agent           # real MCP agents working the dev project (after npm run build -w teamtrail)
 npm run build               # every workspace; the command-center bundle + CLI land in packages/cli/dist
 npm start                   # run the built CLI from the repo (same as `miloops`)
 npm run pack                # → ./miloops-<version>.tgz, installable with `npm i -g ./miloops-<version>.tgz`
@@ -45,7 +45,7 @@ npm run pack                # → ./miloops-<version>.tgz, installable with `npm
 - Local development works on real data only, never a demo. `npm run seed` (run by `npm run dev`) resets `.miloops/` at the repo root to a fixed project: a mission mid-flight (decisions made and superseded, done, blocked and ruled-out work) and a plan-only mission, written as plain files through the same adapters a user's install uses. It only wipes a folder it created (marked `.dev-seed`).
 - `npm run dev:agent [agents=2] [mission=#1]` connects real agents over MCP (`miloops mcp`, as Claude Code does). They claim ready tickets, report progress and usage, close agent-only work, and ask you on tickets that need a human, waiting for your answer in the command center.
 - Use `MILOOPS_DIR=/abs/path/.miloops npm run dev:keep` to open another folder without reseeding. Env var names come from `brand.ts`.
-- `npm run typecheck` typechecks every workspace. `node scripts/verify-cli.mjs <url> <trackerDir>` smoke-tests a running `miloops`. The landing screenshots and video ([miloops-landing](https://github.com/miloopshq/miloops-landing): `npm run media`, `npm run journey`) run on the same seed with real agents.
+- `npm run typecheck` typechecks every workspace. `node scripts/verify-cli.mjs <url> <trackerDir>` smoke-tests a running `miloops`. The landing screenshots and video ([miloops-landing](https://github.com/teamtrailhq/teamtrail-landing): `npm run media`, `npm run journey`) run on the same seed with real agents.
 
 ### How the package is built
 

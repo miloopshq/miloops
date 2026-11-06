@@ -1,5 +1,5 @@
 // Picks the version the Release workflow publishes and prints `version=<v>` for $GITHUB_OUTPUT.
-// CHANNEL=next|latest|stub, REQUESTED=<x.y.z> (latest only, optional). Reads npm's current `latest` for miloops.
+// CHANNEL=next|latest|stub, REQUESTED=<x.y.z> (latest only, optional). Reads npm's current `latest` for teamtrail.
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
@@ -28,7 +28,7 @@ const npmView = (spec) => {
 const channel = process.env.CHANNEL;
 const pkg = JSON.parse(readFileSync('packages/cli/package.json', 'utf8')).version;
 // npm's latest can be a placeholder or prerelease (e.g. 0.0.0-stage from staged publishing): count that as nothing released.
-const npmLatest = npmView('miloops-cli@latest');
+const npmLatest = npmView('teamtrail@latest');
 const latest = parse(npmLatest) ? npmLatest : '0.0.0';
 if (!parse(pkg)) fail(`packages/cli/package.json version ${pkg} is not x.y.z`);
 
@@ -37,7 +37,7 @@ if (channel === 'latest') {
   version = process.env.REQUESTED?.trim() || pkg;
   if (!parse(version)) fail(`version ${version} is not x.y.z`);
   if (cmp(version, latest) <= 0) fail(`version ${version} must be higher than npm's latest (${latest})`);
-  if (npmView(`miloops-cli@${version}`)) fail(`miloops-cli@${version} is already on npm`);
+  if (npmView(`teamtrail@${version}`)) fail(`teamtrail@${version} is already on npm`);
 } else if (channel === 'next') {
   const [a, b, c] = parse(latest);
   const afterLatest = `${a}.${b}.${c + 1}`;

@@ -56,7 +56,7 @@ Every screen presents data the same way, so people never have to work out where 
 `main` is protected: changes land through a pull request once CI (`check`) passes. Maintainers publish the `miloops` CLI from Actions → **Release** → Run workflow, or with `gh`:
 
 ```bash
-gh workflow run release.yml -f channel=next                      # prerelease: npx miloops-cli@next
+gh workflow run release.yml -f channel=next                      # prerelease: npx teamtrail@next
 gh workflow run release.yml -f channel=latest                    # stable: the version in packages/cli/package.json
 gh workflow run release.yml -f channel=latest -f version=0.8.0   # stable: a version you name
 gh workflow run release.yml -f channel=stub                      # until launch: refresh the placeholder on latest

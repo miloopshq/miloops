@@ -26,14 +26,14 @@ npm workspaces monorepo. Node 20+, TypeScript, ESM.
 | Path | What it is |
 | --- | --- |
 | `packages/core` | The engine, UI-free: the mission model, tracker adapters, planning and lifecycle, verification, evidence, agent coordination and the HTTP bridge. Zero runtime dependencies. Entry points in `packages/core/package.json` `exports`: `.` (`src/index.ts`), `./node`, `./bridge`, `./agents`. |
-| `packages/cli` | The `miloops` command, published as `miloops-cli` (bin `miloops`). It serves the command center and the bridge (`src/serve/`), runs the MCP server (`src/mcp/`), connects agents (`src/connect.ts`) and meters usage (`src/usage/`). Built into one bundle by `packages/cli/build.mjs`. |
+| `packages/cli` | The `miloops` command, published as `teamtrail` (bin `miloops`). It serves the command center and the bridge (`src/serve/`), runs the MCP server (`src/mcp/`), connects agents (`src/connect.ts`) and meters usage (`src/usage/`). Built into one bundle by `packages/cli/build.mjs`. |
 | `apps/command-center` | The React + Vite web UI, bundled into the CLI. |
 | `packages/connector-slack` | The optional Slack connector: questions, approvals and briefings in Slack. |
 | `packages/milo-avatar` | The MILO pixel avatar: a React component and a framework-free renderer (`mountMilo`). |
 | `scripts` | Dev tooling: the seed (`scripts/seed-dev.ts`, with M4's policy, assumptions and proposals in `scripts/seedSupervision.ts` and M3's worktree setting and overlapping claims in `scripts/seedParallel.ts`), scripted MCP dev agents (`scripts/dev-agent.mjs`), the end-to-end check (`scripts/verify-mcp.mjs`, M4 steps in `scripts/verifySupervision.mjs`, M3 steps on a scratch git repo in `scripts/verifyParallel.mjs`) and the local npm registry (`scripts/registry-local.mjs`). |
 | `.github/workflows` | CI (`ci.yml`, runs `npm run check`) and the manual Release workflow (`release.yml`). |
 
-The landing site lives in its own repo, `miloopshq/miloops-landing`.
+The landing site lives in its own repo, `teamtrailhq/teamtrail-landing`.
 
 ### Tracker data (`.miloops/` in the user's repo)
 
@@ -118,5 +118,5 @@ Follow `CONTRIBUTING.md`: one export per file, 200 lines max, the layout rules, 
 ## Checks
 
 - `npm run check` runs everything CI runs: lint, the Prettier check, typecheck, build, the vitest and node:test suites, and `verify:mcp` (needs a build and Chrome; set `CHROME` to its path). It must pass before a PR.
-- **Run the app on the dev seed:** `npm run dev` resets the dev project to the seed and starts the command center with hot reload. `npm run build -w miloops-cli && npm run dev:agent` adds real MCP agents working it. `npm run dev:empty` starts on a brand-new empty tracker folder instead, for the first-run flow.
+- **Run the app on the dev seed:** `npm run dev` resets the dev project to the seed and starts the command center with hot reload. `npm run build -w teamtrail && npm run dev:agent` adds real MCP agents working it. `npm run dev:empty` starts on a brand-new empty tracker folder instead, for the first-run flow.
 - `main` is protected: one PR per change, merged after CI passes. Releases are covered in `CONTRIBUTING.md`.
