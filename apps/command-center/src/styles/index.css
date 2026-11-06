@@ -1,4 +1,5 @@
 /* Imported once from main.tsx. Order is the cascade: design system first, then layout and zones. */
+@import './theme.css';
 @import './design-system.css';
 @import './base.css';
 @import './rows.css';

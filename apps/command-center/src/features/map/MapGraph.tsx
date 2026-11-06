@@ -2,14 +2,20 @@ import { type MapSnapshot, type SessionInfo, type TicketLease, layout, leaseHeal
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { useNow, usePrSync } from '../../hooks';
 import { type Selection, heldLeases, isRunning, prSync, worstFlag } from '../../lib';
+import { destinationSpot, destinationTrail } from './destination';
+import { DestinationMark } from './DestinationMark';
+import { DestinationTrail } from './DestinationTrail';
 import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
 import { edgeKey, type MapPreview } from './mapPreview';
+import { OutOfScopeStrip } from './OutOfScopeStrip';
+import { TerrainLayer } from './TerrainLayer';
 import { useFocusSelected } from './useFocusSelected';
 import { useWheelZoom } from './useWheelZoom';
 
 export const PAD = 32;
+const LR_PREFERENCE = 1.8;
 
 export type View = { k: number; x: number; y: number };
 
@@ -41,7 +47,8 @@ export function MapGraph(props: {
     const lr = layout(tickets, 'LR', snap.map.mode);
     const tb = layout(tickets, 'TB', snap.map.mode);
     const fit = (l: typeof lr) => Math.min(size.w / (l.width + PAD * 2), size.h / (l.height + PAD * 2 + 16));
-    return fit(lr) >= fit(tb) ? lr : tb;
+    // A trail reads best left to right, so it only turns vertical when that fits much better.
+    return fit(lr) * LR_PREFERENCE >= fit(tb) ? lr : tb;
   }, [tickets, snap.map.mode, size.w, size.h]);
   const fitK = (w: number, h: number) => Math.min(1.25, Math.max(props.minFit ?? 0, Math.min(size.w / w, size.h / h)));
 
@@ -65,8 +72,9 @@ export function MapGraph(props: {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base, size.w, size.h, props.minFit]);
-  const W = L.width + PAD * 2;
-  const H = L.height + PAD * 2 + 16;
+  const destination = destinationSpot(L);
+  const W = destination.right + PAD * 2;
+  const H = destination.bottom + PAD * 2 + 16;
 
   const fitView = (): View => {
     const k = fitK(W, H);
@@ -157,19 +165,9 @@ export function MapGraph(props: {
         <GraphDefs />
         <g transform={`translate(${view.x} ${view.y}) scale(${view.k})`}>
           <g transform={`translate(${PAD} ${PAD})`}>
+            <TerrainLayer seed={snap.map.id} width={W} height={H} nodes={L.nodes} />
             {L.nodes.some((n) => n.state === 'out-of-scope') && (
-              <g className="quarantine">
-                <rect
-                  x={-20}
-                  y={L.quarantineY - 30}
-                  width={L.width + 40}
-                  height={L.quarantineH + 18}
-                  fill="url(#hatch-oos)"
-                />
-                <text x={-12} y={L.quarantineY - 14}>
-                  OUT OF SCOPE // QUARANTINE
-                </text>
-              </g>
+              <OutOfScopeStrip y={L.quarantineY} width={L.width} height={L.quarantineH} />
             )}
 
             {L.edges.map(({ from, to }) => (
@@ -182,6 +180,9 @@ export function MapGraph(props: {
                 removed={preview?.removedEdges.has(edgeKey(from.ticket.id, to.ticket.id))}
               />
             ))}
+
+            <DestinationTrail trails={destinationTrail(L, destination)} />
+            {L.nodes.length > 0 && <DestinationMark x={destination.x} y={destination.y} />}
 
             {L.nodes.map((n) => (
               <GraphNode

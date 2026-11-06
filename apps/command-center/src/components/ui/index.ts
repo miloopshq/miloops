@@ -24,3 +24,4 @@ export { Tabs } from './Tabs';
 export { TooltipLayer } from './TooltipLayer';
 export { Wordmark } from './Wordmark';
 export { Zone } from './Zone';
+export { ZoneIcon, type ZoneIconName } from './ZoneIcon';

@@ -20,9 +20,6 @@
   font-weight: 700;
   font-size: var(--fs-heading);
   line-height: 1;
-  letter-spacing: var(--ls-brand);
-  margin-right: calc(-1 * var(--ls-brand));
-  text-transform: uppercase;
   color: var(--text-hi);
 }
 .wordmark-ops {
@@ -140,7 +137,7 @@
   align-items: center;
   gap: var(--sp-6);
   background: var(--urgent);
-  color: #fff;
+  color: var(--on-urgent);
   font-family: var(--label);
   font-size: var(--fs-label);
   letter-spacing: var(--ls-label);
@@ -210,4 +207,51 @@
 }
 .bp-mobile .briefing-btn .bl {
   display: none;
+}
+
+/* Records menu: the views you open now and then, grouped behind one button. */
+.header-menu {
+  position: relative;
+}
+.header-menu .caret {
+  color: var(--dim);
+}
+.header-menu-list {
+  position: absolute;
+  top: calc(100% + var(--sp-6));
+  right: 0;
+  z-index: 25;
+  min-width: 180px;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-solid);
+  border: 1px solid var(--line2);
+  box-shadow: 0 12px 32px var(--shadow-color);
+}
+.header-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12);
+  min-height: var(--h-md);
+  padding: 0 var(--sp-10);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-hi);
+  cursor: pointer;
+}
+.header-menu-item:hover:not(:disabled) {
+  background: var(--panel2);
+}
+.header-menu-item:disabled {
+  color: var(--faint);
+  cursor: default;
+}
+.btn.icon-only {
+  width: var(--h-md);
+  padding: 0;
+  justify-content: center;
 }

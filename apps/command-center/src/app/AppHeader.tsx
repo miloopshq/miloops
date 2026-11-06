@@ -17,6 +17,7 @@ export function AppHeader(props: {
   onDecisions: () => void;
   onNewMission: () => void;
   onSettings: (focus: 'top' | 'slack') => void;
+  onToggleTheme: (night: boolean) => void;
 }) {
   const { api, rt, brief } = props;
   const { snap, actions } = api;
@@ -36,6 +37,7 @@ export function AppHeader(props: {
       onSelectMap={actions.selectMap}
       onToggleMode={() => snap && actions.setMode(snap.map.mode === 'plan-only' ? 'plan+execute' : 'plan-only')}
       onSettings={() => props.onSettings('top')}
+      onToggleTheme={props.onToggleTheme}
       attention={props.attention}
       slackAlert={slackAlert}
       onSlack={() => props.onSettings('slack')}

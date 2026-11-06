@@ -103,7 +103,7 @@
   grid-area: tabbar;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  background: #061013;
+  background: var(--panel-solid);
   border-top: 1px solid var(--line2);
   padding-bottom: env(safe-area-inset-bottom);
 }

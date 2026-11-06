@@ -1,4 +1,5 @@
 import { type HitlTranscriptMode, PRIMARY_AGENT, PREFS_KEY } from '@miloops-hq/core';
+import type { ThemeChoice } from './theme';
 
 /** GitHub and Linear are configured on the local server (repo/team and credentials); prefs only pick which one this browser shows. */
 export type TrackerChoice = 'markdown' | 'github' | 'linear';
@@ -12,6 +13,7 @@ export interface Prefs {
   linear: { team: string };
   /** "While you were away": shown on return after `awayMinutes` hidden or idle. */
   briefing: { enabled: boolean; awayMinutes: number };
+  theme: ThemeChoice;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -22,6 +24,7 @@ export const DEFAULT_PREFS: Prefs = {
   github: { repo: '' },
   linear: { team: '' },
   briefing: { enabled: true, awayMinutes: 15 },
+  theme: 'auto',
 };
 
 export function loadPrefs(): Prefs {

@@ -116,6 +116,21 @@
   padding: var(--sp-14) var(--gutter);
   text-align: center;
 }
+/* With art (Scout), the state reads as one compact row: the art, then the words. */
+.empty-state.has-art {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: var(--sp-12);
+  min-height: 0;
+  padding: var(--sp-10) 0;
+  text-align: left;
+}
+.empty-state .es-words {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
 .empty-state .es-mark {
   color: var(--faint);
   opacity: 0.8;

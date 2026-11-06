@@ -44,6 +44,7 @@ export function MapSections({
       {!bare && (
         <SectionHeader
           className="zone-title"
+          icon="flag"
           title="Mission plan"
           info="The parts of the plan that aren't tickets yet: open questions still to specify, the assumptions the plan relies on, decisions already made, what's ruled out, and notes. Report shows how the mission is going: lead times, your interventions, rework, reviews and cost per verified ticket."
         />

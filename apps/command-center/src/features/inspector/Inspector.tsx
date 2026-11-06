@@ -57,6 +57,7 @@ export function Inspector({
   return (
     <Zone
       area="inspector"
+      icon="note"
       title="Mission step"
       info="The ticket you selected on the map: what it is, who has it, what blocks it, and its decision once it's made."
       className="inspector"

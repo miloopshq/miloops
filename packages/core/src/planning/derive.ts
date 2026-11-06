@@ -57,8 +57,8 @@ export type LayoutDirection = 'LR' | 'TB';
  * pulled into a separate quarantine strip below the graph.
  */
 export function layout(tickets: Ticket[], direction: LayoutDirection = 'LR', mode: MapMode = DEFAULT_MAP_MODE) {
-  const LAYER = direction === 'LR' ? 240 : 88;
-  const LANE = direction === 'LR' ? 76 : 222;
+  const LAYER = direction === 'LR' ? 330 : 124;
+  const LANE = direction === 'LR' ? 112 : 262;
   const states = deriveStates(tickets, mode);
   const byId = new Map(tickets.map((t) => [t.id, t]));
   const depth = new Map<string, number>();

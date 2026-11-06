@@ -14,6 +14,7 @@ export function StepZone(props: ZoneProps) {
     <Panel className="zone step-zone" style={{ gridArea: 'step' }}>
       <SectionHeader
         className="zone-title"
+        icon="tent"
         title="Current mission step"
         info="What your agents are doing right now. The top shows the latest step an agent reported; below is every agent holding a ticket."
       />

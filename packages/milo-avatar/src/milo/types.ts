@@ -1,5 +1,5 @@
 export type MiloState = 'idle' | 'speaking' | 'alert' | 'thinking';
-export type MiloStyleId = 'crt' | 'mono';
+export type MiloStyleId = 'crt' | 'mono' | 'night';
 export type Eye = 'open' | 'closed' | 'aside' | 'wide';
 export type Mouth = 'rest' | 'open' | 'mid' | 'aside';
 export type Light = 'on' | 'dim' | 'alert';

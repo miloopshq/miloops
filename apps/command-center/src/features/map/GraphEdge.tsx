@@ -1,7 +1,8 @@
 import type { LaidOutNode, LayoutDirection } from '@miloops-hq/core';
 import { edgePath } from './edgePath';
 
-/** A blocking edge; a pending replan draws the ones it would add dashed and the ones it would remove struck. */
+/** A stretch of trail between two tickets: a cleared path with dashes on it. A pending replan draws the stretches it
+ * would add and remove differently. */
 export function GraphEdge(props: {
   from: LaidOutNode;
   to: LaidOutNode;
@@ -10,12 +11,18 @@ export function GraphEdge(props: {
   removed?: boolean;
 }) {
   const { from, to, direction } = props;
-  const open = from.ticket.state === 'open';
+  const walked = from.ticket.state !== 'open';
   const classes = [
     'edge',
-    open ? 'edge-open' : 'edge-done',
+    walked ? 'edge-done' : 'edge-open',
     props.added ? 'edge-added' : '',
     props.removed ? 'edge-removed' : '',
   ];
-  return <path className={classes.join(' ')} d={edgePath(direction, from, to)} markerEnd="url(#arrow)" />;
+  const d = edgePath(direction, from, to);
+  return (
+    <>
+      <path className="edge-path" d={d} />
+      <path className={classes.join(' ')} d={d} />
+    </>
+  );
 }

@@ -5,7 +5,7 @@
   z-index: 6;
   display: flex;
   flex-direction: column;
-  background: #070f12;
+  background: var(--panel-solid);
 }
 .bp-mobile .decisions-view {
   flex: 1;

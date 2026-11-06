@@ -3,7 +3,7 @@
   margin-left: var(--sp-4);
   padding: 0 5px;
   background: var(--amber);
-  color: #170b03;
+  color: var(--on-accent);
   font-size: var(--fs-xs);
 }
 .knowledge-view {

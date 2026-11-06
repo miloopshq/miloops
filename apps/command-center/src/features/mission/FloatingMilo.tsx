@@ -1,5 +1,6 @@
 import { MiloAvatar } from '@miloops-hq/milo-avatar';
 import { useEffect, useState } from 'react';
+import { useNight } from '../../hooks';
 
 const LINES = [
   'Ready when you are',
@@ -11,6 +12,7 @@ const REST_MS = 5000;
 
 /** The empty map's MILO: floating, blinking, saying a short line every few seconds. */
 export function FloatingMilo() {
+  const night = useNight();
   const [i, setI] = useState(0);
   const [talking, setTalking] = useState(true);
   useEffect(() => {
@@ -24,6 +26,7 @@ export function FloatingMilo() {
   return (
     <div className="floating-milo" aria-hidden="true">
       <MiloAvatar
+        variant={night ? 'night' : 'crt'}
         size={3}
         framed={false}
         speaking={talking ? LINES[i] : undefined}

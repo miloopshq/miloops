@@ -18,6 +18,7 @@ import { Changelog } from './Changelog';
 import { RiskPolicySection } from './RiskPolicySection';
 import { SettingsSection } from './SettingsSection';
 import { SlackSection } from './SlackSection';
+import { ThemeChoice } from './ThemeChoice';
 import { TranscriptChoice } from './TranscriptChoice';
 import { VerificationSection } from './VerificationSection';
 import { WorkspacesSection } from './WorkspacesSection';
@@ -95,6 +96,10 @@ export function SettingsPanel(props: {
                 value={prefs.hitlTranscript}
                 onChange={(hitlTranscript) => update({ hitlTranscript })}
               />
+            </SettingsSection>
+
+            <SettingsSection title="Appearance">
+              <ThemeChoice value={prefs.theme} onChange={(theme) => update({ theme })} />
             </SettingsSection>
 
             <SettingsSection title="Briefing">

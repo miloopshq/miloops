@@ -69,7 +69,7 @@ export function miloFace(m: ResolvedMilo, t: number, blinking: boolean, speaking
 export function miloLayout(rows: string[], m: ResolvedMilo, cursor: number) {
   const spriteW = rows[0]?.length ?? 32;
   const base = typeof m.size === 'number' ? m.size : SCALE[m.size];
-  const scale = base * (m.mini ? 2 : 32 / spriteW);
+  const scale = base * (m.mini ? 2 : 1);
   const bars = Math.floor((spriteW * scale) / (2 * base));
   const waveCursor = m.reduced ? Math.min(m.text.length - 1, bars - 1) : cursor;
   return { base, scale, bars, waveCursor };
