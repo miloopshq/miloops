@@ -92,80 +92,11 @@
   padding-left: var(--sp-18);
 }
 
-/* The selected ticket is one page of ruled paper: every line of text sits on a line of the page, so all vertical
- * sizes inside are whole rules. Lines are drawn a little above the bottom of each row, just under the baseline. */
-.inspector {
-  --rule: 22px;
-  --margin-x: 30px;
-  --margin-line: linear-gradient(
-    90deg,
-    transparent var(--margin-x),
-    var(--sheet-margin) var(--margin-x),
-    var(--sheet-margin) calc(var(--margin-x) + 1px),
-    transparent calc(var(--margin-x) + 1px)
-  );
-  background-color: var(--sheet);
-}
-.inspector .zone-title {
-  flex: 0 0 calc(var(--rule) * 2);
-  height: calc(var(--rule) * 2);
-  padding-left: calc(var(--margin-x) + 10px);
-  border-bottom: 1px solid var(--sheet-line);
-  background: var(--margin-line);
-}
-.inspector.zone > .zone-b,
-.zone-b.inspector {
-  padding: 0 var(--sp-14) var(--rule) calc(var(--margin-x) + 10px);
-  background-color: var(--sheet);
-  background-image:
-    var(--margin-line), linear-gradient(transparent calc(var(--rule) - 1px), var(--sheet-line) calc(var(--rule) - 1px));
-  background-size:
-    100% 100%,
-    100% var(--rule);
-  background-position:
-    0 0,
-    0 -3px;
-  background-attachment: local;
-  font-size: var(--fs-sm);
-  line-height: var(--rule);
-}
+/* Compact: the ticket reads as one column of text, without much air. */
 .inspector .detail {
-  gap: 0;
-  padding: 0;
+  gap: var(--sp-10);
 }
-.inspector .detail *:not(button, input, textarea, select, .btn) {
-  margin-block: 0;
-  padding-block: 0;
-  border-block: 0;
-  row-gap: 0;
-  min-height: 0;
-  height: auto;
-  line-height: var(--rule);
-}
-/* Each labelled part starts after one empty line. */
-.inspector .detail > :has(> .t-label),
-.inspector .detail > .edge-note,
-.inspector .detail > .lease-line {
-  margin-top: var(--rule);
-}
-.inspector .detail .t-heading {
-  font-size: 18px;
-}
-.inspector .detail .facts {
+.inspector .facts {
   grid-template-columns: 76px minmax(0, 1fr);
-  gap: 0 var(--sp-8);
-}
-.inspector .detail .edge-note {
-  gap: 0;
-  padding-left: 0;
-  border-left: 0;
-}
-.inspector .detail .pill {
-  border-inline: 0;
-  padding-inline: 0;
-}
-.inspector .empty-state {
-  align-items: flex-start;
-  text-align: left;
-  padding: var(--rule) 0;
+  gap: 2px var(--sp-8);
 }
