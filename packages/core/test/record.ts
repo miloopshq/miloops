@@ -2,7 +2,7 @@
  * Re-records the fixtures:  node packages/core/test/run.mjs record [fake|live]
  *   fake  flow fixtures against test/fakes (deterministic; no network)
  *   live  read-only calls against api.github.com (token from GITHUB_TOKEN or `gh auth token`; repo MILOOPS_LIVE_REPO,
- *         default miloopshq/miloops) and Linear's auth error. Tokens are never written: only method, path and body are kept.
+ *         default teamtrailhq/teamtrail) and Linear's auth error. Tokens are never written: only method, path and body are kept.
  */
 import { execFileSync } from 'node:child_process';
 import { GitHubAdapter, testGitHub } from '../src/adapters/remote/github';
@@ -180,7 +180,7 @@ function trimLive(req: Exchange['req'], body: unknown): unknown {
 
 async function recordLive() {
   const token = process.env.GITHUB_TOKEN || execFileSync('gh', ['auth', 'token'], { encoding: 'utf8' }).trim();
-  const repo = process.env.MILOOPS_LIVE_REPO || 'miloopshq/miloops';
+  const repo = process.env.MILOOPS_LIVE_REPO || 'teamtrailhq/teamtrail';
   const rec = recorder(fetch, trimLive);
   const test = await testGitHub({ repo, token, fetch: rec.fetch });
   const a = new GitHubAdapter({ repo, token, fetch: rec.fetch, manual: true });

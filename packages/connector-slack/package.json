@@ -5,7 +5,7 @@
   "author": "MILOOPS",
   "homepage": "https://miloops.vercel.app",
   "bugs": {
-    "url": "https://github.com/miloopshq/miloops/issues"
+    "url": "https://github.com/teamtrailhq/teamtrail/issues"
   },
   "description": "Slack for MILOOPS over Socket Mode: decisions from threads, agent questions as DMs. Runs inside the local server; tokens stay on the machine.",
   "type": "module",
@@ -17,7 +17,7 @@
   "license": "FSL-1.1-ALv2",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/miloopshq/miloops.git",
+    "url": "git+https://github.com/teamtrailhq/teamtrail.git",
     "directory": "packages/connector-slack"
   },
   "scripts": {

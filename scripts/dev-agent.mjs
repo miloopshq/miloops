@@ -4,7 +4,7 @@
 // tickets that need a human, waiting for your answer in the command center. Grilling questions are urgent
 // (blocking), prototype reviews can wait (soon), and the first one comes with a side question (fyi) the agent doesn't
 // wait for, so the ranked queue has something to rank and batch. Nothing is simulated.
-// Usage: npm run build -w miloops-cli   (once, and after CLI changes)
+// Usage: npm run build -w teamtrail   (once, and after CLI changes)
 //        npm run dev                (seeds and starts the command center)
 //        npm run dev:agent [agents=2] [mission=#1]
 import fs from 'node:fs';
@@ -15,7 +15,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cli = path.join(repo, 'packages/cli/dist/cli.js');
-if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w miloops-cli');
+if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w teamtrail');
 const count = Number(process.argv[2] ?? 2);
 const mission = process.argv[3] ?? '#1';
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));

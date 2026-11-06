@@ -1,5 +1,5 @@
 {
-  "name": "miloops-cli",
+  "name": "teamtrail",
   "version": "0.7.0",
   "author": "MILOOPS",
   "description": "MILOOPS: a local command center for your AI coding agents. One command opens it for the agents working in your repo.",
@@ -40,10 +40,10 @@
   "homepage": "https://miloops.vercel.app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/miloopshq/miloops.git",
+    "url": "git+https://github.com/teamtrailhq/teamtrail.git",
     "directory": "packages/cli"
   },
   "bugs": {
-    "url": "https://github.com/miloopshq/miloops/issues"
+    "url": "https://github.com/teamtrailhq/teamtrail/issues"
   }
 }

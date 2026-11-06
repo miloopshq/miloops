@@ -5,14 +5,14 @@
   "author": "MILOOPS",
   "homepage": "https://miloops.vercel.app",
   "bugs": {
-    "url": "https://github.com/miloopshq/miloops/issues"
+    "url": "https://github.com/teamtrailhq/teamtrail/issues"
   },
   "description": "Pixel-art MILO avatar: a React component plus a framework-free renderer (mountMilo).",
   "type": "module",
   "license": "FSL-1.1-ALv2",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/miloopshq/miloops.git",
+    "url": "git+https://github.com/teamtrailhq/teamtrail.git",
     "directory": "packages/milo-avatar"
   },
   "exports": {

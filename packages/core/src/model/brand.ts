@@ -9,8 +9,8 @@ const slug = 'miloops';
 
 export const BRAND = {
   slug,
-  /** The npm package (`npx miloops-cli`, `npm i -g miloops-cli`). Its command is still `miloops`. */
-  npm: 'miloops-cli',
+  /** The npm package (`npx teamtrail`, `npm i -g teamtrail`). Its command is still `miloops`. */
+  npm: 'teamtrail',
   /** Display name for HUD headings. */
   name: 'MILOOPS',
   /** Two-tone wordmark: `lead + ops` spells `name`; `ops` renders in the brand amber. */
