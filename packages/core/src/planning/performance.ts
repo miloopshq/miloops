@@ -72,6 +72,12 @@ function findingsOf(snap: MapSnapshot, journal: TransitionEntry[]) {
   });
 }
 
+/** A ticket's assignee, when it's an agent's trail name (`codex-03`). People assigned to a ticket aren't agents or vendors. */
+function agentAssignee(snap: MapSnapshot, ticketId: string) {
+  const assignee = snap.tickets.find((t) => t.id === ticketId)?.assignee;
+  return assignee && /^[a-z]+-\d+$/.test(assignee) ? assignee : undefined;
+}
+
 function row(key: string, items: Attributed[]): PerformanceRow {
   const sum = (f: (t: TicketDelivery) => number) => items.reduce((n, { ticket }) => n + f(ticket), 0);
   const count = (outcome: TicketDelivery['outcome']) => items.filter((i) => i.ticket.outcome === outcome).length;
@@ -124,8 +130,7 @@ export function performanceReport(trails: DeliveryInput[]): PerformanceReport {
     deliveryReport({ snap, journal, answered, usage }).tickets.map((ticket) => ({
       ticket,
       // Tickets closed before the journal existed still name who worked on them.
-      agent:
-        lastClaim(entriesOf(journal, snap.map.id, ticket.id)) ?? snap.tickets.find((t) => t.id === ticket.id)?.assignee,
+      agent: lastClaim(entriesOf(journal, snap.map.id, ticket.id)) ?? agentAssignee(snap, ticket.id),
     })),
   );
   const vendorKey = (i: Attributed) => (i.agent ? vendorOf(i.agent) : undefined);
