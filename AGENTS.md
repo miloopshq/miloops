@@ -30,7 +30,7 @@ npm workspaces monorepo. Node 20+, TypeScript, ESM.
 | `apps/lookout` | The React + Vite web UI, bundled into the CLI. |
 | `packages/connector-slack` | The optional Slack connector: questions, approvals and briefings in Slack. |
 | `packages/scout-avatar` | The Teamtrail logo (`src/logo/`) and Scout's badge (`src/scout/badgeArt.ts`): a React component and a framework-free renderer (`mountScout`). |
-| `scripts` | Dev tooling: the seed (`scripts/seed-dev.ts`, with M4's policy, assumptions and proposals in `scripts/seedSupervision.ts` and M3's worktree setting and overlapping claims in `scripts/seedParallel.ts`), scripted MCP dev agents (`scripts/dev-agent.mjs`), the end-to-end check (`scripts/verify-mcp.mjs`, M4 steps in `scripts/verifySupervision.mjs`, M3 steps on a scratch git repo in `scripts/verifyParallel.mjs`) and the local npm registry (`scripts/registry-local.mjs`). |
+| `scripts` | Dev tooling: the seed (`scripts/seed-dev.ts`, with M4's policy, assumptions and proposals in `scripts/seedSupervision.ts` M3's worktree setting and overlapping claims in `scripts/seedParallel.ts`, and a finished trail for Trail stats in `scripts/seedHistory.ts`), scripted MCP dev agents (`scripts/dev-agent.mjs`), the end-to-end check (`scripts/verify-mcp.mjs`, M4 steps in `scripts/verifySupervision.mjs`, M3 steps on a scratch git repo in `scripts/verifyParallel.mjs`) and the local npm registry (`scripts/registry-local.mjs`). |
 | `.github/workflows` | CI (`ci.yml`, runs `npm run check`) and the manual Release workflow (`release.yml`). |
 
 The landing site lives in its own repo, `teamtrailhq/teamtrail-landing`.
