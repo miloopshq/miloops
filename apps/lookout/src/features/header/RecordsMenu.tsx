@@ -11,6 +11,7 @@ const BRIEFING_TITLE: Record<BriefingStatus, string> = {
 export function RecordsMenu(props: {
   decisions: number;
   onDecisions: () => void;
+  onStats: () => void;
   knowledge: number;
   onKnowledge: () => void;
   briefingOpen: boolean;
@@ -66,6 +67,17 @@ export function RecordsMenu(props: {
           >
             <span>Logbook</span>
             <span className="n">{props.decisions}</span>
+          </button>
+          <button
+            role="menuitem"
+            className="header-menu-item stats-btn"
+            title="How your agents deliver across trails, by vendor, agent and ticket type."
+            onClick={() => {
+              close();
+              props.onStats();
+            }}
+          >
+            <span>Trail stats</span>
           </button>
         </>
       )}

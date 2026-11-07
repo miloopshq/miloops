@@ -15,3 +15,4 @@ export { useRepoName } from './useRepoName';
 export { useScopedActivity } from './useScopedActivity';
 export { useTrailUi } from './useTrailUi';
 export { useAttentionUi } from './useAttentionUi';
+export { RecordViews } from './RecordViews';

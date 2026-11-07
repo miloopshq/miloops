@@ -9,6 +9,12 @@ export interface Release {
 
 export const NEXT: { area: string; items: string[] }[] = [
   {
+    area: 'Trail stats',
+    items: [
+      "Records has a new Trail stats view: delivery across every trail, by vendor, agent and ticket type, with plain observations from your own numbers. Teamtrail doesn't route work from them",
+    ],
+  },
+  {
     area: 'New name, new look',
     items: [
       'MILOOPS is now Teamtrail. Missions are trails, the command center is the Lookout, MILO is Scout, and `/milo` is `/scout`',
