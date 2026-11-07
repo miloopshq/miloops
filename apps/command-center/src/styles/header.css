@@ -6,15 +6,6 @@
   gap: 16px;
   padding: 0 var(--gutter);
 }
-.h-brand {
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: var(--sp-10);
-  padding-right: 16px;
-  border-right: 1px solid var(--line);
-  height: 38px;
-}
 .wordmark {
   font-family: var(--display);
   font-weight: 700;
@@ -179,9 +170,6 @@
 .bp-laptop .mission-meta .readout:not(.spend) {
   display: none;
 }
-.bp-laptop .h-brand {
-  padding-right: var(--sp-12);
-}
 .bp-laptop .header {
   gap: var(--sp-12);
 }
@@ -200,9 +188,6 @@
   .bp-wide .waiting-chip .wl,
   .bp-wide .tracker-chip:not(.sync-error, .tone-stale, .tone-failed) {
     display: none;
-  }
-  .bp-wide .h-brand {
-    padding-right: var(--sp-12);
   }
 }
 .bp-mobile .briefing-btn .bl {

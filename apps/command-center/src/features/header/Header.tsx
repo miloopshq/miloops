@@ -13,7 +13,6 @@ import { Panel, MiloMark, Label, Readout, Button } from '../../components/ui';
 import { type BriefingStatus, useNow } from '../../hooks';
 import { hms, tokens, usd } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
-import { HeaderMilo } from './HeaderMilo';
 import { MissionSwitcher } from './MissionSwitcher';
 import { RecordsMenu } from './RecordsMenu';
 import { ThemeToggle } from './ThemeToggle';
@@ -55,9 +54,6 @@ export function Header(props: {
   const u = map && missionUsage(props.activity, map.id);
   return (
     <Panel as="header" className="header">
-      <div className="h-brand">
-        <HeaderMilo />
-      </div>
       <div className="h-title">
         <div className="h-line1">
           <span className="repo">{props.repo}</span>
