@@ -1,4 +1,4 @@
-/** What a call touches, for the risk policy (`.miloops/policy.json`). */
+/** What a call touches, for the risk policy (`.teamtrail/policy.json`). */
 export const RISK_CATEGORIES = [
   'schema',
   'breaking-api',

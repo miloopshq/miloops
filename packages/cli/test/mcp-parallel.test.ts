@@ -5,7 +5,7 @@ import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let top: string;
@@ -14,7 +14,7 @@ const open: { close(): void | Promise<void> }[] = [];
 const sh = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
 
 async function connect(agentName: string) {
-  const agent = new MissionAgent({ root, agent: agentName, pollMs: 20 });
+  const agent = new TrailAgent({ root, agent: agentName, pollMs: 20 });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -28,8 +28,8 @@ async function connect(agentName: string) {
 }
 
 beforeEach(() => {
-  top = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-parallel-')), 'app');
-  root = path.join(top, '.miloops');
+  top = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-parallel-')), 'app');
+  root = path.join(top, '.teamtrail');
   fs.mkdirSync(root, { recursive: true });
   sh(top, 'init', '-q', '-b', 'main');
   fs.writeFileSync(path.join(top, 'readme.md'), 'hi\n');
@@ -52,7 +52,7 @@ describe('parallel work over MCP', () => {
   it('gives each claim its own worktree, warns on overlapping files, and reports the branch on completion', async () => {
     const one = await connect('claude-01');
     const two = await connect('codex-01');
-    await one('start_mission', {
+    await one('start_trail', {
       discovery: false,
       title: 'Search',
       destination: 'Readers find a release',
@@ -67,7 +67,7 @@ describe('parallel work over MCP', () => {
     expect(b.warnings?.[0]).toMatchObject({ ticket: a.claimed.key, agent: 'claude-01' });
     expect(b.warnings?.[0].message).toMatch(/src\/search\/index\.ts and src\/search\/\*\*/);
     for (const c of [a, b]) {
-      expect(c.workspace?.branch).toMatch(/^miloops\/search\/\d+$/);
+      expect(c.workspace?.branch).toMatch(/^teamtrail\/search\/\d+$/);
       expect(sh(c.workspace?.path ?? '', 'rev-parse', '--abbrev-ref', 'HEAD')).toBe(c.workspace?.branch);
     }
     const status = await one<{ parallel: { workspaces: unknown[]; declared: string[] } }>('status');
@@ -85,7 +85,7 @@ describe('parallel work over MCP', () => {
   it('claims without a workspace, and says why, outside a git repository', async () => {
     fs.rmSync(path.join(top, '.git'), { recursive: true, force: true });
     const one = await connect('claude-01');
-    await one('start_mission', {
+    await one('start_trail', {
       discovery: false,
       title: 'Docs',
       destination: 'Docs are clear',

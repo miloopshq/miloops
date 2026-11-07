@@ -12,7 +12,7 @@ export interface MismatchInput {
 const IN_PROGRESS: TicketPhase[] = ['working', 'verifying', 'rework'];
 
 /**
- * Where the ticket and its PR disagree. Flags inform the operator; nothing
+ * Where the ticket and its PR disagree. Flags inform the trail lead; nothing
  * here, or in the reconciler, changes the ticket.
  */
 export function mismatchFlags(m: MismatchInput, prev: SyncFlag[], now: number): SyncFlag[] {

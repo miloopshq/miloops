@@ -22,7 +22,7 @@ const READS = new Set([
 
 export interface SlackApiOptions {
   token: string;
-  /** Base URL ending in `/api` (default https://slack.com/api); $MILOOPS_SLACK_API points it at a fake. */
+  /** Base URL ending in `/api` (default https://slack.com/api); $TEAMTRAIL_SLACK_API points it at a fake. */
   apiUrl?: string;
   fetch?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;

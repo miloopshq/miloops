@@ -1,5 +1,5 @@
-import { BRAND, type AgentSessionDoc, type MapSnapshot, type Ticket, type TrackerAdapter } from '@miloops-hq/core';
-import { readAgentDocs } from '@miloops-hq/core/bridge';
+import { BRAND, type AgentSessionDoc, type MapSnapshot, type Ticket, type TrackerAdapter } from '@teamtrail/core';
+import { readAgentDocs } from '@teamtrail/core/bridge';
 import { SlackApiError } from '../api';
 import { clip, decisionModal, escape, loadingModal, noticeModal, type DecisionForm } from '../blocks';
 import { deterministicSummary, plainText, type ThreadMessage } from '../summary';
@@ -18,7 +18,7 @@ export async function openDecision(ctx: SlackContext, trigger: string, meta: Dec
   if (!maps.length) {
     await ctx.call('views.update', {
       view_id: viewId,
-      view: noticeModal(JSON.stringify(meta), `No missions yet. Start one in ${BRAND.name}, then save this again.`),
+      view: noticeModal(JSON.stringify(meta), `No trails yet. Start one in ${BRAND.name}, then save this again.`),
     });
     return;
   }
@@ -56,7 +56,7 @@ export async function openDecision(ctx: SlackContext, trigger: string, meta: Dec
   const summary = deterministicSummary(messages, meta.m);
   const asks = ctx.asks.read();
   const inThread = meta.t ? Object.values(asks).find((a) => a.channel === meta.c && a.ts === meta.t) : undefined;
-  meta.mid = [inThread?.view?.mapId, ctx.store.read().channelMission[meta.c], maps[0].id].find(
+  meta.mid = [inThread?.view?.mapId, ctx.store.read().channelTrail[meta.c], maps[0].id].find(
     (id) => id && maps.some((m) => m.id === id),
   )!;
   const form = await decisionForm(
@@ -86,7 +86,7 @@ export async function decisionForm(
   const related = relatedTicket(snap, docs, o.related);
   const tickets = snap.tickets.filter((t) => isDecisionTicket(t) || t.id === related?.id);
   return {
-    missions: maps.map((m) => ({ id: m.id, label: `${m.key} ${m.title}` })),
+    trails: maps.map((m) => ({ id: m.id, label: `${m.key} ${m.title}` })),
     mapId,
     tickets: tickets.map((t) => ({ id: t.id, label: `${t.key} ${t.title}` })),
     ticketId: related?.id,
@@ -96,7 +96,7 @@ export async function decisionForm(
     thread: o.meta.t
       ? { channel: o.meta.cn, count: o.count, participants: (o.meta.p ?? []).map(([, n]) => n), permalink: o.meta.l }
       : undefined,
-    postsTo: `${adapter.label} · mission ${snap.map.key}${related ? ` · ${related.key}` : ''}`,
+    postsTo: `${adapter.label} · trail ${snap.map.key}${related ? ` · ${related.key}` : ''}`,
   };
 }
 
@@ -117,7 +117,7 @@ export function relatedTicket(snap: MapSnapshot, docs: AgentSessionDoc[], askTic
   return open.filter((t) => isDecisionTicket(t) && t.assignee).sort((a, b) => b.updatedAt - a.updatedAt)[0];
 }
 
-export async function changeMission(ctx: SlackContext, view: Payload, mapId: string) {
+export async function changeTrail(ctx: SlackContext, view: Payload, mapId: string) {
   const meta = JSON.parse(view.private_metadata) as DecisionMeta;
   const values = (view.state?.values ?? {}) as Record<string, Record<string, Payload>>;
   meta.mid = mapId;

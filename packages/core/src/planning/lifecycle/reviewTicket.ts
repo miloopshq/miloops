@@ -7,7 +7,7 @@ import { transition } from './transition';
 export const openReviews = (snap: MapSnapshot, ticketId: string) =>
   snap.tickets.filter((t) => t.type === 'review' && t.reviewOf === ticketId && t.state === 'open');
 
-/** A `review` ticket for `reviewOf`; only MILOOPS creates them, when checks pass at a review level. */
+/** A `review` ticket for `reviewOf`; only Teamtrail creates them, when checks pass at a review level. */
 export async function createReviewTicket(
   adapter: TrackerAdapter,
   mapId: string,

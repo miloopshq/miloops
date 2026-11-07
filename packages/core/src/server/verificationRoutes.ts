@@ -24,7 +24,7 @@ function request(b: Record<string, unknown>): OperatorRequest {
     action: b.action as OperatorAction,
     mapId,
     ticketId: str(b.ticketId),
-    by: str(b.by) ?? 'operator',
+    by: str(b.by) ?? 'trail lead',
     reason: str(b.reason),
     to: b.to === 'ready' || b.to === 'rework' ? b.to : undefined,
     ...(b.action === 'level' ? { level } : {}),
@@ -36,7 +36,7 @@ function request(b: Record<string, unknown>): OperatorRequest {
  *   GET  /verification/config                     the parsed `verification.json`, read-only
  *   GET  /verification/ticket?mapId=&ticketId=    level, attempts and verdicts (newest first), the run in progress
  *   GET  /verification/log?path=                  the end of a check log under `.evidence/`
- *   GET  /verification/inbox                      tickets waiting on the operator (ApprovalItem[]), every mission
+ *   GET  /verification/inbox                      tickets waiting on the trail lead (ApprovalItem[]), every trail
  *   POST /verification/action                     OperatorRequest → `{ attemptId? }`
  * The config file is edited in the repo, never through the API, so an agent
  * with API access cannot change what verifies its own work.

@@ -1,8 +1,8 @@
 import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
-import { BRAND } from '@miloops-hq/core';
-import MILO_COMMAND from '../commands/milo.md';
+import { BRAND } from '@teamtrail/core';
+import SCOUT_COMMAND from '../commands/scout.md';
 import { writeIfChanged } from './files';
 import { installClaudeHook } from './usage/hook';
 
@@ -16,14 +16,14 @@ export function serverArgs(dir?: string) {
   return ['-y', BRAND.npm, 'mcp', ...(dir && dir !== BRAND.dataDir ? ['--dir', dir] : [])];
 }
 
-/** `miloops connect claude|codex`: register the MCP server with the agent and install the `/milo` command. */
+/** `teamtrail connect claude|codex`: register the MCP server with the agent and install the `/scout` command. */
 export function runConnect(target: ConnectTarget, opts: { cwd: string; dir?: string; print?: (s: string) => void }) {
   const print = opts.print ?? ((s: string) => process.stdout.write(`${s}\n`));
   const args = serverArgs(opts.dir);
   const quoted = ['npx', ...args].join(' ');
   if (target === 'claude') {
-    const file = path.join(opts.cwd, '.claude', 'commands', 'milo.md');
-    print(`  /milo command   ${writeIfChanged(file, MILO_COMMAND)} · ${path.relative(opts.cwd, file)}`);
+    const file = path.join(opts.cwd, '.claude', 'commands', 'scout.md');
+    print(`  /scout command   ${writeIfChanged(file, SCOUT_COMMAND)} · ${path.relative(opts.cwd, file)}`);
     const add = ['mcp', 'add', BRAND.slug, '--', 'npx', ...args];
     if (has('claude')) {
       const r = spawnSync('claude', add, { cwd: opts.cwd, encoding: 'utf8' });
@@ -39,12 +39,12 @@ export function runConnect(target: ConnectTarget, opts: { cwd: string; dir?: str
     print(
       `  Usage hook      ${installClaudeHook(settings, opts.dir)} · ${path.relative(opts.cwd, settings)} (SessionStart: tokens and cost come from the session transcript)`,
     );
-    print(`\n  In Claude Code: /milo new "<idea>", /milo resume, /milo status, /milo inbox`);
+    print(`\n  In Claude Code: /scout new "<idea>", /scout resume, /scout status, /scout inbox`);
     return;
   }
   const home = process.env.CODEX_HOME || path.join(os.homedir(), '.codex');
-  const file = path.join(home, 'prompts', 'milo.md');
-  print(`  /milo prompt    ${writeIfChanged(file, MILO_COMMAND)} · ${file}`);
+  const file = path.join(home, 'prompts', 'scout.md');
+  print(`  /scout prompt    ${writeIfChanged(file, SCOUT_COMMAND)} · ${file}`);
   // Codex passes MCP servers only a few env vars; a custom CODEX_HOME must be forwarded for the rollout logs to be found.
   const env = process.env.CODEX_HOME ? ['--env', `CODEX_HOME=${process.env.CODEX_HOME}`] : [];
   if (has('codex')) {
@@ -63,5 +63,7 @@ export function runConnect(target: ConnectTarget, opts: { cwd: string; dir?: str
     `\n  [mcp_servers.${BRAND.slug}]\n  command = "npx"\n  args = [${args.map((a) => JSON.stringify(a)).join(', ')}]\n  tool_timeout_sec = 900` +
       (process.env.CODEX_HOME ? `\n  env = { CODEX_HOME = ${JSON.stringify(process.env.CODEX_HOME)} }` : ''),
   );
-  print(`\n  In Codex: /prompts:milo new "<idea>", /prompts:milo resume, /prompts:milo status, /prompts:milo inbox`);
+  print(
+    `\n  In Codex: /prompts:scout new "<idea>", /prompts:scout resume, /prompts:scout status, /prompts:scout inbox`,
+  );
 }

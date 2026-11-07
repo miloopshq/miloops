@@ -34,7 +34,7 @@ async function post<T>(url: string, method: string, body?: unknown): Promise<T> 
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new TrackerError('offline', 'Command center server unreachable; is `miloops` still running?');
+    throw new TrackerError('offline', 'Lookout server unreachable; is `teamtrail` still running?');
   }
   const j = (await r.json().catch(() => ({}))) as {
     result?: T;
@@ -48,7 +48,7 @@ async function post<T>(url: string, method: string, body?: unknown): Promise<T> 
 
 /**
  * A GitHub or Linear tracker as seen from the browser. The real adapter and
- * its credentials live in the local `miloops` process; this forwards calls
+ * its credentials live in the local `teamtrail` process; this forwards calls
  * and streams its events, so tokens never reach the page.
  */
 export class BridgeAdapter implements TrackerAdapter {
@@ -113,7 +113,7 @@ export class BridgeAdapter implements TrackerAdapter {
     });
     es.onerror = () => {
       if (this.status.state === 'offline') return;
-      this.status = { ...this.status, state: 'offline', error: 'Command center server unreachable' };
+      this.status = { ...this.status, state: 'offline', error: 'Lookout server unreachable' };
       this.statusEvents.emit(this.status);
     };
     this.source = es;

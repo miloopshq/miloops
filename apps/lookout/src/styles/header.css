@@ -1,0 +1,239 @@
+/* ---------- Header ---------- */
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 var(--gutter);
+}
+.wordmark {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: var(--fs-heading);
+  line-height: 1;
+  color: var(--text-hi);
+}
+.h-title {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.h-line1 {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-8);
+  min-width: 0;
+}
+.repo {
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-data);
+  white-space: nowrap;
+}
+.sep {
+  color: var(--faint);
+}
+.h-dest {
+  color: var(--text);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.h-dest .chip-label {
+  margin-right: var(--sp-8);
+}
+.h-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-10);
+  flex: 0 0 auto;
+}
+.mode-chip {
+  color: var(--accent);
+}
+/* Three groups: tracker + PR sync, trail time + done, buttons. Divided by a rule, everything on one centre line. */
+.h-right .trail-meta {
+  height: var(--h-sm);
+  align-items: center;
+  gap: var(--sp-14);
+  padding: 0 var(--sp-18);
+  margin: 0 var(--sp-6);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+}
+.h-right .trail-meta .readout {
+  flex-direction: row;
+  align-items: baseline;
+  gap: var(--sp-6);
+}
+.h-right .trail-meta .readout > .mono-label {
+  font-size: var(--fs-label);
+}
+.h-right .trail-meta .readout > b {
+  font-size: var(--fs-body);
+}
+.h-right .tracker-chip + .tracker-chip {
+  margin-left: var(--sp-4);
+}
+.tracker-chip {
+  height: var(--h-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.sync-glyph {
+  color: var(--faint);
+  flex: 0 0 auto;
+}
+.sync-ok .sync-glyph {
+  color: var(--st-decided);
+}
+.sync-syncing .sync-glyph {
+  color: var(--amber);
+}
+.sync-error .sync-glyph {
+  color: var(--urgent);
+}
+.sync-error .tl {
+  color: var(--urgent);
+}
+.bars rect.on {
+  fill: var(--accent);
+  opacity: 0.75;
+}
+.bars rect.off {
+  fill: var(--line2);
+}
+.bars rect.hot {
+  fill: var(--amber);
+}
+.waiting-chip {
+  height: var(--h-sm);
+  padding: 0 var(--sp-10);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  background: var(--urgent);
+  color: var(--on-urgent);
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.waiting-chip b {
+  font-weight: 400;
+}
+.briefing-btn .scout-mark {
+  color: var(--accent);
+}
+/* A briefing not opened yet: accent outline plus a dot. */
+.briefing-btn.has-new {
+  border-color: var(--accent);
+  color: var(--text-hi);
+}
+.briefing-btn .new-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2);
+}
+/* Laptop: the trail title gets the room; secondary readouts collapse to glyph + number. */
+.bp-laptop .wordmark,
+.bp-laptop .repo,
+.bp-laptop .h-line1 .sep,
+.bp-laptop .tracker-chip .chip-label,
+.bp-laptop .waiting-chip .wl {
+  display: none;
+}
+/* Below 1800px the tracker and PR sync chips only show (with their text) when something is wrong;
+ * a bare status dot said nothing. Their full state stays in Settings. */
+.bp-laptop .tracker-chip:not(.sync-error, .tone-stale, .tone-failed) {
+  display: none;
+}
+/* Laptop keeps the spend readout; time and done move out. */
+.bp-laptop .trail-meta .readout:not(.spend) {
+  display: none;
+}
+.bp-laptop .header {
+  gap: var(--sp-12);
+}
+.bp-laptop .h-right {
+  gap: var(--sp-6);
+}
+.bp-laptop .h-right .btn:not(.sm) {
+  padding: 0 var(--sp-8);
+}
+.bp-laptop .waiting-chip {
+  padding: 0 var(--sp-8);
+}
+@media (max-width: 1799px) {
+  .bp-wide .wordmark,
+  .bp-wide .tracker-chip .chip-label,
+  .bp-wide .waiting-chip .wl,
+  .bp-wide .tracker-chip:not(.sync-error, .tone-stale, .tone-failed) {
+    display: none;
+  }
+}
+.bp-mobile .briefing-btn .bl {
+  display: none;
+}
+
+/* Records menu: the views you open now and then, grouped behind one button. */
+.header-menu {
+  position: relative;
+}
+.header-menu .caret {
+  color: var(--dim);
+}
+.header-menu-list {
+  position: absolute;
+  top: calc(100% + var(--sp-6));
+  right: 0;
+  z-index: 25;
+  min-width: 180px;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-solid);
+  border: 1px solid var(--line2);
+  box-shadow: 0 12px 32px var(--shadow-color);
+}
+.header-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-12);
+  min-height: var(--h-md);
+  padding: 0 var(--sp-10);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-hi);
+  cursor: pointer;
+}
+.header-menu-item:hover:not(:disabled) {
+  background: var(--panel2);
+}
+.header-menu-item:disabled {
+  color: var(--faint);
+  cursor: default;
+}
+.btn.icon-only {
+  width: var(--h-md);
+  padding: 0;
+  justify-content: center;
+}

@@ -7,7 +7,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Missions",
+        "operation": "Trails",
         "variables": {
           "filter": {
             "team": {
@@ -18,7 +18,7 @@
             "labels": {
               "some": {
                 "name": {
-                  "eq": "miloops:map"
+                  "eq": "teamtrail:map"
                 }
               }
             }
@@ -49,7 +49,7 @@
         "operation": "Team",
         "variables": {
           "id": "team-eng",
-          "prefix": "miloops:"
+          "prefix": "teamtrail:"
         }
       },
       "res": {
@@ -115,7 +115,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:map",
+            "name": "teamtrail:map",
             "color": "#5b6b7a",
             "teamId": "team-eng"
           }
@@ -134,7 +134,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0001-fake",
-                "name": "miloops:map"
+                "name": "teamtrail:map"
               }
             }
           }
@@ -148,7 +148,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:plan-only",
+            "name": "teamtrail:plan-only",
             "color": "#7a6f5b",
             "teamId": "team-eng"
           }
@@ -167,7 +167,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0002-fake",
-                "name": "miloops:plan-only"
+                "name": "teamtrail:plan-only"
               }
             }
           }
@@ -181,7 +181,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:hitl",
+            "name": "teamtrail:hitl",
             "color": "#d97706",
             "teamId": "team-eng"
           }
@@ -200,7 +200,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0003-fake",
-                "name": "miloops:hitl"
+                "name": "teamtrail:hitl"
               }
             }
           }
@@ -214,7 +214,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:research",
+            "name": "teamtrail:research",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -233,7 +233,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0004-fake",
-                "name": "miloops:research"
+                "name": "teamtrail:research"
               }
             }
           }
@@ -247,7 +247,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:prototype",
+            "name": "teamtrail:prototype",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -266,7 +266,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0005-fake",
-                "name": "miloops:prototype"
+                "name": "teamtrail:prototype"
               }
             }
           }
@@ -280,7 +280,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:grilling",
+            "name": "teamtrail:junction",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -299,7 +299,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0006-fake",
-                "name": "miloops:grilling"
+                "name": "teamtrail:junction"
               }
             }
           }
@@ -313,7 +313,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:task",
+            "name": "teamtrail:task",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -332,7 +332,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0007-fake",
-                "name": "miloops:task"
+                "name": "teamtrail:task"
               }
             }
           }
@@ -346,7 +346,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:execute",
+            "name": "teamtrail:execute",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -365,7 +365,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0008-fake",
-                "name": "miloops:execute"
+                "name": "teamtrail:execute"
               }
             }
           }
@@ -379,7 +379,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:review",
+            "name": "teamtrail:review",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -398,7 +398,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0009-fake",
-                "name": "miloops:review"
+                "name": "teamtrail:review"
               }
             }
           }
@@ -448,7 +448,7 @@
                   "nodes": [
                     {
                       "id": "lbl-0001-fake",
-                      "name": "miloops:map"
+                      "name": "teamtrail:map"
                     }
                   ]
                 },
@@ -471,7 +471,7 @@
           "input": {
             "teamId": "team-eng",
             "title": "Survey CRDT libraries",
-            "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.",
+            "description": "Compare Automerge and Yjs.\n\nPart of trail ENG-1.",
             "parentId": "iss-0010-fake",
             "labelIds": [
               "lbl-0004-fake"
@@ -494,7 +494,7 @@
                 "id": "iss-0011-fake",
                 "identifier": "ENG-2",
                 "title": "Survey CRDT libraries",
-                "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.",
+                "description": "Compare Automerge and Yjs.\n\nPart of trail ENG-1.",
                 "createdAt": "2026-10-31T12:00:02.000Z",
                 "updatedAt": "2026-10-31T12:00:02.000Z",
                 "completedAt": null,
@@ -506,7 +506,7 @@
                   "nodes": [
                     {
                       "id": "lbl-0004-fake",
-                      "name": "miloops:research"
+                      "name": "teamtrail:research"
                     }
                   ]
                 },
@@ -529,7 +529,7 @@
           "input": {
             "teamId": "team-eng",
             "title": "Pick a conflict policy",
-            "description": "Last-writer-wins or merge?\n\nPart of mission ENG-1.",
+            "description": "Last-writer-wins or merge?\n\nPart of trail ENG-1.",
             "parentId": "iss-0010-fake",
             "labelIds": [
               "lbl-0006-fake"
@@ -552,7 +552,7 @@
                 "id": "iss-0012-fake",
                 "identifier": "ENG-3",
                 "title": "Pick a conflict policy",
-                "description": "Last-writer-wins or merge?\n\nPart of mission ENG-1.",
+                "description": "Last-writer-wins or merge?\n\nPart of trail ENG-1.",
                 "createdAt": "2026-10-31T12:00:03.000Z",
                 "updatedAt": "2026-10-31T12:00:03.000Z",
                 "completedAt": null,
@@ -564,7 +564,7 @@
                   "nodes": [
                     {
                       "id": "lbl-0006-fake",
-                      "name": "miloops:grilling"
+                      "name": "teamtrail:junction"
                     }
                   ]
                 },
@@ -616,7 +616,7 @@
         "variables": {
           "id": "iss-0011-fake",
           "input": {
-            "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->"
+            "description": "Compare Automerge and Yjs.\n\nPart of trail ENG-1.\n\n<!-- teamtrail:meta {\"assignee\":\"claude-07\"} -->"
           }
         }
       },
@@ -645,7 +645,7 @@
         "variables": {
           "input": {
             "issueId": "iss-0011-fake",
-            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0dxwaoj -->\nYjs has the smaller bundle."
+            "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0dxwaoj -->\nYjs has the smaller bundle."
           }
         }
       },
@@ -676,7 +676,7 @@
         "variables": {
           "input": {
             "issueId": "iss-0011-fake",
-            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01f3b0if -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support."
+            "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc01f3b0if -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support."
           }
         }
       },
@@ -736,7 +736,7 @@
         "variables": {
           "input": {
             "issueId": "iss-0011-fake",
-            "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000} -->"
+            "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000} -->"
           }
         }
       },
@@ -796,7 +796,7 @@
         "variables": {
           "input": {
             "issueId": "iss-0011-fake",
-            "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->"
+            "body": "**Decision D-2** · trail lead · Lookout\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- teamtrail:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"trail lead\",\"source\":{\"kind\":\"lookout\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"trail lead\"}],\"transcript\":[]} -->"
           }
         }
       },
@@ -827,7 +827,7 @@
         "variables": {
           "id": "cmt-0015-fake",
           "input": {
-            "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
+            "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
           }
         }
       },
@@ -912,7 +912,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Missions",
+        "operation": "Trails",
         "variables": {
           "filter": {
             "team": {
@@ -923,7 +923,7 @@
             "labels": {
               "some": {
                 "name": {
-                  "eq": "miloops:map"
+                  "eq": "teamtrail:map"
                 }
               }
             }
@@ -957,7 +957,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Mission",
+        "operation": "Trail",
         "variables": {
           "id": "iss-0010-fake"
         }
@@ -988,11 +988,11 @@
                 "nodes": [
                   {
                     "id": "lbl-0001-fake",
-                    "name": "miloops:map"
+                    "name": "teamtrail:map"
                   },
                   {
                     "id": "lbl-0002-fake",
-                    "name": "miloops:plan-only"
+                    "name": "teamtrail:plan-only"
                   }
                 ]
               },
@@ -1006,7 +1006,7 @@
                     "id": "iss-0011-fake",
                     "identifier": "ENG-2",
                     "title": "Survey CRDT libraries",
-                    "description": "Compare Automerge and Yjs.\n\nPart of mission ENG-1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->",
+                    "description": "Compare Automerge and Yjs.\n\nPart of trail ENG-1.\n\n<!-- teamtrail:meta {\"assignee\":\"claude-07\"} -->",
                     "createdAt": "2026-10-31T12:00:02.000Z",
                     "updatedAt": "2026-10-31T12:00:08.000Z",
                     "completedAt": "2026-10-31T12:00:07.000Z",
@@ -1018,7 +1018,7 @@
                       "nodes": [
                         {
                           "id": "lbl-0004-fake",
-                          "name": "miloops:research"
+                          "name": "teamtrail:research"
                         }
                       ]
                     },
@@ -1027,7 +1027,7 @@
                       "nodes": [
                         {
                           "id": "cmt-0013-fake",
-                          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0dxwaoj -->\nYjs has the smaller bundle.",
+                          "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0dxwaoj -->\nYjs has the smaller bundle.",
                           "createdAt": "2026-10-31T12:00:05.000Z",
                           "user": {
                             "displayName": "Ada Ops"
@@ -1035,7 +1035,7 @@
                         },
                         {
                           "id": "cmt-0014-fake",
-                          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc01f3b0if -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
+                          "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc01f3b0if -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
                           "createdAt": "2026-10-31T12:00:06.000Z",
                           "user": {
                             "displayName": "Ada Ops"
@@ -1043,7 +1043,7 @@
                         },
                         {
                           "id": "cmt-0015-fake",
-                          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->",
+                          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->",
                           "createdAt": "2026-10-31T12:00:09.000Z",
                           "user": {
                             "displayName": "Ada Ops"
@@ -1051,7 +1051,7 @@
                         },
                         {
                           "id": "cmt-0016-fake",
-                          "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->",
+                          "body": "**Decision D-2** · trail lead · Lookout\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- teamtrail:decision {\"ticketId\":\"iss-0011-fake\",\"ticketKey\":\"ENG-2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"trail lead\",\"source\":{\"kind\":\"lookout\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"iss-0010-fake\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"trail lead\"}],\"transcript\":[]} -->",
                           "createdAt": "2026-10-31T12:00:11.000Z",
                           "user": {
                             "displayName": "Ada Ops"
@@ -1067,7 +1067,7 @@
                     "id": "iss-0012-fake",
                     "identifier": "ENG-3",
                     "title": "Pick a conflict policy",
-                    "description": "Last-writer-wins or merge?\n\nPart of mission ENG-1.",
+                    "description": "Last-writer-wins or merge?\n\nPart of trail ENG-1.",
                     "createdAt": "2026-10-31T12:00:03.000Z",
                     "updatedAt": "2026-10-31T12:00:03.000Z",
                     "completedAt": null,
@@ -1079,7 +1079,7 @@
                       "nodes": [
                         {
                           "id": "lbl-0006-fake",
-                          "name": "miloops:grilling"
+                          "name": "teamtrail:junction"
                         }
                       ]
                     },

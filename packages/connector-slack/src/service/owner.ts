@@ -18,7 +18,7 @@ export async function publishHome(ctx: SlackContext, user: string) {
 }
 
 /**
- * Step 5 without leaving MILOOPS: the person running `miloops` is the owner, so when their git
+ * Step 5 without leaving Teamtrail: the person running `teamtrail` is the owner, so when their git
  * email belongs to exactly one workspace member, that member is claimed and DM'd right away.
  * Anything else (no email, no match, missing scope) falls back to "This is me" on the Home tab.
  */
@@ -53,7 +53,7 @@ export async function ownerByEmail(ctx: SlackContext, api: SlackApi) {
     .catch(() => undefined);
 }
 
-/** Step 5: the first person to click "This is me" on the Home tab becomes the owner; MILO confirms in their DM. */
+/** Step 5: the first person to click "This is me" on the Home tab becomes the owner; Scout confirms in their DM. */
 export async function claim(ctx: SlackContext, user: string) {
   if (ctx.store.read().owners.length) return publishHome(ctx, user);
   ctx.store.update({ owners: [{ id: user, name: await ctx.nameOf(user), via: 'home' }] });

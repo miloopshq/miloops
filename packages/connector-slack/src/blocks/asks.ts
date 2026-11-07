@@ -6,7 +6,7 @@ export interface AskView {
   text: string;
   suggestions?: string[];
   agent: string;
-  mission?: string;
+  trail?: string;
   ticket?: string;
 }
 
@@ -17,7 +17,7 @@ export interface AskRef {
 }
 
 const askHeader = (a: AskView) =>
-  ['◆ *AWAITING YOU*', a.mission && escape(a.mission), a.ticket && escape(a.ticket), escape(a.agent)]
+  ['◆ *AWAITING YOU*', a.trail && escape(a.trail), a.ticket && escape(a.ticket), escape(a.agent)]
     .filter(Boolean)
     .join(' · ');
 

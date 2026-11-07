@@ -27,7 +27,7 @@ function parseFocus(raw: unknown, errors: string[]): FocusHours | undefined {
   return { from: from as string, to: to as string, ...(dayList ? { days: dayList as number[] } : {}) };
 }
 
-/** One person's attention preferences; also validates what the command center PUTs. */
+/** One person's attention preferences; also validates what the Lookout PUTs. */
 export function parseAttentionPrefs(raw: unknown): Parsed<AttentionPrefs> {
   const errors: string[] = [];
   if (!isObject(raw)) return { value: DEFAULT_ATTENTION_PREFS, errors: ['must be a JSON object'] };

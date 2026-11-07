@@ -1,18 +1,18 @@
-import { ATTENTION_KINDS, type AttentionKind } from '@miloops-hq/core';
+import { ATTENTION_KINDS, type AttentionKind } from '@teamtrail/core';
 import { z } from 'zod';
-import type { MissionAgent } from '../agent';
+import type { TrailAgent } from '../agent';
 import { type DefineTool, riskCategory, waitControl } from '../toolKit';
 
 const ATTENTION_KIND_VALUES = ATTENTION_KINDS as [AttentionKind, ...AttentionKind[]];
 
 /** Human-in-the-loop tools: ask, wait, inbox, answer. */
-export function registerHitlTools(tool: DefineTool, agent: MissionAgent) {
+export function registerHitlTools(tool: DefineTool, agent: TrailAgent) {
   tool(
     'ask_human',
     {
       title: 'Ask the human',
       description:
-        'Ask the human a question. It lands in the command center inbox (Waiting on you), ranked with everything else that needs them, and this call waits for the answer, up to waitSeconds (default 600; 50 for Codex). Returns answered=false with a questionId on timeout: call wait_for_answer to keep waiting. Set framing=true for the framing questions of a mission that does not exist yet. Set urgency honestly and ask related questions together.',
+        'Ask the human a question. It lands in the Lookout inbox (Waiting on you), ranked with everything else that needs them, and this call waits for the answer, up to waitSeconds (default 600; 50 for Codex). Returns answered=false with a questionId on timeout: call wait_for_answer to keep waiting. Set framing=true for the framing questions of a trail that does not exist yet. Set urgency honestly and ask related questions together.',
     },
     {
       question: z.string().min(1),

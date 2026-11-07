@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import type { AttentionItem, AttentionPrefs } from '@miloops-hq/core';
+import type { AttentionItem, AttentionPrefs } from '@teamtrail/core';
 import { askRoute } from '../src/service/askRoute';
 
 const item = (ref: string): AttentionItem => ({

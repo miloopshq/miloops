@@ -1,11 +1,11 @@
-import { BRAND } from '@miloops-hq/core';
+import { BRAND } from '@teamtrail/core';
 import { SlackApi, SlackApiError } from '../api';
 import { SocketMode, type WebSocketCtor } from '../socket';
 import { approvalStore, askStore, slackLock, slackStore } from '../store';
 import type { SlackState } from '../types';
 import { AUTH_CODES } from './constants';
 import { onEnvelope } from './interactions';
-import type { Batch, Env, MissionNotes, Payload, SlackServiceOptions } from './types';
+import type { Batch, Env, TrailNotes, Payload, SlackServiceOptions } from './types';
 
 /** State of the Slack connection shared by the service modules: config, socket, bot client and caches. */
 export class SlackContext {
@@ -24,9 +24,9 @@ export class SlackContext {
   readonly names = new Map<string, string>();
   /** Questions an answer was already delivered for. */
   readonly answering = new Set<string>();
-  readonly missions = new Map<string, MissionNotes>();
+  readonly trails = new Map<string, TrailNotes>();
   readonly batches = new Map<string, Batch>();
-  /** Questions already put in a mission digest instead of their own message (interrupt gating). */
+  /** Questions already put in a trail digest instead of their own message (interrupt gating). */
   readonly digested = new Set<string>();
   /** Approval messages with live buttons, kept across restarts. */
   readonly approvals;

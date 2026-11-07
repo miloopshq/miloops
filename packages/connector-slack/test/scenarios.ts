@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { MemoryAdapter, chartMap, claim, transition, type MapSections, type Ticket } from '@miloops-hq/core';
-import { operatorAction, readVerdicts, writeAttempt, writeVerdict } from '@miloops-hq/core/agents';
+import { MemoryAdapter, chartMap, claim, transition, type MapSections, type Ticket } from '@teamtrail/core';
+import { operatorAction, readVerdicts, writeAttempt, writeVerdict } from '@teamtrail/core/agents';
 import type { FakeSlack } from './fakes/slack';
 import { ALL_SCOPES, ANA, EVE, RAJ, TOKENS, agentDoc, connected, readJson, until, type World } from './harness';
 
@@ -20,15 +20,15 @@ async function eventStore() {
     sections: SECTIONS,
     tickets: [
       { ref: 'bench', title: 'Bench write paths', type: 'research', body: 'Measure.' },
-      { ref: 'db', title: 'Pick DB', type: 'grilling', body: 'Postgres or SQLite?' },
-      { ref: 'retention', title: 'Retention policy', type: 'grilling', body: 'How long?' },
+      { ref: 'db', title: 'Pick DB', type: 'junction', body: 'Postgres or SQLite?' },
+      { ref: 'retention', title: 'Retention policy', type: 'junction', body: 'How long?' },
       { ref: 'migrate', title: 'Migrate schema', type: 'execute', body: 'Apply.', blockedBy: ['db'] },
     ],
   });
   const second = await chartMap(a, {
     title: 'Mobile sync',
     sections: SECTIONS,
-    tickets: [{ ref: 'conf', title: 'Conflict policy', type: 'grilling', body: 'LWW?' }],
+    tickets: [{ ref: 'conf', title: 'Conflict policy', type: 'junction', body: 'LWW?' }],
   });
   const [bench, db, retention, migrate] = tickets;
   await claim(a, map.id, db.id, { assignee: 'claude-07' });
@@ -107,7 +107,7 @@ export async function askFlow(w: World) {
   });
   await svc.tick();
 
-  // Answered in the command center instead.
+  // Answered in the Lookout instead.
   agentDoc(w.root, {
     sid: 's2',
     mapId: map.id,
@@ -121,7 +121,7 @@ export async function askFlow(w: World) {
     mapId: map.id,
     ticketId: retention.id,
     agent: 'codex-02',
-    chats: [{ id: 'c2', from: 'human', author: 'operator', text: '90 days', at: Date.now() }],
+    chats: [{ id: 'c2', from: 'human', author: 'trail lead', text: '90 days', at: Date.now() }],
   });
   await svc.tick();
 
@@ -155,12 +155,12 @@ export async function askFlow(w: World) {
   agentDoc(w.root, { sid: 's4', mapId: map.id, status: 'done' });
   await svc.tick();
 
-  await w.send(svc, '/milo inbox with nothing waiting', (f) => f.payload.command(ANA, dm, 'inbox'));
+  await w.send(svc, '/scout inbox with nothing waiting', (f) => f.payload.command(ANA, dm, 'inbox'));
   const asks = readJson(path.join(w.root, '.agents', 'slack.json')).asks;
   return { answer1, answer3, asks, answers: readdirSync(path.join(w.root, '.agents', 'answers')) };
 }
 
-/** "Save as decision" on a thread and `/milo decide`: modal, related ticket, record, tracker write-back, confirmation. */
+/** "Save as decision" on a thread and `/scout decide`: modal, related ticket, record, tracker write-back, confirmation. */
 export async function decisionFlow(w: World) {
   const { a, map, db, second } = await eventStore();
   connected(w, { allow: [RAJ] });
@@ -183,26 +183,26 @@ export async function decisionFlow(w: World) {
   const lastView = (f: { views: Map<string, unknown> }) => [...f.views.keys()].at(-1)!;
   await w.send(svc, 'eve (not allowed) runs Save as decision', (f) => f.payload.shortcut(EVE, 'C0INFRA01', reply));
   await w.send(svc, 'ana runs Save as decision on the last reply', (f) => f.payload.shortcut(ANA, 'C0INFRA01', reply));
-  await w.send(svc, 'ana switches the mission', (f) => f.payload.pick(ANA, lastView(f), 'mission_pick', second.map.id));
-  await w.send(svc, 'ana switches back', (f) => f.payload.pick(ANA, lastView(f), 'mission_pick', map.id));
+  await w.send(svc, 'ana switches the trail', (f) => f.payload.pick(ANA, lastView(f), 'trail_pick', second.map.id));
+  await w.send(svc, 'ana switches back', (f) => f.payload.pick(ANA, lastView(f), 'trail_pick', map.id));
   await w.send(svc, 'ana saves with the decision emptied', (f) => f.payload.submit(ANA, lastView(f), { decision: '' }));
   await w.send(svc, 'ana saves', (f) => f.payload.submit(ANA, lastView(f)));
   const snap = await a.loadMap(map.id);
   const records = await a.listDecisions(map.id);
 
-  await w.send(svc, 'raj runs Save as decision where MILO is not invited', (f) =>
+  await w.send(svc, 'raj runs Save as decision where Scout is not invited', (f) =>
     f.payload.shortcut(RAJ, 'C0RANDOM1', f.channels.get('C0RANDOM1')!.messages[0].ts),
   );
-  await w.send(svc, 'raj runs /milo decide in #milo-test', (f) =>
-    f.payload.command(RAJ, 'G0MILOTST', 'decide SQLite for tests, Postgres in CI'),
+  await w.send(svc, 'raj runs /scout decide in #scout-test', (f) =>
+    f.payload.command(RAJ, 'G0ScoutTST', 'decide SQLite for tests, Postgres in CI'),
   );
-  await w.send(svc, 'raj saves it as mission only', (f) => f.payload.submit(RAJ, lastView(f), { mode: 'mission' }));
+  await w.send(svc, 'raj saves it as trail only', (f) => f.payload.submit(RAJ, lastView(f), { mode: 'trail' }));
   const after = await a.loadMap(map.id);
   const all = await a.listDecisions(map.id);
   return { snap, records, after, all, dbId: db.id, mapId: map.id };
 }
 
-/** `/milo status`, `/milo help`, and refusals. */
+/** `/scout status`, `/scout help`, and refusals. */
 export async function statusFlow(w: World) {
   const { a, map, db } = await eventStore();
   connected(w);
@@ -214,25 +214,25 @@ export async function statusFlow(w: World) {
     ticketId: db.id,
     pending: [{ id: 'q1', ticketId: db.id, text: 'Postgres or SQLite?', at: Date.now() - 12 * 60_000 }],
   });
-  const help = await w.send(svc, '/milo help', (f) => f.payload.command(ANA, 'C0INFRA01', 'help'));
-  const refused = await w.send(svc, 'eve runs /milo status', (f) => f.payload.command(EVE, 'C0INFRA01', 'status'));
-  await w.send(svc, '/milo status', (f) => f.payload.command(ANA, 'C0INFRA01', 'status'));
-  await w.send(svc, '/milo status event', (f) => f.payload.command(ANA, 'C0INFRA01', 'status event'));
-  await w.send(svc, '/milo status nope', (f) => f.payload.command(ANA, 'C0INFRA01', 'status nope'));
-  await w.send(svc, '/milo inbox', (f) => f.payload.command(ANA, 'C0INFRA01', 'inbox'));
-  const unknown = await w.send(svc, '/milo dance', (f) => f.payload.command(ANA, 'C0INFRA01', 'dance'));
+  const help = await w.send(svc, '/scout help', (f) => f.payload.command(ANA, 'C0INFRA01', 'help'));
+  const refused = await w.send(svc, 'eve runs /scout status', (f) => f.payload.command(EVE, 'C0INFRA01', 'status'));
+  await w.send(svc, '/scout status', (f) => f.payload.command(ANA, 'C0INFRA01', 'status'));
+  await w.send(svc, '/scout status event', (f) => f.payload.command(ANA, 'C0INFRA01', 'status event'));
+  await w.send(svc, '/scout status nope', (f) => f.payload.command(ANA, 'C0INFRA01', 'status nope'));
+  await w.send(svc, '/scout inbox', (f) => f.payload.command(ANA, 'C0INFRA01', 'inbox'));
+  const unknown = await w.send(svc, '/scout dance', (f) => f.payload.command(ANA, 'C0INFRA01', 'dance'));
   return { help, refused, unknown };
 }
 
-/** Notifications: blocked and mission done, one message per mission per window, threaded under the day's first. */
+/** Notifications: blocked and trail done, one message per trail per window, threaded under the day's first. */
 export async function notifyFlow(w: World) {
   const { a, map, bench, db, retention, migrate } = await eventStore();
   connected(w, {
-    notify: { target: 'dm', events: ['awaiting', 'blocked', 'mission.done', 'resolved'], detail: 'full' },
+    notify: { target: 'dm', events: ['awaiting', 'blocked', 'trail.done', 'resolved'], detail: 'full' },
   });
   const svc = w.service(a);
   await until(() => svc.status().state === 'online', 'socket online');
-  await svc.tick(); // baseline: nothing is sent for the state MILO found
+  await svc.tick(); // baseline: nothing is sent for the state Scout found
   await a.addBlocking(map.id, retention.id, bench.id);
   await svc.tick();
   for (const t of [bench, db, retention, migrate]) await a.close(map.id, t.id, 'completed');
@@ -240,7 +240,7 @@ export async function notifyFlow(w: World) {
   await svc.tick();
 }
 
-/** The channel and ts of the message MILO posted whose text starts with `prefix`. */
+/** The channel and ts of the message Scout posted whose text starts with `prefix`. */
 function posted(f: FakeSlack, prefix: string): [string, string] {
   for (const [id, c] of f.channels) {
     const m = c.messages.find((x) => x.text.startsWith(prefix));
@@ -249,8 +249,8 @@ function posted(f: FakeSlack, prefix: string): [string, string] {
   throw new Error(`no message starting "${prefix}"`);
 }
 
-/** A mission at checks+review+human: #2 is a reviewed pass to approve, #3 failed its checks and is held. */
-async function approvalMission(w: World) {
+/** A trail at checks+review+human: #2 is a reviewed pass to approve, #3 failed its checks and is held. */
+async function approvalTrail(w: World) {
   const a = new MemoryAdapter({ latency: [0, 0] });
   writeFileSync(
     path.join(w.root, 'verification.json'),
@@ -300,13 +300,13 @@ async function approvalMission(w: World) {
     at: Date.now(),
   });
   attempt(mig, 'fail');
-  await transition(a, map.id, mig.id, { event: 'checks.fail', to: 'blocked', actor: 'miloops', actorKind: 'engine' });
+  await transition(a, map.id, mig.id, { event: 'checks.fail', to: 'blocked', actor: 'teamtrail', actorKind: 'engine' });
   return { a, map, api, mig };
 }
 
 /** A reviewed pass to approve and a held ticket reach the owner; Approve and Rework… decide them from Slack. */
 export async function approvalFlow(w: World) {
-  const { a, map, api, mig } = await approvalMission(w);
+  const { a, map, api, mig } = await approvalTrail(w);
   connected(w, { allow: [RAJ] });
   const svc = w.service(a);
   await until(() => svc.status().state === 'online', 'socket online');
@@ -334,12 +334,12 @@ export async function approvalFlow(w: World) {
 }
 
 /**
- * MILO restarts while both approvals wait; meanwhile #2 is approved in the
- * command center. The new process updates the stored messages in place instead
+ * Scout restarts while both approvals wait; meanwhile #2 is approved in the
+ * Lookout. The new process updates the stored messages in place instead
  * of posting again, and buttons on messages that are out of date are refused.
  */
 export async function approvalRestartFlow(w: World) {
-  const { a, map, api, mig } = await approvalMission(w);
+  const { a, map, api, mig } = await approvalTrail(w);
   connected(w);
   const first = w.service(a);
   await until(() => first.status().state === 'online', 'socket online');
@@ -347,7 +347,7 @@ export async function approvalRestartFlow(w: World) {
   first.close();
   await operatorAction(
     { adapter: a, root: w.root },
-    { action: 'approve', mapId: map.id, ticketId: api.id, by: 'operator' },
+    { action: 'approve', mapId: map.id, ticketId: api.id, by: 'trail lead' },
   );
 
   const second = w.service(a);
@@ -358,9 +358,9 @@ export async function approvalRestartFlow(w: World) {
   );
   await operatorAction(
     { adapter: a, root: w.root },
-    { action: 'rework', mapId: map.id, ticketId: mig.id, by: 'operator', reason: 'Redo it' },
+    { action: 'rework', mapId: map.id, ticketId: mig.id, by: 'trail lead', reason: 'Redo it' },
   );
-  await w.send(second, 'ana clicks Rework… after the operator sent it back', (f) =>
+  await w.send(second, 'ana clicks Rework… after the trail lead sent it back', (f) =>
     f.payload.click(ANA, ...posted(f, 'Held'), 'verify_rework'),
   );
   await second.tick();

@@ -33,7 +33,7 @@ function suggested(e: KnowledgeEntry): Candidate | undefined {
   };
 }
 
-/** Knowledge waiting for the operator: suggestions to confirm, and entries an agent flagged as wrong. */
+/** Knowledge waiting for the trail lead: suggestions to confirm, and entries an agent flagged as wrong. */
 export const knowledgeSource: AttentionSource = {
   kind: 'knowledge',
   collect({ knowledge }) {

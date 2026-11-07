@@ -5,7 +5,7 @@ import type { CacheEntry } from './types';
 /** Map sections exactly as they read back from the tracker, so cache and remote compare equal. */
 export const roundtrip = (s: MapSections) => parseMapBody(serializeMapBody(s));
 
-/** Everything about a mission the tracker can change; equal fingerprints mean nothing to resync. */
+/** Everything about a trail the tracker can change; equal fingerprints mean nothing to resync. */
 export function fingerprint(e: CacheEntry) {
   const { map, tickets } = e.snap;
   return JSON.stringify([

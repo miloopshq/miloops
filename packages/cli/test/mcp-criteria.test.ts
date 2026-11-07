@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { decided, MarkdownAdapter } from '@miloops-hq/core';
-import { approvalItems, readBrief, writeBrief, writeKnowledge } from '@miloops-hq/core/agents';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { decided, MarkdownAdapter } from '@teamtrail/core';
+import { approvalItems, readBrief, writeBrief, writeKnowledge } from '@teamtrail/core/agents';
+import { nodeMarkdownFs } from '@teamtrail/core/node';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let repo: string;
@@ -15,7 +15,7 @@ let root: string;
 const open: { close(): void | Promise<void> }[] = [];
 
 async function connect(agentName = 'claude-01') {
-  const agent = new MissionAgent({ root, agent: agentName, pollMs: 20 });
+  const agent = new TrailAgent({ root, agent: agentName, pollMs: 20 });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -48,8 +48,8 @@ const acceptBrief = (mapId: string, call: (n: string, a?: Record<string, unknown
   );
 
 beforeEach(() => {
-  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-criteria-'));
-  root = path.join(repo, '.miloops');
+  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-criteria-'));
+  root = path.join(repo, '.teamtrail');
   fs.mkdirSync(root);
   fs.writeFileSync(path.join(repo, 'fixed.txt'), 'ok');
 });
@@ -78,17 +78,17 @@ describe('acceptance criteria over MCP', () => {
       tags: ['search'],
       sources: [],
       anchors: [],
-      createdBy: 'operator',
+      createdBy: 'trail lead',
       createdAt: now,
       updatedAt: now,
     });
     const call = await connect();
-    const m = await call<{ mission: { id: string }; tickets: { key: string; type: string }[] }>('start_mission', {
+    const m = await call<{ trail: { id: string }; tickets: { key: string; type: string }[] }>('start_trail', {
       title: 'Search',
       destination: 'Find a release by keyword',
       tickets: [{ ref: 'build', title: 'Build search', type: 'execute' }],
     });
-    await acceptBrief(m.mission.id, call);
+    await acceptBrief(m.trail.id, call);
     const build = m.tickets.find((t) => t.type === 'execute')!.key;
 
     const claimed = await call<Claimed>('claim_ticket', { ticket: build });
@@ -122,7 +122,7 @@ describe('acceptance criteria over MCP', () => {
       ],
     });
     expect(passed.status).toBe('verifying');
-    const snap = await new MarkdownAdapter(nodeMarkdownFs(root), root).loadMap(m.mission.id);
+    const snap = await new MarkdownAdapter(nodeMarkdownFs(root), root).loadMap(m.trail.id);
     expect(approvalItems(root, snap)).toEqual([
       expect.objectContaining({ kind: 'approve', ticketKey: build, reason: expect.stringMatching(/^Sign off AC-3/) }),
     ]);
@@ -131,7 +131,7 @@ describe('acceptance criteria over MCP', () => {
   it('cross-vendor review: work by Claude is left for a connected Codex agent to review', async () => {
     writeConfig('checks+review');
     const claude = await connect('claude-01');
-    const m = await claude<{ tickets: { key: string; type: string; title: string }[] }>('start_mission', {
+    const m = await claude<{ tickets: { key: string; type: string; title: string }[] }>('start_trail', {
       discovery: false,
       title: 'Search',
       destination: 'D',

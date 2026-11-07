@@ -12,7 +12,7 @@ export const TICKET_STATUSES: TicketStatus[] = ['verifying', 'rework', 'blocked'
 
 /**
  * User-facing phase. `backlog` waits on blockers (or is parked on a plan-only
- * mission); `blocked` waits on a human.
+ * trail); `blocked` waits on a human.
  */
 export type TicketPhase = 'backlog' | 'ready' | 'working' | 'verifying' | 'rework' | 'blocked' | 'done' | 'cancelled';
 
@@ -48,7 +48,7 @@ export type LifecycleEvent =
   | 'reopen';
 
 /**
- * How much evidence a completion needs before the ticket is done. Missions
+ * How much evidence a completion needs before the ticket is done. Trails
  * without a level are `off`: completing closes the ticket, as always.
  */
 export type VerificationLevel = 'off' | 'checks' | 'checks+review' | 'checks+review+human';
@@ -58,27 +58,27 @@ export const VERIFICATION_LEVELS: VerificationLevel[] = ['off', 'checks', 'check
 /** `v` as a level, when it is one (stored values are read leniently). */
 export const levelOf = (v: unknown) => VERIFICATION_LEVELS.find((l) => l === v);
 
-/** `engine`: MILOOPS itself (lease reaper, check runner, reconciler). */
-export type ActorKind = 'agent' | 'operator' | 'engine';
+/** `engine`: Teamtrail itself (lease reaper, check runner, reconciler). */
+export type ActorKind = 'agent' | 'trail lead' | 'engine';
 
-/** MILOOPS fields stored with a ticket besides assignment and closing. `null` clears a field. */
+/** Teamtrail fields stored with a ticket besides assignment and closing. `null` clears a field. */
 export interface TicketMetaPatch {
   /** Only `transition()` writes this. */
   status?: TicketStatus | null;
-  /** Operator only (`setVerification`). */
+  /** Trail lead only (`setVerification`). */
   verification?: VerificationLevel | null;
   checks?: string[] | null;
-  /** Set once, when MILOOPS creates a review ticket. */
+  /** Set once, when Teamtrail creates a review ticket. */
   reviewOf?: string | null;
 }
 
-/** MILOOPS fields stored with a mission. `null` clears a field. */
+/** Teamtrail fields stored with a trail. `null` clears a field. */
 export interface MapMetaPatch {
-  /** Operator only (`setVerification`). */
+  /** Trail lead only (`setVerification`). */
   verification?: VerificationLevel | null;
 }
 
-/** One line of a mission's history (`.events/<mapId>.jsonl`). History and UI only; the tracker holds the state. */
+/** One line of a trail's history (`.events/<mapId>.jsonl`). History and UI only; the tracker holds the state. */
 export interface TransitionEntry {
   v: 1;
   kind: 'transition';
@@ -89,34 +89,34 @@ export interface TransitionEntry {
   event: LifecycleEvent;
   from: TicketPhase;
   to: TicketPhase;
-  /** Actor id: an agent callsign, `operator`, `miloops`. */
+  /** Actor id: an agent trail name, `trail lead`, `teamtrail`. */
   actor: string;
   actorKind: ActorKind;
   reason?: string;
   sessionId?: string;
 }
 
-export type ReplanAction = 'proposed' | 'approved' | 'rejected' | 'applied' | 'superseded';
+export type RerouteAction = 'proposed' | 'approved' | 'rejected' | 'applied' | 'superseded';
 
-/** A replan proposal's step, in the same history file as transitions. Readers skip kinds they don't know. */
-export interface ReplanEntry {
+/** A reroute proposal's step, in the same history file as transitions. Readers skip kinds they don't know. */
+export interface RerouteEntry {
   v: 1;
-  kind: 'replan';
+  kind: 'reroute';
   at: number;
   mapId: string;
-  replanId: string;
-  action: ReplanAction;
+  rerouteId: string;
+  action: RerouteAction;
   actor: string;
   actorKind: ActorKind;
-  /** The proposal's reason (proposed) or the operator's note (approved, rejected). */
+  /** The proposal's reason (proposed) or the trail lead's note (approved, rejected). */
   reason?: string;
   /** How many changes the proposal carries (proposed) or executed (applied). */
   changes?: number;
 }
 
-export type JournalEntry = TransitionEntry | ReplanEntry;
+export type JournalEntry = TransitionEntry | RerouteEntry;
 
-/** Where transitions are recorded: a JSONL file in node, the command-center server from the browser, nowhere in demos. */
+/** Where transitions are recorded: a JSONL file in node, the lookout server from the browser, nowhere in demos. */
 export interface Journal {
   append(entry: TransitionEntry): void | Promise<void>;
 }

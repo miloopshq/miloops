@@ -9,7 +9,7 @@ export interface RemoveWorkspaceInput {
   root: string;
   mapId: string;
   ticketId: string;
-  /** Remove even with uncommitted changes in the folder (the operator confirmed losing them). */
+  /** Remove even with uncommitted changes in the folder (the trail lead confirmed losing them). */
   force?: boolean;
 }
 
@@ -25,8 +25,8 @@ export const isClaimed = (root: string, mapId: string, ticketId: string) => {
 };
 
 /**
- * The operator's "Remove workspace": deletes a finished ticket's worktree folder (`git worktree remove`, then
- * `prune`) and forgets it. The branch stays: MILOOPS never deletes branches, merges or pushes. Refuses while the
+ * The trail lead's "Remove workspace": deletes a finished ticket's worktree folder (`git worktree remove`, then
+ * `prune`) and forgets it. The branch stays: Teamtrail never deletes branches, merges or pushes. Refuses while the
  * ticket is claimed, for the main checkout, and for uncommitted changes unless `force`.
  */
 export async function removeWorkspace(i: RemoveWorkspaceInput): Promise<RemoveWorkspaceResult> {
@@ -39,7 +39,7 @@ export async function removeWorkspace(i: RemoveWorkspaceInput): Promise<RemoveWo
     return { kind: 'removed', workspace: ws };
   }
   const repo = await mainRepo(ws.path);
-  if (!repo) return refused(`${ws.path} is not a separate git worktree, so MILOOPS won't remove it.`);
+  if (!repo) return refused(`${ws.path} is not a separate git worktree, so Teamtrail won't remove it.`);
   const changes = (await gitText(ws.path, ['status', '--porcelain'])) ?? '';
   if (changes && !i.force) {
     const n = changes.split('\n').length;

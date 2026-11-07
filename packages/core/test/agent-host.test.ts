@@ -7,16 +7,16 @@ import { ActivityStream, agentPaths, type AgentSessionDoc } from '../src';
 import {
   AgentDocWriter,
   readAgentDocs,
-  readCommandCenterLock,
+  readLookoutLock,
   writeAgentAnswer,
-  writeCommandCenterLock,
+  writeLookoutLock,
   writeJsonAtomic,
 } from '../src/agentHost';
 import { createTrackerBridge } from '../src/bridge';
 
 let root: string;
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-agents-'));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-agents-'));
 });
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
@@ -39,7 +39,7 @@ describe('agent link files', () => {
     expect(d.session.id).toBe('s_t1');
     expect(d.client).toBe('test-client 1.0');
     expect(d.pending[0]).toMatchObject({ text: 'Ship on Friday?', suggestions: ['Yes', 'No'] });
-    writeAgentAnswer(root, { sessionId: 's_t1', questionId: d.pending[0].id, text: ' Yes ', author: 'operator' });
+    writeAgentAnswer(root, { sessionId: 's_t1', questionId: d.pending[0].id, text: ' Yes ', author: 'trail lead' });
     await expect(answer).resolves.toBe('Yes');
     writer.flush();
     const [after] = await readAgentDocs(root);
@@ -55,10 +55,10 @@ describe('agent link files', () => {
     activity.startSession({ id: 's_t2', agent: 'claude-01', mode: 'work', mapId: 'm1' });
     writer.flush();
     expect(() =>
-      writeAgentAnswer(root, { sessionId: 's_t2', questionId: 'q_nope', text: 'x', author: 'operator' }),
+      writeAgentAnswer(root, { sessionId: 's_t2', questionId: 'q_nope', text: 'x', author: 'trail lead' }),
     ).toThrow(/not waiting/);
     expect(() =>
-      writeAgentAnswer(root, { sessionId: 's_missing', questionId: 'q', text: 'x', author: 'operator' }),
+      writeAgentAnswer(root, { sessionId: 's_missing', questionId: 'q', text: 'x', author: 'trail lead' }),
     ).toThrow(/unknown session/);
     writer.close();
   });
@@ -73,7 +73,7 @@ describe('agent link files', () => {
         mapId: 'm1',
         step: 1,
         total: 5,
-        stepLabel: 'Load mission',
+        stepLabel: 'Load trail',
         status: 'running',
         waitingOn: 'q1',
         startedAt: Date.now(),
@@ -92,11 +92,11 @@ describe('agent link files', () => {
     expect(d.feed.at(-1)?.text).toBe('Agent disconnected');
   });
 
-  it('tracks the running command center with a lock file', () => {
-    const unlock = writeCommandCenterLock(root, 'http://localhost:7420/');
-    expect(readCommandCenterLock(root)?.url).toBe('http://localhost:7420/');
+  it('tracks the running Lookout with a lock file', () => {
+    const unlock = writeLookoutLock(root, 'http://localhost:7420/');
+    expect(readLookoutLock(root)?.url).toBe('http://localhost:7420/');
     unlock();
-    expect(readCommandCenterLock(root)).toBeUndefined();
+    expect(readLookoutLock(root)).toBeUndefined();
   });
 });
 
@@ -134,7 +134,7 @@ describe('bridge /agents API', () => {
       });
       expect(ok.status).toBe(201);
       await expect(answer).resolves.toBe('Yes, behind a flag');
-      expect(activity.snapshot.chats.at(-1)).toMatchObject({ from: 'human', author: 'operator' });
+      expect(activity.snapshot.chats.at(-1)).toMatchObject({ from: 'human', author: 'trail lead' });
 
       // Each report replaces the doc by rename; every state must reach the stream, including the last.
       s.step(2, 'claim');

@@ -18,8 +18,8 @@ export function integrationTicketFor(tickets: Ticket[], o: IntegrationOverlap) {
 }
 
 /**
- * The operator's "Add integration ticket": a task, blocked by both tickets, that lists the files both branches
- * changed. MILOOPS only suggests it; an agent (or you) brings the work together. Nothing is merged or rebased.
+ * The trail lead's "Add integration ticket": a task, blocked by both tickets, that lists the files both branches
+ * changed. Teamtrail only suggests it; an agent (or you) brings the work together. Nothing is merged or rebased.
  */
 export async function addIntegrationTicket(adapter: TrackerAdapter, o: IntegrationOverlap) {
   const snap = await adapter.loadMap(o.mapId);
@@ -33,8 +33,8 @@ export async function addIntegrationTicket(adapter: TrackerAdapter, o: Integrati
     body: [
       `${a.ticketKey} (${a.agent}, branch \`${a.branch}\`) and ${b.ticketKey} (${b.agent}, branch \`${b.branch}\`) changed the same files:`,
       files,
-      'Bring the two branches together once both are done, and check the result. MILOOPS never merges for you.',
-      `Part of mission ${snap.map.key}.`,
+      'Bring the two branches together once both are done, and check the result. Teamtrail never merges for you.',
+      `Part of trail ${snap.map.key}.`,
     ].join('\n\n'),
   });
   await adapter.addBlocking(o.mapId, a.ticketId, t.id);

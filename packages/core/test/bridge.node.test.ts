@@ -19,9 +19,9 @@ let trackerDir: string;
 const fake = fakeGitHub({ repo: 'octo-org/launchpad' });
 
 before(async () => {
-  const tmp = mkdtempSync(path.join(os.tmpdir(), 'miloops-bridge-'));
+  const tmp = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-bridge-'));
   configDir = path.join(tmp, 'config');
-  trackerDir = path.join(tmp, 'repo', '.miloops');
+  trackerDir = path.join(tmp, 'repo', '.teamtrail');
   const exec = async (cmd: string, args: string[]) => {
     if (cmd === 'gh' && args.join(' ') === 'auth token') return GH_TOKEN;
     if (cmd === 'git') return 'git@github.com:octo-org/launchpad.git';
@@ -102,21 +102,21 @@ test('adapter calls and decisions go to GitHub once connected', async () => {
     method: 'createMap',
     args: [
       {
-        title: 'Bridge mission',
+        title: 'Bridge trail',
         sections: { destination: 'Done.', notes: '', decisions: [], unspecified: [], outOfScope: [] },
       },
     ],
   });
   assert.equal(created.status, 200, created.text);
   const id = created.json.result.id;
-  assert.ok(fake.issues.get(Number(id))!.labels.includes('miloops:map'));
+  assert.ok(fake.issues.get(Number(id))!.labels.includes('teamtrail:map'));
 
   const d = await call<{ id: string }>('POST', '/decisions', {
-    mission: id,
+    trail: id,
     question: 'Ship?',
     answer: 'Ship it on Friday.',
-    decidedBy: 'operator',
-    source: { kind: 'command-center', ref: 'cmd-1' },
+    decidedBy: 'trail lead',
+    source: { kind: 'lookout', ref: 'cmd-1' },
   });
   assert.equal(d.status, 201, d.text);
   assert.ok(fake.issues.get(Number(id))!.comments.some((c) => c.body.includes(`**Decision ${d.json.id}**`)));

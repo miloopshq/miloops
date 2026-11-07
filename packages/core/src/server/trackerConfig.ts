@@ -9,7 +9,7 @@ import { BRAND } from '../model/brand';
  * Two files, both on the user's machine only:
  *   <tracker dir>/trackers.json         which tracker the project uses (repo, team). No secrets; safe to commit.
  *   <config dir>/credentials.json       tokens and API keys, mode 0600, never inside the repo.
- * <config dir> = $MILOOPS_CONFIG_DIR, else $XDG_CONFIG_HOME/miloops, else ~/.config/miloops (%APPDATA%\miloops on Windows).
+ * <config dir> = $TEAMTRAIL_CONFIG_DIR, else $XDG_CONFIG_HOME/teamtrail, else ~/.config/teamtrail (%APPDATA%\teamtrail on Windows).
  */
 
 export interface ProjectTrackerConfig {

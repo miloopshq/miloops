@@ -39,7 +39,7 @@ export function dropTicketSync(root: string, mapId: string, ticketId: string) {
   rmSync(ticketFile(root, mapId, ticketId), { force: true });
 }
 
-/** Every ticket's snapshot, optionally of one mission. */
+/** Every ticket's snapshot, optionally of one trail. */
 export function readTicketSyncs(root: string, mapId?: string): TicketSync[] {
   const base = path.join(root, EVIDENCE_DIR);
   const list = (dir: string) => {

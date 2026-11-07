@@ -3,11 +3,11 @@ import type { AttentionSource, Candidate } from '../types';
 import { clip } from './clip';
 
 const WHY: Record<string, string> = {
-  grilling: 'a grilling needs your answers',
+  junction: 'a junction needs your answers',
   prototype: 'a prototype needs your judgment',
 };
 
-/** Ready tickets no agent can finish alone (grilling, prototype, HITL tasks) that nobody is working on. */
+/** Ready tickets no agent can finish alone (junction, prototype, HITL tasks) that nobody is working on. */
 export const hitlReadySource: AttentionSource = {
   kind: 'hitl-ready',
   collect({ snaps, questions }) {

@@ -16,7 +16,7 @@
         },
         "body": {
           "ok": true,
-          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0Scout0001"
         }
       }
     },
@@ -35,10 +35,10 @@
           "ok": true,
           "url": "https://efika.slack.com/",
           "team": "efika",
-          "user": "milo",
+          "user": "scout",
           "team_id": "T0EFIKA01",
-          "user_id": "U0MILOBOT",
-          "bot_id": "B0MILO0001",
+          "user_id": "U0ScoutBOT",
+          "bot_id": "B0Scout0001",
           "is_enterprise_install": false
         }
       }
@@ -58,10 +58,10 @@
           "ok": true,
           "url": "https://efika.slack.com/",
           "team": "efika",
-          "user": "milo",
+          "user": "scout",
           "team_id": "T0EFIKA01",
-          "user_id": "U0MILOBOT",
-          "bot_id": "B0MILO0001",
+          "user_id": "U0ScoutBOT",
+          "bot_id": "B0Scout0001",
           "is_enterprise_install": false
         }
       }
@@ -69,7 +69,7 @@
     {
       "req": {
         "method": "GET",
-        "url": "/api/bots.info?bot=B0MILO0001"
+        "url": "/api/bots.info?bot=B0Scout0001"
       },
       "res": {
         "status": 200,
@@ -80,11 +80,11 @@
         "body": {
           "ok": true,
           "bot": {
-            "id": "B0MILO0001",
+            "id": "B0Scout0001",
             "deleted": false,
-            "name": "MILO",
-            "app_id": "A0MILO0001",
-            "user_id": "U0MILOBOT"
+            "name": "Scout",
+            "app_id": "A0Scout0001",
+            "user_id": "U0ScoutBOT"
           }
         }
       }
@@ -102,7 +102,7 @@
         },
         "body": {
           "ok": true,
-          "url": "wss://wss-primary.slack.test/link/?ticket=2&app_id=A0MILO0001"
+          "url": "wss://wss-primary.slack.test/link/?ticket=2&app_id=A0Scout0001"
         }
       }
     },
@@ -119,7 +119,7 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*MILO* is almost connected. Click below if you are setting up MILOOPS on this workspace."
+                  "text": "*Scout* is almost connected. Click below if you are setting up Teamtrail on this workspace."
                 }
               },
               {
@@ -142,7 +142,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Runs while MILOOPS is open on your computer."
+                    "text": "Runs while Teamtrail is open on your computer."
                   }
                 ]
               }
@@ -166,7 +166,7 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*MILO* is almost connected. Click below if you are setting up MILOOPS on this workspace."
+                  "text": "*Scout* is almost connected. Click below if you are setting up Teamtrail on this workspace."
                 }
               },
               {
@@ -189,7 +189,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Runs while MILOOPS is open on your computer."
+                    "text": "Runs while Teamtrail is open on your computer."
                   }
                 ]
               }
@@ -269,7 +269,7 @@
           "ts": "1793448001.000003",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Connected. Decisions and questions will reach you here.",
             "ts": "1793448001.000003"
           }
@@ -296,7 +296,7 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                  "text": "`/scout decide`, `/scout status`, `/scout inbox`, and *Save as decision* on any message."
                 }
               },
               {
@@ -304,10 +304,10 @@
                 "elements": [
                   {
                     "type": "button",
-                    "action_id": "open_miloops",
+                    "action_id": "open_teamtrail",
                     "text": {
                       "type": "plain_text",
-                      "text": "Open in MILOOPS",
+                      "text": "Open in Teamtrail",
                       "emoji": true
                     },
                     "url": "http://localhost:7420/"
@@ -319,7 +319,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Runs while MILOOPS is open on your computer."
+                    "text": "Runs while Teamtrail is open on your computer."
                   }
                 ]
               }
@@ -350,7 +350,7 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                  "text": "`/scout decide`, `/scout status`, `/scout inbox`, and *Save as decision* on any message."
                 }
               },
               {
@@ -358,10 +358,10 @@
                 "elements": [
                   {
                     "type": "button",
-                    "action_id": "open_miloops",
+                    "action_id": "open_teamtrail",
                     "text": {
                       "type": "plain_text",
-                      "text": "Open in MILOOPS",
+                      "text": "Open in Teamtrail",
                       "emoji": true
                     },
                     "url": "http://localhost:7420/"
@@ -373,7 +373,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Runs while MILOOPS is open on your computer."
+                    "text": "Runs while Teamtrail is open on your computer."
                   }
                 ]
               }
@@ -395,14 +395,14 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Connected to MILOOPS for <@U0ANA0001>."
+                  "text": "Connected to Teamtrail for <@U0ANA0001>."
                 }
               },
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                  "text": "`/scout decide`, `/scout status`, `/scout inbox`, and *Save as decision* on any message."
                 }
               },
               {
@@ -410,10 +410,10 @@
                 "elements": [
                   {
                     "type": "button",
-                    "action_id": "open_miloops",
+                    "action_id": "open_teamtrail",
                     "text": {
                       "type": "plain_text",
-                      "text": "Open in MILOOPS",
+                      "text": "Open in Teamtrail",
                       "emoji": true
                     },
                     "url": "http://localhost:7420/"
@@ -425,7 +425,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Runs while MILOOPS is open on your computer."
+                    "text": "Runs while Teamtrail is open on your computer."
                   }
                 ]
               }
@@ -449,14 +449,14 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Connected to MILOOPS for <@U0ANA0001>."
+                  "text": "Connected to Teamtrail for <@U0ANA0001>."
                 }
               },
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "`/milo decide`, `/milo status`, `/milo inbox`, and *Save as decision* on any message."
+                  "text": "`/scout decide`, `/scout status`, `/scout inbox`, and *Save as decision* on any message."
                 }
               },
               {
@@ -464,10 +464,10 @@
                 "elements": [
                   {
                     "type": "button",
-                    "action_id": "open_miloops",
+                    "action_id": "open_teamtrail",
                     "text": {
                       "type": "plain_text",
-                      "text": "Open in MILOOPS",
+                      "text": "Open in Teamtrail",
                       "emoji": true
                     },
                     "url": "http://localhost:7420/"
@@ -479,7 +479,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Runs while MILOOPS is open on your computer."
+                    "text": "Runs while Teamtrail is open on your computer."
                   }
                 ]
               }
@@ -496,7 +496,7 @@
       "payload": {
         "token": "legacy",
         "team_id": "T0EFIKA01",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "type": "event_callback",
         "event_id": "Ev01",
         "event_time": 1793448000,
@@ -520,7 +520,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "view",
@@ -556,7 +556,7 @@
           "name": "raj",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "view",

@@ -1,8 +1,8 @@
 // M3 in the dev seed: the project's worktree setting (off here, so dev agents never create worktrees of this repo)
 // and two live claims whose declared files overlap, so the queue shows an overlap and the inspector the touch-sets.
 // The integration check needs real worktree branches, so it isn't seeded; verify-mcp drives it on a scratch repo.
-import { claim, type MapDoc, type TicketLease, type TrackerAdapter } from '@miloops-hq/core';
-import { writeLease, writeWorkspaceSettings } from '@miloops-hq/core/agents';
+import { claim, type MapDoc, type TicketLease, type TrackerAdapter } from '@teamtrail/core';
+import { writeLease, writeWorkspaceSettings } from '@teamtrail/core/agents';
 
 const DAY = 24 * 3_600_000;
 
@@ -31,7 +31,7 @@ async function statusTicket(adapter: TrackerAdapter, main: MapDoc) {
   await adapter.createTicket(main.id, {
     title: CLAIMS[1].title,
     type: 'execute',
-    body: `Each note shows whether it is synced, waiting or in conflict.\n\nPart of mission ${main.key}.`,
+    body: `Each note shows whether it is synced, waiting or in conflict.\n\nPart of trail ${main.key}.`,
   });
 }
 

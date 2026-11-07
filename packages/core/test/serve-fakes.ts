@@ -1,8 +1,8 @@
 /**
  * Serves the fake GitHub and Linear APIs over HTTP for browser runs of the
- * command center:  node packages/core/test/run.mjs serve [port]
- * Point the CLI at it with MILOOPS_GITHUB_API=http://127.0.0.1:<port> and
- * MILOOPS_LINEAR_API=http://127.0.0.1:<port>/linear. Admin routes act as a
+ * Lookout:  node packages/core/test/run.mjs serve [port]
+ * Point the CLI at it with TEAMTRAIL_GITHUB_API=http://127.0.0.1:<port> and
+ * TEAMTRAIL_LINEAR_API=http://127.0.0.1:<port>/linear. Admin routes act as a
  * teammate in the tracker or cut the network:
  *   POST /__fake/github/close?n=<issue>   POST /__fake/github/comment?n=<issue>&user=<login>&body=<text>
  *   POST /__fake/offline?on=1|0

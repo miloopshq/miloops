@@ -1,8 +1,8 @@
-/** Node side of the agent link (agentLink.ts): session docs, answers and the command-center lock under a tracker root. */
+/** Node side of the agent link (agentLink.ts): session docs, answers and the lookout lock under a tracker root. */
 export { AgentDocWriter } from './agents/agentDocWriter';
-export { CALLSIGNS_DIR, claimCallsign } from './agents/callsignClaim';
+export { TRAIL_NAMES_DIR, claimTrailName } from './agents/trailNameClaim';
 export { AnswerError, readAgentDoc, readAgentDocs, writeAgentAnswer } from './agents/agentDocs';
-export { readCommandCenterLock, writeCommandCenterLock } from './agents/commandCenterLock';
+export { readLookoutLock, writeLookoutLock } from './agents/lookoutLock';
 export { writeJsonAtomic } from './lib/jsonFile';
 export { dropLease, readLease, readLeases, renewLease, writeLease } from './agents/leaseStore';
 export { LEASE_REAPER, reclaimExpired, returnToQueue, type ReturnOutcome } from './agents/returnToQueue';
@@ -11,21 +11,21 @@ export { briefPath, readBrief, writeBrief } from './discovery/briefStore';
 export { criteriaOf, readCriteria, writeTicketCriteria } from './criteria/criteriaStore';
 export { POLICY_FILE, policyPath, readPolicy, writePolicy, type PolicyRead } from './policy/policyStore';
 export {
-  createReplan,
-  listAllReplans,
-  listReplans,
-  readReplan,
-  REPLANS_DIR,
-  writeReplan,
-} from './planning/replan/replanStore';
+  createReroute,
+  listAllReroutes,
+  listReroutes,
+  readReroute,
+  REROUTES_DIR,
+  writeReroute,
+} from './planning/reroute/rerouteStore';
 export {
-  proposeReplan,
-  replanView,
-  ReplanInvalid,
+  proposeReroute,
+  rerouteView,
+  RerouteInvalid,
   type ProposeInput,
-  type ReplanEnv,
-} from './planning/replan/replanFlow';
-export { approveReplan, rejectReplan, type ReplanDecision } from './planning/replan/decideReplan';
+  type RerouteEnv,
+} from './planning/reroute/rerouteFlow';
+export { approveReroute, rejectReroute, type RerouteDecision } from './planning/reroute/decideReroute';
 export {
   blobHash,
   listKnowledge,

@@ -1,11 +1,11 @@
 {
   "name": "teamtrail",
   "version": "0.7.0",
-  "author": "MILOOPS",
-  "description": "MILOOPS: a local command center for your AI coding agents. One command opens it for the agents working in your repo.",
+  "author": "Teamtrail",
+  "description": "Teamtrail: a local trail map for your AI coding agents. One command opens it for the agents working in your repo.",
   "type": "module",
   "bin": {
-    "miloops": "dist/cli.js"
+    "teamtrail": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -17,7 +17,7 @@
   },
   "keywords": [
     "agents",
-    "command-center",
+    "lookout",
     "mcp",
     "claude-code",
     "codex",
@@ -25,19 +25,19 @@
     "hitl"
   ],
   "scripts": {
-    "build": "npm run build -w @miloops-hq/command-center && node build.mjs",
+    "build": "npm run build -w @teamtrail/lookout && node build.mjs",
     "prepack": "npm run build",
     "typecheck": "tsc -p ."
   },
   "devDependencies": {
-    "@miloops-hq/connector-slack": "*",
-    "@miloops-hq/core": "*",
+    "@teamtrail/connector-slack": "*",
+    "@teamtrail/core": "*",
     "@modelcontextprotocol/sdk": "^1.32.2",
     "esbuild": "^0.21.5",
     "zod": "^4.6.7"
   },
   "license": "FSL-1.1-ALv2",
-  "homepage": "https://miloops.vercel.app",
+  "homepage": "https://teamtrail.ai",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/teamtrailhq/teamtrail.git",

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { EVIDENCE_DIR, readAttempts, readVerdicts } from './evidenceStore';
 import { readRunLock } from './runLock';
 
-/** Largest slice of a check log the command center is sent; logs themselves are capped at 1 MB. */
+/** Largest slice of a check log the Lookout is sent; logs themselves are capped at 1 MB. */
 export const LOG_VIEW_BYTES = 256 * 1024;
 
 /** A ticket's verification record: attempts and verdicts newest first, and the run in progress if any. */

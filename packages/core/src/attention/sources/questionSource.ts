@@ -11,7 +11,7 @@ function idleOn(q: PendingQuestion, session?: SessionInfo): boolean {
   return q.urgency === undefined || q.urgency === 'blocking';
 }
 
-/** Open agent questions. Questions in one mission are a batch: the human answers them in one sitting. */
+/** Open agent questions. Questions in one trail are a batch: the human answers them in one sitting. */
 export const questionSource: AttentionSource = {
   kind: 'question',
   collect({ questions, sessions }) {

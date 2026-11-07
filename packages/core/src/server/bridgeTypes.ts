@@ -17,9 +17,9 @@ export interface TrackerBridge {
    *   GET  /verification/sync[?mapId=]       `{ status: PrSyncStatus, tickets: TicketSync[] }` PR/CI evidence and flags;
    *                                          SSE `verification` (VerificationSyncEvent) after each reconciler tick
    *   PUT  /verification/sync/link           body `{ mapId, ticketId, pr: number | null }` link or unlink a PR
-   *   GET  /decisions[?mission=<id>]         `{ decisions: DecisionRecord[] }`
-   *   POST /decisions                        body `{ mission, appendToMission?, ...DecisionInput }` → DecisionRecord (idempotent per source.kind + source.ref)
-   *   POST /decisions/<id>/supersede         body `{ mission, ...DecisionInput }` → the new DecisionRecord
+   *   GET  /decisions[?trail=<id>]         `{ decisions: DecisionRecord[] }`
+   *   POST /decisions                        body `{ trail, appendToTrail?, ...DecisionInput }` → DecisionRecord (idempotent per source.kind + source.ref)
+   *   POST /decisions/<id>/supersede         body `{ trail, ...DecisionInput }` → the new DecisionRecord
    *   /trackers*, /tracker/<kind>/*          GitHub / Linear settings and API (trackerRoutes.ts)
    * Decision routes use the project's active tracker (local markdown, GitHub or Linear).
    */
@@ -39,7 +39,7 @@ export interface BridgeContext {
   root: string;
   /** The project's active tracker (local markdown, GitHub or Linear). */
   active(): Promise<TrackerAdapter>;
-  /** The command center's URL, once it is serving. */
+  /** The Lookout's URL, once it is serving. */
   url(): string | undefined;
 }
 

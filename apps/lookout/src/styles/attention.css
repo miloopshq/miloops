@@ -1,0 +1,127 @@
+/* ---------- Attention queue: "Waiting on you", ranked and batched (features/attention) ---------- */
+.attention-queue {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: var(--sp-10);
+}
+/* A scrolling column: its rows keep their height instead of shrinking into each other. */
+.attention-queue > * {
+  flex-shrink: 0;
+}
+.attention-queue .att-list {
+  overflow: visible;
+  padding-bottom: var(--sp-6);
+}
+.stack-scroll .attention-queue {
+  overflow: visible;
+}
+.att-batch.many {
+  margin: 0 var(--sp-10) var(--sp-6);
+  border-left: 1px solid var(--line2);
+}
+.att-batch.many .att-list {
+  padding-right: 0;
+}
+.batch-head {
+  display: block;
+  padding: var(--sp-4) var(--sp-10) var(--sp-6);
+}
+
+/* A row is the shared Row (rows.css). Here: the reason line, the new-item pulse, and the "Later" menu. */
+.reason-line .sep {
+  color: var(--faint);
+}
+.att-item.incoming {
+  animation:
+    arrive 0.45s ease-out,
+    edge-pulse 1.2s ease-out 2;
+}
+@keyframes edge-pulse {
+  50% {
+    box-shadow: inset 3px 0 0 currentColor;
+  }
+}
+
+.snooze {
+  position: relative;
+}
+.snooze-btn {
+  padding: var(--sp-2) var(--sp-6);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--dim);
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-data);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.snooze-btn:hover,
+.snooze-btn[aria-expanded='true'] {
+  border-color: var(--line2);
+  color: var(--text-hi);
+}
+.snooze-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 120px;
+  border: 1px solid var(--line2);
+  background: var(--panel2);
+}
+.snooze-menu button {
+  padding: var(--sp-6) var(--sp-10);
+  border: 0;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.snooze-menu button:hover {
+  background: var(--line);
+  color: var(--text-hi);
+}
+
+/* Header: focus mode and what interrupts now. */
+.attention-head {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+.focus-btn.on {
+  color: var(--text-hi);
+}
+
+/* Settings → Attention. */
+.att-settings-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-10);
+  flex-wrap: wrap;
+  margin: var(--sp-6) 0;
+}
+.att-settings-row input[type='time'] {
+  width: auto;
+  flex: 0 0 auto;
+  padding: var(--sp-2) var(--sp-6);
+  border: 1px solid var(--line2);
+  background: transparent;
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+/* A trail lead action under a row (integration: add the ticket that brings two branches together). */
+.att-action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-6);
+  align-items: center;
+  padding: var(--sp-4) 0 var(--sp-2);
+}

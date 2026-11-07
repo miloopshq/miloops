@@ -1,11 +1,11 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { readAgentDocs } from '@miloops-hq/core/agents';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { readAgentDocs } from '@teamtrail/core/agents';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 import { installClaudeHook, recordClaudeSession } from '../src/usage/hook';
 import { claudeTranscriptParser, codexRolloutParser, readLog, type UsageEvent } from '../src/usage/logs';
@@ -14,7 +14,7 @@ import { priceUsage, rateFor } from '../src/usage/pricing';
 
 /**
  * Fixtures were recorded from real Claude Code 2.1.316 (`claude -p`) and Codex
- * 0.166.0 (`codex exec`) runs driving `miloops mcp`, with the model API served by
+ * 0.166.0 (`codex exec`) runs driving `teamtrail mcp`, with the model API served by
  * a local stub that returns scripted usage: the transcript, rollout, hook payload
  * and MCP requests (with arrival times) are exactly what the agents wrote and sent.
  */
@@ -51,7 +51,7 @@ const calls = (agent: 'claude' | 'codex') =>
 let tmp: string;
 const open: { close(): void | Promise<void> }[] = [];
 beforeEach(() => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-usage-'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-usage-'));
 });
 afterEach(async () => {
   for (const o of open.splice(0)) await o.close();
@@ -159,7 +159,7 @@ describe('pricing', () => {
 async function replay(meter: UsageMeter, agent: 'claude' | 'codex', clientName: string) {
   const root = path.join(tmp, 'tracker');
   let server: ReturnType<typeof createMcpServer> | undefined;
-  const mission = new MissionAgent({
+  const trail = new TrailAgent({
     root,
     pollMs: 20,
     usage: meter,
@@ -168,11 +168,11 @@ async function replay(meter: UsageMeter, agent: 'claude' | 'codex', clientName: 
       return v && `${v.name} ${v.version}`;
     },
   });
-  server = createMcpServer(mission, '0.0.0-test');
+  server = createMcpServer(trail, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: clientName, version: '1.0.0' });
   await Promise.all([server.connect(a), client.connect(b)]);
-  open.push({ close: () => mission.close() }, client);
+  open.push({ close: () => trail.close() }, client);
   vi.useFakeTimers({ toFake: ['Date'] });
   const results: Record<string, unknown>[] = [];
   for (const c of calls(agent)) {
@@ -188,10 +188,10 @@ async function replay(meter: UsageMeter, agent: 'claude' | 'codex', clientName: 
   const sessions = (await readAgentDocs(root, { recentMs: 10 * 365 * 86_400_000 }))
     .map((d) => d.session)
     .sort((x, y) => x.startedAt - y.startedAt);
-  return { sessions, results, mission, root };
+  return { sessions, results, trail, root };
 }
 
-/** Per-session usage the real runs ended with (session docs written by `miloops mcp`). */
+/** Per-session usage the real runs ended with (session docs written by `teamtrail mcp`). */
 const CLAUDE_EXPECTED = [
   {
     mode: 'chart',
@@ -263,7 +263,7 @@ const CODEX_EXPECTED = [
   },
 ];
 
-describe('usage attributed to miloops sessions', () => {
+describe('usage attributed to teamtrail sessions', () => {
   it('Claude Code: finds the transcript by tool_use id and splits usage per session; reported numbers are ignored', async () => {
     const project = path.join(tmp, 'project');
     const config = path.join(tmp, 'claude-config');
@@ -312,11 +312,11 @@ describe('usage attributed to miloops sessions', () => {
     fs.mkdirSync(day, { recursive: true });
     fs.copyFileSync(CODEX_ROLLOUT, path.join(day, path.basename(CODEX_ROLLOUT)));
     const meter = new UsageMeter({ root: path.join(tmp, 'tracker'), env: {}, home: tmp });
-    const { sessions, mission } = await replay(meter, 'codex', 'codex-mcp-client');
+    const { sessions, trail } = await replay(meter, 'codex', 'codex-mcp-client');
     expect(meter.attached).toEqual({ source: 'codex', files: [path.join(day, path.basename(CODEX_ROLLOUT))] });
     expect(sessions.map((s) => ({ mode: s.mode, usage: s.usage }))).toEqual(CODEX_EXPECTED);
-    const status = await mission.status();
-    expect(status.mission?.spend).toMatchObject({ costUsd: 0.0486, sources: ['codex'] });
+    const status = await trail.status();
+    expect(status.trail?.spend).toMatchObject({ costUsd: 0.0486, sources: ['codex'] });
   });
 
   it('falls back to the numbers the agent reports when no log is found, and marks them', async () => {
@@ -333,7 +333,7 @@ describe('usage attributed to miloops sessions', () => {
 });
 
 describe('connect claude', () => {
-  it('adds the SessionStart hook once, keeps other settings, and replaces an older miloops hook', () => {
+  it('adds the SessionStart hook once, keeps other settings, and replaces an older teamtrail hook', () => {
     const file = path.join(tmp, '.claude', 'settings.local.json');
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(
@@ -345,7 +345,7 @@ describe('connect claude', () => {
             {
               hooks: [
                 { type: 'command', command: 'echo hi' },
-                { type: 'command', command: 'npx miloops-cli hook claude --dir old' },
+                { type: 'command', command: 'npx teamtrail hook claude --dir old' },
               ],
             },
           ],

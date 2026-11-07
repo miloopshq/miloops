@@ -24,7 +24,7 @@ import { noSleep } from './scenarios';
 
 /*
  * Queue offline → kill → restart → drain once. The first run is a child
- * process that charts a mission, loses the network, queues writes and is
+ * process that charts a trail, loses the network, queues writes and is
  * SIGKILLed; the restarted adapters talk to the same fake over HTTP.
  */
 
@@ -82,7 +82,7 @@ async function firstRun(kind: Kind, api: string, root: string) {
       {
         ref: 'g',
         title: 'Pick a conflict policy',
-        type: 'grilling',
+        type: 'junction',
         body: 'LWW or merge?',
       },
     ],
@@ -189,7 +189,7 @@ async function remote(kind: Kind, api: string, mapId: string, ticketId: string) 
 for (const kind of process.env.OUTBOX_CHILD ? [] : (['github', 'linear'] as const)) {
   test(`${kind}: writes queued offline survive a kill and drain exactly once after restart`, async () => {
     const fake = await serve(kind);
-    const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-outbox-'));
+    const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-outbox-'));
     try {
       const first = await killedFirstRun(kind, fake.api, root);
       assert.deepEqual([first.state, first.queued], ['offline', 7]);
@@ -247,7 +247,7 @@ for (const kind of process.env.OUTBOX_CHILD ? [] : (['github', 'linear'] as cons
 
   test(`${kind}: a run that dies after sending but before saving does not post twice`, async () => {
     const fake = await serve(kind);
-    const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-outbox-'));
+    const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-outbox-'));
     try {
       const first = await killedFirstRun(kind, fake.api, root);
       // sends everything, but its saves never reach the disk: the file still lists all seven writes
@@ -281,15 +281,15 @@ for (const kind of process.env.OUTBOX_CHILD ? [] : (['github', 'linear'] as cons
 if (!process.env.OUTBOX_CHILD)
   test('settings: after a restart the sync line reports the queue a dead run left', async () => {
     const fake = await serve('github');
-    const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-outbox-'));
+    const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-outbox-'));
     await killedFirstRun('github', fake.api, root);
     writeFileSync(path.join(root, 'trackers.json'), JSON.stringify({ active: 'github', github: { repo: REPO } }));
     fake.offline(true);
-    // the restarted command center: nothing asks for the adapter, yet the queue is picked up
+    // the restarted Lookout: nothing asks for the adapter, yet the queue is picked up
     const routes = createTrackerRoutes({
       root,
       markdown: {} as TrackerAdapter,
-      env: { GITHUB_TOKEN: 'test-token', MILOOPS_GITHUB_API: fake.api },
+      env: { GITHUB_TOKEN: 'test-token', TEAMTRAIL_GITHUB_API: fake.api },
       exec: () => Promise.reject(new Error('no exec in tests')),
       configDir: path.join(root, 'config'),
     });
@@ -310,7 +310,7 @@ if (!process.env.OUTBOX_CHILD)
 
 if (!process.env.OUTBOX_CHILD)
   test('a queue is adopted by one adapter only, and only for its own tracker target', () => {
-    const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-outbox-'));
+    const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-outbox-'));
     const w = {
       id: 'w1',
       mapId: '1',

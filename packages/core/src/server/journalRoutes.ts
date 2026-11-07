@@ -6,7 +6,7 @@ import { BadRequest, readJson, sendJson } from './http';
 
 const EVENTS = new Set<string>(TRANSITIONS.map((r) => r.event));
 const PHASES = new Set<string>(TICKET_PHASES);
-const ACTORS = new Set(['agent', 'operator', 'engine']);
+const ACTORS = new Set(['agent', 'trail lead', 'engine']);
 const text = (v: unknown) => typeof v === 'string' && v.length > 0 && v.length < 300;
 
 function valid(e: Partial<TransitionEntry>): e is TransitionEntry {
@@ -27,7 +27,7 @@ function valid(e: Partial<TransitionEntry>): e is TransitionEntry {
   );
 }
 
-/** `/journal`: a mission's transition history (GET `?mapId=`), and appends from the browser (POST). */
+/** `/journal`: a trail's transition history (GET `?mapId=`), and appends from the browser (POST). */
 export async function handleJournal(root: string, req: IncomingMessage, res: ServerResponse, url: URL) {
   if (url.pathname !== '/journal') return false;
   const journal = journalFile(root);

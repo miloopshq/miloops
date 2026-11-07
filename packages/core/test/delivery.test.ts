@@ -51,7 +51,7 @@ const snap: MapSnapshot = {
   map: {
     id: 'm1',
     key: '#1',
-    title: 'Mission',
+    title: 'Trail',
     mode: 'plan+execute',
     sections: { destination: 'Done', notes: '', decisions: [], unspecified: [], outOfScope: [] },
     createdAt: t0,
@@ -74,7 +74,7 @@ const journal: TransitionEntry[] = [
     from: 'verifying',
     to: 'rework',
     actorKind: 'engine',
-    actor: 'miloops',
+    actor: 'teamtrail',
   }),
   entry('2', t0 + 40 * MIN, { event: 'submit', from: 'rework', to: 'verifying' }),
   entry('2', t0 + 50 * MIN, {
@@ -82,31 +82,31 @@ const journal: TransitionEntry[] = [
     from: 'verifying',
     to: 'rework',
     actorKind: 'engine',
-    actor: 'miloops',
+    actor: 'teamtrail',
   }),
   entry('2', t0 + 55 * MIN, {
     event: 'reject',
     from: 'verifying',
     to: 'rework',
-    actor: 'operator',
-    actorKind: 'operator',
+    actor: 'trail lead',
+    actorKind: 'trail lead',
   }),
   entry('2', t0 + 65 * MIN, {
     event: 'approve',
     from: 'verifying',
     to: 'done',
-    actor: 'operator',
-    actorKind: 'operator',
+    actor: 'trail lead',
+    actorKind: 'trail lead',
   }),
   entry('3', t0 + 20 * MIN, { event: 'claim' }),
   entry('4', t0 + 5 * MIN, {
     event: 'cancel',
     from: 'ready',
     to: 'cancelled',
-    actor: 'operator',
-    actorKind: 'operator',
+    actor: 'trail lead',
+    actorKind: 'trail lead',
   }),
-  entry('2', t0, { mapId: 'other', event: 'approve', actorKind: 'operator' }),
+  entry('2', t0, { mapId: 'other', event: 'approve', actorKind: 'trail lead' }),
 ];
 
 const answered = [
@@ -123,11 +123,11 @@ describe('deliveryReport', () => {
     expect(r.tickets.map((t) => t.id)).toEqual(['2', '3', '4', '5']);
   });
 
-  it('measures lead times from first claim to done, and the mission from creation', () => {
+  it('measures lead times from first claim to done, and the trail from creation', () => {
     expect(r.tickets.find((t) => t.id === '2')?.leadMs).toBe(60 * MIN);
     expect(r.tickets.find((t) => t.id === '3')?.leadMs).toBe(10 * MIN);
     expect(r.medianLeadMs).toBe(35 * MIN);
-    expect(r.missionLeadMs).toBe(70 * MIN);
+    expect(r.trailLeadMs).toBe(70 * MIN);
   });
 
   it('counts rework cycles, review verdicts on the reviewed work, and human calls', () => {
@@ -145,7 +145,7 @@ describe('deliveryReport', () => {
   });
 
   it('exports markdown with the same numbers', () => {
-    const md = deliveryToMarkdown(r, 'Mission', t0);
+    const md = deliveryToMarkdown(r, 'Trail', t0);
     expect(md).toContain('| Tickets done / cancelled / open | 2 / 1 / 1 |');
     expect(md).toContain('4 (1 answers, 3 operator actions, 1 sent back)');
     expect(md).toContain('| Cost per verified ticket | $0.2500 |');
@@ -157,9 +157,9 @@ describe('madeBy', () => {
   const base = { source: { kind: 'agent' as const } };
   it('tells agent calls from the human answers agents record', () => {
     expect(madeBy({ ...base, decidedBy: 'claude-01' })).toBe('agent');
-    expect(madeBy({ ...base, decidedBy: 'operator' })).toBe('human');
+    expect(madeBy({ ...base, decidedBy: 'trail lead' })).toBe('human');
     expect(madeBy({ ...base, decidedBy: 'slack:U123' })).toBe('human');
-    expect(madeBy({ source: { kind: 'command-center' }, decidedBy: 'operator' })).toBe('human');
+    expect(madeBy({ source: { kind: 'lookout' }, decidedBy: 'trail lead' })).toBe('human');
   });
 
   const decision = (id: string, decidedBy: string): DecisionRecord => ({
@@ -176,7 +176,7 @@ describe('madeBy', () => {
     source: { kind: 'agent' },
     transcript: [],
   });
-  const decisions = [decision('D-1', 'claude-01'), decision('D-2', 'operator')];
+  const decisions = [decision('D-1', 'claude-01'), decision('D-2', 'trail lead')];
 
   it('drives the briefing count and the Decisions filter', () => {
     const b = buildBriefing({
@@ -186,7 +186,7 @@ describe('madeBy', () => {
       since: () => t0,
       now: t0 + 2 * MIN,
     });
-    expect(b.missions[0].agentDecisions.map((d) => d.id)).toEqual(['D-1']);
+    expect(b.trails[0].agentDecisions.map((d) => d.id)).toEqual(['D-1']);
     expect(filterDecisions(decisions, { madeBy: 'agent' }).map((d) => d.id)).toEqual(['D-1']);
     expect(filterDecisions(decisions, { madeBy: 'human' }).map((d) => d.id)).toEqual(['D-2']);
   });

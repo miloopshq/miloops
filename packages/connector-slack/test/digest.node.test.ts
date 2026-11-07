@@ -23,7 +23,7 @@ function fakeContext(root: string, clock: { now: number }) {
 }
 
 test('the Slack digest follows digestMinutes in attention.json, re-read on every flush', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-digest-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-digest-'));
   try {
     const clock = { now: 1_000_000 };
     const { ctx, posts } = fakeContext(root, clock);
@@ -31,7 +31,7 @@ test('the Slack digest follows digestMinutes in attention.json, re-read on every
 
     queueLine(ctx, 'm1', '#4 blocked');
     await flushBatches(ctx);
-    assert.deepEqual(posts, ['#4 blocked'], 'the first digest of a mission goes out right away');
+    assert.deepEqual(posts, ['#4 blocked'], 'the first digest of a trail goes out right away');
 
     queueLine(ctx, 'm1', '#5 resolved');
     clock.now += 9 * 60_000;

@@ -51,8 +51,8 @@ jobs:
         if: inputs.channel != 'stub'
         uses: browser-actions/setup-chrome@v1
       - run: |
-          git config --global user.name "MILOOPS CI"
-          git config --global user.email "ci@miloops.app"
+          git config --global user.name "Teamtrail CI"
+          git config --global user.email "ci@teamtrail.ai"
       - name: Version
         id: version
         env:

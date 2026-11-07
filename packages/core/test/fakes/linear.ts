@@ -110,7 +110,7 @@ export function fakeLinear(opts: { start?: number } = {}) {
         labels.set(l.id, l);
         return { issueLabelCreate: { issueLabel: { id: l.id, name: l.name } } };
       }
-      case 'Missions': {
+      case 'Trails': {
         const want = v.filter.labels.some.name.eq;
         const nodes = [...issues.values()].filter(
           (i) =>
@@ -119,7 +119,7 @@ export function fakeLinear(opts: { start?: number } = {}) {
         );
         return { issues: { nodes: nodes.map((i) => ({ id: i.id, identifier: i.identifier, title: i.title })) } };
       }
-      case 'Mission': {
+      case 'Trail': {
         const root = issues.get(v.id);
         if (!root) return { issue: null };
         const kids = [...issues.values()].filter((i) => i.parentId === root.id);

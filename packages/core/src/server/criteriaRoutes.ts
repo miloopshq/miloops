@@ -7,7 +7,7 @@ const text = (v: unknown) => typeof v === 'string' && v.length > 0 && v.length <
 /**
  * `/criteria` routes over the acceptance criteria under `root`; false when none matches.
  * GET `?mapId=` lists every ticket's criteria; POST `/criteria/confirm` (`mapId`, `title`, `ticketId`, `ticketKey`,
- * `confirmed`) is the operator confirming a ticket's criteria (or taking that back).
+ * `confirmed`) is the trail lead confirming a ticket's criteria (or taking that back).
  */
 export async function handleCriteria(root: string, req: IncomingMessage, res: ServerResponse, url: URL) {
   if (!url.pathname.startsWith('/criteria')) return false;

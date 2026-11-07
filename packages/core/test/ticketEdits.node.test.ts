@@ -18,7 +18,7 @@ import { noSleep } from './scenarios';
 
 const SECTIONS = { destination: 'Edits', notes: '', decisions: [], unspecified: [], outOfScope: [] };
 
-async function mission(a: TrackerAdapter) {
+async function trail(a: TrackerAdapter) {
   const { map, tickets } = await chartMap(a, {
     title: 'Edits',
     sections: SECTIONS,
@@ -32,7 +32,7 @@ async function mission(a: TrackerAdapter) {
 
 /** Edit, unblock, close and reopen through `a`; `fresh` reads the tracker again (or the same adapter). */
 async function editFlow(a: TrackerAdapter, fresh: () => TrackerAdapter) {
-  const { mapId, first, second } = await mission(a);
+  const { mapId, first, second } = await trail(a);
   await a.assign(mapId, first.id, 'claude-07');
   await a.editTicket(mapId, first.id, { title: 'First, revised', body: 'New scope' });
   await a.removeBlocking(mapId, first.id, second.id);
@@ -55,7 +55,7 @@ test('memory adapter: edit, remove a blocker, reopen', async () => {
 });
 
 test('markdown adapter: edit, remove a blocker, reopen, read back from the files', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-edits-md-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-edits-md-'));
   const make = () => new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
   await editFlow(make(), make);
 });
@@ -77,12 +77,12 @@ test('linear adapter: edit, relation deleted, issue moved back to an unstarted s
 });
 
 test('github offline: edit, unblock and reopen wait in the outbox and land in order once back online', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-edits-gh-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-edits-gh-'));
   const fake = fakeGitHub({ repo: 'octo-org/launchpad' });
   const net = faulty(fake.fetch);
   const opts = { repo: 'octo-org/launchpad', token: 't', manual: true, retries: 0, ...noSleep };
   const a = new GitHubAdapter({ ...opts, fetch: net.fetch, outbox: outboxFile(root, outboxKey('github', opts.repo)) });
-  const { mapId, first, second } = await mission(a);
+  const { mapId, first, second } = await trail(a);
   await a.close(mapId, second.id, 'completed');
   await a.tick();
   net.state.fault = 'offline';

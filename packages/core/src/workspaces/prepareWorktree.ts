@@ -23,14 +23,14 @@ const slugOf = (s: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 40) || 'mission';
+    .slice(0, 40) || 'trail';
 
-/** The branch and folder a ticket's worktree uses: `miloops/<mission>/<n>` in `<repo>.miloops/<mission>-<n>`. */
+/** The branch and folder a ticket's worktree uses: `teamtrail/<trail>/<n>` in `<repo>.teamtrail/<trail>-<n>`. */
 export function worktreeLocation(top: string, settings: WorkspaceSettings, mapId: string, key: string) {
   const slug = slugOf(mapId);
   const n = key.replace(/^#/, '');
-  const dir = path.resolve(top, settings.dir ?? `../${path.basename(top)}.miloops`);
-  return { branch: `miloops/${slug}/${n}`, path: path.join(dir, `${slug}-${n}`) };
+  const dir = path.resolve(top, settings.dir ?? `../${path.basename(top)}.teamtrail`);
+  return { branch: `teamtrail/${slug}/${n}`, path: path.join(dir, `${slug}-${n}`) };
 }
 
 /**

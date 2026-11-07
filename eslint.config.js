@@ -21,7 +21,7 @@ export default tseslint.config(
       '.claude/**',
       '**/*.d.ts',
       // Pixel rows, kept on one line each by hand.
-      '**/milo/art.ts',
+      '**/scout/art.ts',
     ],
   },
   js.configs.recommended,

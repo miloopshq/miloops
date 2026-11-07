@@ -7,10 +7,10 @@ function sourceLink(source: DecisionRecord['source']): string {
   return source.label ? ` · ${source.label}` : '';
 }
 
-/** Markdown export of an audit list, newest first, grouped per mission. */
+/** Markdown export of an audit list, newest first, grouped per trail. */
 export function decisionsToMarkdown(
   all: DecisionRecord[],
-  missions: Record<string, { key: string; title: string }>,
+  trails: Record<string, { key: string; title: string }>,
   opts: { title?: string; now?: number } = {},
 ) {
   const out = [
@@ -21,8 +21,8 @@ export function decisionsToMarkdown(
   const groups = new Map<string, DecisionRecord[]>();
   for (const d of all) groups.set(d.mapId, [...(groups.get(d.mapId) ?? []), d]);
   for (const [mapId, ds] of groups) {
-    const m = missions[mapId];
-    out.push('', `## Mission ${m ? `${m.key} ${m.title}` : mapId}`);
+    const m = trails[mapId];
+    out.push('', `## Trail ${m ? `${m.key} ${m.title}` : mapId}`);
     for (const d of ds) {
       const src = DECISION_SOURCES[d.source.kind].label;
       out.push(

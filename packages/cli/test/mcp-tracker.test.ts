@@ -1,15 +1,15 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { MarkdownAdapter } from '@miloops-hq/core';
-import { readAgentDocs } from '@miloops-hq/core/agents';
-import { activeTracker } from '@miloops-hq/core/bridge';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { MarkdownAdapter } from '@teamtrail/core';
+import { readAgentDocs } from '@teamtrail/core/agents';
+import { activeTracker } from '@teamtrail/core/bridge';
+import { nodeMarkdownFs } from '@teamtrail/core/node';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { fakeGitHub } from '../../core/test/fakes/github';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let root: string;
@@ -19,11 +19,11 @@ const noGh = async () => {
   throw new Error('gh: not installed');
 };
 
-/** An MCP agent on the project's active tracker, the way `miloops mcp` builds it. */
+/** An MCP agent on the project's active tracker, the way `teamtrail mcp` builds it. */
 async function connect(env: Record<string, string | undefined>, fetch: typeof globalThis.fetch) {
   const markdown = new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
   const tracker = activeTracker({ root, markdown, env, exec: noGh, fetch, configDir });
-  const agent = new MissionAgent({ root, agent: 'claude-01', pollMs: 20, tracker });
+  const agent = new TrailAgent({ root, agent: 'claude-01', pollMs: 20, tracker });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -43,8 +43,8 @@ const useGitHub = () =>
   );
 
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-mcp-gh-'));
-  configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-config-'));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-mcp-gh-'));
+  configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-config-'));
 });
 afterEach(async () => {
   for (const o of open.splice(0)) await o.close();
@@ -58,8 +58,8 @@ describe('MCP agent on the active tracker', () => {
     const gh = fakeGitHub();
     const call = await connect({ GITHUB_TOKEN: 'gho_test' }, gh.fetch);
 
-    const started = await call<{ mission: { id: string; key: string }; tickets: { ref: string; key: string }[] }>(
-      'start_mission',
+    const started = await call<{ trail: { id: string; key: string }; tickets: { ref: string; key: string }[] }>(
+      'start_trail',
       {
         discovery: false,
         title: 'Changelog page',
@@ -72,9 +72,9 @@ describe('MCP agent on the active tracker', () => {
     );
     const key = (ref: string) => started.tickets.find((t) => t.ref === ref)!.key;
     const issue = (k: string) => gh.issues.get(Number(k.replace('#', '')))!;
-    const mission = gh.issues.get(Number(started.mission.id))!;
-    expect(mission.labels).toContain('miloops:map');
-    expect(mission.subIssues).toEqual([issue(key('src')).number, issue(key('build')).number]);
+    const trail = gh.issues.get(Number(started.trail.id))!;
+    expect(trail.labels).toContain('teamtrail:map');
+    expect(trail.subIssues).toEqual([issue(key('src')).number, issue(key('build')).number]);
     expect(issue(key('build')).blockedBy).toEqual([issue(key('src')).id]);
 
     const claimed = await call<{ claimed: { key: string; assignee: string } }>('claim_ticket');
@@ -91,17 +91,17 @@ describe('MCP agent on the active tracker', () => {
     expect(closed.unblocked.map((t) => t.key)).toEqual([key('build')]);
     const src = issue(key('src'));
     expect(src.state).toBe('closed');
-    expect(src.comments.some((c) => c.body.includes('<!-- miloops:decision'))).toBe(true);
+    expect(src.comments.some((c) => c.body.includes('<!-- teamtrail:decision'))).toBe(true);
 
-    const status = await call<{ mission: { progress: string; ready: { key: string }[] } }>('status');
-    expect(status.mission).toMatchObject({ progress: '1/2 decided', ready: [{ key: key('build') }] });
+    const status = await call<{ trail: { progress: string; ready: { key: string }[] } }>('status');
+    expect(status.trail).toMatchObject({ progress: '1/2 decided', ready: [{ key: key('build') }] });
     expect(await new MarkdownAdapter(nodeMarkdownFs(root)).listMaps()).toEqual([]);
   });
 
   it('fails the call instead of writing to local markdown when the GitHub token is missing', async () => {
     useGitHub();
     const call = await connect({}, fakeGitHub().fetch);
-    await expect(call('start_mission', { discovery: false, title: 'M', destination: 'D' })).rejects.toThrow(
+    await expect(call('start_trail', { discovery: false, title: 'M', destination: 'D' })).rejects.toThrow(
       /No GitHub token/,
     );
     expect(await new MarkdownAdapter(nodeMarkdownFs(root)).listMaps()).toEqual([]);
@@ -110,10 +110,10 @@ describe('MCP agent on the active tracker', () => {
   it('follows a tracker switch made in Settings without restarting', async () => {
     const gh = fakeGitHub();
     const call = await connect({ GITHUB_TOKEN: 'gho_test' }, gh.fetch);
-    await call('start_mission', { discovery: false, title: 'Local one', destination: 'D' });
+    await call('start_trail', { discovery: false, title: 'Local one', destination: 'D' });
     expect((await new MarkdownAdapter(nodeMarkdownFs(root)).listMaps()).map((m) => m.title)).toEqual(['Local one']);
     useGitHub();
-    await call('start_mission', { discovery: false, title: 'On GitHub', destination: 'D' });
+    await call('start_trail', { discovery: false, title: 'On GitHub', destination: 'D' });
     expect([...gh.issues.values()].map((i) => i.title)).toEqual(['On GitHub']);
   });
 });

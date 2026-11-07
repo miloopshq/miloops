@@ -2,7 +2,7 @@
  * Re-records the fixtures:  node packages/connector-slack/test/run.mjs record
  * Flows run against test/fakes (deterministic; no network, no tokens). Each
  * fixture keeps the Web API exchanges (method, path, body; never headers with
- * tokens) and the Socket Mode envelopes with the acks MILO sent back.
+ * tokens) and the Socket Mode envelopes with the acks Scout sent back.
  */
 import { freezeTime, world } from './harness';
 import {
@@ -27,18 +27,18 @@ const flows: [string, (w: ReturnType<typeof world>) => Promise<unknown>, string]
   [
     'slack-ask.json',
     askFlow,
-    'Agent questions as DMs: refused click, button answer, late click, answer in the command center, Reply… modal, agent gone.',
+    'Agent questions as DMs: refused click, button answer, late click, answer in the Lookout, Reply… modal, agent gone.',
   ],
   [
     'slack-decision.json',
     decisionFlow,
-    'Save as decision on a thread (refused, modal, mission switch, validation, save), bot not in channel, /milo decide as mission only.',
+    'Save as decision on a thread (refused, modal, trail switch, validation, save), bot not in channel, /scout decide as trail only.',
   ],
-  ['slack-status.json', statusFlow, '/milo help, status (all and one mission), inbox, unknown subcommand, refusal.'],
+  ['slack-status.json', statusFlow, '/scout help, status (all and one trail), inbox, unknown subcommand, refusal.'],
   [
     'slack-notify.json',
     notifyFlow,
-    'Blocked and mission-done notifications in the owner DM, threaded per mission per day.',
+    'Blocked and trail-done notifications in the owner DM, threaded per trail per day.',
   ],
   [
     'slack-approvals.json',

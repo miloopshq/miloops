@@ -5,7 +5,7 @@ import { dropLease, readLeases, takeLease } from './leaseStore';
 import { handoffComment, leaseHealth, TOMBSTONE_MS, type LeaseReturnReason, type TicketLease } from './ticketLease';
 
 /** Who returns expired leases in the handoff comment and the tombstone. */
-export const LEASE_REAPER = 'miloops';
+export const LEASE_REAPER = 'teamtrail';
 
 export type ReturnOutcome = { returned: TicketLease } | { dropped: TicketLease } | { busy: true };
 
@@ -40,7 +40,7 @@ export async function returnToQueue(
     await transition(adapter, l.mapId, l.ticketId, {
       event: reason === 'expired' ? 'expire' : 'release',
       actor: by,
-      actorKind: reason === 'expired' ? 'engine' : 'operator',
+      actorKind: reason === 'expired' ? 'engine' : 'trail lead',
       reason: reason === 'expired' ? `${l.agent} went silent` : `claim of ${l.agent} released`,
       sessionId: l.sessionId,
       journal: journalFile(root),

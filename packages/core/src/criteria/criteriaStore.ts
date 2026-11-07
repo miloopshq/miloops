@@ -6,7 +6,7 @@ import { parseCriteria, serializeCriteria } from './criteriaFile';
 const safe = (s: string) => s.replace(/[^\w.-]/g, '_');
 const file = (root: string, mapId: string) => path.join(root, CRITERIA_DIR, `${safe(mapId)}.md`);
 
-/** Every ticket's criteria on a mission. */
+/** Every ticket's criteria on a trail. */
 export function readCriteria(root: string, mapId: string): TicketCriteria[] {
   const f = file(root, mapId);
   if (!existsSync(f)) return [];

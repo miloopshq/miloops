@@ -10,7 +10,7 @@ export interface Reviewer {
 
 /**
  * Why `who` may not review `t`, or undefined when they may: the reviewer must
- * not be its assignee or appear, by callsign or session, in any of its
+ * not be its assignee or appear, by trail name or session, in any of its
  * attempts or its claim.
  */
 export function reviewConflict(root: string, mapId: string, t: Ticket, who: Reviewer): string | undefined {

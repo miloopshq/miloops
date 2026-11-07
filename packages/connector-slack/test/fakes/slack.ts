@@ -38,10 +38,10 @@ type Res = { status: number; headers?: Record<string, string>; body?: unknown };
 
 export function fakeSlack(opts: { start?: number } = {}) {
   const team = { id: 'T0EFIKA01', name: 'efika', domain: 'efika', url: 'https://efika.slack.com/' };
-  const app = { id: 'A0MILO0001', botId: 'B0MILO0001', botUser: 'U0MILOBOT' };
+  const app = { id: 'A0Scout0001', botId: 'B0Scout0001', botUser: 'U0ScoutBOT' };
   const tokens = {
     app: `xapp-1-${app.id}-1001-6d696c6f6170706c6576656c`,
-    bot: 'xoxb-1001-2002-fakebottokenmilo',
+    bot: 'xoxb-1001-2002-fakebottokenscout',
     user: 'xoxp-1001-2002-fakeusertoken',
   };
   const state = { scopes: [...BOT_SCOPES, ...OPTIONAL_SCOPES] as string[], socketMode: true, installed: true };
@@ -58,7 +58,7 @@ export function fakeSlack(opts: { start?: number } = {}) {
       { id: 'U0ANA0001', name: 'ana', real_name: 'Ana Silva', display_name: 'ana', email: 'ana@efika.test' },
       { id: 'U0RAJ0001', name: 'raj', real_name: 'Raj Patel', display_name: 'raj', email: 'raj@efika.test' },
       { id: 'U0EVE0001', name: 'eve', real_name: 'Eve Moreau', display_name: '' },
-      { id: app.botUser, name: 'milo', real_name: 'MILO', display_name: 'MILO', is_bot: true },
+      { id: app.botUser, name: 'scout', real_name: 'Scout', display_name: 'Scout', is_bot: true },
       { id: 'USLACKBOT', name: 'slackbot', real_name: 'Slackbot', display_name: 'Slackbot' },
     ].map((u) => [u.id, u]),
   );
@@ -72,7 +72,7 @@ export function fakeSlack(opts: { start?: number } = {}) {
       messages: [],
     });
   addChannel('C0INFRA01', 'infra', false, true);
-  addChannel('G0MILOTST', 'milo-test', true, true);
+  addChannel('G0ScoutTST', 'scout-test', true, true);
   addChannel('C0RANDOM1', 'random', false, false);
   const im = (user: string) => {
     const id = `D0${user.slice(1, 9)}`;
@@ -129,7 +129,7 @@ export function fakeSlack(opts: { start?: number } = {}) {
         return ok({
           url: team.url,
           team: team.name,
-          user: 'milo',
+          user: 'scout',
           team_id: team.id,
           user_id: app.botUser,
           bot_id: app.botId,
@@ -137,7 +137,7 @@ export function fakeSlack(opts: { start?: number } = {}) {
         });
       case 'bots.info':
         return args.bot === app.botId
-          ? ok({ bot: { id: app.botId, deleted: false, name: 'MILO', app_id: app.id, user_id: app.botUser } })
+          ? ok({ bot: { id: app.botId, deleted: false, name: 'Scout', app_id: app.id, user_id: app.botUser } })
           : err('bot_not_found');
       case 'users.info': {
         const u = users.get(args.user);
@@ -318,7 +318,7 @@ export function fakeSlack(opts: { start?: number } = {}) {
           event: { type: 'app_home_opened', user, channel: im(user), tab, event_ts: ts() },
         },
       }),
-      command: (user: string, channel: string, text: string, command = '/milo') => ({
+      command: (user: string, channel: string, text: string, command = '/scout') => ({
         type: 'slash_commands' as const,
         payload: {
           token: 'legacy',

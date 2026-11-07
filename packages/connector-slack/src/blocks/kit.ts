@@ -1,4 +1,4 @@
-import { BRAND } from '@miloops-hq/core';
+import { BRAND } from '@teamtrail/core';
 
 export type Block = Record<string, unknown>;
 
@@ -16,8 +16,8 @@ export const ACTIONS = {
   claim: 'claim_owner',
   option: 'ask_option',
   reply: 'ask_reply',
-  open: 'open_miloops',
-  missionPick: 'mission_pick',
+  open: 'open_teamtrail',
+  trailPick: 'trail_pick',
   approve: 'verify_approve',
   rework: 'verify_rework',
 } as const;

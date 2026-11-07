@@ -1,6 +1,6 @@
 // M3 steps of the end-to-end check (verify-mcp.mjs), on their own scratch git repo with worktrees on: two agents
-// claim overlapping files, get their own worktrees, change the same file, and the operator adds the integration
-// ticket from the command center. Waits on what the user sees, never on sleeps.
+// claim overlapping files, get their own worktrees, change the same file, and the trail lead adds the integration
+// ticket from the Lookout. Waits on what the user sees, never on sleeps.
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -12,30 +12,30 @@ const sh = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8' }
 
 /** A project repo with one commit and worktrees switched on in its tracker folder. */
 function scratchRepo() {
-  const top = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-parallel-e2e-')), 'app');
+  const top = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-parallel-e2e-')), 'app');
   fs.mkdirSync(path.join(top, 'src', 'search'), { recursive: true });
-  fs.mkdirSync(path.join(top, '.miloops'));
+  fs.mkdirSync(path.join(top, '.teamtrail'));
   fs.writeFileSync(path.join(top, 'src', 'search', 'index.ts'), 'export const search = () => [];\n');
-  fs.writeFileSync(path.join(top, '.miloops', 'workspaces.json'), JSON.stringify({ v: 1, worktrees: true }));
+  fs.writeFileSync(path.join(top, '.teamtrail', 'workspaces.json'), JSON.stringify({ v: 1, worktrees: true }));
   sh(top, 'init', '-q', '-b', 'main');
   sh(top, 'add', '-A');
-  sh(top, '-c', 'user.email=e2e@miloops', '-c', 'user.name=e2e', 'commit', '-qm', 'init');
+  sh(top, '-c', 'user.email=e2e@teamtrail', '-c', 'user.name=e2e', 'commit', '-qm', 'init');
   return top;
 }
 
 async function startServer(cli, cwd) {
   const server = spawn(process.execPath, [cli, '--no-open', '--port', '0'], {
     cwd,
-    env: { ...process.env, MILOOPS_INTEGRATION_POLL_MS: '1000' },
+    env: { ...process.env, TEAMTRAIL_INTEGRATION_POLL_MS: '1000' },
   });
   const url = await new Promise((resolve, reject) => {
     let out = '';
     server.stdout.on('data', (c) => {
       out += c;
-      const m = out.match(/Command center\s+(http:\S+)/);
+      const m = out.match(/Lookout\s+(http:\S+)/);
       if (m) resolve(m[1]);
     });
-    server.on('exit', (code) => reject(new Error(`miloops exited ${code}: ${out}`)));
+    server.on('exit', (code) => reject(new Error(`teamtrail exited ${code}: ${out}`)));
   });
   return { server, url };
 }
@@ -55,7 +55,7 @@ async function agent(cli, cwd) {
 /** Commits a change to the same file in a claim's worktree, as the agent would. */
 function changeShared(ws, who) {
   fs.writeFileSync(path.join(ws.path, 'src', 'search', 'index.ts'), `export const search = () => ['${who}'];\n`);
-  sh(ws.path, '-c', 'user.email=e2e@miloops', '-c', 'user.name=e2e', 'commit', '-qam', `search by ${who}`);
+  sh(ws.path, '-c', 'user.email=e2e@teamtrail', '-c', 'user.name=e2e', 'commit', '-qam', `search by ${who}`);
 }
 
 export async function verifyParallel({ browser, cli, log, shots }) {
@@ -70,7 +70,7 @@ export async function verifyParallel({ browser, cli, log, shots }) {
     await page.goto(url);
     await page.locator('.dialog.onboarding').waitFor();
     await page.getByRole('button', { name: 'Get started' }).click();
-    await one.call('start_mission', {
+    await one.call('start_trail', {
       discovery: false,
       title: 'Release search',
       destination: 'Readers find a release in seconds',
@@ -102,8 +102,10 @@ export async function verifyParallel({ browser, cli, log, shots }) {
 
     const ticketsDir = path.join(
       top,
-      '.miloops',
-      fs.readdirSync(path.join(top, '.miloops')).find((d) => fs.existsSync(path.join(top, '.miloops', d, 'tickets'))),
+      '.teamtrail',
+      fs
+        .readdirSync(path.join(top, '.teamtrail'))
+        .find((d) => fs.existsSync(path.join(top, '.teamtrail', d, 'tickets'))),
       'tickets',
     );
     const added = fs

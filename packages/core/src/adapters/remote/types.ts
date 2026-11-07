@@ -4,14 +4,14 @@ import type { SyncStatus } from './sync/types';
 export type RemoteKind = 'github' | 'linear';
 export type ActiveTracker = 'markdown' | RemoteKind;
 
-/** Where a credential came from. Values never leave the machine running `miloops`; only the source is reported. */
+/** Where a credential came from. Values never leave the machine running `teamtrail`; only the source is reported. */
 export type CredentialSource = 'stored' | 'GITHUB_TOKEN' | 'GH_TOKEN' | 'gh' | 'LINEAR_API_KEY';
 
 export interface LinearTarget {
   teamId: string;
   teamKey?: string;
   teamName?: string;
-  /** Optional: missions are created in this project and only its missions are listed. */
+  /** Optional: trails are created in this project and only its trails are listed. */
   projectId?: string;
   projectName?: string;
 }

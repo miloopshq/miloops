@@ -1,8 +1,8 @@
-/** `<mission>/decisions/<D-n>.md`; groups: mission, decision id. */
+/** `<trail>/decisions/<D-n>.md`; groups: trail, decision id. */
 export const DECISION_PATH = /^([^/]+)\/decisions\/([^/]+)\.md$/;
 
-/** Folder name of a new mission: its title in kebab case, else `map-<n>`. */
-export const missionSlug = (title: string, n: number) =>
+/** Folder name of a new trail: its title in kebab case, else `map-<n>`. */
+export const trailSlug = (title: string, n: number) =>
   title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')

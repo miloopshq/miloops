@@ -1,6 +1,8 @@
+<img src="https://raw.githubusercontent.com/teamtrailhq/teamtrail/main/brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, next to the Teamtrail wordmark." width="100%" />
+
 # Teamtrail
 
-**A local command center for big work done by your AI coding agents.** You pick the destination, your agents map the work as decisions, and you get only the calls that need you.
+**A local trail map for big work done by your AI coding agents.** You pick the destination, your agents map the work as decisions, and you get only the calls that need you.
 
 ## Status
 

@@ -1,4 +1,4 @@
-import { BRAND, type Ticket } from '@miloops-hq/core';
+import { BRAND, type Ticket } from '@teamtrail/core';
 
 export const AUTH_CODES = new Set([
   'invalid_auth',
@@ -10,7 +10,7 @@ export const AUTH_CODES = new Set([
 ]);
 export const REFUSED = `Only the ${BRAND.name} owner and allowed users can do that. Ask the owner to add you in ${BRAND.name} Settings → Slack.`;
 export const ALREADY = `Already answered in ${BRAND.name}.`;
-const DECISION_TYPES = new Set<Ticket['type']>(['grilling', 'prototype']);
+const DECISION_TYPES = new Set<Ticket['type']>(['junction', 'prototype']);
 export const isDecisionTicket = (t: Ticket) =>
   t.state === 'open' && (DECISION_TYPES.has(t.type) || (t.type === 'task' && !!t.hitl));
 export const day = (t: number) => new Date(t).toISOString().slice(0, 10);

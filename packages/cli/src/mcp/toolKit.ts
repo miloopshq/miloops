@@ -1,13 +1,13 @@
-import { RISK_CATEGORIES, TICKET_TYPES, type TicketType } from '@miloops-hq/core';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { RISK_CATEGORIES, TICKET_TYPES, type TicketType } from '@teamtrail/core';
 import { z } from 'zod';
-import { OperationError, type MissionAgent, type WaitControl } from './agent';
+import { OperationError, type TrailAgent, type WaitControl } from './agent';
 
 export const ticketType = z.enum(TICKET_TYPES as [TicketType, ...TicketType[]]);
-export const mission = z
+export const trail = z
   .string()
   .optional()
-  .describe('Mission id, key (#3) or title. Default: the current mission, else the most recently active one.');
+  .describe('Trail id, key (#3) or title. Default: the current trail, else the most recently active one.');
 export const ticket = z.string().describe('Ticket key (#12) or id (12).');
 export const riskCategory = z
   .enum(RISK_CATEGORIES)
@@ -37,7 +37,7 @@ function withLostLeases(v: unknown, lost: string[]) {
     ...v,
     leaseLost: {
       tickets: lost,
-      note: 'Your claim went back to the queue (no tool calls for the lease length, or released in the command center). claim_ticket it again to continue, unless another agent took it.',
+      note: 'Your claim went back to the queue (no tool calls for the lease length, or released in the Lookout). claim_ticket it again to continue, unless another agent took it.',
     },
   };
 }
@@ -47,7 +47,7 @@ function failure(e: unknown) {
   return { isError: true, content: [{ type: 'text' as const, text: msg }] };
 }
 
-export function waitControl(extra: Extra, message = 'Waiting on the human in the command center'): WaitControl {
+export function waitControl(extra: Extra, message = 'Waiting on the human in the Lookout'): WaitControl {
   const token = extra._meta?.progressToken;
   return {
     signal: extra.signal,
@@ -65,7 +65,7 @@ export function waitControl(extra: Extra, message = 'Waiting on the human in the
 }
 
 /** Registers one tool: its result is JSON text, errors become tool errors, and agent state is flushed after every call. */
-export function toolDefiner(server: McpServer, agent: MissionAgent) {
+export function toolDefiner(server: McpServer, agent: TrailAgent) {
   return <S extends z.ZodRawShape>(
     name: string,
     meta: { title: string; description: string; readOnly?: boolean },

@@ -8,7 +8,7 @@ import {
 } from '../model/types';
 
 export function attention(t: Pick<Ticket, 'type' | 'hitl'>): Attention {
-  if (t.type === 'grilling' || t.type === 'prototype') return 'hitl';
+  if (t.type === 'junction' || t.type === 'prototype') return 'hitl';
   if (t.type === 'research') return 'afk';
   return t.hitl ? 'hitl' : 'afk';
 }

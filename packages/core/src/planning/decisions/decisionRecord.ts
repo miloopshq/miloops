@@ -2,7 +2,7 @@ import type { DecisionSourceKind, DecisionRecord, DecisionStatus, DecisionInput 
 
 /** Display names per source kind. A new integration adds its kind to `DecisionSourceKind` and a line here. */
 export const DECISION_SOURCES: Record<DecisionSourceKind, { label: string; code: string }> = {
-  'command-center': { label: 'Command center', code: 'CMD' },
+  lookout: { label: 'Lookout', code: 'CMD' },
   agent: { label: 'Agent', code: 'AGT' },
   slack: { label: 'Slack', code: 'SLK' },
   tracker: { label: 'Tracker', code: 'TRK' },
@@ -13,11 +13,11 @@ export const DECISION_SOURCE_KINDS = Object.keys(DECISION_SOURCES) as DecisionSo
 export const isSourceKind = (v: string): v is DecisionSourceKind => v in DECISION_SOURCES;
 
 /**
- * Who made the call. Agents also record the human's HITL answers (`decidedBy: operator`), so the source alone
+ * Who made the call. Agents also record the human's HITL answers (`decidedBy: trail lead`), so the source alone
  * isn't enough: an agent decision is one an agent recorded and made itself.
  */
 export const madeBy = (d: Pick<DecisionRecord, 'decidedBy' | 'source'>): 'agent' | 'human' =>
-  d.source.kind === 'agent' && d.decidedBy !== 'operator' && !d.decidedBy.startsWith('slack:') ? 'agent' : 'human';
+  d.source.kind === 'agent' && d.decidedBy !== 'trail lead' && !d.decidedBy.startsWith('slack:') ? 'agent' : 'human';
 
 export const decisionStatus = (d: Pick<DecisionRecord, 'supersededBy'>): DecisionStatus =>
   d.supersededBy ? 'superseded' : 'active';

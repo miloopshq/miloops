@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { MarkdownAdapter } from '@miloops-hq/core';
-import { journalPath, readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/agents';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { MarkdownAdapter } from '@teamtrail/core';
+import { journalPath, readAgentDocs, writeAgentAnswer } from '@teamtrail/core/agents';
+import { nodeMarkdownFs } from '@teamtrail/core/node';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MissionAgent, callsignFamily } from '../src/mcp/agent';
+import { TrailAgent, trailNameFamily } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let root: string;
@@ -15,7 +15,7 @@ const open: { close(): void | Promise<void> }[] = [];
 
 async function connect(agentName?: string, clientName = 'claude-code') {
   let server: ReturnType<typeof createMcpServer> | undefined;
-  const agent = new MissionAgent({
+  const agent = new TrailAgent({
     root,
     agent: agentName,
     pollMs: 20,
@@ -37,25 +37,25 @@ async function connect(agentName?: string, clientName = 'claude-code') {
   return { agent, client, call };
 }
 
-/** Plays the operator in the command center: answers the next question that shows up in any session doc. */
+/** Plays the trail lead in the Lookout: answers the next question that shows up in any session doc. */
 async function answerNext(text: string, match?: RegExp) {
   for (let i = 0; i < 200; i++) {
     const q = (await readAgentDocs(root)).flatMap((d) => d.pending).find((p) => !match || match.test(p.text));
-    if (q) return writeAgentAnswer(root, { sessionId: q.sessionId, questionId: q.id, text, author: 'operator' });
+    if (q) return writeAgentAnswer(root, { sessionId: q.sessionId, questionId: q.id, text, author: 'trail lead' });
     await new Promise((r) => setTimeout(r, 20));
   }
   throw new Error('no question showed up');
 }
 
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-mcp-'));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-mcp-'));
 });
 afterEach(async () => {
   for (const o of open.splice(0)) await o.close();
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-describe('miloops MCP server', () => {
+describe('teamtrail MCP server', () => {
   it('lists the agent tools with instructions', async () => {
     const { client } = await connect();
     const names = (await client.listTools()).tools.map((t) => t.name).sort();
@@ -73,20 +73,20 @@ describe('miloops MCP server', () => {
         'list_inbox',
         'next_ticket',
         'propose_knowledge',
-        'propose_replan',
+        'propose_reroute',
         'record_decision',
         'release_ticket',
-        'replan_status',
+        'reroute_status',
         'report_completion',
         'report_progress',
-        'resume_mission',
+        'resume_trail',
         'set_criteria',
         'search_knowledge',
-        'start_mission',
+        'start_trail',
         'status',
         'submit_brief',
         'submit_review',
-        'update_mission',
+        'update_trail',
         'verification_status',
         'wait_for_answer',
       ].sort(),
@@ -94,7 +94,7 @@ describe('miloops MCP server', () => {
     expect(client.getInstructions()).toMatch(/claim_ticket/);
   });
 
-  it('drives a mission end to end: framing, chart, claim, HITL question, close, decisions', async () => {
+  it('drives a trail end to end: framing, chart, claim, HITL question, close, decisions', async () => {
     const { call } = await connect();
 
     const framing = call<{ answered: boolean; answer: string; answeredBy: string }>('ask_human', {
@@ -103,14 +103,14 @@ describe('miloops MCP server', () => {
       framing: true,
     });
     await answerNext('Solo devs first');
-    expect(await framing).toMatchObject({ answered: true, answer: 'Solo devs first', answeredBy: 'operator' });
+    expect(await framing).toMatchObject({ answered: true, answer: 'Solo devs first', answeredBy: 'trail lead' });
 
     const started = await call<{
-      mission: { id: string; key: string };
+      trail: { id: string; key: string };
       tickets: { ref: string; key: string }[];
       next: { key: string };
       framingQuestionsAnswered: number;
-    }>('start_mission', {
+    }>('start_trail', {
       discovery: false,
       title: 'Changelog page',
       destination: 'A public changelog page generated from releases',
@@ -118,7 +118,7 @@ describe('miloops MCP server', () => {
       unspecified: ['RSS feed'],
       tickets: [
         { ref: 'src', title: 'Where do release notes live?', type: 'research' },
-        { ref: 'look', title: 'Pick the page layout', type: 'grilling', blockedBy: ['src'] },
+        { ref: 'look', title: 'Pick the page layout', type: 'junction', blockedBy: ['src'] },
         { ref: 'build', title: 'Build the page', type: 'execute', blockedBy: ['look'] },
       ],
     });
@@ -129,7 +129,7 @@ describe('miloops MCP server', () => {
 
     const docs = await readAgentDocs(root);
     const chart = docs.find((d) => d.session.mode === 'chart')!;
-    expect(chart.session).toMatchObject({ status: 'done', mapId: started.mission.id, agent: 'claude-01' });
+    expect(chart.session).toMatchObject({ status: 'done', mapId: started.trail.id, agent: 'claude-01' });
 
     const claimed = await call<{ claimed: { key: string; attention: string; assignee: string } }>('claim_ticket');
     expect(claimed.claimed).toMatchObject({ key: key('src'), attention: 'afk', assignee: 'claude-01' });
@@ -165,49 +165,49 @@ describe('miloops MCP server', () => {
       resolution: 'Group entries by version, newest first.',
       postTranscript: true,
     });
-    expect(closed2.decision.decidedBy).toBe('operator');
+    expect(closed2.decision.decidedBy).toBe('trail lead');
     expect(closed2.unblocked.map((t) => t.key)).toEqual([key('build')]);
 
     await call('record_decision', {
       question: 'Host it where?',
       answer: 'Same static host as the landing page.',
-      decidedBy: 'operator',
+      decidedBy: 'trail lead',
     });
 
     const status = await call<{
-      mission: {
+      trail: {
         progress: string;
         decisions: { summary: string }[];
         ready: { key: string }[];
         spend: { inputTokens: number; costUsd: number };
       };
     }>('status');
-    expect(status.mission.progress).toBe('2/3 decided');
-    expect(status.mission.ready.map((t) => t.key)).toEqual([key('build')]);
-    expect(status.mission.decisions.map((d) => d.summary)).toEqual([
+    expect(status.trail.progress).toBe('2/3 decided');
+    expect(status.trail.ready.map((t) => t.key)).toEqual([key('build')]);
+    expect(status.trail.decisions.map((d) => d.summary)).toEqual([
       'Release notes live in the in-app changelog module.',
       'Group entries by version, newest first.',
       'Same static host as the landing page.',
     ]);
-    expect(status.mission.spend).toMatchObject({ inputTokens: 1200, costUsd: 0.0081 });
+    expect(status.trail.spend).toMatchObject({ inputTokens: 1200, costUsd: 0.0081 });
 
     const adapter = new MarkdownAdapter(nodeMarkdownFs(root));
-    const snap = await adapter.loadMap(started.mission.id);
+    const snap = await adapter.loadMap(started.trail.id);
     const grill = snap.tickets.find((t) => t.key === key('look'))!;
     expect(grill.state).toBe('closed');
     expect(grill.comments.map((c) => c.body.split('\n')[0])).toEqual(['**HITL transcript**', '**Resolution**']);
-    const records = await adapter.listDecisions(started.mission.id);
+    const records = await adapter.listDecisions(started.trail.id);
     expect(records.find((r) => r.ticketId === grill.id)?.transcript.map((e) => e.from)).toEqual(['agent', 'human']);
     expect(snap.map.sections.decisions.map((d) => d.text)).toContain('Static page, no backend');
   });
 
   it('returns answered=false when the wait runs out and picks the answer up later', async () => {
     const { call } = await connect();
-    await call('start_mission', {
+    await call('start_trail', {
       discovery: false,
       title: 'M',
       destination: 'D',
-      tickets: [{ ref: 'a', title: 'Decide', type: 'grilling' }],
+      tickets: [{ ref: 'a', title: 'Decide', type: 'junction' }],
     });
     await call('claim_ticket');
     const first = await call<{ answered: boolean; questionId: string }>('ask_human', {
@@ -228,12 +228,12 @@ describe('miloops MCP server', () => {
   it("answers another agent's question from chat and refuses tickets another agent holds", async () => {
     const one = await connect('claude-01');
     const two = await connect('codex-01', 'codex-mcp-client');
-    await one.call('start_mission', {
+    await one.call('start_trail', {
       discovery: false,
       title: 'Shared',
       destination: 'D',
       tickets: [
-        { ref: 'a', title: 'Pick a name', type: 'grilling' },
+        { ref: 'a', title: 'Pick a name', type: 'junction' },
         { ref: 'b', title: 'Survey', type: 'research' },
       ],
     });
@@ -248,17 +248,17 @@ describe('miloops MCP server', () => {
       qid = (await two.call<{ questions: { questionId: string }[] }>('list_inbox')).questions[0]?.questionId;
       if (!qid) await new Promise((r) => setTimeout(r, 20));
     }
-    await expect(two.call('answer_question', { questionId: qid, answer: 'Milo' })).resolves.toMatchObject({
+    await expect(two.call('answer_question', { questionId: qid, answer: 'Scout' })).resolves.toMatchObject({
       delivered: true,
       to: 'claude-01',
     });
-    expect((await asked).answer).toBe('Milo');
+    expect((await asked).answer).toBe('Scout');
     expect(two.agent.defaultWaitSeconds()).toBe(50);
   });
 
-  it('journals every transition the agent makes, with its callsign and session', async () => {
+  it('journals every transition the agent makes, with its trailName and session', async () => {
     const { call } = await connect('claude-07');
-    const started = await call<{ mission: { id: string } }>('start_mission', {
+    const started = await call<{ trail: { id: string } }>('start_trail', {
       discovery: false,
       title: 'Journal',
       destination: 'D',
@@ -272,7 +272,7 @@ describe('miloops MCP server', () => {
     await call('close_ticket', { ticket: '#3', resolution: 'Not needed.', outcome: 'out_of_scope' });
     await call('claim_ticket', { ticket: '#3' }).catch(() => {});
     const lines = fs
-      .readFileSync(journalPath(root, started.mission.id), 'utf8')
+      .readFileSync(journalPath(root, started.trail.id), 'utf8')
       .trim()
       .split('\n')
       .map((l) => JSON.parse(l));
@@ -286,28 +286,28 @@ describe('miloops MCP server', () => {
 
   it('rejects bad input with clear errors', async () => {
     const { call } = await connect();
-    await expect(call('resume_mission')).rejects.toThrow(/No missions yet/);
+    await expect(call('resume_trail')).rejects.toThrow(/No trails yet/);
     await expect(
-      call('start_mission', {
+      call('start_trail', {
         discovery: false,
         title: 'M',
         destination: 'D',
         tickets: [{ ref: 'a', title: 'A', type: 'task', blockedBy: ['zz'] }],
       }),
     ).rejects.toThrow(/unknown ref "zz"/);
-    await call('start_mission', { discovery: false, title: 'Plan', destination: 'D', mode: 'plan-only' });
+    await call('start_trail', { discovery: false, title: 'Plan', destination: 'D', mode: 'plan-only' });
     await expect(call('add_ticket', { title: 'Do it', type: 'execute' })).rejects.toThrow(/plan-only/);
     await expect(call('report_progress', { step: 'Fly' })).rejects.toThrow(/step must be/);
     await expect(call('claim_ticket')).rejects.toThrow(/No ready ticket|closed/);
   });
 });
 
-describe('callsignFamily', () => {
-  it('maps client names to callsign prefixes', () => {
-    expect(callsignFamily('claude-code 2.1.0')).toBe('claude');
-    expect(callsignFamily('codex-mcp-client 0.50')).toBe('codex');
-    expect(callsignFamily('Cursor 1.0')).toBe('cursor');
-    expect(callsignFamily('my-agent')).toBe('my');
-    expect(callsignFamily(undefined)).toBe('agent');
+describe('trailNameFamily', () => {
+  it('maps client names to trailName prefixes', () => {
+    expect(trailNameFamily('claude-code 2.1.0')).toBe('claude');
+    expect(trailNameFamily('codex-mcp-client 0.50')).toBe('codex');
+    expect(trailNameFamily('Cursor 1.0')).toBe('cursor');
+    expect(trailNameFamily('my-agent')).toBe('my');
+    expect(trailNameFamily(undefined)).toBe('agent');
   });
 });

@@ -1,5 +1,5 @@
-import { BRAND, type AgentSessionDoc, type PendingQuestion, type TrackerAdapter } from '@miloops-hq/core';
-import { AnswerError, attentionView, readAgentDocs, writeAgentAnswer } from '@miloops-hq/core/bridge';
+import { BRAND, type AgentSessionDoc, type PendingQuestion, type TrackerAdapter } from '@teamtrail/core';
+import { AnswerError, attentionView, readAgentDocs, writeAgentAnswer } from '@teamtrail/core/bridge';
 import { askClosedMessage, askMessage, clip, escape, type AskRef, type AskView } from '../blocks';
 import type { SlackConfig } from '../store';
 import { askRoute } from './askRoute';
@@ -11,15 +11,15 @@ export async function askView(
   q: PendingQuestion,
   adapter?: TrackerAdapter,
 ): Promise<AskView & { mapId: string; ticketId?: string; at: number }> {
-  let mission: string | undefined;
+  let trail: string | undefined;
   let ticket: string | undefined;
   try {
     const snap = await (adapter ?? (await ctx.o.active())).loadMap(q.mapId);
-    mission = snap.map.title;
+    trail = snap.map.title;
     const t = snap.tickets.find((x) => x.id === q.ticketId);
     ticket = t ? `${t.key} ${t.title}` : undefined;
   } catch {
-    /* mission unknown to the active tracker: show the ask without it */
+    /* trail unknown to the active tracker: show the ask without it */
   }
   return {
     sessionId: q.sessionId,
@@ -27,7 +27,7 @@ export async function askView(
     text: q.text,
     suggestions: q.suggestions,
     agent: q.agent,
-    mission,
+    trail,
     ticket,
     mapId: q.mapId,
     ticketId: q.ticketId,
@@ -130,7 +130,7 @@ async function postAsks(ctx: SlackContext, fresh: PendingQuestion[], c: SlackCon
   return true;
 }
 
-/** A question that doesn't interrupt: one line in its mission's next digest, once. */
+/** A question that doesn't interrupt: one line in its trail's next digest, once. */
 function digestOnce(ctx: SlackContext, q: PendingQuestion) {
   if (ctx.digested.has(q.id)) return;
   ctx.digested.add(q.id);

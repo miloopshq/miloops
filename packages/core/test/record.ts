@@ -1,7 +1,7 @@
 /**
  * Re-records the fixtures:  node packages/core/test/run.mjs record [fake|live]
  *   fake  flow fixtures against test/fakes (deterministic; no network)
- *   live  read-only calls against api.github.com (token from GITHUB_TOKEN or `gh auth token`; repo MILOOPS_LIVE_REPO,
+ *   live  read-only calls against api.github.com (token from GITHUB_TOKEN or `gh auth token`; repo TEAMTRAIL_LIVE_REPO,
  *         default teamtrailhq/teamtrail) and Linear's auth error. Tokens are never written: only method, path and body are kept.
  */
 import { execFileSync } from 'node:child_process';
@@ -13,10 +13,10 @@ import { faulty, recorder, type Exchange } from './fixtures';
 import {
   FROZEN,
   freezeTime,
-  missionFlow,
+  trailFlow,
   noSleep,
   offlineFlow,
-  lateMissionFlow,
+  lateTrailFlow,
   rateLimitFlow,
   syncFlow,
 } from './scenarios';
@@ -30,7 +30,7 @@ async function recordFake() {
     {
       const fake = fakeGitHub();
       const rec = recorder(fake.fetch);
-      await missionFlow(
+      await trailFlow(
         () => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }),
       );
       rec.save('github-flow.json', 'fake', NOTE_FAKE);
@@ -56,13 +56,13 @@ async function recordFake() {
     {
       const fake = fakeGitHub();
       const rec = recorder(fake.fetch);
-      await lateMissionFlow(
+      await lateTrailFlow(
         () => new GitHubAdapter({ repo: fake.repo, token: 'x', fetch: rec.fetch, manual: true, ...noSleep }),
       );
       rec.save(
-        'github-late-mission.json',
+        'github-late-trail.json',
         'fake',
-        `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`,
+        `${NOTE_FAKE} A second adapter (another process) charts a trail between the first list and the first poll.`,
       );
     }
     {
@@ -118,7 +118,7 @@ async function recordFake() {
     {
       const fake = fakeLinear();
       const rec = recorder(fake.fetch);
-      await missionFlow(
+      await trailFlow(
         () =>
           new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }),
       );
@@ -146,14 +146,14 @@ async function recordFake() {
     {
       const fake = fakeLinear();
       const rec = recorder(fake.fetch);
-      await lateMissionFlow(
+      await lateTrailFlow(
         () =>
           new LinearAdapter({ apiKey: 'lin_api_x', teamId: fake.team.id, fetch: rec.fetch, manual: true, ...noSleep }),
       );
       rec.save(
-        'linear-late-mission.json',
+        'linear-late-trail.json',
         'fake',
-        `${NOTE_FAKE} A second adapter (another process) charts a mission between the first list and the first poll.`,
+        `${NOTE_FAKE} A second adapter (another process) charts a trail between the first list and the first poll.`,
       );
     }
   } finally {
@@ -180,7 +180,7 @@ function trimLive(req: Exchange['req'], body: unknown): unknown {
 
 async function recordLive() {
   const token = process.env.GITHUB_TOKEN || execFileSync('gh', ['auth', 'token'], { encoding: 'utf8' }).trim();
-  const repo = process.env.MILOOPS_LIVE_REPO || 'teamtrailhq/teamtrail';
+  const repo = process.env.TEAMTRAIL_LIVE_REPO || 'teamtrailhq/teamtrail';
   const rec = recorder(fetch, trimLive);
   const test = await testGitHub({ repo, token, fetch: rec.fetch });
   const a = new GitHubAdapter({ repo, token, fetch: rec.fetch, manual: true });
@@ -191,7 +191,7 @@ async function recordLive() {
   rec.save(
     'github-live-read.json',
     'live',
-    `Read-only, ${repo} on api.github.com: test connection, list missions, two ETag polls (200 then 304). Bodies trimmed to the fields the adapter reads.`,
+    `Read-only, ${repo} on api.github.com: test connection, list trails, two ETag polls (200 then 304). Bodies trimmed to the fields the adapter reads.`,
   );
   console.log('github live:', JSON.stringify({ test, maps, status: a.status }));
 

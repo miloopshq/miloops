@@ -76,7 +76,7 @@ describe('ActivityStream.syncRemote', () => {
     expect(a.snapshot.sessions).toHaveLength(1);
   });
 
-  it('adds only usage growth to the mission total and the ledger', () => {
+  it('adds only usage growth to the trail total and the ledger', () => {
     const ledger = new UsageLedger(memoryStore());
     const a = new ActivityStream(400, ledger);
     a.syncRemote(doc({ usage: { inputTokens: 100, outputTokens: 10, costUsd: 0.01 } }));
@@ -86,7 +86,7 @@ describe('ActivityStream.syncRemote', () => {
     expect(ledger.since('m1', 0)).toMatchObject({ inputTokens: 250, outputTokens: 30, sessions: 1 });
   });
 
-  it('counts a chart session mirrored before its mission existed once it is bound', () => {
+  it('counts a chart session mirrored before its trail existed once it is bound', () => {
     const a = new ActivityStream();
     const chart = (mapId: string, inputTokens: number) => {
       const d = doc({ usage: { inputTokens, outputTokens: 0, costUsd: 0 } });
@@ -97,7 +97,7 @@ describe('ActivityStream.syncRemote', () => {
     expect(a.snapshot.usageByMap.m1).toMatchObject({ inputTokens: 4000 });
   });
 
-  it('setUsage replaces a session total (measured from logs) and moves the mission total by the difference', () => {
+  it('setUsage replaces a session total (measured from logs) and moves the trail total by the difference', () => {
     const ledger = new UsageLedger(memoryStore());
     const a = new ActivityStream(400, ledger);
     const s = a.startSession({ agent: 'claude-01', mode: 'work', mapId: 'm1' });
@@ -157,8 +157,8 @@ describe('ActivityStream.syncRemote', () => {
       at: 1500,
     };
     a.syncRemote(doc({ pending: [q] }));
-    expect(a.answer('q1', 'Postgres', 'operator')).toBe(true);
-    expect(sent).toEqual([['q1', 'Postgres', 'operator']]);
+    expect(a.answer('q1', 'Postgres', 'trail lead')).toBe(true);
+    expect(sent).toEqual([['q1', 'Postgres', 'trail lead']]);
     expect(a.snapshot.pending).toHaveLength(0);
     expect(a.snapshot.chats.at(-1)).toMatchObject({ from: 'human', text: 'Postgres' });
   });

@@ -4,7 +4,7 @@ import { parseMapBody } from '../../model/mapBody';
 import { DEFAULT_MAP_MODE, type Comment, type DecisionRecord, type MapDoc } from '../../model/types';
 import { parseDecisionComment, readComment, splitBody } from './format';
 
-export interface MissionIssueParts {
+export interface TrailIssueParts {
   id: string;
   key: string;
   title: string;
@@ -14,8 +14,8 @@ export interface MissionIssueParts {
   updatedAt: string;
 }
 
-/** The mission issue as a map: plan-only by label, sections and verification level from the issue body. */
-export function mapFromIssue(p: MissionIssueParts): MapDoc {
+/** The trail issue as a map: plan-only by label, sections and verification level from the issue body. */
+export function mapFromIssue(p: TrailIssueParts): MapDoc {
   const { text, meta } = splitBody(p.body);
   const verification = levelOf(meta.verification);
   return {

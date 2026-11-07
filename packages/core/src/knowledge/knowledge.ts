@@ -1,6 +1,6 @@
 /**
  * Project knowledge: what agents need to know about this codebase and product, kept as reviewed entries.
- * Agents propose (always `suggested`); only the operator confirms, keeps as an assumption, edits or retires.
+ * Agents propose (always `suggested`); only the trail lead confirms, keeps as an assumption, edits or retires.
  * Stored as `<tracker dir>/knowledge/<id>.md`, committed, so teammates share it through git.
  */
 export type KnowledgeKind =
@@ -53,14 +53,14 @@ export interface KnowledgeEntry {
   /** Path globs the entry applies to, e.g. `src/notify/**`. */
   scope: string[];
   tags: string[];
-  /** Where it came from: `mission:#1`, `ticket:#4`, `decision:D-3`, `brief:#1`, `session:s_…`, `import:spec.md`. */
+  /** Where it came from: `trail:#1`, `ticket:#4`, `decision:D-3`, `brief:#1`, `session:s_…`, `import:spec.md`. */
   sources: string[];
   anchors: KnowledgeAnchor[];
-  /** Agent callsign or `operator`. */
+  /** Agent trail name or `trail lead`. */
   createdBy: string;
   createdAt: number;
   updatedAt: number;
-  /** An agent's report that it may be outdated, until the operator resolves it. */
+  /** An agent's report that it may be outdated, until the trail lead resolves it. */
   flag?: { by: string; reason: string; at: number };
 }
 
@@ -71,7 +71,7 @@ export const isKind = (v: unknown): v is KnowledgeKind => KNOWLEDGE_KINDS.includ
 /** Entries agents get: confirmed facts and accepted assumptions. Suggestions and retired entries never reach them. */
 export const isLive = (e: Pick<KnowledgeEntry, 'status'>) => e.status === 'confirmed' || e.status === 'assumption';
 
-/** The operator's calls. Agents can only propose and flag. */
+/** The trail lead's calls. Agents can only propose and flag. */
 export type KnowledgeCall =
   | { kind: 'confirm' }
   | { kind: 'assumption' }

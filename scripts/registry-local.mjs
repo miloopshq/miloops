@@ -1,9 +1,9 @@
-// A private npm registry on this machine (Verdaccio), for trying MILOOPS exactly as a user would install it,
+// A private npm registry on this machine (Verdaccio), for trying Teamtrail exactly as a user would install it,
 // without publishing anything to npmjs.com. Only `teamtrail` lives here; every other package is proxied from
 // npmjs.com, so installs behave normally.
 //
 //   npm run registry:local              start the registry (http://127.0.0.1:4873), leave it running
-//   npm run registry:local -- publish   build and publish the current miloops to it (as <version>-local.<time>)
+//   npm run registry:local -- publish   build and publish the current teamtrail to it (as <version>-local.<time>)
 //   npm run registry:local -- status    what is published there
 import { execFileSync, spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -12,7 +12,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const home = path.join(os.homedir(), '.miloops-registry');
+const home = path.join(os.homedir(), '.teamtrail-registry');
 const url = 'http://127.0.0.1:4873';
 const [cmd = 'start'] = process.argv.slice(2);
 

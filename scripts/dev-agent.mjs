@@ -1,12 +1,12 @@
-// Real agents for local development: each one is an MCP client of the built CLI (`miloops mcp`), exactly as
-// Claude Code or Codex connect, working the seeded missions in ./<dataDir>. They claim ready tickets, report
+// Real agents for local development: each one is an MCP client of the built CLI (`teamtrail mcp`), exactly as
+// Claude Code or Codex connect, working the seeded trails in ./<dataDir>. They claim ready tickets, report
 // progress with token usage, close agent-only work with a resolution, and ask you (with suggested replies) on
-// tickets that need a human, waiting for your answer in the command center. Grilling questions are urgent
+// tickets that need a human, waiting for your answer in the Lookout. Junction questions are urgent
 // (blocking), prototype reviews can wait (soon), and the first one comes with a side question (fyi) the agent doesn't
 // wait for, so the ranked queue has something to rank and batch. Nothing is simulated.
 // Usage: npm run build -w teamtrail   (once, and after CLI changes)
-//        npm run dev                (seeds and starts the command center)
-//        npm run dev:agent [agents=2] [mission=#1]
+//        npm run dev                (seeds and starts the Lookout)
+//        npm run dev:agent [agents=2] [trail=#1]
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,15 +17,15 @@ const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cli = path.join(repo, 'packages/cli/dist/cli.js');
 if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w teamtrail');
 const count = Number(process.argv[2] ?? 2);
-const mission = process.argv[3] ?? '#1';
+const trail = process.argv[3] ?? '#1';
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** What an agent says and suggests on a ticket that needs a human, by ticket type. */
 const ASK = {
-  grilling: (t) => ({
-    say: `Grilling ${t.key}: I need your call before I can record a decision.`,
+  junction: (t) => ({
+    say: `Junction ${t.key}: I need your call before I can record a decision.`,
     question: t.title.endsWith('?') ? t.title : `${t.title}: what outcome would make this a clear yes for you?`,
-    // A grilling call stops the agent: nothing useful to do on the ticket until the human answers.
+    // A junction call stops the agent: nothing useful to do on the ticket until the human answers.
     urgency: 'blocking',
     suggestions: [
       'Users never lose an edit',
@@ -40,13 +40,13 @@ const ASK = {
     suggestions: ['Good enough, build on it', 'Try the other approach first'],
   }),
 };
-const askFor = (t) => (ASK[t.type] ?? ASK.grilling)(t);
+const askFor = (t) => (ASK[t.type] ?? ASK.junction)(t);
 
 async function agent(n) {
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [cli, 'mcp'],
-    // Same folder as the seed and the dev server: <dataDir> at the repo root, or $MILOOPS_DIR.
+    // Same folder as the seed and the dev server: <dataDir> at the repo root, or $TEAMTRAIL_DIR.
     cwd: repo,
     env: { ...process.env },
     stderr: 'pipe',
@@ -65,12 +65,12 @@ async function agent(n) {
       ...args,
       ...(args.inputTokens ? { costUsd: (args.inputTokens * 3 + (args.outputTokens ?? 0) * 15) / 1e6 } : {}),
     });
-  await call('resume_mission', { mission });
+  await call('resume_trail', { trail });
   let askedFyi = false;
   for (;;) {
     let claimed;
     try {
-      claimed = (await call('claim_ticket', { mission })).claimed;
+      claimed = (await call('claim_ticket', { trail })).claimed;
     } catch (e) {
       log(`nothing to claim (${e.message.split('\n')[0]}); waiting`);
       await pause(10_000);
@@ -102,7 +102,7 @@ async function agent(n) {
       });
       if (!a.answered) {
         log('no answer within the hour; releasing the ticket');
-        await call('release_ticket', { mission, reason: 'No answer yet' });
+        await call('release_ticket', { trail, reason: 'No answer yet' });
         continue;
       }
       log(`answered: ${a.answer}`);
@@ -113,9 +113,9 @@ async function agent(n) {
         outputTokens: 500,
       });
       await call('close_ticket', {
-        mission,
-        resolution: `Decided with the operator: ${a.answer}.`,
-        rationale: 'The operator made the call in the command center.',
+        trail,
+        resolution: `Decided with the trail lead: ${a.answer}.`,
+        rationale: 'The trail lead made the call in the Lookout.',
         alternatives: q.suggestions.filter((x) => x !== a.answer),
       });
     } else {
@@ -133,7 +133,7 @@ async function agent(n) {
         outputTokens: 1_800,
       });
       await call('close_ticket', {
-        mission,
+        trail,
         resolution: `Findings for "${claimed.title}" recorded on the ticket.`,
         noCodeReason: 'Investigation only; no code change.',
       });
@@ -144,7 +144,7 @@ async function agent(n) {
 }
 
 console.log(
-  `${count} agent(s) on ${mission} in ${path.join(repo, '.miloops')}. Answer their questions in the command center. Ctrl+C to stop.`,
+  `${count} agent(s) on ${trail} in ${path.join(repo, '.teamtrail')}. Answer their questions in the Lookout. Ctrl+C to stop.`,
 );
 await Promise.all(
   Array.from({ length: count }, (_, i) =>

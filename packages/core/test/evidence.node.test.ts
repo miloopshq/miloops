@@ -23,9 +23,9 @@ function sh(cwd: string, ...args: string[]) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
-/** A temp repo with one commit and its tracker folder at `.miloops/`. */
+/** A temp repo with one commit and its tracker folder at `.teamtrail/`. */
 function repo() {
-  const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'miloops-git-')));
+  const dir = realpathSync(mkdtempSync(path.join(os.tmpdir(), 'teamtrail-git-')));
   sh(dir, 'init', '-q', '-b', 'main');
   sh(dir, 'config', 'user.email', 't@example.com');
   sh(dir, 'config', 'user.name', 'T');
@@ -34,7 +34,7 @@ function repo() {
   write(dir, 'b.txt', 'b\n');
   sh(dir, 'add', '.');
   sh(dir, 'commit', '-q', '-m', 'init');
-  const root = path.join(dir, '.miloops');
+  const root = path.join(dir, '.teamtrail');
   mkdirSync(root);
   return { dir, root };
 }
@@ -45,11 +45,11 @@ function write(dir: string, file: string, text: string) {
 }
 
 function commit(dir: string, msg = 'c') {
-  sh(dir, 'add', '-A', '--', '.', ':(exclude).miloops');
+  sh(dir, 'add', '-A', '--', '.', ':(exclude).teamtrail');
   sh(dir, 'commit', '-q', '-m', msg);
 }
 
-async function mission(types: TicketType[] = ['execute', 'execute']) {
+async function trail(types: TicketType[] = ['execute', 'execute']) {
   const a = new MemoryAdapter({ latency: [0, 0] });
   const { map, tickets } = await chartMap(a, {
     title: 'G',
@@ -64,7 +64,7 @@ async function claimAndCollect(
   work: () => void,
   opts: { type?: TicketType; noCodeReason?: string; noChanges?: typeof DEFAULT_CONFIG.noChanges } = {},
 ) {
-  const { a, mapId, tickets } = await mission([opts.type ?? 'execute']);
+  const { a, mapId, tickets } = await trail([opts.type ?? 'execute']);
   const t = tickets[0];
   await a.assign(mapId, t.id, 'claude-07');
   await captureBaseline({ root: r.root, cwd: r.dir, mapId, ticket: t, agent: 'claude-07' });
@@ -83,7 +83,7 @@ async function claimAndCollect(
 const kinds = (ev: GitEvidence) => ev.flags.map((f) => f.kind);
 
 test('outside git: the baseline records why, evidence flags no-git, stale detection is off', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-nogit-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-nogit-'));
   const b = await captureBaseline({ root, cwd: root, mapId: 'm', ticket: { id: '1', key: '#1' }, agent: 'x' });
   assert.equal(b.git, null);
   assert.match(b.note ?? '', /not inside a git repository/);
@@ -191,7 +191,7 @@ test('overlap with another working ticket: a real overlap across worktrees, appr
   const r = repo();
   const other = path.join(path.dirname(r.dir), `${path.basename(r.dir)}-wt`);
   sh(r.dir, 'worktree', 'add', '-q', '-b', 'side', other);
-  const { a, mapId, tickets } = await mission();
+  const { a, mapId, tickets } = await trail();
   const [mine, theirs] = tickets;
   await a.assign(mapId, mine.id, 'claude-07');
   await a.assign(mapId, theirs.id, 'codex-02');
@@ -242,7 +242,7 @@ async function verifying(r: { dir: string; root: string }, checkRun: string[], s
     'verification.json',
     JSON.stringify({ v: 1, checks: { gen: { run: checkRun, timeoutSec: 30 } }, run: ['gen'], stale }),
   );
-  const { a, mapId, tickets } = await mission();
+  const { a, mapId, tickets } = await trail();
   const t = tickets[0];
   await a.assign(mapId, t.id, 'claude-07');
   await captureBaseline({ root: r.root, cwd: r.dir, mapId, ticket: t, agent: 'claude-07' });
@@ -250,7 +250,7 @@ async function verifying(r: { dir: string; root: string }, checkRun: string[], s
   await a.setMeta(mapId, t.id, { status: 'verifying' });
   const snap = await a.loadMap(mapId);
   const env = { adapter: a, root: r.root, repoRoot: r.dir };
-  const info = { level: 'checks' as const, source: 'mission' as const, checks: ['gen'] };
+  const info = { level: 'checks' as const, source: 'trail' as const, checks: ['gen'] };
   const run = await verify(env, {
     mapId,
     ticket: snap.tickets.find((x) => x.id === t.id)!,
@@ -293,7 +293,7 @@ test('verify: a pass on code that changed while checks ran is re-run once under 
 test('verify: verification.json edited since the claim blocks the ticket without running checks', async () => {
   const r = repo();
   write(r.root, 'verification.json', '{"v":1}');
-  const { a, mapId, tickets } = await mission();
+  const { a, mapId, tickets } = await trail();
   const t = tickets[0];
   await a.assign(mapId, t.id, 'claude-07');
   await captureBaseline({ root: r.root, cwd: r.dir, mapId, ticket: t, agent: 'claude-07' });
@@ -310,7 +310,7 @@ test('verify: verification.json edited since the claim blocks the ticket without
     {
       mapId,
       ticket: snap.tickets.find((x) => x.id === t.id)!,
-      info: { level: 'checks', source: 'mission', checks: ['ok'] },
+      info: { level: 'checks', source: 'trail', checks: ['ok'] },
       sub: { agent: 'claude-07', resolution: 'done' },
     },
   );

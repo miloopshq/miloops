@@ -9,7 +9,7 @@ import { approvalItems } from '../verification/approvals';
 import { readIntegrationScan } from '../workspaces/integrationStore';
 import { readAttentionState } from './attentionStore';
 import { readViolations } from './readViolations';
-import { replanInputs } from './replanInputs';
+import { rerouteInputs } from './rerouteInputs';
 import type { AttentionInput } from './types';
 
 /** Reads everything the queue is built from: the tracker, agent session docs and the local evidence. */
@@ -34,7 +34,7 @@ export async function gatherAttention(input: {
     leases: readLeases(root),
     knowledge: listKnowledge(root),
     briefs,
-    ...(await replanInputs({ root, adapter, snaps, syncs })),
+    ...(await rerouteInputs({ root, adapter, snaps, syncs })),
     violations: await readViolations({ root, adapter, snaps, docs }),
     integrations: integrationsOf(root),
     policy,

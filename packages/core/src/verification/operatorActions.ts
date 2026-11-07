@@ -17,22 +17,22 @@ export type OperatorAction = 'rerun' | 'approve' | 'accept' | 'rework' | 'unbloc
 export interface OperatorRequest {
   action: OperatorAction;
   mapId: string;
-  /** Unset only for `level`, which then sets the mission level. */
+  /** Unset only for `level`, which then sets the trail level. */
   ticketId?: string;
   by: string;
   reason?: string;
   /** `unblock`: where the ticket goes. */
   to?: Extract<TicketPhase, 'ready' | 'rework'>;
-  /** `level`: `null` clears it (the ticket follows the mission, the mission is off). */
+  /** `level`: `null` clears it (the ticket follows the trail, the trail is off). */
   level?: VerificationLevel | null;
 }
 
-/** Actions that override what the checks or a reviewer found, so the operator must say why. */
+/** Actions that override what the checks or a reviewer found, so the trail lead must say why. */
 const NEEDS_REASON = new Set<OperatorAction>(['accept', 'rework', 'unblock']);
 
 /**
- * What the operator can do to a ticket under verification, from the command
- * center. Every state change goes through `transition()` as the operator, and
+ * What the trail lead can do to a ticket under verification, from the command
+ * center. Every state change goes through `transition()` as the trail lead, and
  * approvals, overrides and rework notes are kept as verdicts next to the attempts.
  */
 export async function operatorAction(env: VerifyEnv, r: OperatorRequest): Promise<{ attemptId?: string }> {
@@ -40,7 +40,7 @@ export async function operatorAction(env: VerifyEnv, r: OperatorRequest): Promis
   if (NEEDS_REASON.has(r.action) && !reason) throw new OperationError(`${r.action} needs a reason`);
   if (r.action === 'level') {
     if (r.level === undefined) throw new OperationError('"level" is required');
-    await setVerification(env.adapter, { mapId: r.mapId, ticketId: r.ticketId }, r.level, 'operator');
+    await setVerification(env.adapter, { mapId: r.mapId, ticketId: r.ticketId }, r.level, 'trail lead');
     return {};
   }
   if (!r.ticketId) throw new OperationError('"ticketId" is required');
@@ -49,7 +49,7 @@ export async function operatorAction(env: VerifyEnv, r: OperatorRequest): Promis
     r,
     ticketId: r.ticketId,
     reason,
-    operator: { actor: r.by, actorKind: 'operator', reason, journal: env.journal },
+    operator: { actor: r.by, actorKind: 'trail lead', reason, journal: env.journal },
     last: readAttempts(env.root, r.mapId, r.ticketId).at(-1),
   };
   switch (r.action) {
@@ -69,13 +69,13 @@ export async function operatorAction(env: VerifyEnv, r: OperatorRequest): Promis
   }
 }
 
-/** One operator action on one ticket, with the ticket's last attempt. */
+/** One trail lead action on one ticket, with the ticket's last attempt. */
 interface Act {
   env: VerifyEnv;
   r: OperatorRequest;
   ticketId: string;
   reason?: string;
-  operator: { actor: string; actorKind: 'operator'; reason?: string; journal: VerifyEnv['journal'] };
+  operator: { actor: string; actorKind: 'trail lead'; reason?: string; journal: VerifyEnv['journal'] };
   last?: VerificationAttempt;
 }
 
@@ -127,7 +127,7 @@ async function unblock({ env, r, ticketId, operator }: Act) {
   return {};
 }
 
-/** The operator's decision, kept next to the attempt it is about. */
+/** The trail lead's decision, kept next to the attempt it is about. */
 function verdict({ env, r, ticketId, last }: Act, kind: VerdictKind, summary: string) {
   if (!last) return;
   writeVerdict(env.root, {
@@ -136,7 +136,7 @@ function verdict({ env, r, ticketId, last }: Act, kind: VerdictKind, summary: st
     ticketId,
     attemptId: last.id,
     by: r.by,
-    byKind: 'operator',
+    byKind: 'trail lead',
     verdict: kind,
     summary,
     findings: [],
@@ -144,7 +144,7 @@ function verdict({ env, r, ticketId, last }: Act, kind: VerdictKind, summary: st
   });
 }
 
-/** Open reviews of a ticket the operator decided have nothing left to decide. */
+/** Open reviews of a ticket the trail lead decided have nothing left to decide. */
 async function withdraw({ env, r, ticketId }: Act) {
   await withdrawReviews(env.adapter, await env.adapter.loadMap(r.mapId), ticketId, {
     actor: CHECK_RUNNER,

@@ -7,7 +7,7 @@ import { readAgentDoc } from '../agents/agentDocs';
 import { SESSION_DOC_PATH, agentPaths, isAgentPath } from '../agents/agentLink';
 import { JOURNAL_DIR } from '../history/journalFile';
 import { parseDecision } from '../planning/decisions/decisionFile';
-import { REPLANS_DIR } from '../planning/replan/replanStore';
+import { REROUTES_DIR } from '../planning/reroute/rerouteStore';
 import type { DecisionEvent } from './bridgeTypes';
 import { verificationEvents } from './verificationEvents';
 
@@ -23,7 +23,7 @@ function decisionChange(prev: SeenDecision | undefined, now: { supersededBy?: st
  * Turns changes in the tracker folder into SSE messages for `send`: `{ path }`
  * per changed file, named `decision` events for decision records and named
  * `agent` events for agent session docs, and named `verification` events for
- * attempts, verdicts, check logs and run locks, and named `replan` events (`{ mapId, id }`) for replan proposals.
+ * attempts, verdicts, check logs and run locks, and named `reroute` events (`{ mapId, id }`) for reroute proposals.
  * Returns the function that stops watching.
  */
 export function watchTrackerFolder(abs: string, fs: MarkdownFs, send: (text: string) => void): () => void {
@@ -86,17 +86,17 @@ export function watchTrackerFolder(abs: string, fs: MarkdownFs, send: (text: str
   }, 500);
   liveness.unref?.();
 
-  /** `.replans/<mapId>/R-<n>.json` → `event: replan`; temp files and the .gitignore are skipped. */
-  function onReplanFile(rel: string) {
+  /** `.reroutes/<mapId>/R-<n>.json` → `event: reroute`; temp files and the .gitignore are skipped. */
+  function onRerouteFile(rel: string) {
     const m = rel.match(/^[^/]+\/([^/]+)\/(R-\d+)\.json$/);
-    if (m) send(`event: replan\ndata: ${JSON.stringify({ mapId: m[1], id: m[2] })}\n\n`);
+    if (m) send(`event: reroute\ndata: ${JSON.stringify({ mapId: m[1], id: m[2] })}\n\n`);
   }
 
   const verification = verificationEvents(send);
   const unwatch = fs.watch!((rel) => {
     if (verification(rel)) return;
     if (isAgentPath(rel)) return onAgentFile(rel);
-    if (rel.startsWith(`${REPLANS_DIR}/`)) return onReplanFile(rel);
+    if (rel.startsWith(`${REROUTES_DIR}/`)) return onRerouteFile(rel);
     if (isOutboxPath(rel) || rel === JOURNAL_DIR || rel.startsWith(`${JOURNAL_DIR}/`)) return;
     send(`data: ${JSON.stringify({ path: rel })}\n\n`);
     if (DECISION_PATH.test(rel)) void onDecisionFile(rel);

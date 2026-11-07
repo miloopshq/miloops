@@ -4,7 +4,7 @@ import { readJsonFile } from '../lib/jsonFile';
 import type { VerificationAttempt, VerificationVerdict } from '../model/verification';
 
 /*
- * What MILOOPS found when a ticket was submitted, local to the machine that ran it:
+ * What Teamtrail found when a ticket was submitted, local to the machine that ran it:
  *   <tracker dir>/.evidence/<mapId>/<ticketId>/A-<n>.json         VerificationAttempt, written once
  *   <tracker dir>/.evidence/<mapId>/<ticketId>/A-<n>/<check>.log  full check output, secrets redacted
  *   <tracker dir>/.evidence/<mapId>/<ticketId>/V-<n>.json         VerificationVerdict, written once

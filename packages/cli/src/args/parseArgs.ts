@@ -1,4 +1,4 @@
-import { BRAND } from '@miloops-hq/core';
+import { BRAND } from '@teamtrail/core';
 import { fail, HELP } from './help';
 
 export interface ServeOptions {
@@ -28,7 +28,7 @@ function eachFlag(argv: string[], fn: (f: Flag) => void) {
 
 const defaultDir = () => process.env[BRAND.dataDirEnv] || BRAND.dataDir;
 
-/** Options of the default command, which serves the command center. */
+/** Options of the default command, which serves the Lookout. */
 export function parseArgs(argv: string[]): ServeOptions {
   const o: ServeOptions = {
     dir: defaultDir(),

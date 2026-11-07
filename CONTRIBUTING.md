@@ -1,6 +1,6 @@
 # Contributing
 
-Run `npm run check` before opening a pull request. It runs lint, the Prettier format check, typecheck, build, the vitest and node:test suites, and `verify:mcp`. Changes that touch the command center UI should include a before/after screenshot.
+Run `npm run check` before opening a pull request. It runs lint, the Prettier format check, typecheck, build, the vitest and node:test suites, and `verify:mcp`. Changes that touch the Lookout UI should include a before/after screenshot.
 
 ## Code standards
 
@@ -10,16 +10,16 @@ ESLint (`eslint.config.js`) and Prettier (`.prettierrc.json`) enforce most of th
 - **Keep kinds apart.** Hooks go in `useX.ts`, pure helpers in `lib/` (apps) or a topic module (core), and shared types in `types.ts`. A component file never exports helpers or constants for other files.
 - **200 lines max** per file, not counting blank lines and comments. Split by responsibility. Tests, `scripts/` and `tools/` are exempt.
 - **Layout.**
-  - command center: `components/ui/` holds design-system primitives, `features/<feature>/` holds one folder per zone or dialog, and app-wide code goes in `hooks/` and `lib/`.
+  - Lookout: `components/ui/` holds design-system primitives, `features/<feature>/` holds one folder per zone or dialog, and app-wide code goes in `hooks/` and `lib/`.
   - core: modules are grouped by topic under `src/`, with the entry points listed in `package.json` `exports`.
-  - Code used by more than one package belongs in `packages/core`, or in `packages/milo-avatar` for the avatar.
+  - Code used by more than one package belongs in `packages/core`, or in `packages/scout-avatar` for the avatar.
 - **Imports.** Use inline type imports (`import { x, type Y } from '…'`) and one import statement per module. No unused imports and no import cycles.
 - **Barrels.** A folder that is imported from outside gets one `index.ts` with explicit named re-exports. Inside the folder, import siblings by path, never through its own `index.ts`. Use `export *` only in package entry points.
 - **Naming.** Components and classes use `PascalCase`, hooks `useCamelCase`, other modules `camelCase`, and folders `kebab-case`.
 - **Tests.** vitest suites are `*.test.ts` and node:test suites are `*.node.test.ts`. Both live in the package's `test/` folder, with fakes in `test/fakes/` and recorded fixtures in `test/fixtures/`.
 - **Formatting.** Run `npm run format` on the files you touch: single quotes, 120 columns, trailing commas.
 - **Readable code** and **Presenting data**: see below.
-- **Behavior-neutral refactors.** Keep package exports and public names stable. Run the full `check` and compare command center screenshots before and after.
+- **Behavior-neutral refactors.** Keep package exports and public names stable. Run the full `check` and compare Lookout screenshots before and after.
 
 ## Readable code
 
@@ -38,22 +38,22 @@ Code is read far more often than it's written, by people and by agents. Write it
 
 Every screen presents data the same way, so people never have to work out where to look. Dense doesn't have to mean cluttered: give each piece of information one place and one voice.
 
-- **Three levels, never more.** A **title** says what this is or what you need to do (at most two lines). One **context** line says where and who (ticket, agent, mission, kind). An optional **detail** line says why (reasons, files). Anything beyond that opens on click or shows in a tooltip.
-- **Four type roles** (tokens and classes in `apps/command-center/src/styles/design-system.css`):
+- **Three levels, never more.** A **title** says what this is or what you need to do (at most two lines). One **context** line says where and who (ticket, agent, trail, kind). An optional **detail** line says why (reasons, files). Anything beyond that opens on click or shows in a tooltip.
+- **Four type roles** (tokens and classes in `apps/lookout/src/styles/design-system.css`):
   - **title**: `--type-title` / `.t-title` (cards, heroes) and `--type-row-title` / `.t-row-title` (list rows);
   - **body**: `--type-body` / `.t-body`, running text;
   - **meta**: `--type-meta` / `.t-meta`, the quiet context and detail lines, sentence case;
   - **label**: `--type-label` / `.t-label` (alias `.mono-label`), small caps for section, field and group labels only.
 - **Fonts have one job each.** Bricolage Grotesque is for the brand and zone heroes (`.t-pixel`, `.t-heading.caps`). Mono (`.t-code`) is for code, paths, ids and ticket keys inside any role. Everything else is the sans.
-- **One accent, one meaning.** Red means "needs you now" (interrupting or blocking) and nothing else. Status is a thin left edge: `edge-urgent` (red), `edge-attention` (amber: work held up or at risk, such as blocked, flags, stalled claims, risky changes, replans, overlaps, integration), `edge-neutral` otherwise. Text stays neutral; a time turns red only on an urgent row.
-- **Say it once.** Don't repeat what the screen already shows: no mission name for the mission on screen, no ticket key the title already contains, no reason that restates the urgency, the wait or the group.
+- **One accent, one meaning.** Red means "needs you now" (interrupting or blocking) and nothing else. Status is a thin left edge: `edge-urgent` (red), `edge-attention` (amber: work held up or at risk, such as blocked, flags, stalled claims, risky changes, reroutes, overlaps, integration), `edge-neutral` otherwise. Text stays neutral; a time turns red only on an urgent row.
+- **Say it once.** Don't repeat what the screen already shows: no trail name for the trail on screen, no ticket key the title already contains, no reason that restates the urgency, the wait or the group.
 - **Chips are for state only** (Done, Working, Blocking). Sentences and reasons are plain text joined with " · ".
 - **Actions appear when you reach for them.** Secondary actions show on hover or keyboard focus, in place of the trailing time, and are always visible on touch screens. Primary actions (Approve, Add ticket) stay visible.
 - **Build lists from the shared primitives** in `components/ui`: `Row` (edge, title, context, detail, trailing, actions, below) and `MetaLine` (parts joined with " · ", empty parts skipped, `code`, `strong` and `urgent` parts). Don't hand-style a new list row.
 
 ## Releasing
 
-`main` is protected: changes land through a pull request once CI (`check`) passes. Maintainers publish the `miloops` CLI from Actions → **Release** → Run workflow, or with `gh`:
+`main` is protected: changes land through a pull request once CI (`check`) passes. Maintainers publish the `teamtrail` CLI from Actions → **Release** → Run workflow, or with `gh`:
 
 ```bash
 gh workflow run release.yml -f channel=next                      # prerelease: npx teamtrail@next

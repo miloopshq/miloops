@@ -1,0 +1,309 @@
+/* ---------- Inbox column: inbox · HITL line · up next ---------- */
+.inbox {
+  grid-area: inbox;
+}
+.inbox-part {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 0 1 auto;
+  max-height: 38%;
+}
+.inbox-part > .sec-h {
+  flex-shrink: 0;
+}
+.inbox.split:not(.has-conv) .inbox-part {
+  max-height: 60%;
+}
+.hitl-readout {
+  /* Keeps its line when the column is short; the list below scrolls instead. */
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--sp-14);
+  padding: 0 var(--gutter) var(--sp-8);
+  margin-top: calc(-1 * var(--sp-4));
+  white-space: nowrap;
+  overflow: hidden;
+}
+.hitl-readout .readout > .mono-label {
+  font-size: var(--fs-xs);
+}
+:is(.inbox-list, .att-list) {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--sp-10) var(--sp-10);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  overflow: auto;
+  min-height: 0;
+}
+:is(.inbox-list, .att-list) li {
+  animation: arrive 0.45s ease-out;
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* HITL line: ticket line, transcript, open question with a small Scout, suggestions and the answer row. */
+.comms {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 200px;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+}
+/* The ticket line, suggestions and answer row keep their size; the transcript gives way first, then the question. */
+.comms > :is(.sec-h, .comms-ticket, .suggest, .comms-input) {
+  flex-shrink: 0;
+}
+.comms .status {
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--dim);
+  font-weight: 500;
+}
+.comms .status.urgent {
+  color: var(--urgent);
+}
+.back {
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font-family: var(--label);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-label);
+  padding: 0 var(--sp-6) 0 0;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.comms-ticket {
+  padding: 0 var(--gutter) var(--sp-8);
+  flex: 0 0 auto;
+}
+.comms-ticket .t-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* While your answer is needed the answer gets the room: the queue gives a little back and Up next folds to its
+ * header line. */
+.inbox:has(.comms.asking) .inbox-part {
+  max-height: 32%;
+}
+.inbox:has(.comms.asking) .upnext .ticket-list,
+.inbox:has(.comms.asking) .upnext .empty {
+  display: none;
+}
+.comms-ticket .meta-line {
+  margin-top: var(--sp-4);
+}
+.comms-log {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--sp-8) var(--gutter) var(--sp-14);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-14);
+}
+.msg {
+  max-width: 92%;
+}
+.msg .meta-line {
+  margin-bottom: var(--sp-4);
+}
+.msg-text {
+  white-space: pre-wrap;
+  padding: var(--sp-10) var(--sp-12);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  background: rgba(var(--accent-rgb), 0.03);
+  border: 1px solid var(--line);
+  border-left: var(--edge-w) solid var(--edge-neutral);
+}
+.msg.from-human {
+  align-self: flex-end;
+}
+.msg.from-human .meta-line {
+  text-align: right;
+}
+.msg.from-human .msg-text {
+  background: rgba(var(--accent-rgb), 0.06);
+  border-left-width: 1px;
+  border-left-color: var(--line);
+  border-right: var(--edge-w) solid var(--accent);
+  color: var(--text-hi);
+}
+.msg.open-q .msg-text {
+  border-color: rgba(var(--urgent-rgb), 0.4);
+  border-left: var(--edge-w) solid var(--edge-urgent);
+  background: var(--urgent-bg);
+  color: var(--text-hi);
+}
+/* Open question: 32px Scout beside the text column; suggestions and the answer row use the full width below. */
+.comms {
+  container-type: inline-size;
+}
+.msg-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.msg.open-q {
+  flex: 0 1 auto;
+  min-height: 64px;
+  max-height: 45%;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: var(--sp-8) var(--gutter) var(--sp-10);
+  border-top: 1px solid var(--line);
+  max-width: none;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  column-gap: var(--sp-10);
+  overflow: hidden;
+}
+.msg.open-q > * {
+  grid-column: 2;
+  min-width: 0;
+}
+.msg.open-q .msg-text {
+  min-height: 0;
+  overflow: auto;
+}
+/* The frame is a real border inside the 46px column so nothing paints outside the scrolling log. */
+.msg.open-q .q-avatar {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  position: relative;
+  padding: 1px;
+  border: 1px solid var(--urgent);
+  border-radius: 50%;
+}
+.msg.open-q .q-avatar .scout-sprite {
+  outline: none;
+}
+.msg.open-q .q-avatar::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 5px;
+  height: 5px;
+  background: var(--urgent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .msg.open-q .q-avatar::after {
+    animation: q-dot 1.2s steps(1) infinite;
+  }
+}
+@keyframes q-dot {
+  50% {
+    opacity: 0.25;
+  }
+}
+.suggest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: 0 var(--gutter) var(--sp-8);
+}
+.suggest .chip {
+  width: 100%;
+  padding: var(--sp-4) var(--sp-12);
+  border-color: var(--line2);
+}
+.suggest .chip:hover {
+  border-color: var(--accent);
+  color: var(--text-hi);
+}
+.comms-input {
+  padding: var(--sp-8) var(--gutter) var(--sp-12);
+}
+.upnext {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 0 1 auto;
+  max-height: 30%;
+  border-top: 1px solid var(--line);
+}
+.inbox.split:not(.has-conv) .upnext {
+  flex: 1 1 auto;
+  max-height: none;
+}
+.ticket-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--sp-10) var(--sp-8);
+  overflow: auto;
+  min-height: 0;
+}
+.ticket-list button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  text-align: left;
+  padding: var(--sp-4) var(--sp-6);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  min-width: 0;
+}
+.ticket-list button:hover,
+.ticket-list li.sel button {
+  background: var(--accent-bg);
+}
+.ticket-list .dot {
+  width: 8px;
+  height: 8px;
+  background: var(--c);
+  flex: 0 0 auto;
+}
+.ticket-list .key {
+  flex: 0 0 auto;
+}
+.ticket-list .ttl {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ticket-list .st-text {
+  flex: 0 0 auto;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ticket-list .st-waiting .st-text {
+  color: var(--urgent);
+}
+
+/* Another open question from the same agent (a side question): answer it next. */
+.msg .answer-this {
+  margin-top: var(--sp-4);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.msg .answer-this:hover {
+  color: var(--text-hi);
+}

@@ -1,13 +1,13 @@
 {
-  "name": "@miloops-hq/connector-slack",
+  "name": "@teamtrail/connector-slack",
   "version": "0.1.0",
   "private": true,
-  "author": "MILOOPS",
-  "homepage": "https://miloops.vercel.app",
+  "author": "Teamtrail",
+  "homepage": "https://teamtrail.ai",
   "bugs": {
     "url": "https://github.com/teamtrailhq/teamtrail/issues"
   },
-  "description": "Slack for MILOOPS over Socket Mode: decisions from threads, agent questions as DMs. Runs inside the local server; tokens stay on the machine.",
+  "description": "Slack for Teamtrail over Socket Mode: decisions from threads, agent questions as DMs. Runs inside the local server; tokens stay on the machine.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
@@ -26,7 +26,7 @@
     "record": "node test/run.mjs record"
   },
   "dependencies": {
-    "@miloops-hq/core": "*"
+    "@teamtrail/core": "*"
   },
   "devDependencies": {
     "@types/ws": "^8.5.12",

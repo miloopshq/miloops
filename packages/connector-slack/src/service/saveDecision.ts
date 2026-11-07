@@ -1,4 +1,4 @@
-import { BRAND, firstSentence, recordDecision, resolve, type DecisionSource, type Ticket } from '@miloops-hq/core';
+import { BRAND, firstSentence, recordDecision, resolve, type DecisionSource, type Ticket } from '@teamtrail/core';
 import { postResponse } from '../api';
 import { ACTIONS, clip, escape, md, type SaveMode } from '../blocks';
 import { day } from './constants';
@@ -44,7 +44,7 @@ export async function saveDecision(
   try {
     const snap = await adapter.loadMap(s.mapId);
     title = snap.map.title;
-    if (s.mode === 'mission') {
+    if (s.mode === 'trail') {
       await recordDecision(
         adapter,
         s.mapId,
@@ -54,7 +54,7 @@ export async function saveDecision(
           summary: firstSentence(s.decision),
           ...fields,
         },
-        { missionLine: line },
+        { trailLine: line },
       );
     } else {
       const ticketId =
@@ -63,8 +63,8 @@ export async function saveDecision(
           : (
               await adapter.createTicket(s.mapId, {
                 title: clip(firstSentence(s.decision), 80),
-                type: 'grilling',
-                body: `Recorded from Slack${meta.cn ? ` (#${meta.cn})` : ''}.${meta.l ? `\n\n${meta.l}` : ''}\n\nPart of mission ${snap.map.key}.`,
+                type: 'junction',
+                body: `Recorded from Slack${meta.cn ? ` (#${meta.cn})` : ''}.${meta.l ? `\n\n${meta.l}` : ''}\n\nPart of trail ${snap.map.key}.`,
               })
             ).id;
       resolved = await resolve(adapter, s.mapId, ticketId, {
@@ -72,14 +72,14 @@ export async function saveDecision(
         author: decidedBy,
         summary: firstSentence(s.decision),
         decision: fields,
-        missionLine: line,
+        trailLine: line,
       });
     }
   } catch (e) {
     await tell(ctx, meta, `Couldn't save the decision: ${(e as Error).message}`);
     return;
   }
-  ctx.store.update({ channelMission: { ...ctx.store.read().channelMission, [meta.c]: s.mapId } });
+  ctx.store.update({ channelTrail: { ...ctx.store.read().channelTrail, [meta.c]: s.mapId } });
   const url = ctx.o.url();
   const text = `Saved to *${escape(title)}*${resolved ? `, resolved ${escape(resolved.key)} ${escape(resolved.title)}` : ''}`;
   await tell(

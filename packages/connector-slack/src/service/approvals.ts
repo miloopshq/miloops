@@ -1,5 +1,5 @@
-import { derivePhases, type ApprovalItem, type MapSnapshot } from '@miloops-hq/core';
-import { approvalItems, journalFile, operatorAction } from '@miloops-hq/core/agents';
+import { derivePhases, type ApprovalItem, type MapSnapshot } from '@teamtrail/core';
+import { approvalItems, journalFile, operatorAction } from '@teamtrail/core/agents';
 import { postResponse } from '../api';
 import { approvalClosedMessage, approvalMessage, type ApprovalRef } from '../blocks';
 import type { SlackConfig } from '../store';
@@ -33,7 +33,7 @@ async function close(ctx: SlackContext, posted: PostedApproval, line: string) {
     .call('chat.update', {
       channel: posted.channel,
       ts: posted.ts,
-      ...approvalClosedMessage(posted.mission, posted.item, line),
+      ...approvalClosedMessage(posted.trail, posted.item, line),
     })
     .catch(() => {});
 }
@@ -50,7 +50,7 @@ async function closeTicket(ctx: SlackContext, mapId: string, ticketId: string, l
 }
 
 /**
- * Posts each ticket that starts waiting on the operator (a reviewed pass to
+ * Posts each ticket that starts waiting on the trail lead (a reviewed pass to
  * approve, a held ticket) once. Messages are kept in the tracker folder: after
  * a restart they are updated in place, and a ticket that stopped waiting gets
  * its outcome and loses the buttons. Part of the "awaiting" notifications.
@@ -58,9 +58,9 @@ async function closeTicket(ctx: SlackContext, mapId: string, ticketId: string, l
 export async function syncApprovals(ctx: SlackContext, snaps: MapSnapshot[], c: SlackConfig) {
   if (!c.notify.events.includes('awaiting')) return;
   const byMap = new Map(snaps.map((s) => [s.map.id, s]));
-  const now = new Map<string, { item: ApprovalItem; mission: string }>();
+  const now = new Map<string, { item: ApprovalItem; trail: string }>();
   for (const s of snaps)
-    for (const i of approvalItems(ctx.o.root, s)) now.set(keyOf(i), { item: i, mission: s.map.title });
+    for (const i of approvalItems(ctx.o.root, s)) now.set(keyOf(i), { item: i, trail: s.map.title });
   const stored = ctx.approvals.read();
   for (const [key, posted] of Object.entries(stored))
     if (!now.has(key)) {
@@ -68,10 +68,10 @@ export async function syncApprovals(ctx: SlackContext, snaps: MapSnapshot[], c: 
       delete stored[key];
       ctx.approvals.write(stored);
     }
-  for (const [key, { item, mission }] of now) {
+  for (const [key, { item, trail }] of now) {
     const posted = stored[key];
     if (posted && ctx.refreshed.has(key)) continue;
-    const message = approvalMessage(mission, item, ctx.o.url());
+    const message = approvalMessage(trail, item, ctx.o.url());
     if (posted) {
       const updated = await ctx.call('chat.update', { channel: posted.channel, ts: posted.ts, ...message }).then(
         () => true,
@@ -79,7 +79,7 @@ export async function syncApprovals(ctx: SlackContext, snaps: MapSnapshot[], c: 
       );
       ctx.refreshed.add(key);
       if (updated) {
-        stored[key] = { ...posted, item, mission };
+        stored[key] = { ...posted, item, trail };
         ctx.approvals.write(stored);
         continue;
       }
@@ -87,7 +87,7 @@ export async function syncApprovals(ctx: SlackContext, snaps: MapSnapshot[], c: 
     const channel = await ctx.target();
     if (!channel) return;
     const r = await ctx.call<{ ts: string; channel: string }>('chat.postMessage', { channel, ...message });
-    stored[key] = { channel: r.channel ?? channel, ts: r.ts, item, mission };
+    stored[key] = { channel: r.channel ?? channel, ts: r.ts, item, trail };
     ctx.refreshed.add(key);
     ctx.approvals.write(stored);
   }
@@ -128,7 +128,7 @@ export async function waitingApproval(
   return undefined;
 }
 
-/** Approve or send back to rework from Slack, as the operator would in the command center. */
+/** Approve or send back to rework from Slack, as the trail lead would in the Lookout. */
 export async function decideApproval(
   ctx: SlackContext,
   by: { ref: ApprovalRef; user: string; responseUrl?: string },

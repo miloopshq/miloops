@@ -1,8 +1,8 @@
 import { globMatch, isLive, PRODUCT_KINDS, type KnowledgeEntry, type KnowledgeKind } from './knowledge';
 
 export interface KnowledgeContext {
-  /** `#12`: entries from this mission rank higher. */
-  missionKey?: string;
+  /** `#12`: entries from this trail rank higher. */
+  trailKey?: string;
   ticket?: { type: string; title: string; body: string };
   /** Paths the work touches: from the ticket and the discovery brief. */
   paths: string[];
@@ -47,7 +47,7 @@ const words = (s: string) =>
   new Set((s.toLowerCase().match(/[a-z0-9][a-z0-9_-]{2,}/g) ?? []).filter((w) => !STOP.has(w)));
 
 /**
- * The knowledge an agent gets with a ticket: live entries only, ranked by path, words, mission and kind, within
+ * The knowledge an agent gets with a ticket: live entries only, ranked by path, words, trail and kind, within
  * `budget` characters of body. Deterministic: same entries and context, same picks and order.
  */
 export function selectKnowledge(
@@ -81,9 +81,9 @@ export function selectKnowledge(
         score += titleHits.length;
         why.push(`mentions ${titleHits.slice(0, 3).join(', ')}`);
       }
-      if (ctx.missionKey && e.sources.includes(`mission:${ctx.missionKey}`)) {
+      if (ctx.trailKey && e.sources.includes(`trail:${ctx.trailKey}`)) {
         score += 3;
-        why.push('same mission');
+        why.push('same trail');
       }
       if (ctx.discovery && PRODUCT_KINDS.includes(e.kind)) {
         score += 8;

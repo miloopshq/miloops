@@ -1,7 +1,7 @@
 import { readStoredJson, type KeyValueStore } from './keyValueStore';
 
 /**
- * When the operator was last present, per mission. "Present" is decided by the
+ * When the trail lead was last present, per trail. "Present" is decided by the
  * front end (tab visible and recently used); this only stores the times.
  */
 export class Presence {
@@ -13,7 +13,7 @@ export class Presence {
     this.seen = readStoredJson(store, key, {});
   }
 
-  /** Copy of every mission's last-seen time. */
+  /** Copy of every trail's last-seen time. */
   snapshot(): Record<string, number> {
     return { ...this.seen };
   }
@@ -22,7 +22,7 @@ export class Presence {
     return this.seen[mapId];
   }
 
-  /** Latest time the operator was present in any mission; undefined on first run. */
+  /** Latest time the trail lead was present in any trail; undefined on first run. */
   lastSeenAny(): number | undefined {
     const ts = Object.values(this.seen);
     return ts.length ? Math.max(...ts) : undefined;

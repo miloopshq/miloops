@@ -3,14 +3,14 @@ import path from 'node:path';
 import type { Journal, JournalEntry, TransitionEntry } from '../model/lifecycle';
 
 /*
- * Mission history, one JSON line per transition or replan step, append-only:
+ * Trail history, one JSON line per transition or reroute step, append-only:
  *   <tracker dir>/.events/<mapId>.jsonl
  *   <tracker dir>/.events/.gitignore      `*`: local history, never committed
  * Lines stay well under 4 KB, so concurrent appends from several processes never interleave.
  * `read` returns transitions only, so older readers (delivery report, Report tab) are unaffected by newer kinds;
  * `readAll` returns every entry of a known kind and skips the rest.
  */
-const KNOWN_KINDS = new Set<string>(['transition', 'replan']);
+const KNOWN_KINDS = new Set<string>(['transition', 'reroute']);
 export const JOURNAL_DIR = '.events';
 
 const MAX_REASON = 500;

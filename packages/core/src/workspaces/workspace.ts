@@ -1,17 +1,17 @@
 /**
  * Safe parallel work: an optional git worktree per claimed ticket, the files an agent says it will change, and
- * overlaps between agents' real changes. MILOOPS prepares workspaces only: it never runs agents, merges or pushes.
+ * overlaps between agents' real changes. Teamtrail prepares workspaces only: it never runs agents, merges or pushes.
  * Files:
  *   <tracker dir>/workspaces.json                          WorkspaceSettings, the project's choice. Committed.
  *   <tracker dir>/.agents/workspaces/<map>--<ticket>.json  WorkspaceRecord, one per prepared worktree. Local.
  *   <tracker dir>/.agents/integration.json                 IntegrationScan, the latest overlap check. Local.
- * Worktrees go next to the repo: `<repo parent>/<repo>.miloops/<mission>-<n>`, on branch `miloops/<mission>/<n>`.
+ * Worktrees go next to the repo: `<repo parent>/<repo>.teamtrail/<trail>-<n>`, on branch `teamtrail/<trail>/<n>`.
  */
 export interface WorkspaceSettings {
   v: 1;
   /** Give each claimed ticket its own git worktree and branch. */
   worktrees: boolean;
-  /** Where worktrees go, relative to the repo (default `../<repo>.miloops`). */
+  /** Where worktrees go, relative to the repo (default `../<repo>.teamtrail`). */
   dir?: string;
 }
 

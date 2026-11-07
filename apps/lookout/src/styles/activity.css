@@ -1,0 +1,208 @@
+/* ---------- Current step + sessions ---------- */
+.step-zone {
+  grid-area: step;
+}
+.step-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.st-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-8);
+}
+.st-meta .meta-line {
+  flex: 1;
+}
+.st-status {
+  flex: none;
+  color: var(--dim);
+}
+.st-status.urgent {
+  color: var(--urgent);
+}
+.st-big {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: clamp(var(--fs-heading), 1.6vw, var(--fs-display));
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-data);
+  text-transform: uppercase;
+  color: var(--text-hi);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.step-tracker.waiting .st-big {
+  color: var(--urgent);
+}
+.st-ticket {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-key {
+  color: var(--dim);
+}
+.pipeline {
+  list-style: none;
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--sp-4);
+}
+.pipeline li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+.pipeline i {
+  height: 3px;
+  background: var(--line);
+}
+.pipeline li.done i {
+  background: var(--st-decided);
+}
+.pipeline li.cur i {
+  background: var(--st-claimed);
+  box-shadow: 0 0 6px rgba(var(--claimed-rgb), 0.7);
+}
+.pipeline span {
+  font-family: var(--label);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-data);
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.pipeline li.done span {
+  color: var(--dim);
+}
+.pipeline li.cur span {
+  color: var(--text-hi);
+}
+
+.sessions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.usage {
+  font-family: var(--data);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-text);
+  color: var(--dim);
+  white-space: nowrap;
+}
+.sessions-head .usage {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sessions-head .usage .mono-label {
+  margin-right: var(--sp-4);
+}
+.sessions-list .segs {
+  display: flex;
+  gap: var(--sp-2);
+}
+.sessions-list .ds-row-below {
+  padding-top: var(--sp-2);
+}
+.sessions-list .meta-line .pill {
+  margin-left: var(--sp-6);
+}
+.sessions-list .segs i {
+  flex: 1;
+  height: 3px;
+  background: var(--line);
+}
+.sessions-list .segs i.done {
+  background: var(--st-decided);
+}
+.sessions-list .segs i.cur {
+  background: var(--st-claimed);
+}
+.urgent-text {
+  color: var(--urgent);
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* ---------- Activity log ---------- */
+.log-zone {
+  grid-area: log;
+}
+.log {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-sm);
+}
+.log-row {
+  display: grid;
+  grid-template-columns: 60px 72px minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--sp-8);
+  padding: var(--sp-2) 0;
+  cursor: default;
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.04);
+}
+.log-row .t {
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.log-row .src {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.log-row.src-operator .src,
+.log-row.src-system .src {
+  color: var(--text);
+}
+.log-row .msg {
+  max-width: none;
+  color: var(--text);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+.log-row .tag {
+  color: var(--dim);
+}
+/* Warnings and alerts carry the status edge, not coloured text: amber held up or at risk, red needs you now. */
+.log-row.lv-warn,
+.log-row.lv-alert {
+  margin-left: calc(-1 * var(--sp-6));
+  padding-left: calc(var(--sp-6) - var(--edge-w));
+  border-left: var(--edge-w) solid var(--edge-attention);
+}
+.log-row.lv-alert {
+  border-left-color: var(--edge-urgent);
+}
+.log-row.lv-alert .msg {
+  color: var(--text-hi);
+}
+.log-row.lv-ok .msg {
+  color: var(--text-hi);
+}
+.activity-stack .log-row {
+  grid-template-columns: 58px 74px minmax(0, 1fr);
+}

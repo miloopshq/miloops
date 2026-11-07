@@ -20,7 +20,7 @@ export interface DecisionMeta {
   transcript?: TranscriptEntry[];
   /** The policy level of the call (see riskLevelFor). */
   risk?: DecisionRisk;
-  /** Mission assumptions (`S-<n>`) the decision relies on. */
+  /** Trail assumptions (`S-<n>`) the decision relies on. */
   assumes?: string[];
 }
 
@@ -32,12 +32,12 @@ export interface ResolveInput {
   summary?: string;
   transcript?: string;
   decision?: DecisionMeta;
-  missionLine?: string;
+  trailLine?: string;
 }
 
 export interface ResolveOptions extends ActorOptions {
   event?: 'complete' | 'checks.pass' | 'review.pass' | 'approve' | 'accept';
-  /** Who fires the event, when not the author (the engine, the operator). */
+  /** Who fires the event, when not the author (the engine, the trail lead). */
   actor?: string;
 }
 
@@ -83,7 +83,7 @@ export async function resolve(
       ...(d.risk ? { risk: d.risk } : {}),
       ...(d.assumes?.length ? { assumes: d.assumes } : {}),
     },
-    { missionLine: input.missionLine },
+    { trailLine: input.trailLine },
   );
   return t;
 }

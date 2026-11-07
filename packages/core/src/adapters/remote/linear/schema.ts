@@ -23,7 +23,7 @@ export const ISSUE_FIELDS = `id identifier title description createdAt updatedAt
   assignee { displayName }
   comments(first: 100) { nodes { id body createdAt user { displayName } } }`;
 
-export const MISSION_QUERY = `query Mission($id: String!) {
+export const TRAIL_QUERY = `query Trail($id: String!) {
   issue(id: $id) {
     ${ISSUE_FIELDS}
     children(first: 100) { nodes { ${ISSUE_FIELDS} inverseRelations(first: 50) { nodes { type issue { id } } } } }

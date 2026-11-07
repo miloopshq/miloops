@@ -6,7 +6,7 @@ function byScore(a: AttentionItem, b: AttentionItem) {
 }
 
 /**
- * Fewer questions are better: when one agent has several open questions in a mission, each one
+ * Fewer questions are better: when one agent has several open questions in a trail, each one
  * loses 2 points per extra question (up to 10), and says so.
  */
 function fewerQuestions(items: AttentionItem[]): AttentionItem[] {

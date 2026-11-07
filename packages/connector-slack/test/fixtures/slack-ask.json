@@ -1,7 +1,7 @@
 {
   "source": "fake",
   "recordedAt": "2026-10-31T17:18:19.938Z",
-  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Agent questions as DMs: refused click, button answer, late click, answer in the command center, Reply… modal, agent gone.",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Agent questions as DMs: refused click, button answer, late click, answer in the Lookout, Reply… modal, agent gone.",
   "exchanges": [
     {
       "req": {
@@ -16,7 +16,7 @@
         },
         "body": {
           "ok": true,
-          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0Scout0001"
         }
       }
     },
@@ -93,10 +93,10 @@
                 },
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -118,7 +118,7 @@
           "ts": "1793448000.000001",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Awaiting you · claude-07: Postgres or SQLite for the event store? Postgres needs a container in CI.",
             "ts": "1793448000.000001"
           }
@@ -132,7 +132,7 @@
         "body": {
           "response_type": "ephemeral",
           "replace_original": false,
-          "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+          "text": "Only the Teamtrail owner and allowed users can do that. Ask the owner to add you in Teamtrail Settings → Slack."
         }
       },
       "res": {
@@ -194,7 +194,7 @@
         "body": {
           "response_type": "ephemeral",
           "replace_original": false,
-          "text": "Already answered in MILOOPS."
+          "text": "Already answered in Teamtrail."
         }
       },
       "res": {
@@ -238,10 +238,10 @@
                 },
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -263,7 +263,7 @@
           "ts": "1793448001.000002",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Awaiting you · codex-02: Keep events for 30 or 90 days?",
             "ts": "1793448001.000002"
           }
@@ -277,7 +277,7 @@
         "body": {
           "channel": "D00ANA0001",
           "ts": "1793448001.000002",
-          "text": "✓ Answered in MILOOPS by operator: “90 days”.",
+          "text": "✓ Answered in Teamtrail by trail lead: “90 days”.",
           "blocks": [
             {
               "type": "section",
@@ -291,7 +291,7 @@
               "elements": [
                 {
                   "type": "mrkdwn",
-                  "text": "✓ Answered in MILOOPS by operator: “90 days”."
+                  "text": "✓ Answered in Teamtrail by trail lead: “90 days”."
                 }
               ]
             }
@@ -308,7 +308,7 @@
           "ok": true,
           "channel": "D00ANA0001",
           "ts": "1793448001.000002",
-          "text": "✓ Answered in MILOOPS by operator: “90 days”."
+          "text": "✓ Answered in Teamtrail by trail lead: “90 days”."
         }
       }
     },
@@ -343,10 +343,10 @@
                 },
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -368,7 +368,7 @@
           "ts": "1793448002.000003",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Awaiting you · claude-09: Name for the events table?",
             "ts": "1793448002.000003"
           }
@@ -573,10 +573,10 @@
                 },
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -598,7 +598,7 @@
           "ts": "1793448003.000004",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Awaiting you · claude-07: Ship behind a flag?",
             "ts": "1793448003.000004"
           }
@@ -679,7 +679,7 @@
           "name": "eve",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "message",
@@ -729,7 +729,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "message",
@@ -779,7 +779,7 @@
           "name": "raj",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "message",
@@ -829,7 +829,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "message",
@@ -883,7 +883,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "trigger_id": "1793448003.5.fake5",
         "view": {
@@ -927,7 +927,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "trigger_id": "1793448003.6.fake6",
         "view": {
@@ -951,7 +951,7 @@
       }
     },
     {
-      "label": "/milo inbox with nothing waiting",
+      "label": "/scout inbox with nothing waiting",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -961,9 +961,9 @@
         "channel_name": "D00ANA0001",
         "user_id": "U0ANA0001",
         "user_name": "ana",
-        "command": "/milo",
+        "command": "/scout",
         "text": "inbox",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/5/fakeresponse5",
         "trigger_id": "1793448004.7.fake7"

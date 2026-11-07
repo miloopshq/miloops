@@ -31,7 +31,7 @@ export function sampleSnapshot(now = Date.now()): MapSnapshot {
       title: s.title,
       type: s.type,
       hitl: s.hitl,
-      body: `Decision ticket for the Fieldnote offline sync mission.\n\nPart of mission #142.`,
+      body: `Decision ticket for the Fieldnote offline sync trail.\n\nPart of trail #142.`,
       state: closed ? 'closed' : 'open',
       closeReason: s.status && SEED_CLOSE_REASON[s.status],
       assignee: s.assignee,

@@ -5,22 +5,19 @@
  */
 import type { TicketType } from './types';
 
-const slug = 'miloops';
+const slug = 'teamtrail';
 
 export const BRAND = {
   slug,
-  /** The npm package (`npx teamtrail`, `npm i -g teamtrail`). Its command is still `miloops`. */
+  /** The npm package and its command (`npx teamtrail`, `npm i -g teamtrail`). */
   npm: 'teamtrail',
-  /** Display name for HUD headings. */
-  name: 'MILOOPS',
-  /** Two-tone wordmark: `lead + ops` spells `name`; `ops` renders in the brand amber. */
-  wordmark: { lead: 'MILO', ops: 'OPS' },
-  category: 'Local command center for AI coding agents',
-  tagline: 'One command center. Every agent. Total operational awareness.',
+  /** Display name. */
+  name: 'Teamtrail',
+  category: 'The trail map for AI coding agents',
+  tagline: 'You pick the destination. Your agents walk the trail.',
   /** The platform's own voice: coordinator/system lines and onboarding. Worker agents keep their own ids. */
   assistant: {
-    name: 'MILO',
-    expansion: 'Mission Intelligence & Logistics Operator',
+    name: 'Scout',
   },
   /** Our own tracker label prefix: `<prefix>:map`, `<prefix>:research`, ... Follows the product name. */
   labelPrefix: slug,
@@ -38,6 +35,6 @@ export const PREFS_KEY = `${slug}.prefs`;
 export const label = (kind: string) => `${BRAND.labelPrefix}:${kind}`;
 export const MAP_LABEL = label('map');
 export const HITL_LABEL = label('hitl');
-/** Types whose HITL flag is a choice (and so a label): grilling and prototype are always HITL, research never. */
+/** Types whose HITL flag is a choice (and so a label): junction and prototype are always HITL, research never. */
 export const takesHitlLabel = (type: TicketType) => type === 'task' || type === 'execute';
 export const PLAN_ONLY_LABEL = label('plan-only');

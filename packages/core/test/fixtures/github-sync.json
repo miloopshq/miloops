@@ -31,7 +31,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:map",
+          "name": "teamtrail:map",
           "color": "5b6b7a"
         }
       },
@@ -44,7 +44,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:map"
+          "name": "teamtrail:map"
         }
       }
     },
@@ -53,7 +53,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:plan-only",
+          "name": "teamtrail:plan-only",
           "color": "7a6f5b"
         }
       },
@@ -66,7 +66,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:plan-only"
+          "name": "teamtrail:plan-only"
         }
       }
     },
@@ -75,7 +75,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:hitl",
+          "name": "teamtrail:hitl",
           "color": "d97706"
         }
       },
@@ -88,7 +88,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:hitl"
+          "name": "teamtrail:hitl"
         }
       }
     },
@@ -97,7 +97,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:research",
+          "name": "teamtrail:research",
           "color": "4b5563"
         }
       },
@@ -110,7 +110,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:research"
+          "name": "teamtrail:research"
         }
       }
     },
@@ -119,7 +119,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:prototype",
+          "name": "teamtrail:prototype",
           "color": "4b5563"
         }
       },
@@ -132,7 +132,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:prototype"
+          "name": "teamtrail:prototype"
         }
       }
     },
@@ -141,7 +141,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:grilling",
+          "name": "teamtrail:junction",
           "color": "4b5563"
         }
       },
@@ -154,7 +154,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:grilling"
+          "name": "teamtrail:junction"
         }
       }
     },
@@ -163,7 +163,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:task",
+          "name": "teamtrail:task",
           "color": "4b5563"
         }
       },
@@ -176,7 +176,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:task"
+          "name": "teamtrail:task"
         }
       }
     },
@@ -185,7 +185,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:execute",
+          "name": "teamtrail:execute",
           "color": "4b5563"
         }
       },
@@ -198,7 +198,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:execute"
+          "name": "teamtrail:execute"
         }
       }
     },
@@ -207,7 +207,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:review",
+          "name": "teamtrail:review",
           "color": "4b5563"
         }
       },
@@ -220,7 +220,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:review"
+          "name": "teamtrail:review"
         }
       }
     },
@@ -232,7 +232,7 @@
           "title": "Ship offline sync",
           "body": "## Destination\n\nEdits made offline sync without data loss.\n\n## Notes\n\n_None yet._\n\n## Decisions so far\n\n_None yet._\n\n## Not yet specified\n\n- Conflict policy for deletes\n\n## Out of scope\n\n_None yet._\n",
           "labels": [
-            "miloops:map"
+            "teamtrail:map"
           ]
         }
       },
@@ -254,7 +254,7 @@
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:map"
+              "name": "teamtrail:map"
             }
           ],
           "assignees": [],
@@ -271,9 +271,9 @@
         "url": "/repos/octo-org/launchpad/issues",
         "body": {
           "title": "Survey CRDT libraries",
-          "body": "Compare.\n\nPart of mission #1.",
+          "body": "Compare.\n\nPart of trail #1.",
           "labels": [
-            "miloops:research"
+            "teamtrail:research"
           ]
         }
       },
@@ -290,12 +290,12 @@
           "node_id": "I_kwDOfake2",
           "number": 2,
           "title": "Survey CRDT libraries",
-          "body": "Compare.\n\nPart of mission #1.",
+          "body": "Compare.\n\nPart of trail #1.",
           "state": "open",
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:research"
+              "name": "teamtrail:research"
             }
           ],
           "assignees": [],
@@ -332,7 +332,7 @@
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:map"
+              "name": "teamtrail:map"
             }
           ],
           "assignees": [],
@@ -368,7 +368,7 @@
             "state_reason": null,
             "labels": [
               {
-                "name": "miloops:map"
+                "name": "teamtrail:map"
               }
             ],
             "assignees": [],
@@ -382,12 +382,12 @@
             "node_id": "I_kwDOfake2",
             "number": 2,
             "title": "Survey CRDT libraries",
-            "body": "Compare.\n\nPart of mission #1.",
+            "body": "Compare.\n\nPart of trail #1.",
             "state": "open",
             "state_reason": null,
             "labels": [
               {
-                "name": "miloops:research"
+                "name": "teamtrail:research"
               }
             ],
             "assignees": [],
@@ -402,7 +402,7 @@
     {
       "req": {
         "method": "GET",
-        "url": "/repos/octo-org/launchpad/issues?labels=miloops%3Amap&state=all&per_page=100"
+        "url": "/repos/octo-org/launchpad/issues?labels=teamtrail%3Amap&state=all&per_page=100"
       },
       "res": {
         "status": 200,
@@ -424,7 +424,7 @@
             "state_reason": null,
             "labels": [
               {
-                "name": "miloops:map"
+                "name": "teamtrail:map"
               }
             ],
             "assignees": [],
@@ -440,7 +440,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Mission",
+        "operation": "Trail",
         "variables": {
           "owner": "octo-org",
           "name": "launchpad",
@@ -472,7 +472,7 @@
                 "labels": {
                   "nodes": [
                     {
-                      "name": "miloops:map"
+                      "name": "teamtrail:map"
                     }
                   ]
                 },
@@ -489,7 +489,7 @@
                       "databaseId": 3100000002,
                       "number": 2,
                       "title": "Survey CRDT libraries",
-                      "body": "Compare.\n\nPart of mission #1.",
+                      "body": "Compare.\n\nPart of trail #1.",
                       "state": "OPEN",
                       "stateReason": null,
                       "createdAt": "2026-10-31T12:00:02Z",
@@ -498,7 +498,7 @@
                       "labels": {
                         "nodes": [
                           {
-                            "name": "miloops:research"
+                            "name": "teamtrail:research"
                           }
                         ]
                       },
@@ -541,12 +541,12 @@
             "node_id": "I_kwDOfake2",
             "number": 2,
             "title": "Survey CRDT libraries",
-            "body": "Compare.\n\nPart of mission #1.",
+            "body": "Compare.\n\nPart of trail #1.",
             "state": "closed",
             "state_reason": "completed",
             "labels": [
               {
-                "name": "miloops:research"
+                "name": "teamtrail:research"
               }
             ],
             "assignees": [],
@@ -565,7 +565,7 @@
             "state_reason": null,
             "labels": [
               {
-                "name": "miloops:map"
+                "name": "teamtrail:map"
               }
             ],
             "assignees": [],
@@ -581,7 +581,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Mission",
+        "operation": "Trail",
         "variables": {
           "owner": "octo-org",
           "name": "launchpad",
@@ -613,7 +613,7 @@
                 "labels": {
                   "nodes": [
                     {
-                      "name": "miloops:map"
+                      "name": "teamtrail:map"
                     }
                   ]
                 },
@@ -630,7 +630,7 @@
                       "databaseId": 3100000002,
                       "number": 2,
                       "title": "Survey CRDT libraries",
-                      "body": "Compare.\n\nPart of mission #1.",
+                      "body": "Compare.\n\nPart of trail #1.",
                       "state": "CLOSED",
                       "stateReason": "COMPLETED",
                       "createdAt": "2026-10-31T12:00:02Z",
@@ -639,7 +639,7 @@
                       "labels": {
                         "nodes": [
                           {
-                            "name": "miloops:research"
+                            "name": "teamtrail:research"
                           }
                         ]
                       },

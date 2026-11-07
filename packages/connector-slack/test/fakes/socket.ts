@@ -29,7 +29,7 @@ export function socketHub(o: { appId?: string } = {}) {
               type: 'hello',
               num_connections: sockets.filter((s) => s.readyState === 1).length,
               debug_info: { host: 'wss-primary.slack.test', approximate_connection_time: 18060 },
-              connection_info: { app_id: o.appId ?? 'A0MILO0001' },
+              connection_info: { app_id: o.appId ?? 'A0Scout0001' },
             };
         this.emit('message', { data: JSON.stringify(msg) });
       });

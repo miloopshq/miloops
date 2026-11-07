@@ -3,15 +3,15 @@ import type { DecisionInput, DecisionRecord } from '../../model/types';
 import { OperationError } from './operationError';
 
 /**
- * Record a decision (from any source: command center, agent, Slack, tracker import)
- * and, unless `appendToMission` is false, add `missionLine` (default: its summary) to the map's "Decisions so far".
+ * Record a decision (from any source: Lookout, agent, Slack, tracker import)
+ * and, unless `appendToTrail` is false, add `trailLine` (default: its summary) to the map's "Decisions so far".
  * Re-recording the same `source.kind` + `source.ref` returns the existing record.
  */
 export async function recordDecision(
   adapter: TrackerAdapter,
   mapId: string,
   input: DecisionInput,
-  opts: { appendToMission?: boolean; missionLine?: string } = {},
+  opts: { appendToTrail?: boolean; trailLine?: string } = {},
 ) {
   if (input.source.ref) {
     const dup = (await adapter.listDecisions(mapId)).find(
@@ -20,19 +20,19 @@ export async function recordDecision(
     if (dup) return dup;
   }
   const rec = await adapter.createDecision(mapId, input);
-  if (opts.appendToMission ?? true) {
+  if (opts.appendToTrail ?? true) {
     const fresh = await adapter.loadMap(mapId);
     await adapter.updateMapSections(mapId, {
       decisions: [
         ...fresh.map.sections.decisions,
-        { ticketId: rec.ticketId, ticketKey: rec.ticketKey, text: opts.missionLine ?? rec.summary },
+        { ticketId: rec.ticketId, ticketKey: rec.ticketKey, text: opts.trailLine ?? rec.summary },
       ],
     });
   }
   return rec;
 }
 
-/** Replace a decision: new record pointing back at the old one, old one marked superseded, mission line swapped. */
+/** Replace a decision: new record pointing back at the old one, old one marked superseded, trail line swapped. */
 export async function supersedeDecision(
   adapter: TrackerAdapter,
   mapId: string,

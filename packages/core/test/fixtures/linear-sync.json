@@ -10,7 +10,7 @@
         "operation": "Team",
         "variables": {
           "id": "team-eng",
-          "prefix": "miloops:"
+          "prefix": "teamtrail:"
         }
       },
       "res": {
@@ -76,7 +76,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:map",
+            "name": "teamtrail:map",
             "color": "#5b6b7a",
             "teamId": "team-eng"
           }
@@ -95,7 +95,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0001-fake",
-                "name": "miloops:map"
+                "name": "teamtrail:map"
               }
             }
           }
@@ -109,7 +109,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:plan-only",
+            "name": "teamtrail:plan-only",
             "color": "#7a6f5b",
             "teamId": "team-eng"
           }
@@ -128,7 +128,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0002-fake",
-                "name": "miloops:plan-only"
+                "name": "teamtrail:plan-only"
               }
             }
           }
@@ -142,7 +142,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:hitl",
+            "name": "teamtrail:hitl",
             "color": "#d97706",
             "teamId": "team-eng"
           }
@@ -161,7 +161,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0003-fake",
-                "name": "miloops:hitl"
+                "name": "teamtrail:hitl"
               }
             }
           }
@@ -175,7 +175,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:research",
+            "name": "teamtrail:research",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -194,7 +194,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0004-fake",
-                "name": "miloops:research"
+                "name": "teamtrail:research"
               }
             }
           }
@@ -208,7 +208,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:prototype",
+            "name": "teamtrail:prototype",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -227,7 +227,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0005-fake",
-                "name": "miloops:prototype"
+                "name": "teamtrail:prototype"
               }
             }
           }
@@ -241,7 +241,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:grilling",
+            "name": "teamtrail:junction",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -260,7 +260,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0006-fake",
-                "name": "miloops:grilling"
+                "name": "teamtrail:junction"
               }
             }
           }
@@ -274,7 +274,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:task",
+            "name": "teamtrail:task",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -293,7 +293,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0007-fake",
-                "name": "miloops:task"
+                "name": "teamtrail:task"
               }
             }
           }
@@ -307,7 +307,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:execute",
+            "name": "teamtrail:execute",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -326,7 +326,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0008-fake",
-                "name": "miloops:execute"
+                "name": "teamtrail:execute"
               }
             }
           }
@@ -340,7 +340,7 @@
         "operation": "Label",
         "variables": {
           "input": {
-            "name": "miloops:review",
+            "name": "teamtrail:review",
             "color": "#4b5563",
             "teamId": "team-eng"
           }
@@ -359,7 +359,7 @@
             "issueLabelCreate": {
               "issueLabel": {
                 "id": "lbl-0009-fake",
-                "name": "miloops:review"
+                "name": "teamtrail:review"
               }
             }
           }
@@ -409,7 +409,7 @@
                   "nodes": [
                     {
                       "id": "lbl-0001-fake",
-                      "name": "miloops:map"
+                      "name": "teamtrail:map"
                     }
                   ]
                 },
@@ -432,7 +432,7 @@
           "input": {
             "teamId": "team-eng",
             "title": "Survey CRDT libraries",
-            "description": "Compare.\n\nPart of mission ENG-1.",
+            "description": "Compare.\n\nPart of trail ENG-1.",
             "parentId": "iss-0010-fake",
             "labelIds": [
               "lbl-0004-fake"
@@ -455,7 +455,7 @@
                 "id": "iss-0011-fake",
                 "identifier": "ENG-2",
                 "title": "Survey CRDT libraries",
-                "description": "Compare.\n\nPart of mission ENG-1.",
+                "description": "Compare.\n\nPart of trail ENG-1.",
                 "createdAt": "2026-10-31T12:00:02.000Z",
                 "updatedAt": "2026-10-31T12:00:02.000Z",
                 "completedAt": null,
@@ -467,7 +467,7 @@
                   "nodes": [
                     {
                       "id": "lbl-0004-fake",
-                      "name": "miloops:research"
+                      "name": "teamtrail:research"
                     }
                   ]
                 },
@@ -485,7 +485,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Missions",
+        "operation": "Trails",
         "variables": {
           "filter": {
             "team": {
@@ -496,7 +496,7 @@
             "labels": {
               "some": {
                 "name": {
-                  "eq": "miloops:map"
+                  "eq": "teamtrail:map"
                 }
               }
             }
@@ -530,7 +530,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Mission",
+        "operation": "Trail",
         "variables": {
           "id": "iss-0010-fake"
         }
@@ -561,7 +561,7 @@
                 "nodes": [
                   {
                     "id": "lbl-0001-fake",
-                    "name": "miloops:map"
+                    "name": "teamtrail:map"
                   }
                 ]
               },
@@ -575,7 +575,7 @@
                     "id": "iss-0011-fake",
                     "identifier": "ENG-2",
                     "title": "Survey CRDT libraries",
-                    "description": "Compare.\n\nPart of mission ENG-1.",
+                    "description": "Compare.\n\nPart of trail ENG-1.",
                     "createdAt": "2026-10-31T12:00:02.000Z",
                     "updatedAt": "2026-10-31T12:00:02.000Z",
                     "completedAt": null,
@@ -587,7 +587,7 @@
                       "nodes": [
                         {
                           "id": "lbl-0004-fake",
-                          "name": "miloops:research"
+                          "name": "teamtrail:research"
                         }
                       ]
                     },
@@ -655,7 +655,7 @@
                   "labels": {
                     "nodes": [
                       {
-                        "name": "miloops:map"
+                        "name": "teamtrail:map"
                       }
                     ]
                   }
@@ -669,7 +669,7 @@
                   "labels": {
                     "nodes": [
                       {
-                        "name": "miloops:research"
+                        "name": "teamtrail:research"
                       }
                     ]
                   }
@@ -697,7 +697,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Mission",
+        "operation": "Trail",
         "variables": {
           "id": "iss-0010-fake"
         }
@@ -728,7 +728,7 @@
                 "nodes": [
                   {
                     "id": "lbl-0001-fake",
-                    "name": "miloops:map"
+                    "name": "teamtrail:map"
                   }
                 ]
               },
@@ -742,7 +742,7 @@
                     "id": "iss-0011-fake",
                     "identifier": "ENG-2",
                     "title": "Survey CRDT libraries",
-                    "description": "Compare.\n\nPart of mission ENG-1.",
+                    "description": "Compare.\n\nPart of trail ENG-1.",
                     "createdAt": "2026-10-31T12:00:02.000Z",
                     "updatedAt": "2026-10-31T12:00:05.000Z",
                     "completedAt": "2026-10-31T12:00:04.000Z",
@@ -754,7 +754,7 @@
                       "nodes": [
                         {
                           "id": "lbl-0004-fake",
-                          "name": "miloops:research"
+                          "name": "teamtrail:research"
                         }
                       ]
                     },

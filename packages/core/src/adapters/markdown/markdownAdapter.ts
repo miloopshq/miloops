@@ -23,7 +23,7 @@ import { ExternalChanges } from './externalChanges';
 import { parseMapFile, serializeMapFile } from './mapFile';
 import type { MarkdownFs } from './markdownFs';
 import { nextNumber } from './nextNumber';
-import { missionSlug } from './paths';
+import { trailSlug } from './paths';
 import { parseTicket, serializeTicket } from './ticketFile';
 
 /*
@@ -97,7 +97,7 @@ export class MarkdownAdapter implements TrackerAdapter {
 
   async createMap(input: MapInput) {
     const n = await nextNumber(this.fs);
-    const slug = missionSlug(input.title, n);
+    const slug = trailSlug(input.title, n);
     const map: MapDoc = {
       id: slug,
       key: `#${n}`,

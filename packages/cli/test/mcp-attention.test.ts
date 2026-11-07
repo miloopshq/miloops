@@ -4,14 +4,14 @@ import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let root: string;
 const open: { close(): void | Promise<void> }[] = [];
 
 async function connect(agentName: string) {
-  const agent = new MissionAgent({ root, agent: agentName, pollMs: 20 });
+  const agent = new TrailAgent({ root, agent: agentName, pollMs: 20 });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -25,7 +25,7 @@ async function connect(agentName: string) {
 }
 
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-attention-'));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-attention-'));
 });
 afterEach(async () => {
   for (const o of open.splice(0)) await o.close();
@@ -45,7 +45,7 @@ type Inbox = { questions: { questionId: string; question: string }[]; attention:
 describe('attention over MCP', () => {
   it('ranks questions by urgency and what they hold up, and old clients still work', async () => {
     const worker = await connect('claude-01');
-    const started = await worker<{ tickets: { key: string; title: string }[] }>('start_mission', {
+    const started = await worker<{ tickets: { key: string; title: string }[] }>('start_trail', {
       discovery: false,
       title: 'Reminders',
       destination: 'Clients get reminders they asked for',

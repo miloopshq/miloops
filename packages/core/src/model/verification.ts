@@ -12,12 +12,12 @@ export interface CheckSpec {
   cwd?: string;
 }
 
-/** `.miloops/verification.json`: the only source of commands MILOOPS runs. */
+/** `.teamtrail/verification.json`: the only source of commands Teamtrail runs. */
 export interface VerificationConfig {
   v: 1;
-  /** Level for new missions (`checks` when the file leaves it out). Existing missions keep their own level (none means off). */
+  /** Level for new trails (`checks` when the file leaves it out). Existing trails keep their own level (none means off). */
   default: VerificationLevel;
-  /** Ticket types the mission level applies to; decision tickets stay off unless listed. */
+  /** Ticket types the trail level applies to; decision tickets stay off unless listed. */
   appliesTo: TicketType[];
   checks: Record<string, CheckSpec>;
   /** Checks run on every completion, in order, unless a ticket names its own. */
@@ -50,7 +50,7 @@ export interface CheckResult {
 
 export type AttemptResult = 'pass' | 'fail' | 'error' | 'interrupted';
 
-/** One completion claim and what MILOOPS found. Written once, never rewritten. */
+/** One completion claim and what Teamtrail found. Written once, never rewritten. */
 export interface VerificationAttempt {
   v: 1;
   id: string;
@@ -91,7 +91,7 @@ export interface VerificationVerdict {
   ticketId: string;
   attemptId: string;
   by: string;
-  byKind: 'agent' | 'operator';
+  byKind: 'agent' | 'trail lead';
   sessionId?: string;
   verdict: VerdictKind;
   summary: string;

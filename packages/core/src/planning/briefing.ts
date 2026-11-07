@@ -5,7 +5,7 @@ import type { DecisionRecord, MapSnapshot, PendingQuestion, SessionInfo, Session
 import { madeBy } from './decisions/decisionRecord';
 import { attention, deriveStates } from './derive';
 
-export interface MissionBriefing {
+export interface TrailBriefing {
   mapId: string;
   key: string;
   title: string;
@@ -19,7 +19,7 @@ export interface MissionBriefing {
   blocked: { ticket: Ticket; on: Ticket[] }[];
   /** Questions agents are blocked on now: in attention-queue order when `attention` is given, else oldest first. */
   waiting: PendingQuestion[];
-  /** The mission's attention items, ranked as in the queue (empty without `attention`). */
+  /** The trail's attention items, ranked as in the queue (empty without `attention`). */
   needsYou: AttentionItem[];
   /** Every decision recorded since `since`; `agentDecisions` is the subset an agent made. */
   decisions: DecisionRecord[];
@@ -31,11 +31,11 @@ export interface MissionBriefing {
 }
 
 export interface Briefing {
-  /** Earliest `since` across the missions shown. */
+  /** Earliest `since` across the trails shown. */
   since: number;
   now: number;
-  /** Missions with changes, the current one first. */
-  missions: MissionBriefing[];
+  /** Trails with changes, the current one first. */
+  trails: TrailBriefing[];
   totals: {
     done: number;
     ruledOut: number;
@@ -54,7 +54,7 @@ export interface BriefingInput {
   decisions: DecisionRecord[];
   activity: ActivityState;
   ledger?: UsageLedger;
-  /** Last-seen time per mission (see `Presence`). */
+  /** Last-seen time per trail (see `Presence`). */
   since: (mapId: string) => number;
   currentMapId?: string;
   now?: number;
@@ -62,10 +62,10 @@ export interface BriefingInput {
   attention?: AttentionItem[];
 }
 
-/** `metrics.briefing`: what changed in each mission since the operator was last present. */
+/** `metrics.briefing`: what changed in each trail since the trail lead was last present. */
 export function buildBriefing(input: BriefingInput): Briefing {
   const now = input.now ?? Date.now();
-  const missions = input.snaps.map((snap): MissionBriefing => {
+  const trails = input.snaps.map((snap): TrailBriefing => {
     const mapId = snap.map.id;
     const since = input.since(mapId);
     const after = (t?: number) => !!t && t >= since;
@@ -120,7 +120,7 @@ export function buildBriefing(input: BriefingInput): Briefing {
       ),
     };
   });
-  const shown = missions
+  const shown = trails
     .filter((m) => m.changed || m.waiting.length)
     .sort((a, b) => Number(b.mapId === input.currentMapId) - Number(a.mapId === input.currentMapId));
   const sum = <K extends 'done' | 'ruledOut' | 'blocked' | 'waiting' | 'agentDecisions' | 'active'>(k: K) =>
@@ -131,7 +131,7 @@ export function buildBriefing(input: BriefingInput): Briefing {
   return {
     since: shown.length ? Math.min(...shown.map((m) => m.since)) : now,
     now,
-    missions: shown,
+    trails: shown,
     totals: {
       done: sum('done'),
       ruledOut: sum('ruledOut'),
@@ -150,7 +150,7 @@ export function buildBriefing(input: BriefingInput): Briefing {
       ),
       active: sum('active'),
     },
-    changed: missions.some((m) => m.changed),
+    changed: trails.some((m) => m.changed),
   };
 }
 
@@ -163,21 +163,21 @@ function inQueueOrder(questions: PendingQuestion[], ranked: AttentionItem[]): Pe
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-/** Blocked tickets that wait on one of the mission's open questions. */
-function heldByQuestions(b: Briefing): MissionBriefing['blocked'] {
-  return b.missions.flatMap((m) => {
+/** Blocked tickets that wait on one of the trail's open questions. */
+function heldByQuestions(b: Briefing): TrailBriefing['blocked'] {
+  return b.trails.flatMap((m) => {
     const waitingOn = new Set(m.waiting.map((q) => q.ticketId));
     return m.blocked.filter((x) => x.on.some((o) => waitingOn.has(o.id)));
   });
 }
 
-function holdsUp(held: MissionBriefing['blocked']): string {
+function holdsUp(held: TrailBriefing['blocked']): string {
   if (held.length === 1) return `, and it holds up ${held[0].ticket.title.replace(/^./, (c) => c.toLowerCase())}`;
   if (held.length > 1) return `, holding up ${plural(held.length, 'ticket')}`;
   return '';
 }
 
-/** MILO's spoken summary of a briefing. Deterministic; built only from the briefing's numbers. */
+/** Scout's spoken summary of a briefing. Deterministic; built only from the briefing's numbers. */
 export function briefingLine(b: Briefing, hour = new Date(b.now).getHours()): string {
   const t = b.totals;
   const away = b.now - b.since;

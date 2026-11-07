@@ -17,7 +17,7 @@ const view = (root: string) => ({
 /**
  * `/workspaces`: the project's worktree setting (`workspaces.json`), the prepared worktrees and the latest overlap
  * check. GET reads; PUT saves the setting (400 with every error); POST `/workspaces/integration { mapId, a, b }`
- * is the operator's "Add integration ticket" for an overlap the check found; POST `/workspaces/remove { mapId,
+ * is the trail lead's "Add integration ticket" for an overlap the check found; POST `/workspaces/remove { mapId,
  * ticketId, force? }` removes a finished ticket's worktree folder (409 with the reason, and `dirty` when it has
  * uncommitted changes). False when the path doesn't match.
  */

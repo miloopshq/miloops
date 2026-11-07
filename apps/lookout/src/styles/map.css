@@ -1,0 +1,709 @@
+/* ---------- Map zone ---------- */
+.map-zone {
+  grid-area: map;
+}
+.command-bar {
+  flex: 0 0 var(--h-zone);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: 0 var(--gutter);
+  min-width: 0;
+  border-bottom: 1px solid var(--line);
+}
+.toggle {
+  height: var(--h-md);
+  padding: 0 var(--sp-12);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  white-space: nowrap;
+  border: 1px solid var(--line2);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--strong);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+}
+.toggle i {
+  width: 24px;
+  height: 12px;
+  border: 1px solid var(--line2);
+  position: relative;
+}
+.toggle i::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  background: var(--dim);
+  transition: left 0.15s;
+}
+.toggle.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.toggle.on i {
+  border-color: var(--accent);
+}
+.toggle.on i::after {
+  left: 14px;
+  background: var(--accent);
+}
+
+.st-frontier {
+  --c: var(--st-frontier);
+}
+.st-claimed {
+  --c: var(--st-claimed);
+}
+.st-decided {
+  --c: var(--st-decided);
+}
+.st-blocked {
+  --c: var(--st-blocked);
+}
+.st-parked {
+  --c: var(--st-parked);
+}
+.st-out-of-scope {
+  --c: var(--st-oos);
+}
+.st-verifying {
+  --c: var(--st-verifying);
+}
+.st-rework {
+  --c: var(--st-rework);
+}
+.st-held {
+  --c: var(--st-held);
+}
+.st-stalled {
+  --c: var(--amber);
+}
+.st-waiting {
+  --c: var(--urgent);
+}
+.st-unspecified {
+  --c: var(--dim);
+}
+
+.map-area {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.graph-box {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--map-bg);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+.graph-box:active {
+  cursor: grabbing;
+}
+.graph {
+  display: block;
+}
+.fit-btn {
+  position: absolute;
+  right: var(--sp-10);
+  top: var(--sp-8);
+  background: var(--panel);
+  color: var(--dim);
+}
+.nomap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-12);
+  padding: 16px;
+  text-align: center;
+}
+.nomap h2 {
+  font-family: var(--display);
+  font-weight: 900;
+  font-size: var(--fs-display);
+  margin: 0;
+  color: var(--text-hi);
+}
+.nomap .actions {
+  justify-content: center;
+}
+
+/* Status counters: the legend and the numbers in one panel. */
+/* Status strip under the map: the graph gets the full width. */
+.map-area {
+  --status-h: 124px;
+  container-type: inline-size;
+}
+/* Tucked below the map: only its tab shows until it's opened. */
+.status-drawer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  transform: translateY(var(--status-h));
+  transition: transform 0.2s ease;
+}
+.status-drawer.open {
+  transform: none;
+}
+.status-toggle {
+  pointer-events: auto;
+  margin-left: var(--sp-10);
+  height: var(--h-sm);
+  padding: 0 var(--sp-10);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  background: var(--panel);
+  border: 1px solid var(--line2);
+  border-bottom: 0;
+  font-family: var(--strong);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.status-toggle .caret {
+  color: var(--dim);
+}
+.status-panel {
+  align-self: stretch;
+  pointer-events: auto;
+  height: var(--status-h);
+  visibility: hidden;
+  transition: visibility 0.2s;
+  padding: var(--sp-10) var(--gutter);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) minmax(230px, 1fr);
+  gap: var(--sp-14);
+  overflow: hidden;
+}
+.status-panel .sp-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  min-width: 0;
+}
+.status-panel .sp-col + .sp-col {
+  padding-left: var(--sp-14);
+  border-left: 1px solid var(--line);
+}
+/* Status counts flow into as many columns as fit. */
+.status-panel .sp-status ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0 var(--sp-14);
+}
+.status-panel .sp-status li {
+  line-height: 1.3;
+}
+.status-panel .sp-status li span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Type mix in two columns, so all five types fit the strip. */
+.status-panel .mix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--sp-12);
+  row-gap: 3px;
+}
+.status-panel .mix li {
+  line-height: 1.3;
+}
+/* Narrow maps keep the status counts; the type mix goes. */
+@container (max-width: 640px) {
+  .status-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .status-panel > .sp-block {
+    display: none;
+  }
+  .status-panel .sp-status ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.status-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.status-panel li {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: var(--sp-8);
+  font: var(--type-meta);
+  color: var(--text);
+}
+.status-panel li i {
+  width: 12px;
+  height: 8px;
+  background: var(--c);
+}
+.status-panel li.st-blocked i {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--c);
+}
+.status-panel li.st-parked i {
+  background: transparent;
+  border: 1px dashed var(--c);
+}
+.status-panel li.st-verifying i {
+  background: repeating-linear-gradient(90deg, var(--c) 0 4px, transparent 4px 6px);
+}
+.status-panel li.st-out-of-scope i {
+  background: repeating-linear-gradient(45deg, var(--c) 0 2px, transparent 2px 4px);
+}
+.status-panel li b {
+  font-weight: 500;
+  color: var(--text-hi);
+  font-variant-numeric: tabular-nums;
+}
+.status-panel li.zero {
+  color: var(--faint);
+}
+.status-panel li.zero b {
+  color: var(--faint);
+}
+.status-panel li.st-waiting:not(.zero) {
+  color: var(--urgent);
+}
+.status-panel li.st-waiting:not(.zero) b {
+  color: var(--urgent);
+}
+.sp-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mix {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.mix li {
+  display: grid;
+  grid-template-columns: max-content minmax(24px, 1fr) max-content;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.mix-bar {
+  display: flex;
+  height: 6px;
+  background: rgba(var(--accent-rgb), 0.05);
+}
+.mix-bar .closed {
+  background: var(--st-decided);
+}
+.mix-bar .open {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.mix b {
+  font: var(--type-meta);
+  font-weight: 500;
+  color: var(--text-hi);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-6);
+}
+.bp-laptop .status-panel {
+  padding: var(--sp-10);
+}
+.bp-laptop .status-panel li {
+  font-size: var(--fs-label);
+}
+
+.legend {
+  position: absolute;
+  left: var(--sp-12);
+  right: var(--sp-12);
+  bottom: 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  font-family: var(--label);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-data);
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: 500;
+}
+.lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.lg i {
+  width: 8px;
+  height: 8px;
+  background: var(--c);
+  display: inline-block;
+}
+.lg.st-blocked i,
+.lg.st-decided i,
+.lg.hitl {
+  display: none;
+}
+
+/* Graph nodes: trail signs. */
+.node {
+  cursor: pointer;
+  transition: transform 0.4s ease;
+}
+.node .body {
+  fill: var(--sign);
+  stroke: var(--sign-line);
+  stroke-width: 1.5;
+  transition:
+    stroke 0.3s,
+    fill 0.3s;
+}
+.node .post {
+  fill: var(--sign-post);
+  stroke: var(--sign-line);
+  stroke-width: 1;
+}
+.node .tuft {
+  fill: rgb(var(--decided-rgb));
+  opacity: 0.7;
+}
+.node .edge-bar {
+  fill: var(--c);
+}
+.node .title {
+  font-family: var(--sans);
+  font-size: var(--fs-node-title);
+  fill: var(--sign-text);
+  font-weight: 600;
+}
+.node .meta {
+  font-family: var(--sans);
+  font-size: var(--fs-node-meta);
+  font-weight: 500;
+  fill: var(--sign-meta);
+}
+.node .meta .key {
+  font-family: var(--mono);
+}
+.node .meta .agent,
+.node .meta .warn {
+  fill: var(--sign-text);
+  font-weight: 600;
+}
+.node .meta .urgent {
+  fill: var(--urgent);
+  font-weight: 600;
+}
+.node .live-tag {
+  font-family: var(--sans);
+  font-size: var(--fs-node-meta);
+  font-weight: 500;
+  fill: var(--text-hi);
+}
+.node:hover .body {
+  stroke: var(--sign-text);
+}
+.node.st-claimed .body {
+  stroke-width: 2;
+}
+.node.st-verifying .body {
+  stroke-dasharray: 6 3;
+}
+.node.st-rework .body {
+  stroke: var(--amber);
+}
+.node.st-held .body {
+  fill: var(--sign-held);
+  stroke: var(--urgent);
+}
+.node.st-decided .body {
+  fill: var(--sign-done);
+}
+.node.st-blocked .body,
+.node.st-parked .body,
+.node.st-out-of-scope .body {
+  fill: var(--sign-soft);
+}
+.node.st-blocked .title,
+.node.st-parked .title {
+  fill: var(--sign-text-soft);
+}
+.node.st-blocked .body:not(.tip) {
+  stroke-dasharray: 5 3;
+}
+.node.st-parked .body:not(.tip) {
+  stroke-dasharray: 4 3;
+}
+.node.st-out-of-scope .title {
+  fill: var(--sign-text-soft);
+  text-decoration: line-through;
+}
+.node.sel .body {
+  stroke: var(--text-hi);
+  stroke-width: 2.5;
+}
+.node.waiting {
+  --c: var(--urgent);
+}
+.node.waiting .body {
+  fill: var(--sign-held);
+  stroke: var(--urgent);
+  stroke-width: 2;
+}
+/* Claimed by an agent that went quiet: the lease is about to return the ticket to the queue. */
+.node.stalled {
+  --c: var(--amber);
+}
+.node.stalled .body:not(.tip) {
+  stroke: var(--amber);
+  stroke-dasharray: 5 3;
+}
+.node .alarm {
+  fill: none;
+  stroke: var(--urgent);
+  stroke-dasharray: 6 4;
+  stroke-opacity: 0.8;
+}
+
+/* The trail: a cleared path with dashes on it. Solid colour is walked, ink is still ahead. */
+.edge-path {
+  fill: none;
+  stroke: var(--trail-path);
+  stroke-width: 11;
+  stroke-linecap: round;
+}
+.edge {
+  fill: none;
+  stroke-width: 3;
+  stroke-dasharray: 9 6;
+}
+.edge-open {
+  stroke: var(--trail-ahead);
+}
+.edge-done {
+  stroke: rgb(var(--decided-rgb));
+}
+.destination .x-stroke {
+  fill: none;
+  stroke: var(--mark);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.destination .x-sketch {
+  fill: none;
+  stroke: var(--text-hi);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+.destination text {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--text-hi);
+}
+.quarantine text {
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  fill: var(--dim);
+}
+
+/* ---------- Real trails: agents work from their chat, so the UI hands over agent commands ---------- */
+.command-bar.real {
+  font-size: var(--fs-sm);
+  gap: var(--sp-14);
+}
+/* Rotating hint, right of the Trail map title. */
+.command-bar .hint {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  min-width: 0;
+  margin-left: auto;
+  animation: hint-in 0.35s ease-out;
+}
+.command-bar .hint > .dim {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.command-bar .hint .agent-cmd {
+  flex: 0 0 auto;
+}
+.hint-next {
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--dim);
+}
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .command-bar .hint {
+    animation: none;
+  }
+  .status-drawer,
+  .status-panel {
+    transition: none;
+  }
+}
+.status-drawer.open .status-panel {
+  visibility: visible;
+}
+.agent-cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  max-width: 100%;
+  padding: 3px 3px 3px var(--sp-10);
+  border: 1px solid var(--line2);
+  background: var(--sunken);
+}
+.agent-cmd code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  color: var(--text-hi);
+}
+.nomap-lede {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--dim);
+  line-height: var(--lh-body);
+}
+.agent-draft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+
+/* Empty map: Scout floats above "No trail", with a soft shadow that breathes with him. */
+.floating-scout {
+  display: grid;
+  justify-items: center;
+  margin-bottom: var(--sp-4);
+}
+.floating-scout .fm-avatar {
+  margin: 0;
+  animation: fm-float 4s ease-in-out infinite;
+}
+.floating-scout .scout-sprite {
+  outline: none !important;
+}
+.fm-shadow {
+  width: 64px;
+  height: 8px;
+  margin-top: var(--sp-6);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, var(--shadow-color), transparent 70%);
+  animation: fm-shadow 4s ease-in-out infinite;
+}
+@keyframes fm-float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes fm-shadow {
+  50% {
+    transform: scaleX(0.7);
+    opacity: 0.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .floating-scout .fm-avatar,
+  .fm-shadow {
+    animation: none;
+  }
+}
+
+/* A pending reroute drawn over the map: ghosts for added tickets, a strike for cancelled ones, ❄ for frozen ones. */
+.node.mark-added .body {
+  stroke: var(--amber);
+  stroke-dasharray: 4 3;
+}
+.node.mark-added .meta .key {
+  fill: var(--amber);
+}
+.node.mark-cancelled {
+  opacity: 0.55;
+}
+.node .strike {
+  stroke: var(--urgent);
+  stroke-width: 1.4;
+}
+.node.mark-revised .body,
+.node.mark-rewired .body,
+.node.mark-reopened .body {
+  stroke: var(--amber);
+  stroke-opacity: 0.8;
+}
+.node .reroute-tag {
+  font-family: var(--sans);
+  font-size: var(--fs-node-meta);
+  fill: var(--amber);
+}
+.node .freeze {
+  font-size: 11px;
+  fill: var(--accent);
+}
+.node.frozen .body {
+  stroke: var(--accent);
+  stroke-opacity: 0.8;
+}
+.edge-added {
+  stroke: var(--amber);
+  stroke-dasharray: 3 7;
+}
+/* An edge the pending reroute removes: still drawn, faded. */
+.edge-removed {
+  stroke: var(--faint);
+  stroke-dasharray: 2 6;
+}

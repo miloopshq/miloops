@@ -3,10 +3,10 @@ import { recordDecision, supersedeDecision } from '../../planning/operations/dec
 import type { TrackerAdapter } from '../adapter';
 import { SEED_TICKETS } from './seedTickets';
 
-const OP = 'operator';
+const OP = 'trail lead';
 
 /**
- * Decision history of the sample mission, written through `recordDecision` /
+ * Decision history of the sample trail, written through `recordDecision` /
  * `supersedeDecision` like any live decision. `ticket` maps sample ticket ids
  * to the ids and keys the tracker assigned.
  */
@@ -50,7 +50,7 @@ export async function seedDecisions(
       participants: [{ id: 'claude-r1' }],
       source: { kind: 'agent', ref: 'seed-s-143', label: 'claude-r1 session' },
     },
-    { appendToMission: false },
+    { appendToTrail: false },
   );
 
   const t144 = at(144);
@@ -66,12 +66,12 @@ export async function seedDecisions(
       decidedBy: OP,
       decidedAt: t144 - 5_400_000,
       participants: [{ id: 'claude-07' }, { id: OP }],
-      source: { kind: 'command-center', ref: 'seed-s-144a', label: 'claude-07 conversation' },
+      source: { kind: 'lookout', ref: 'seed-s-144a', label: 'claude-07 conversation' },
       transcript: [
         say(
           'agent',
           'claude-07',
-          'Grilling #144: "Who is the primary offline user?". Three questions, then I\'ll draft the decision.',
+          'Junction #144: "Who is the primary offline user?". Three questions, then I\'ll draft the decision.',
           t144 - 5_700_000,
         ),
         say('agent', 'claude-07', 'Who loses the most when sync fails today?', t144 - 5_650_000),
@@ -87,7 +87,7 @@ export async function seedDecisions(
         say('human', OP, 'Record it', t144 - 5_400_000),
       ],
     },
-    { appendToMission: false },
+    { appendToTrail: false },
   );
   await supersedeDecision(adapter, mapId, first.id, {
     answer: SEED_TICKETS.find((x) => x.n === 144)!.resolution!,
@@ -117,7 +117,7 @@ export async function seedDecisions(
       participants: [{ id: 'claude-r2' }],
       source: { kind: 'agent', ref: 'seed-s-145', label: 'claude-r2 session' },
     },
-    { appendToMission: false },
+    { appendToTrail: false },
   );
 
   await recordDecision(
@@ -132,7 +132,7 @@ export async function seedDecisions(
       participants: [{ id: 'arekom' }],
       source: { kind: 'tracker', ref: mapFile(155), label: 'closed as not planned' },
     },
-    { appendToMission: false },
+    { appendToTrail: false },
   );
 
   const t0 = sample.map.createdAt + 3_000_000;
@@ -145,7 +145,7 @@ export async function seedDecisions(
     decidedBy: OP,
     decidedAt: t0,
     participants: [{ id: 'claude-01' }, { id: OP }],
-    source: { kind: 'command-center', ref: 'seed-s-chart', label: 'claude-01 conversation' },
+    source: { kind: 'lookout', ref: 'seed-s-chart', label: 'claude-01 conversation' },
     transcript: [
       say(
         'agent',

@@ -1,11 +1,12 @@
 import path from 'node:path';
-import { BRAND } from '@miloops-hq/core';
+import { BRAND } from '@teamtrail/core';
 import { fail } from './args/help';
 import { parseArgs, parseSubArgs } from './args/parseArgs';
 import { runConnect } from './connect';
 import { importKnowledge } from './knowledgeImport';
 import { runMcpServer } from './mcp/server';
-import { serveCommandCenter } from './serve/serveCommandCenter';
+import { printGreeting } from './printGreeting';
+import { serveLookout } from './serve/serveLookout';
 import { readStdin, recordClaudeSession } from './usage/hook';
 
 async function main() {
@@ -36,7 +37,7 @@ async function main() {
     if (o.rest[0] !== 'import' || !o.rest[1]) fail('usage: knowledge import <file.md> [--dir <path>]');
     const ids = importKnowledge(path.resolve(process.cwd(), o.dir), path.resolve(process.cwd(), o.rest[1]));
     process.stdout.write(
-      `\n  ${BRAND.name} · imported ${ids.length} suggestions (${ids[0] ?? '—'}…${ids.at(-1) ?? ''}). Review them in the command center: Knowledge.\n\n`,
+      `\n  ${BRAND.name} · imported ${ids.length} suggestions (${ids[0] ?? '—'}…${ids.at(-1) ?? ''}). Review them in the Lookout: Knowledge.\n\n`,
     );
     return;
   }
@@ -45,12 +46,13 @@ async function main() {
     const o = parseSubArgs(argv.slice(1), ['--dir']);
     const target = o.rest[0];
     if (target !== 'claude' && target !== 'codex') fail('connect needs an agent: claude or codex');
+    printGreeting();
     process.stdout.write(`\n  ${BRAND.name} · connect ${target === 'claude' ? 'Claude Code' : 'Codex'}\n\n`);
     runConnect(target, { cwd: process.cwd(), dir: o.dir });
     process.stdout.write('\n');
     return;
   }
-  await serveCommandCenter(parseArgs(slackSetup ? argv.slice(2) : argv), slackSetup);
+  await serveLookout(parseArgs(slackSetup ? argv.slice(2) : argv), slackSetup);
 }
 
 void main();

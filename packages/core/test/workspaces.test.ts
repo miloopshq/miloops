@@ -23,7 +23,7 @@ import { listWorkspaces, prepareWorktree, readIntegrationScan, scanIntegrations,
 const now = Date.UTC(2026, 11, 1, 12);
 const dirs: string[] = [];
 const tmp = (name: string) => {
-  const d = fs.mkdtempSync(path.join(os.tmpdir(), `miloops-${name}-`));
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), `teamtrail-${name}-`));
   dirs.push(d);
   return d;
 };
@@ -36,14 +36,14 @@ const sh = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, 
 /** A repo with one commit and a tracker folder inside it, like a user's project. */
 function repo() {
   const top = path.join(tmp('repo'), 'app');
-  fs.mkdirSync(path.join(top, '.miloops'), { recursive: true });
+  fs.mkdirSync(path.join(top, '.teamtrail'), { recursive: true });
   sh(top, 'init', '-q', '-b', 'main');
   sh(top, 'config', 'user.email', 't@t');
   sh(top, 'config', 'user.name', 't');
   fs.writeFileSync(path.join(top, 'a.txt'), 'a\n');
   sh(top, 'add', '-A');
   sh(top, 'commit', '-qm', 'init');
-  return { top, root: path.join(top, '.miloops') };
+  return { top, root: path.join(top, '.teamtrail') };
 }
 
 function lease(ticketId: string, patch: Partial<TicketLease> = {}): TicketLease {
@@ -76,7 +76,7 @@ describe('touch-sets', () => {
       [
         lease('1', { touches: ['src/app/**'] }),
         lease('3', { touches: ['docs/**'] }),
-        lease('4', { touches: ['src/**'], returned: { at: now, reason: 'operator', by: 'op' } }),
+        lease('4', { touches: ['src/**'], returned: { at: now, reason: 'trail lead', by: 'op' } }),
       ],
       now,
     );
@@ -112,11 +112,11 @@ describe('worktrees', () => {
     };
     const first = await prepareWorktree(at);
     if (!('workspace' in first)) throw new Error(first.note);
-    expect(first.workspace.branch).toBe('miloops/release-search/7');
+    expect(first.workspace.branch).toBe('teamtrail/release-search/7');
     expect(fs.realpathSync(first.workspace.path)).toBe(
-      fs.realpathSync(path.join(top, '..', 'app.miloops', 'release-search-7')),
+      fs.realpathSync(path.join(top, '..', 'app.teamtrail', 'release-search-7')),
     );
-    expect(sh(first.workspace.path, 'rev-parse', '--abbrev-ref', 'HEAD')).toBe('miloops/release-search/7');
+    expect(sh(first.workspace.path, 'rev-parse', '--abbrev-ref', 'HEAD')).toBe('teamtrail/release-search/7');
     expect(first.workspace.base).toBe(sh(top, 'rev-parse', 'HEAD'));
     expect(await prepareWorktree(at)).toEqual(first);
     expect(listWorkspaces(root).map((w) => w.ticketKey)).toEqual(['#7']);
@@ -172,7 +172,7 @@ describe('worktrees', () => {
     await expect(addIntegrationTicket(adapter, overlap)).rejects.toThrow(/already exists/);
   });
 
-  it('find overlaps only inside a mission, deterministically', () => {
+  it('find overlaps only inside a trail, deterministically', () => {
     const ws = (mapId: string, ticketId: string): WorkspaceRecord => ({
       v: 1,
       mapId,

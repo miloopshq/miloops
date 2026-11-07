@@ -1,5 +1,5 @@
 /**
- * Minimal filesystem the markdown adapter needs. The command center provides
+ * Minimal filesystem the markdown adapter needs. The Lookout provides
  * an HTTP-backed implementation via the Vite dev server; a CLI would pass
  * one backed by node:fs.
  */

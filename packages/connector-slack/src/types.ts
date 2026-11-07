@@ -2,12 +2,12 @@
 
 export type SlackState = 'off' | 'connecting' | 'online' | 'offline' | 'auth-error' | 'elsewhere' | 'unsupported';
 
-/** Where a token came from. Values never leave the machine running `miloops`. */
-export type SlackTokenSource = 'stored' | 'MILOOPS_SLACK_APP_TOKEN' | 'MILOOPS_SLACK_BOT_TOKEN';
+/** Where a token came from. Values never leave the machine running `teamtrail`. */
+export type SlackTokenSource = 'stored' | 'TEAMTRAIL_SLACK_APP_TOKEN' | 'TEAMTRAIL_SLACK_BOT_TOKEN';
 
-export type SlackNotifyEvent = 'awaiting' | 'blocked' | 'mission.done' | 'resolved';
-export const SLACK_NOTIFY_EVENTS: SlackNotifyEvent[] = ['awaiting', 'blocked', 'mission.done', 'resolved'];
-export const DEFAULT_NOTIFY_EVENTS: SlackNotifyEvent[] = ['awaiting', 'blocked', 'mission.done'];
+export type SlackNotifyEvent = 'awaiting' | 'blocked' | 'trail.done' | 'resolved';
+export const SLACK_NOTIFY_EVENTS: SlackNotifyEvent[] = ['awaiting', 'blocked', 'trail.done', 'resolved'];
+export const DEFAULT_NOTIFY_EVENTS: SlackNotifyEvent[] = ['awaiting', 'blocked', 'trail.done'];
 
 export interface SlackUser {
   id: string;
@@ -17,7 +17,7 @@ export interface SlackUser {
 }
 
 export interface SlackNotify {
-  /** `dm` (the owner's DM with MILO) or a channel id. */
+  /** `dm` (the owner's DM with Scout) or a channel id. */
   target: 'dm' | string;
   events: SlackNotifyEvent[];
   /** `titles-only` hides ask bodies, for channel targets. */
@@ -46,7 +46,7 @@ export interface SlackStatus {
   notify: SlackNotify;
   command: string;
   links: { create: string; app?: string; install?: string; home?: string; homeWeb?: string };
-  /** Tracker folder of the other `miloops` that holds this machine's Slack connection. */
+  /** Tracker folder of the other `teamtrail` that holds this machine's Slack connection. */
   heldBy?: string;
 }
 

@@ -17,4 +17,4 @@ export function tailOf(text: string, lines = 60, bytes = 4096) {
 
 /** Environment variable names never passed to check commands. */
 export const isSecretEnv = (name: string) =>
-  /^(GITHUB_TOKEN|GH_TOKEN|GH_ENTERPRISE_TOKEN|LINEAR_API_KEY)$/.test(name) || /^(MILOOPS_|SLACK_)/.test(name);
+  /^(GITHUB_TOKEN|GH_TOKEN|GH_ENTERPRISE_TOKEN|LINEAR_API_KEY)$/.test(name) || /^(TEAMTRAIL_|SLACK_)/.test(name);

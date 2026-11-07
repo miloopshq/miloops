@@ -1,8 +1,8 @@
 {
-  "name": "miloops-workspace",
+  "name": "teamtrail-workspace",
   "version": "0.1.0",
-  "author": "MILOOPS",
-  "homepage": "https://miloops.vercel.app",
+  "author": "Teamtrail",
+  "homepage": "https://teamtrail.ai",
   "bugs": {
     "url": "https://github.com/teamtrailhq/teamtrail/issues"
   },
@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "dev": "npm run seed && npm run dev:keep",
-    "dev:keep": "npm run dev -w @miloops-hq/command-center",
+    "dev:keep": "npm run dev -w @teamtrail/lookout",
     "dev:empty": "node scripts/dev-empty.mjs",
     "dev:agent": "node scripts/dev-agent.mjs",
     "build": "npm run build --workspaces --if-present",
@@ -30,7 +30,7 @@
     "seed": "esbuild scripts/seed-dev.ts --bundle --platform=node --format=esm --log-level=warning --outfile=node_modules/.cache/seed-dev.mjs && node node_modules/.cache/seed-dev.mjs",
     "start": "node packages/cli/dist/cli.js",
     "pack": "npm pack -w teamtrail --pack-destination .",
-    "dev:avatar": "npm run dev -w @miloops-hq/milo-avatar"
+    "dev:avatar": "npm run dev -w @teamtrail/scout-avatar"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

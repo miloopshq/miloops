@@ -21,7 +21,7 @@ export async function promoteToTicket(
     title: input.title ?? entry,
     type: input.type,
     hitl: input.hitl,
-    body: `${input.body ?? `Promoted from Not yet specified: ${entry}`}\n\nPart of mission ${snap.map.key}.`,
+    body: `${input.body ?? `Promoted from Not yet specified: ${entry}`}\n\nPart of trail ${snap.map.key}.`,
   });
   for (const b of input.blockedBy ?? []) await adapter.addBlocking(mapId, b, t.id);
   const fresh = await adapter.loadMap(mapId);
@@ -71,7 +71,7 @@ export async function ruleOutOfScope(
       decidedBy: input.author,
       source: input.source ?? { kind: 'agent', label: input.author },
     },
-    { appendToMission: false },
+    { appendToTrail: false },
   );
   const fresh = await adapter.loadMap(mapId);
   await adapter.updateMapSections(mapId, {

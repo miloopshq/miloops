@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { MarkdownAdapter, type TicketLease } from '@miloops-hq/core';
-import { readLeases } from '@miloops-hq/core/agents';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { MarkdownAdapter, type TicketLease } from '@teamtrail/core';
+import { readLeases } from '@teamtrail/core/agents';
+import { nodeMarkdownFs } from '@teamtrail/core/node';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let root: string;
@@ -15,7 +15,7 @@ const open: { close(): void | Promise<void> }[] = [];
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function connect(agentName: string, leaseMs: number) {
-  const agent = new MissionAgent({ root, agent: agentName, pollMs: 20, leaseMs });
+  const agent = new TrailAgent({ root, agent: agentName, pollMs: 20, leaseMs });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -33,8 +33,8 @@ type Claimed = {
   recovered?: { ticket: string; from: string }[];
 };
 
-async function mission(call: Awaited<ReturnType<typeof connect>>) {
-  await call('start_mission', {
+async function trail(call: Awaited<ReturnType<typeof connect>>) {
+  await call('start_trail', {
     discovery: false,
     title: 'Offline sync',
     destination: 'Edits made offline survive',
@@ -43,7 +43,7 @@ async function mission(call: Awaited<ReturnType<typeof connect>>) {
 }
 
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-lease-'));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-lease-'));
 });
 afterEach(async () => {
   for (const o of open.splice(0)) await o.close();
@@ -53,7 +53,7 @@ afterEach(async () => {
 describe('claim leases', () => {
   it('returns a silent agent’s ticket to the queue and hands its notes to the next agent', async () => {
     const a = await connect('claude-01', 150);
-    await mission(a);
+    await trail(a);
     const first = await a<Claimed & { lease: { length: string } }>('claim_ticket');
     await a('report_progress', { step: 'Investigate', message: 'Yjs and Automerge both fit' });
     await a('record_decision', {
@@ -88,7 +88,7 @@ describe('claim leases', () => {
 
   it('keeps the claim while the agent keeps calling tools', async () => {
     const a = await connect('claude-01', 200);
-    await mission(a);
+    await trail(a);
     await a('claim_ticket');
     for (let i = 0; i < 5; i++) {
       await sleep(80);
@@ -99,14 +99,14 @@ describe('claim leases', () => {
     expect(next).toMatchObject({ ticket: null });
     expect(next.recovered).toBeUndefined();
     const snap = await new MarkdownAdapter(nodeMarkdownFs(root)).loadMap(
-      (await b<{ mission: { id: string } }>('status')).mission.id,
+      (await b<{ trail: { id: string } }>('status')).trail.id,
     );
     expect(snap.tickets[0].assignee).toBe('claude-01');
   });
 
   it('drops the lease when the agent closes or releases its ticket', async () => {
     const a = await connect('claude-01', 60_000);
-    await mission(a);
+    await trail(a);
     await a('claim_ticket');
     expect(readLeases(root)).toHaveLength(1);
     await a('release_ticket', {});

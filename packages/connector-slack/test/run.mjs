@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const out = path.resolve(here, '../../../node_modules/.cache/miloops-slack-tests');
+const out = path.resolve(here, '../../../node_modules/.cache/teamtrail-slack-tests');
 const [cmd, ...rest] = process.argv.slice(2);
 const script = { record: 'record.ts', serve: 'serve-fake.ts' }[cmd];
 const entries = script

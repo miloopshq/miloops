@@ -5,7 +5,7 @@ import { idNumber } from '../../model/assumptionLine';
 import { OperationError } from '../operations/operationError';
 
 /**
- * Adds assumptions to a mission's Assumptions section with the next `S-<n>` ids. Inputs whose `source` or text is
+ * Adds assumptions to a trail's Assumptions section with the next `S-<n>` ids. Inputs whose `source` or text is
  * already listed are skipped, so seeding twice (a brief accepted again) adds nothing. Returns the ones added.
  */
 export async function addAssumptions(adapter: TrackerAdapter, mapId: string, inputs: AssumptionInput[]) {
@@ -32,7 +32,7 @@ export async function addAssumptions(adapter: TrackerAdapter, mapId: string, inp
   return added;
 }
 
-/** The accepted brief's assumptions become the mission's, each sourced `brief:<A-n>`. */
+/** The accepted brief's assumptions become the trail's, each sourced `brief:<A-n>`. */
 export function seedFromBrief(adapter: TrackerAdapter, brief: Pick<DiscoveryBrief, 'mapId' | 'sections'>) {
   const inputs = brief.sections.assumptions.map((a) => ({ text: a.text, source: `brief:${a.id}` }));
   return addAssumptions(adapter, brief.mapId, inputs);
@@ -48,7 +48,7 @@ export interface Challenge {
 
 /**
  * Marks an assumption challenged, with the evidence. Returns it with the tickets and decisions that depend on it,
- * which a replan proposal should account for. Invalidated assumptions can't be challenged again.
+ * which a reroute proposal should account for. Invalidated assumptions can't be challenged again.
  */
 export async function challengeAssumption(adapter: TrackerAdapter, mapId: string, c: Challenge) {
   if (!c.evidence.trim()) throw new OperationError('"evidence" is required: what you found, with paths or output');
@@ -64,17 +64,17 @@ export async function challengeAssumption(adapter: TrackerAdapter, mapId: string
   return { assumption: updated, tickets: target.tickets, decisions: decisions.map((d) => d.id) };
 }
 
-/** After the operator decides a replan: approved invalidates `ids`; rejected puts challenged ones back to holding. */
+/** After the trail lead decides a reroute: approved invalidates `ids`; rejected puts challenged ones back to holding. */
 export async function settleAssumptions(
   adapter: TrackerAdapter,
   mapId: string,
-  change: { ids: string[]; status: 'invalidated' | 'holding'; replanId: string },
+  change: { ids: string[]; status: 'invalidated' | 'holding'; rerouteId: string },
 ) {
   if (!change.ids.length) return [];
   const snap = await adapter.loadMap(mapId);
   const all = snap.map.sections.assumptions ?? [];
   const hit = (a: Assumption) => change.ids.includes(a.id) && a.status !== 'invalidated';
-  const settled = all.filter(hit).map((a) => ({ ...a, status: change.status, decidedBy: change.replanId }));
+  const settled = all.filter(hit).map((a) => ({ ...a, status: change.status, decidedBy: change.rerouteId }));
   if (!settled.length) return [];
   const byId = new Map(settled.map((a) => [a.id, a]));
   await adapter.updateMapSections(mapId, { assumptions: all.map((a) => byId.get(a.id) ?? a) });

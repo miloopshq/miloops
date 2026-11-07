@@ -124,7 +124,7 @@ describe('attention queue', () => {
   it('every source produces items with reasons', () => {
     const gated = snap([ticket('1', { type: 'research' }), ticket('2', { type: 'execute' })], 'm2');
     const hitl = snap(
-      [ticket('7', { type: 'grilling' }), ticket('8', { type: 'task', hitl: true, assignee: 'x' })],
+      [ticket('7', { type: 'junction' }), ticket('8', { type: 'task', hitl: true, assignee: 'x' })],
       'm3',
     );
     const q = buildAttention(

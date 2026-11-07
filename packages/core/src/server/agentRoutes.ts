@@ -25,7 +25,7 @@ export async function handleAgents(
         sessionId: b.sessionId!,
         questionId: b.questionId!,
         text: b.text!,
-        author: typeof b.author === 'string' && b.author ? b.author : 'operator',
+        author: typeof b.author === 'string' && b.author ? b.author : 'trail lead',
       }),
     );
     return true;

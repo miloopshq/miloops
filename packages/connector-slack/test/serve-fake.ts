@@ -1,13 +1,13 @@
 /**
- * The Slack fake over real HTTP and WebSocket, for driving the command center in a browser:
+ * The Slack fake over real HTTP and WebSocket, for driving the Lookout in a browser:
  *
  *   node test/run.mjs serve 7499
- *   MILOOPS_SLACK_API=http://localhost:7499/api npm run dev
+ *   TEAMTRAIL_SLACK_API=http://localhost:7499/api npm run dev
  *
  * Paste `fake.tokens.app` / `fake.tokens.bot` (printed on start) into Settings → Slack. User
  * actions in "Slack" are simulated with `POST /control/<payload builder>` and a JSON array of
  * arguments, e.g. `curl -XPOST localhost:7499/control/clickHome -d '["U0ANA0001","claim_owner"]'`.
- * `GET /control/messages?channel=D0ANA0001` lists what MILO posted.
+ * `GET /control/messages?channel=D0ANA0001` lists what Scout posted.
  */
 import http from 'node:http';
 import { WebSocketServer, type WebSocket } from 'ws';
@@ -68,7 +68,7 @@ const server = http.createServer(async (req, res) => {
   const builder = url.pathname.match(/^\/control\/(\w+)$/)?.[1] as keyof typeof fake.payload | undefined;
   if (builder && builder in fake.payload && req.method === 'POST') {
     const ws = [...sockets].at(-1);
-    if (!ws) return json(res, 409, { error: 'MILO is not connected over Socket Mode' });
+    if (!ws) return json(res, 409, { error: 'Scout is not connected over Socket Mode' });
     const build = fake.payload[builder] as (...a: unknown[]) => { type: string; payload: Record<string, unknown> };
     const e = build(...(JSON.parse(body || '[]') as unknown[]));
     const raw = JSON.stringify(e.payload).replaceAll('https://hooks.slack.test', `${origin}/hooks`);
@@ -100,6 +100,6 @@ new WebSocketServer({ server }).on('connection', (ws) => {
 
 server.listen(port, () => {
   process.stdout.write(
-    `fake Slack on ${origin}\n  MILOOPS_SLACK_API=${origin}/api\n  app token  ${fake.tokens.app}\n  bot token  ${fake.tokens.bot}\n`,
+    `fake Slack on ${origin}\n  TEAMTRAIL_SLACK_API=${origin}/api\n  app token  ${fake.tokens.app}\n  bot token  ${fake.tokens.bot}\n`,
   );
 });

@@ -36,7 +36,7 @@ describe('assumptions in the map body', () => {
       assumptions: [{ id: 'S-1', text: 'Push is on', status: 'holding', tickets: [] }, challenged],
     };
     const body = serializeMapBody(s as MapSections);
-    expect(body).toContain('## Assumptions\n\n- [holding] Push is on <!-- miloops:asm');
+    expect(body).toContain('## Assumptions\n\n- [holding] Push is on <!-- teamtrail:asm');
     expect(body).not.toContain('per segment --> ');
     expect(parseMapBody(body)).toEqual(s);
   });
@@ -56,7 +56,7 @@ describe('assumptions in the map body', () => {
   });
 
   it('parse hand-written lines: no status holds, no marker gets the next free id', () => {
-    const body = `## Destination\n\nX\n\n## Assumptions\n\n- [confirmed] A <!-- miloops:asm {"id":"S-4","tickets":[]} -->\n- B\n- [challenged] C\n`;
+    const body = `## Destination\n\nX\n\n## Assumptions\n\n- [confirmed] A <!-- teamtrail:asm {"id":"S-4","tickets":[]} -->\n- B\n- [challenged] C\n`;
     expect(parseMapBody(body).assumptions).toEqual([
       { id: 'S-4', text: 'A', status: 'confirmed', tickets: [] },
       { id: 'S-5', text: 'B', status: 'holding', tickets: [] },
@@ -118,9 +118,9 @@ describe('assumption operations', () => {
   });
 });
 
-describe('the journal with replan entries', () => {
+describe('the journal with reroute entries', () => {
   let root: string;
-  beforeEach(() => (root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-journal-'))));
+  beforeEach(() => (root = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-journal-'))));
   afterEach(() => fs.rmSync(root, { recursive: true, force: true }));
 
   it('loads old and new lines together; read() keeps returning transitions only', () => {
@@ -143,16 +143,16 @@ describe('the journal with replan entries', () => {
     const j = journalFile(root);
     j.append({
       v: 1,
-      kind: 'replan',
+      kind: 'reroute',
       at: 3,
       mapId: 'm1',
-      replanId: 'R-1',
+      rerouteId: 'R-1',
       action: 'proposed',
       actor: 'a',
       actorKind: 'agent',
     });
     fs.appendFileSync(file, '{torn');
     expect(j.read('m1').map((e) => e.event)).toEqual(['claim']);
-    expect(j.readAll('m1').map((e) => e.kind)).toEqual(['transition', 'replan']);
+    expect(j.readAll('m1').map((e) => e.kind)).toEqual(['transition', 'reroute']);
   });
 });

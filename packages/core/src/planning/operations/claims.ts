@@ -64,7 +64,7 @@ export async function release(
   if (!t) throw new OperationError(`ticket ${ticketId} not found`);
   await transition(adapter, mapId, ticketId, {
     event: 'release',
-    actor: opts.actor ?? t.assignee ?? 'operator',
+    actor: opts.actor ?? t.assignee ?? 'trail lead',
     actorKind: opts.actorKind ?? 'agent',
     reason: opts.reason,
     sessionId: opts.sessionId,

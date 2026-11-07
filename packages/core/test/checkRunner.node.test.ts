@@ -11,8 +11,8 @@ import { runChecks } from '../src/verification/runChecks';
 const node = (code: string, timeoutSec = 30): CheckSpec => ({ run: [process.execPath, '-e', code], timeoutSec });
 
 function setup(): CheckRun & { tracker: string } {
-  const repoRoot = mkdtempSync(path.join(os.tmpdir(), 'miloops-checks-'));
-  const tracker = path.join(repoRoot, '.miloops');
+  const repoRoot = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-checks-'));
+  const tracker = path.join(repoRoot, '.teamtrail');
   return { repoRoot, tracker, logDir: path.join(tracker, 'logs'), logRel: 'logs' };
 }
 
@@ -122,11 +122,11 @@ test('cwd must stay inside the repo, symlinks resolved', async () => {
 test('tokens are not passed to checks, and token-shaped output is redacted', async () => {
   const run = setup();
   const token = `ghp_${'a'.repeat(36)}`;
-  const env = { ...process.env, GITHUB_TOKEN: token, LINEAR_API_KEY: 'k', MILOOPS_SECRET: 's', PLAIN: 'kept' };
+  const env = { ...process.env, GITHUB_TOKEN: token, LINEAR_API_KEY: 'k', TEAMTRAIL_SECRET: 's', PLAIN: 'kept' };
   const r = await runCheck(
     'env',
     node(
-      `console.log([process.env.GITHUB_TOKEN, process.env.LINEAR_API_KEY, process.env.MILOOPS_SECRET, process.env.PLAIN].join('|'))`,
+      `console.log([process.env.GITHUB_TOKEN, process.env.LINEAR_API_KEY, process.env.TEAMTRAIL_SECRET, process.env.PLAIN].join('|'))`,
     ),
     { ...run, env },
   );
@@ -138,7 +138,7 @@ test('tokens are not passed to checks, and token-shaped output is redacted', asy
 
 test('a missing binary is an error, not a failure', async () => {
   const run = setup();
-  const r = await runCheck('ghost', { run: ['miloops-no-such-binary'], timeoutSec: 5 }, run);
+  const r = await runCheck('ghost', { run: ['teamtrail-no-such-binary'], timeoutSec: 5 }, run);
   assert.equal(r.exitCode, null);
   assert.match(r.error ?? '', /ENOENT/);
 });
@@ -152,7 +152,7 @@ test('runChecks runs in order, stops at the first failure, and reports config pr
         a: { run: [process.execPath, '-e', 'console.log("a")'] },
         b: { run: [process.execPath, '-e', 'process.exit(1)'] },
         c: { run: [process.execPath, '-e', 'console.log("c")'] },
-        ghost: { run: ['miloops-no-such-binary'] },
+        ghost: { run: ['teamtrail-no-such-binary'] },
       },
       run: ['a', 'b', 'c'],
     }),

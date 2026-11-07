@@ -3,9 +3,9 @@ import type { DiscoveryBrief } from '../discovery/brief';
 import type { KnowledgeEntry } from '../knowledge/knowledge';
 import type { AttentionItem, AttentionKind, AttentionPolicy, AttentionState } from '../model/attention';
 import type { TicketSync } from '../model/prEvidence';
-import type { ReplanProposal } from '../model/replan';
+import type { RerouteProposal } from '../model/reroute';
 import type { MapSnapshot, PendingQuestion, SessionInfo } from '../model/types';
-import type { ReplanSuggestion } from '../planning/replan/replanTriggers';
+import type { RerouteSuggestion } from '../planning/reroute/rerouteTriggers';
 import type { PolicyViolation } from '../policy/policyViolations';
 import type { ApprovalItem } from '../verification/approvals';
 import type { IntegrationOverlap } from '../workspaces/workspace';
@@ -16,17 +16,17 @@ export interface AttentionInput {
   /** Open questions from every agent session. */
   questions: PendingQuestion[];
   sessions: SessionInfo[];
-  /** Tickets waiting on the operator (verification/approvals.ts). */
+  /** Tickets waiting on the trail lead (verification/approvals.ts). */
   approvals: ApprovalItem[];
   /** PR/CI snapshots with their open mismatch flags. */
   syncs: Pick<TicketSync, 'mapId' | 'ticketId' | 'ticketKey' | 'flags'>[];
   leases: TicketLease[];
   knowledge: KnowledgeEntry[];
   briefs: DiscoveryBrief[];
-  /** Pending replan proposals with the tickets each freezes. Missing: none. */
-  replans?: { proposal: ReplanProposal; frozen: string[] }[];
-  /** Signs a replan may be needed (replanTriggers). Missing: none. */
-  suggestions?: ReplanSuggestion[];
+  /** Pending reroute proposals with the tickets each freezes. Missing: none. */
+  reroutes?: { proposal: RerouteProposal; frozen: string[] }[];
+  /** Signs a reroute may be needed (rerouteTriggers). Missing: none. */
+  suggestions?: RerouteSuggestion[];
   /** High-risk changes made without the human (policy/policyViolations.ts). Missing: none. */
   violations?: PolicyViolation[];
   /** Active claim branches that changed the same files (workspaces/scanIntegrations.ts). Missing: none. */

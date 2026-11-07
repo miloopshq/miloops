@@ -18,13 +18,13 @@ export function untrusted(text: unknown, max = 120): string {
 }
 
 const ID = '[A-Za-z0-9][\\w.-]{0,63}';
-const MARKER = new RegExp(`miloops:(${ID})#(${ID})`, 'g');
-const BRANCH = new RegExp(`(?:^|/)miloops-([A-Za-z0-9][\\w.]{0,63})-(${ID})$`);
+const MARKER = new RegExp(`teamtrail:(${ID})#(${ID})`, 'g');
+const BRANCH = new RegExp(`(?:^|/)teamtrail-([A-Za-z0-9][\\w.]{0,63})-(${ID})$`);
 
 /** Key of a ticket as markers and branch names spell it. */
 export const ticketRef = (mapId: string, ticketId: string) => `${mapId}#${ticketId}`;
 
-/** `<mapId>#<ticketId>` for each `miloops:<mapId>#<ticketId>` in a PR body, at most 20. */
+/** `<mapId>#<ticketId>` for each `teamtrail:<mapId>#<ticketId>` in a PR body, at most 20. */
 export function bodyMarkers(body: unknown): string[] {
   if (typeof body !== 'string') return [];
   const out = new Set<string>();
@@ -36,8 +36,8 @@ export function bodyMarkers(body: unknown): string[] {
 }
 
 /**
- * `<mapId>#<ticketId>` when the branch is named `miloops-<mapId>-<ticketId>`,
- * optionally under a prefix (`cursor/miloops-3-12`). Ids with a dash are only
+ * `<mapId>#<ticketId>` when the branch is named `teamtrail-<mapId>-<ticketId>`,
+ * optionally under a prefix (`cursor/teamtrail-3-12`). Ids with a dash are only
  * reachable through a body marker.
  */
 export function branchRef(ref: string): string | undefined {

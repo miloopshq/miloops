@@ -16,27 +16,27 @@ export interface TicketDelivery {
   /** Times the ticket went back to rework. */
   reworks: number;
   reviews: { passed: number; failed: number; needsHuman: number };
-  /** Lifecycle calls the operator made on it: approve, send to rework, accept, unblock, cancel, release. */
+  /** Lifecycle calls the trail lead made on it: approve, send to rework, accept, unblock, cancel, release. */
   operatorActions: number;
 }
 
-/** `metrics.delivery`: outcomes for one mission, computed from data MILOOPS already keeps. Same inputs, same report. */
+/** `metrics.delivery`: outcomes for one trail, computed from data Teamtrail already keeps. Same inputs, same report. */
 export interface DeliveryReport {
   mapId: string;
   tickets: TicketDelivery[];
   done: number;
   cancelled: number;
   open: number;
-  /** Mission creation to its last done ticket. */
-  missionLeadMs?: number;
+  /** Trail creation to its last done ticket. */
+  trailLeadMs?: number;
   /** Median first-claim-to-done over done tickets. */
   medianLeadMs?: number;
   interventions: {
     /** Agent questions answered by a person. */
     answers: number;
-    /** Operator lifecycle calls (approvals, rework requests, overrides, cancels, releases). */
+    /** Trail lead lifecycle calls (approvals, rework requests, overrides, cancels, releases). */
     operatorActions: number;
-    /** Of `operatorActions`: work the operator sent back. */
+    /** Of `operatorActions`: work the trail lead sent back. */
     reworkRequested: number;
     total: number;
   };
@@ -47,9 +47,9 @@ export interface DeliveryReport {
 
 export interface DeliveryInput {
   snap: MapSnapshot;
-  /** The mission's journal (`.events/<mapId>.jsonl`). */
+  /** The trail's journal (`.events/<mapId>.jsonl`). */
   journal: TransitionEntry[];
-  /** Answered agent questions in view; only this mission's are counted. */
+  /** Answered agent questions in view; only this trail's are counted. */
   answered: AnsweredQuestion[];
   usage?: SessionUsage;
 }
@@ -95,13 +95,13 @@ export function deliveryReport({ snap, journal, answered, usage }: DeliveryInput
           failed: es.filter((e) => e.event === 'review.fail').length,
           needsHuman: es.filter((e) => e.event === 'review.needs_human').length,
         },
-        operatorActions: es.filter((e) => e.actorKind === 'operator').length,
+        operatorActions: es.filter((e) => e.actorKind === 'trail lead').length,
       };
     });
 
   const done = tickets.filter((t) => t.outcome === 'done');
   const lastDone = Math.max(0, ...done.map((t) => t.doneAt ?? 0));
-  const operatorEs = entries.filter((e) => e.actorKind === 'operator');
+  const operatorEs = entries.filter((e) => e.actorKind === 'trail lead');
   const answers = new Set(answered.filter((q) => q.mapId === mapId).map((q) => q.id)).size;
   const operatorActions = operatorEs.length;
   const sum = (f: (t: TicketDelivery) => number) => tickets.reduce((n, t) => n + f(t), 0);
@@ -113,7 +113,7 @@ export function deliveryReport({ snap, journal, answered, usage }: DeliveryInput
     done: done.length,
     cancelled: tickets.filter((t) => t.outcome === 'cancelled').length,
     open: tickets.filter((t) => t.outcome === 'open').length,
-    missionLeadMs: lastDone && lastDone >= snap.map.createdAt ? lastDone - snap.map.createdAt : undefined,
+    trailLeadMs: lastDone && lastDone >= snap.map.createdAt ? lastDone - snap.map.createdAt : undefined,
     medianLeadMs: median(done.flatMap((t) => (t.leadMs === undefined ? [] : [t.leadMs]))),
     interventions: {
       answers,

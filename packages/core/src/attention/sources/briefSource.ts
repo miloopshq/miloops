@@ -1,7 +1,7 @@
 import { DISCOVERY_TYPES } from '../../discovery/brief';
 import type { AttentionSource, Candidate } from '../types';
 
-/** Submitted discovery briefs: implementation in the mission waits until the operator accepts one. */
+/** Submitted discovery briefs: implementation in the trail waits until the trail lead accepts one. */
 export const briefSource: AttentionSource = {
   kind: 'brief',
   collect({ briefs, snaps }) {

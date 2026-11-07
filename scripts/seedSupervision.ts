@@ -1,6 +1,6 @@
-// M4 in the dev seed: the risk policy, the team's attention rules, a risky change made without asking, mission
-// assumptions (two from the accepted brief, one challenged) and two pending proposals: a replan that freezes work,
-// and a challenge to the second mission's destination. Everything goes through the same stores a real install uses.
+// M4 in the dev seed: the risk policy, the team's attention rules, a risky change made without asking, trail
+// assumptions (two from the accepted brief, one challenged) and two pending proposals: a reroute that freezes work,
+// and a challenge to the second trail's destination. Everything goes through the same stores a real install uses.
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -13,8 +13,8 @@ import {
   type MapDoc,
   type TrackerAdapter,
   type VerificationAttempt,
-} from '@miloops-hq/core';
-import { journalFile, proposeReplan, writeAttempt, writePolicy } from '@miloops-hq/core/agents';
+} from '@teamtrail/core';
+import { journalFile, proposeReroute, writeAttempt, writePolicy } from '@teamtrail/core/agents';
 
 const MIN = 60_000;
 
@@ -31,7 +31,7 @@ export async function seedSupervision(input: SeedInput) {
   writeRules(input.root);
   await seedRiskyChange(input);
   await seedAssumptions(input);
-  await seedReplan(input);
+  await seedReroute(input);
   await seedDestinationChallenge(input);
 }
 
@@ -86,7 +86,7 @@ async function seedRiskyChange({ root, adapter, main, now }: SeedInput) {
       source: { kind: 'agent', ref: 'seed-s-metrics', label: 'codex-01 session' },
       risk: { level: 'medium', category: 'dependencies', reason: 'dependencies is medium in the project policy' },
     },
-    { appendToMission: false },
+    { appendToTrail: false },
   );
   writeAttempt(root, attempt({ mapId: main.id, ticketId: t.id, ticketKey: t.key, at }));
 }
@@ -150,18 +150,18 @@ async function seedAssumptions({ adapter, main, mainBrief, now }: SeedInput) {
   });
 }
 
-/** claude-02's replan: the write queue assumed a batch endpoint, so cancel it, add the endpoint, then the queue. */
-async function seedReplan({ root, adapter, main, now }: SeedInput) {
+/** claude-02's reroute: the write queue assumed a batch endpoint, so cancel it, add the endpoint, then the queue. */
+async function seedReroute({ root, adapter, main, now }: SeedInput) {
   const queue = await ticketByTitle(adapter, main.id, 'Implement offline write queue');
   const adr = await ticketByTitle(adapter, main.id, 'Sign off sync protocol ADR');
   const rollout = await ticketByTitle(adapter, main.id, 'Approve rollout plan');
-  await proposeReplan(
+  await proposeReroute(
     { root, adapter, journal: journalFile(root) },
     {
       mapId: main.id,
       by: 'claude-02',
       at: now - 40 * MIN,
-      kind: 'replan',
+      kind: 'reroute',
       reason: 'The notes API cannot take batches, so the write queue has nothing to flush into.',
       evidence: 'S-2 is wrong: single-note PUT only, 64 KB body limit at the gateway. See the challenge on S-2.',
       invalidates: ['S-2'],
@@ -181,10 +181,10 @@ async function seedReplan({ root, adapter, main, now }: SeedInput) {
   );
 }
 
-/** On the second mission, discovery found most of the work already shipped: a challenge to the destination. */
+/** On the second trail, discovery found most of the work already shipped: a challenge to the destination. */
 async function seedDestinationChallenge({ root, adapter, second, now }: SeedInput) {
   const prior = await ticketByTitle(adapter, second.id, 'Prior art for team workspaces');
-  await proposeReplan(
+  await proposeReroute(
     { root, adapter, journal: journalFile(root) },
     {
       mapId: second.id,

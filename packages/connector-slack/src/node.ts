@@ -5,7 +5,7 @@ import {
   type BridgeContext,
   type BridgePlugin,
   type BridgePluginFactory,
-} from '@miloops-hq/core/bridge';
+} from '@teamtrail/core/bridge';
 import { SlackService, type SlackServiceOptions } from './service';
 import type { SlackSettingsPatch } from './types';
 

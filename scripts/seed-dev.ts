@@ -1,6 +1,6 @@
-// Resets the local development tracker to a fixed, known project, so working on MILOOPS looks like real use.
-// It writes plain files through the same adapters a real install uses: missions, tickets, decisions,
-// verification config, discovery briefs, project knowledge, the risk policy, assumptions and replan proposals. Live agents come from `npm run dev:agent`, a real MCP client.
+// Resets the local development tracker to a fixed, known project, so working on Teamtrail looks like real use.
+// It writes plain files through the same adapters a real install uses: trails, tickets, decisions,
+// verification config, discovery briefs, project knowledge, the risk policy, assumptions and reroute proposals. Live agents come from `npm run dev:agent`, a real MCP client.
 // Run: npm run seed   (folder: $<DATA_DIR_ENV>, else <dataDir> at the repo root)
 // Safety: only a folder this script created (it holds DEV_MARKER) is wiped; anything else is refused.
 import fs from 'node:fs';
@@ -12,9 +12,9 @@ import {
   seedSnapshot,
   setMapMode,
   type KnowledgeEntry,
-} from '@miloops-hq/core';
-import { writeBrief, writeKnowledge, writeTicketCriteria } from '@miloops-hq/core/agents';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
+} from '@teamtrail/core';
+import { writeBrief, writeKnowledge, writeTicketCriteria } from '@teamtrail/core/agents';
+import { nodeMarkdownFs } from '@teamtrail/core/node';
 import { seedParallel } from './seedParallel';
 import { seedSupervision } from './seedSupervision';
 
@@ -59,10 +59,10 @@ fs.writeFileSync(
 
 const adapter = new MarkdownAdapter(nodeMarkdownFs(root), root);
 
-// 1. A mission mid-flight: decisions made and superseded, work done, blocked, ruled out of scope.
+// 1. A trail mid-flight: decisions made and superseded, work done, blocked, ruled out of scope.
 const main = await seedSnapshot(adapter);
 
-// 2. A second, plan-only mission, so the switcher and cross-mission views have something to show.
+// 2. A second, plan-only trail, so the switcher and cross-trail views have something to show.
 const second = await adapter.createMap({
   title: 'Team workspaces',
   mode: 'plan-only',
@@ -76,7 +76,7 @@ const second = await adapter.createMap({
 });
 const who = await adapter.createTicket(second.id, {
   title: 'Who is the primary user of team workspaces?',
-  type: 'grilling',
+  type: 'junction',
   hitl: true,
   body: '',
 });
@@ -88,7 +88,7 @@ const prior = await adapter.createTicket(second.id, {
 });
 const roles = await adapter.createTicket(second.id, {
   title: 'Which roles do we ship first?',
-  type: 'grilling',
+  type: 'junction',
   hitl: true,
   body: '',
 });
@@ -96,7 +96,7 @@ await adapter.addBlocking(second.id, who.id, roles.id);
 await adapter.addBlocking(second.id, prior.id, roles.id);
 await setMapMode(adapter, second.id, 'plan-only');
 
-// 3. Discovery: the mid-flight mission's brief is accepted; the plan-only one has a brief waiting for review.
+// 3. Discovery: the mid-flight trail's brief is accepted; the plan-only one has a brief waiting for review.
 const day = 86_400_000;
 const now = Date.now();
 const mainBrief = {
@@ -159,7 +159,7 @@ const entry = (
   status: 'confirmed',
   scope: [],
   tags: [],
-  sources: [`mission:${main.key}`],
+  sources: [`trail:${main.key}`],
   anchors: [],
   createdBy: 'claude-01',
   createdAt: now - 3 * day,
@@ -178,7 +178,7 @@ for (const e of [
     title: 'Field researchers are offline for days',
     body: 'The primary user works with multi-day dead zones. Anything that needs a connection to save is a bug.',
     tags: ['offline'],
-    createdBy: 'operator',
+    createdBy: 'trail lead',
   }),
   entry(3, {
     kind: 'convention',
@@ -202,7 +202,7 @@ for (const e of [
     status: 'suggested',
     tags: ['merge'],
     createdBy: 'claude-02',
-    sources: [`mission:${main.key}`, 'ticket:#6'],
+    sources: [`trail:${main.key}`, 'ticket:#6'],
   }),
   entry(6, {
     kind: 'business-rule',
@@ -211,7 +211,7 @@ for (const e of [
     status: 'suggested',
     tags: ['workspaces', 'permissions'],
     createdBy: 'claude-02',
-    sources: [`mission:${second.key}`],
+    sources: [`trail:${second.key}`],
   }),
 ])
   writeKnowledge(root, e);
@@ -237,7 +237,9 @@ console.log(`seeded ${root}`);
 console.log(`  ${main.key} ${main.title} · mid-flight`);
 console.log(`  ${second.key} ${second.title} · plan only, brief waiting for review`);
 console.log('  6 knowledge entries (confirmed, an assumption, 2 suggestions)');
-console.log('  policy.json, attention.json, 3 assumptions (one challenged), a pending replan, a destination challenge');
+console.log(
+  '  policy.json, attention.json, 3 assumptions (one challenged), a pending reroute, a destination challenge',
+);
 console.log(
   '  workspaces.json (worktrees off), two claims whose declared files overlap (#5 and the sync status ticket)',
 );

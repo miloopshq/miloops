@@ -28,7 +28,7 @@ export function serializeMapBody(s: MapSections): string {
     [
       `## Destination\n\n${s.destination.trim()}`,
       `## Notes\n\n${s.notes.trim() || '_None yet._'}`,
-      // Only missions that list assumptions get the section, so older maps keep their exact body.
+      // Only trails that list assumptions get the section, so older maps keep their exact body.
       ...(s.assumptions?.length ? [`## Assumptions\n\n${s.assumptions.map(assumptionLine).join('\n')}`] : []),
       `## Decisions so far\n\n${decisions(s.decisions)}`,
       `## Not yet specified\n\n${list(s.unspecified)}`,

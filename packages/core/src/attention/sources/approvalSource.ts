@@ -1,7 +1,7 @@
 import type { AttentionSource, Candidate } from '../types';
 import { clip } from './clip';
 
-/** Verifying tickets waiting for the operator's approval or sign-off. */
+/** Verifying tickets waiting for the trail lead's approval or sign-off. */
 export const approvalSource: AttentionSource = {
   kind: 'approval',
   collect({ approvals }) {

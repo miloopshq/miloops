@@ -9,7 +9,7 @@ export const POLICY_FILE = 'policy.json';
 
 /**
  * The project's risk policy. `defaults` when there's no file. A file with errors also falls back to the
- * defaults, so a typo never lowers the bar, and the errors are reported for the command center to show.
+ * defaults, so a typo never lowers the bar, and the errors are reported for the Lookout to show.
  */
 export interface PolicyRead {
   policy: RiskPolicy;

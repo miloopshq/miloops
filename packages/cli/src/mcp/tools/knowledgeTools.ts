@@ -1,12 +1,12 @@
-import { KNOWLEDGE_KINDS } from '@miloops-hq/core';
+import { KNOWLEDGE_KINDS } from '@teamtrail/core';
 import { z } from 'zod';
-import type { MissionAgent } from '../agent';
-import { type DefineTool, mission } from '../toolKit';
+import type { TrailAgent } from '../agent';
+import { type DefineTool, trail } from '../toolKit';
 
 const kind = z.enum(KNOWLEDGE_KINDS as [string, ...string[]]);
 
 /** Project knowledge: propose, search, flag. Relevant confirmed entries also arrive with every claim. */
-export function registerKnowledgeTools(tool: DefineTool, agent: MissionAgent) {
+export function registerKnowledgeTools(tool: DefineTool, agent: TrailAgent) {
   tool(
     'propose_knowledge',
     {
@@ -15,7 +15,7 @@ export function registerKnowledgeTools(tool: DefineTool, agent: MissionAgent) {
         'Something the next agent should know about this codebase or product: an architecture fact, a convention, a gotcha, a dead end (an approach that failed and why), a business rule, a product decision, a persona, a UX principle, pricing. It is a suggestion until the human confirms it.',
     },
     {
-      mission,
+      trail,
       kind,
       title: z.string().min(1).describe('One line.'),
       body: z.string().min(1).describe('The knowledge, short and specific, with paths.'),

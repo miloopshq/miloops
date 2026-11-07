@@ -9,13 +9,13 @@ import { knowledgeSource } from './knowledgeSource';
 import { overlapSource } from './overlapSource';
 import { policySource } from './policySource';
 import { questionSource } from './questionSource';
-import { replanSource } from './replanSource';
-import { replanSuggestedSource } from './replanSuggestedSource';
+import { rerouteSource } from './rerouteSource';
+import { rerouteSuggestedSource } from './rerouteSuggestedSource';
 import { stalledSource } from './stalledSource';
 
 /**
  * Every attention source. Adding a kind: write `sources/<kind>Source.ts`, list it here, and give the
- * kind a weight in `defaults.ts` (`policy`, `replan` and `replan-suggested` already have one).
+ * kind a weight in `defaults.ts` (`policy`, `reroute` and `reroute-suggested` already have one).
  */
 export const ATTENTION_SOURCES: AttentionSource[] = [
   questionSource,
@@ -26,8 +26,8 @@ export const ATTENTION_SOURCES: AttentionSource[] = [
   hitlReadySource,
   knowledgeSource,
   briefSource,
-  replanSource,
-  replanSuggestedSource,
+  rerouteSource,
+  rerouteSuggestedSource,
   policySource,
   overlapSource,
   integrationSource,
