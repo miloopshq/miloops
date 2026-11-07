@@ -5,7 +5,7 @@ import { buildAttention } from './buildAttention';
 import { isFocused, isInterrupting } from './focus';
 import { gatherAttention } from './gatherAttention';
 
-/** The ranked queue as the command center, `list_inbox` and `status` see it. */
+/** The ranked queue as the Lookout, `list_inbox` and `status` see it. */
 export async function attentionView(input: {
   root: string;
   adapter: TrackerAdapter;

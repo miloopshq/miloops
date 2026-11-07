@@ -42,14 +42,14 @@ describe('knowledge entries', () => {
       status: 'assumption',
       scope: ['src/notify/**'],
       tags: ['sms', 'consent'],
-      sources: ['mission:#1', 'decision:D-4'],
+      sources: ['trail:#1', 'decision:D-4'],
       anchors: [{ path: 'src/notify/preferences.ts', hash: 'abc123' }, { path: 'docs/x.md' }],
       flag: { by: 'codex-02', reason: 'Consent moved to accounts', at: t0 + 1000 },
     });
     expect(parseKnowledge('K-3', serializeKnowledge(e))).toEqual(e);
   });
 
-  it('only the operator calls change status; edits keep what they do not touch', () => {
+  it('only the trail lead calls change status; edits keep what they do not touch', () => {
     const e = entry('K-1', { status: 'suggested', flag: { by: 'a', reason: 'r', at: t0 } });
     expect(applyCall(e, { kind: 'confirm' }, t0 + 1)).toMatchObject({ status: 'confirmed', updatedAt: t0 + 1 });
     expect(applyCall(e, { kind: 'confirm' }).flag).toBeUndefined();
@@ -106,11 +106,11 @@ describe('selectKnowledge', () => {
     entry('K-3', { title: 'Reminder jobs overlap', kind: 'gotcha', tags: ['reminder'] }),
     entry('K-4', { title: 'Unreviewed idea', status: 'suggested', kind: 'business-rule' }),
     entry('K-5', { title: 'Retired', status: 'outdated', kind: 'convention' }),
-    entry('K-6', { title: 'Therapists book weekly', kind: 'persona', sources: ['mission:#1'] }),
+    entry('K-6', { title: 'Therapists book weekly', kind: 'persona', sources: ['trail:#1'] }),
     entry('K-7', { title: 'Unrelated fact', kind: 'fact', scope: ['src/billing/**'] }),
   ];
   const ctx = {
-    missionKey: '#1',
+    trailKey: '#1',
     ticket: { type: 'execute', title: 'Build the reminder scheduler', body: 'Use `src/notify/service.ts`.' },
     paths: ['src/notify/service.ts'],
   };
@@ -120,7 +120,7 @@ describe('selectKnowledge', () => {
     expect(picked.map((k) => k.id)).toEqual(['K-1', 'K-3', 'K-6', 'K-2']);
     expect(picked[0].why).toEqual(['path match src/notify/** (src/notify/service.ts)']);
     expect(picked.find((k) => k.id === 'K-2')?.why).toEqual(['business rule for the whole project']);
-    expect(picked.find((k) => k.id === 'K-6')?.why).toEqual(['same mission']);
+    expect(picked.find((k) => k.id === 'K-6')?.why).toEqual(['same trail']);
     expect(picked.some((k) => ['K-4', 'K-5', 'K-7'].includes(k.id))).toBe(false);
     expect(selectKnowledge(all, ctx)).toEqual(picked);
   });

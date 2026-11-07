@@ -16,7 +16,7 @@
         },
         "body": {
           "ok": true,
-          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0Scout0001"
         }
       }
     },
@@ -84,10 +84,10 @@
                 },
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -109,7 +109,7 @@
           "ts": "1793448000.000001",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Approve · #2 Write API",
             "ts": "1793448000.000001"
           }
@@ -147,10 +147,10 @@
                 },
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -172,7 +172,7 @@
           "ts": "1793448001.000002",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Held · #3 Migrate schema",
             "ts": "1793448001.000002"
           }
@@ -186,7 +186,7 @@
         "body": {
           "response_type": "ephemeral",
           "replace_original": false,
-          "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+          "text": "Only the Teamtrail owner and allowed users can do that. Ask the owner to add you in Teamtrail Settings → Slack."
         }
       },
       "res": {
@@ -407,7 +407,7 @@
           "name": "eve",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "message",
@@ -457,7 +457,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "message",
@@ -507,7 +507,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "message",
@@ -561,7 +561,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "trigger_id": "1793448002.4.fake4",
         "view": {
@@ -605,7 +605,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "trigger_id": "1793448002.5.fake5",
         "view": {

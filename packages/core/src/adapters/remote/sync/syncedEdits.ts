@@ -3,7 +3,7 @@ import { ticketOf } from './queuedWrites';
 import { SyncedWriter } from './syncedWriter';
 
 /**
- * Ticket edits a replan needs: drop a blocker, rewrite the text, reopen. Queued like the other writes, so they wait
+ * Ticket edits a reroute needs: drop a blocker, rewrite the text, reopen. Queued like the other writes, so they wait
  * for the tracker while it is offline and replay in order.
  */
 export abstract class SyncedEdits extends SyncedWriter {

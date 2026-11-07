@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { MarkdownAdapter, type TransitionEntry } from '@miloops-hq/core';
-import { journalFile, readAttempts, RUNS_DIR } from '@miloops-hq/core/agents';
-import { nodeMarkdownFs } from '@miloops-hq/core/node';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { MarkdownAdapter, type TransitionEntry } from '@teamtrail/core';
+import { journalFile, readAttempts, RUNS_DIR } from '@teamtrail/core/agents';
+import { nodeMarkdownFs } from '@teamtrail/core/node';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let repo: string;
@@ -15,7 +15,7 @@ let root: string;
 const open: { close(): void | Promise<void> }[] = [];
 
 async function connect(agentName = 'claude-01') {
-  const agent = new MissionAgent({ root, agent: agentName, pollMs: 20 });
+  const agent = new TrailAgent({ root, agent: agentName, pollMs: 20 });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -45,9 +45,9 @@ function writeConfig(
   );
 }
 
-async function mission(call: Call) {
-  return call<{ mission: { id: string; verification?: string }; tickets: { ref: string; key: string }[] }>(
-    'start_mission',
+async function trail(call: Call) {
+  return call<{ trail: { id: string; verification?: string }; tickets: { ref: string; key: string }[] }>(
+    'start_trail',
     {
       discovery: false,
       title: 'Changelog',
@@ -74,8 +74,8 @@ type Done = {
 };
 
 beforeEach(() => {
-  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-verify-'));
-  root = path.join(repo, '.miloops');
+  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-verify-'));
+  root = path.join(repo, '.teamtrail');
   fs.mkdirSync(root);
 });
 afterEach(async () => {
@@ -84,22 +84,22 @@ afterEach(async () => {
 });
 
 describe('verified completion over MCP', () => {
-  it('without verification.json, missions are off and close_ticket closes as before', async () => {
+  it('without verification.json, trails are off and close_ticket closes as before', async () => {
     const call = await connect();
-    const m = await mission(call);
-    expect(m.mission.verification).toBeUndefined();
+    const m = await trail(call);
+    expect(m.trail.verification).toBeUndefined();
     const claimed = await call<{ claimed: Record<string, unknown> }>('claim_ticket', { ticket: m.tickets[1].key });
     expect(claimed.claimed.verification).toBeUndefined();
     const r = await call<Done>('close_ticket', { resolution: 'Built it' });
-    expect(Object.keys(r).sort()).toEqual(['closed', 'decision', 'missionDone', 'next', 'outcome', 'unblocked']);
+    expect(Object.keys(r).sort()).toEqual(['closed', 'decision', 'next', 'outcome', 'trailDone', 'unblocked']);
     expect(r.closed).toBe(m.tickets[1].key);
   });
 
   it('fail → rework with feedback → fix → pass → done, journaled, rework first in the queue', async () => {
     writeConfig();
     const call = await connect();
-    const m = await mission(call);
-    expect(m.mission.verification).toBe('checks');
+    const m = await trail(call);
+    expect(m.trail.verification).toBe('checks');
     const build = m.tickets[1].key;
     const claimed = await call<{ claimed: { verification: { level: string; checks: { name: string }[] } } }>(
       'claim_ticket',
@@ -124,7 +124,7 @@ describe('verified completion over MCP', () => {
     expect(passed.unblocked?.map((t) => t.key)).toEqual([m.tickets[2].key]);
 
     const events = journalFile(root)
-      .read(m.mission.id)
+      .read(m.trail.id)
       .filter((e: TransitionEntry) => e.ticketKey === build)
       .map((e) => `${e.event}:${e.to}:${e.actorKind}`);
     expect(events).toEqual([
@@ -135,18 +135,18 @@ describe('verified completion over MCP', () => {
       'submit:verifying:agent',
       'checks.pass:done:engine',
     ]);
-    const snap = await new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root).loadMap(m.mission.id);
+    const snap = await new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root).loadMap(m.trail.id);
     const comments = snap.tickets
       .find((t) => t.key === build)!
       .comments.map((c) => `${c.author}: ${c.body.split('\n')[0]}`);
-    expect(comments).toContain('miloops: **Verification A-1 failed · back for rework**');
-    expect(comments).toContain('miloops: **Verification A-2 passed · done**');
+    expect(comments).toContain('teamtrail: **Verification A-1 failed · back for rework**');
+    expect(comments).toContain('teamtrail: **Verification A-2 passed · done**');
   });
 
-  it('decision tickets on a verified mission close without checks', async () => {
+  it('decision tickets on a verified trail close without checks', async () => {
     writeConfig();
     const call = await connect();
-    const m = await mission(call);
+    const m = await trail(call);
     await call('claim_ticket', { ticket: m.tickets[0].key });
     const r = await call<Done>('close_ticket', { resolution: 'In CHANGELOG.md' });
     expect(r.status).toBeUndefined();
@@ -156,20 +156,20 @@ describe('verified completion over MCP', () => {
   it('after maxAttempts failures the ticket waits on a human', async () => {
     writeConfig({ maxAttempts: 1 });
     const call = await connect();
-    const m = await mission(call);
+    const m = await trail(call);
     await call('claim_ticket', { ticket: m.tickets[1].key });
     const r = await call<Done>('close_ticket', { resolution: 'Built' });
     expect(r.status).toBe('blocked');
     expect(r.note).toMatch(/human decides/);
     await expect(call('claim_ticket', { ticket: m.tickets[1].key })).rejects.toThrow(/held, not on the frontier/);
-    const s = await call<{ mission: { counts: { waitingOnHuman: number } } }>('status');
-    expect(s.mission.counts.waitingOnHuman).toBe(1);
+    const s = await call<{ trail: { counts: { waitingOnHuman: number } } }>('status');
+    expect(s.trail.counts.waitingOnHuman).toBe(1);
   });
 
   it('a broken verification.json blocks instead of passing', async () => {
     writeConfig();
     const call = await connect();
-    const m = await mission(call);
+    const m = await trail(call);
     fs.writeFileSync(path.join(root, 'verification.json'), '{"v":1,"run":"npm test"}');
     await call('claim_ticket', { ticket: m.tickets[1].key });
     const r = await call<Done>('close_ticket', { resolution: 'Built' });
@@ -180,7 +180,7 @@ describe('verified completion over MCP', () => {
   it('returns pending when the wait runs out; verification_status waits for the result', async () => {
     writeConfig({}, 'setTimeout(() => process.exit(0), 600)');
     const call = await connect();
-    const m = await mission(call);
+    const m = await trail(call);
     await call('claim_ticket', { ticket: m.tickets[1].key });
     const r = await call<Done>('report_completion', { resolution: 'Built', waitSeconds: 0, pr: 42 });
     expect(r).toMatchObject({ status: 'verifying', pending: true, attempt: 'A-1' });
@@ -194,14 +194,14 @@ describe('verified completion over MCP', () => {
     });
     expect(st.phase).toBe('done');
     expect(st.attempts).toEqual([expect.objectContaining({ id: 'A-1', result: 'pass' })]);
-    expect(readAttempts(root, m.mission.id, m.tickets[1].key.replace('#', ''))[0].pr).toBe(42);
+    expect(readAttempts(root, m.trail.id, m.tickets[1].key.replace('#', ''))[0].pr).toBe(42);
   });
 
   it('checks+review: another agent reviews the work; the worker is never given its own review', async () => {
     fs.writeFileSync(path.join(repo, 'fixed.txt'), 'ok');
     writeConfig({ default: 'checks+review' });
     const worker = await connect('claude-01');
-    const m = await mission(worker);
+    const m = await trail(worker);
     await worker('claim_ticket', { ticket: m.tickets[1].key });
     const r = await worker<Done>('report_completion', { resolution: 'Built the page' });
     expect(r).toMatchObject({ status: 'verifying', note: expect.stringMatching(/another agent reviews/) });
@@ -223,19 +223,19 @@ describe('verified completion over MCP', () => {
     fs.writeFileSync(path.join(repo, 'fixed.txt'), 'ok');
     writeConfig();
     const call = await connect();
-    const m = await mission(call);
+    const m = await trail(call);
     const t = m.tickets[1];
     const adapter = new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
     const id = t.key.replace('#', '');
-    await adapter.assign(m.mission.id, id, 'claude-09');
-    await adapter.setMeta(m.mission.id, id, { status: 'verifying' });
+    await adapter.assign(m.trail.id, id, 'claude-09');
+    await adapter.setMeta(m.trail.id, id, { status: 'verifying' });
     fs.mkdirSync(path.join(root, RUNS_DIR), { recursive: true });
     fs.writeFileSync(
-      path.join(root, RUNS_DIR, `${m.mission.id}--${id}.json`),
+      path.join(root, RUNS_DIR, `${m.trail.id}--${id}.json`),
       JSON.stringify({
         v: 1,
         id: 'A-1',
-        mapId: m.mission.id,
+        mapId: m.trail.id,
         ticketId: id,
         ticketKey: t.key,
         agent: 'claude-09',
@@ -250,6 +250,6 @@ describe('verified completion over MCP', () => {
     await call('next_ticket');
     const done = await call<Done>('verification_status', { ticket: t.key, wait: true, waitSeconds: 10 });
     expect(done).toMatchObject({ status: 'done', attempt: 'A-2' });
-    expect(readAttempts(root, m.mission.id, id).map((a) => a.result)).toEqual(['interrupted', 'pass']);
+    expect(readAttempts(root, m.trail.id, id).map((a) => a.result)).toEqual(['interrupted', 'pass']);
   });
 });

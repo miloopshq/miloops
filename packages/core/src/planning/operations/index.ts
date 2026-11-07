@@ -1,6 +1,6 @@
 /**
  * Map operations, composed from tracker primitives. Every front end
- * (command center, CLI, MCP server) should call these rather than the adapter
+ * (Lookout, CLI, MCP server) should call these rather than the adapter
  * directly so the rules live in one place.
  */
 export { chartMap, type ChartHooks, type ChartPlan, type ChartPlanTicket } from './chart';

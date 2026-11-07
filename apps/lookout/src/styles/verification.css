@@ -1,0 +1,251 @@
+/* Ticket inspector: Verification panel (features/verification). Calm by default; failures and overrides use the alert colors. */
+.vf-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  padding-top: var(--sp-8);
+  border-top: 1px solid var(--line);
+}
+.vf-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  font-size: var(--fs-sm);
+}
+.vf-head .vf-level {
+  margin-left: auto;
+}
+.vf-level {
+  margin-left: auto;
+}
+.vf-trail {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+}
+.vf-running .dot {
+  background: var(--st-verifying);
+  animation: vf-pulse 1.2s ease-in-out infinite;
+}
+@keyframes vf-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+.vf-actions {
+  margin: 0;
+}
+.vf-attempt,
+.vf-verdict {
+  border-left: 2px solid var(--c, var(--line2));
+  padding-left: var(--sp-8);
+}
+.vf-attempt > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  cursor: pointer;
+  list-style: none;
+}
+.vf-attempt > summary::-webkit-details-marker {
+  display: none;
+}
+.r-pass {
+  --c: var(--st-decided);
+}
+.r-fail {
+  --c: var(--st-rework);
+}
+.r-error,
+.r-interrupted {
+  --c: var(--st-held);
+}
+.vf-claim,
+.vf-verdict p {
+  margin: var(--sp-6) 0;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.vf-note,
+.vf-err {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--urgent);
+}
+.vf-row {
+  margin-top: var(--sp-6);
+}
+.vf-row > summary {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: var(--sp-8);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+}
+.vf-row.ok .vf-mark {
+  color: var(--st-decided);
+}
+.vf-row.bad .vf-mark {
+  color: var(--st-rework);
+}
+.vf-argv {
+  display: block;
+  margin: var(--sp-6) 0;
+  font-size: var(--fs-xs);
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+.vf-tail {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: var(--sp-6) var(--sp-8);
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  background: var(--sunken);
+  border: 1px solid var(--line);
+}
+.vf-log-line {
+  display: flex;
+  gap: var(--sp-8);
+  margin-top: var(--sp-6);
+  font-size: var(--fs-xs);
+}
+.vf-verdict.v-pass {
+  --c: var(--st-decided);
+}
+.vf-verdict.v-fail {
+  --c: var(--st-rework);
+}
+.vf-verdict.v-needs_human {
+  --c: var(--st-held);
+}
+.vf-findings {
+  margin: 0;
+  padding-left: var(--sp-18);
+  font-size: var(--fs-sm);
+}
+.vf-findings .sev-error {
+  color: var(--urgent);
+}
+.vf-findings .sev-warn {
+  color: var(--amber);
+}
+.vf-git {
+  margin: var(--sp-6) 0;
+  font-size: var(--fs-sm);
+}
+.vf-flag {
+  margin: var(--sp-6) 0 0;
+  color: var(--text);
+}
+.vf-flag.lv-warn .t-code {
+  color: var(--amber);
+}
+.vf-flag.lv-alert .t-code {
+  color: var(--urgent);
+}
+.vf-files ul {
+  margin: var(--sp-6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.vf-files li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-8);
+}
+.vf-files code {
+  overflow-wrap: anywhere;
+}
+
+/* Settings → Verification: what it does, the four levels as cards, and setup help without a config. */
+.vf-intro {
+  margin: 0;
+  max-width: 64ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+  color: var(--text);
+}
+.vf-levels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.vf-levels .c-sub {
+  font-family: var(--sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  word-break: normal;
+}
+.vf-setup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+  padding: var(--sp-12);
+  border: 1px solid var(--line2);
+  background: rgba(var(--accent-rgb), 0.03);
+}
+.vf-setup p {
+  margin: 0;
+  max-width: 64ch;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}
+.vf-setup-h {
+  font-size: var(--fs-body);
+  color: var(--text-hi);
+}
+.vf-snippet {
+  position: relative;
+}
+.vf-snippet pre {
+  margin: 0;
+  padding: var(--sp-10) var(--sp-12);
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  color: var(--text-hi);
+  overflow-x: auto;
+}
+.vf-snippet .btn {
+  position: absolute;
+  top: var(--sp-8);
+  right: var(--sp-8);
+}
+
+/* Acceptance criteria: the evidence of an attempt, and the ticket's criteria in the inspector. */
+.vf-criteria {
+  list-style: none;
+  margin: var(--sp-6) 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+}
+.vf-criteria .ok {
+  color: var(--st-decided);
+}
+.vf-criteria .bad {
+  color: var(--urgent);
+}
+.vf-criteria .wait {
+  color: var(--amber);
+}
+.criteria-section {
+  margin: var(--sp-4) 0;
+}
+.criteria-section .ok-text {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.ok-text {
+  color: var(--st-decided);
+}

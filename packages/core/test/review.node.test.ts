@@ -23,10 +23,10 @@ const SECTIONS = { destination: 'D', notes: '', decisions: [], unspecified: [], 
 const config = (extra: object = {}) =>
   JSON.stringify({ v: 1, checks: { ok: { run: [process.execPath, '-e', 'process.exit(0)'] } }, run: ['ok'], ...extra });
 
-/** One execute ticket worked by MILO-1 whose checks passed, so it waits for review. */
+/** One execute ticket worked by Scout-1 whose checks passed, so it waits for review. */
 async function setup(level: VerificationLevel) {
-  const repo = mkdtempSync(path.join(os.tmpdir(), 'miloops-review-'));
-  const root = path.join(repo, '.miloops');
+  const repo = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-review-'));
+  const root = path.join(repo, '.teamtrail');
   mkdirSync(root);
   writeFileSync(path.join(root, 'verification.json'), config());
   const adapter = new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
@@ -41,7 +41,7 @@ async function setup(level: VerificationLevel) {
   });
   const env = { adapter, root, journal: journalFile(root) };
   const id = tickets[0].id;
-  const worker = { actor: 'MILO-1', actorKind: 'agent' as const, sessionId: 's_work' };
+  const worker = { actor: 'Scout-1', actorKind: 'agent' as const, sessionId: 's_work' };
   const complete = async () => {
     await transition(adapter, map.id, id, { ...worker, event: 'claim' });
     await transition(adapter, map.id, id, { ...worker, event: 'submit' });
@@ -53,7 +53,7 @@ async function setup(level: VerificationLevel) {
         mapId: map.id,
         ticket: t,
         info,
-        sub: { agent: 'MILO-1', sessionId: 's_work', resolution: 'built it' },
+        sub: { agent: 'Scout-1', sessionId: 's_work', resolution: 'built it' },
       })
     ).done;
   };
@@ -84,7 +84,7 @@ test('a pass at checks+review waits in verifying with a review ticket naming the
   assert.equal(rv.type, 'review');
   assert.equal(rv.reviewOf, s.id);
   assert.match(rv.title, /^Review #2: Build it/);
-  assert.match(rv.body, /A-1, checks passed, by MILO-1/);
+  assert.match(rv.body, /A-1, checks passed, by Scout-1/);
   assert.match(rv.body, /submit_review/);
   assert.equal(chooseNext(await s.snap())?.id, rv.id, 'reviews come before new work');
   assert.equal(chooseNext(await s.snap(), { exclude: [rv.id] })?.type, 'research');
@@ -93,16 +93,16 @@ test('a pass at checks+review waits in verifying with a review ticket naming the
 test('the agent or session that did the work cannot review it', async () => {
   const s = await setup('checks+review');
   const t = (await s.snap()).tickets.find((x) => x.id === s.id)!;
-  assert.match(reviewConflict(s.root, s.mapId, t, { agent: 'MILO-1', sessionIds: [] })!, /MILO-1 worked on #2/);
-  assert.match(reviewConflict(s.root, s.mapId, t, { agent: 'MILO-7', sessionIds: ['s_work'] })!, /this connection/);
-  assert.equal(reviewConflict(s.root, s.mapId, t, { agent: 'MILO-2', sessionIds: ['s_other'] }), undefined);
-  await assert.rejects(s.answer('MILO-1', {}), /MILO-1 worked on #2/);
+  assert.match(reviewConflict(s.root, s.mapId, t, { agent: 'Scout-1', sessionIds: [] })!, /Scout-1 worked on #2/);
+  assert.match(reviewConflict(s.root, s.mapId, t, { agent: 'Scout-7', sessionIds: ['s_work'] })!, /this connection/);
+  assert.equal(reviewConflict(s.root, s.mapId, t, { agent: 'Scout-2', sessionIds: ['s_other'] }), undefined);
+  await assert.rejects(s.answer('Scout-1', {}), /Scout-1 worked on #2/);
   assert.equal(await s.phase(), 'verifying');
 });
 
 test('FAIL sends the work back with findings; the next pass gets a new review, and PASS finishes it', async () => {
   const s = await setup('checks+review');
-  const failed = await s.answer('MILO-2', {
+  const failed = await s.answer('Scout-2', {
     verdict: 'FAIL',
     summary: 'Misses the empty case',
     findings: [{ path: 'src/a.ts', line: 3, severity: 'error', text: 'empty input throws' }],
@@ -112,14 +112,14 @@ test('FAIL sends the work back with findings; the next pass gets a new review, a
   const v = readVerdicts(s.root, s.mapId, s.id);
   assert.deepEqual(
     v.map((x) => [x.id, x.attemptId, x.by, x.byKind, x.verdict]),
-    [['V-1', 'A-1', 'MILO-2', 'agent', 'FAIL']],
+    [['V-1', 'A-1', 'Scout-2', 'agent', 'FAIL']],
   );
   const comments = (await s.snap()).tickets.find((x) => x.id === s.id)!.comments.map((c) => c.body);
   assert.ok(comments.some((c) => /Review V-1 of A-1: FAIL/.test(c) && /src\/a\.ts:3/.test(c)));
 
   await s.complete();
   assert.equal(await s.phase(), 'verifying');
-  const passed = await s.answer('MILO-2', {});
+  const passed = await s.answer('Scout-2', {});
   assert.equal(passed.phase, 'done');
   const t = (await s.snap()).tickets.find((x) => x.id === s.id)!;
   assert.equal(t.state, 'closed');
@@ -133,50 +133,50 @@ test('FAIL sends the work back with findings; the next pass gets a new review, a
   );
 });
 
-test('checks+review+human: a PASS waits for the operator, who approves from the inbox list', async () => {
+test('checks+review+human: a PASS waits for the trail lead, who approves from the inbox list', async () => {
   const s = await setup('checks+review+human');
-  assert.deepEqual(approvalItems(s.root, await s.snap()), [], 'nothing waits on the operator before review');
-  const r = await s.answer('MILO-2', { summary: 'Does what it says' });
+  assert.deepEqual(approvalItems(s.root, await s.snap()), [], 'nothing waits on the trail lead before review');
+  const r = await s.answer('Scout-2', { summary: 'Does what it says' });
   assert.equal(r.phase, 'verifying');
   const [item] = approvalItems(s.root, await s.snap());
   assert.deepEqual([item.kind, item.ticketKey, item.attemptId], ['approve', '#2', 'A-1']);
-  assert.match(item.reason, /MILO-2 reviewed: Does what it says/);
-  await operatorAction(s.env, { action: 'approve', mapId: s.mapId, ticketId: s.id, by: 'operator' });
+  assert.match(item.reason, /Scout-2 reviewed: Does what it says/);
+  await operatorAction(s.env, { action: 'approve', mapId: s.mapId, ticketId: s.id, by: 'trail lead' });
   assert.equal(await s.phase(), 'done');
   assert.deepEqual(approvalItems(s.root, await s.snap()), []);
 });
 
-test('NEEDS_HUMAN holds the ticket for the operator', async () => {
+test('NEEDS_HUMAN holds the ticket for the trail lead', async () => {
   const s = await setup('checks+review');
-  const r = await s.answer('MILO-2', { verdict: 'NEEDS_HUMAN', summary: 'Needs a product call on retention' });
+  const r = await s.answer('Scout-2', { verdict: 'NEEDS_HUMAN', summary: 'Needs a product call on retention' });
   assert.equal(r.phase, 'blocked');
   const [item] = approvalItems(s.root, await s.snap());
   assert.equal(item.kind, 'held');
-  assert.match(item.reason, /MILO-2 asks you to decide: Needs a product call/);
+  assert.match(item.reason, /Scout-2 asks you to decide: Needs a product call/);
 });
 
 test('a PASS on code that changed since its checks ran runs them again instead (stale: reverify)', async () => {
   const s = await setup('checks+review');
   writeFileSync(path.join(s.root, 'verification.json'), config({ stale: 'reverify', maxAttempts: 4 }));
-  const r = await s.answer('MILO-2', {});
+  const r = await s.answer('Scout-2', {});
   assert.equal(r.phase, 'verifying');
   assert.equal(r.attemptId, 'A-2');
   for (let i = 0; i < 100 && !(await s.review()); i++) await new Promise((x) => setTimeout(x, 50));
   assert.match((await s.review())!.body, /A-2, checks passed/, 'the new pass is reviewed again');
 });
 
-test('when the operator decides first, the open review is withdrawn', async () => {
+test('when the trail lead decides first, the open review is withdrawn', async () => {
   const s = await setup('checks+review');
   const rv = (await s.review())!;
-  await operatorAction(s.env, { action: 'approve', mapId: s.mapId, ticketId: s.id, by: 'operator' });
+  await operatorAction(s.env, { action: 'approve', mapId: s.mapId, ticketId: s.id, by: 'trail lead' });
   const after = (await s.snap()).tickets.find((x) => x.id === rv.id)!;
   assert.deepEqual([after.state, after.closeReason], ['closed', 'not_planned']);
-  await claim(s.adapter, s.mapId, rv.id, { assignee: 'MILO-2' }).catch(() => {});
+  await claim(s.adapter, s.mapId, rv.id, { assignee: 'Scout-2' }).catch(() => {});
   await assert.rejects(
     submitReview(s.env, {
       mapId: s.mapId,
       reviewId: rv.id,
-      agent: 'MILO-2',
+      agent: 'Scout-2',
       sessionIds: [],
       verdict: 'PASS',
       summary: 'late',

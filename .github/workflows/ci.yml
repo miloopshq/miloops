@@ -1,5 +1,5 @@
 # Every PR and every push to main runs the full project check: lint, format, typecheck, build, unit and node
-# tests, and the MCP end-to-end test (a real MCP client drives a mission while Chrome shows the command center).
+# tests, and the MCP end-to-end test (a real MCP client drives a trail while Chrome shows the Lookout).
 name: CI
 
 on:
@@ -25,8 +25,8 @@ jobs:
         uses: browser-actions/setup-chrome@v1
       # Git evidence and verification tests commit in temp repos.
       - run: |
-          git config --global user.name "MILOOPS CI"
-          git config --global user.email "ci@miloops.app"
+          git config --global user.name "Teamtrail CI"
+          git config --global user.email "ci@teamtrail.ai"
       - run: npm ci
       - run: npm run check
         env:

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { BRAND, agentPaths, type HostSessionLink } from '@miloops-hq/core';
-import { writeJsonAtomic } from '@miloops-hq/core/agents';
+import { BRAND, agentPaths, type HostSessionLink } from '@teamtrail/core';
+import { writeJsonAtomic } from '@teamtrail/core/agents';
 import { writeIfChanged } from '../files';
 
 /** The SessionStart payload fields this hook reads. */
@@ -13,7 +13,7 @@ interface SessionStartInput {
 }
 
 /**
- * `miloops hook claude`: Claude Code SessionStart hook. Records where the new
+ * `teamtrail hook claude`: Claude Code SessionStart hook. Records where the new
  * session's transcript is, so the MCP server reads usage from the right file
  * (also after /clear or /resume). Never prints: SessionStart stdout would be
  * added to the model's context.
@@ -75,7 +75,7 @@ interface HookEntry {
 
 /**
  * Add the usage hook to `.claude/settings.local.json` (personal, like the local-scope
- * MCP registration), keeping every other setting. Replaces an older miloops hook.
+ * MCP registration), keeping every other setting. Replaces an older teamtrail hook.
  */
 export function installClaudeHook(file: string, dir?: string) {
   let settings: { hooks?: Record<string, HookEntry[]> } & Record<string, unknown> = {};

@@ -1,32 +1,32 @@
-import { OperationError, type DecisionRecord, type MapSnapshot, type Ticket } from '@miloops-hq/core';
-import { AgentContext } from './mission/agentContext';
-import { claimTicket } from './mission/claimTicket';
-import { closeTicket, type CloseInput } from './mission/closeTicket';
-import { verificationStatus } from './mission/completion';
-import { setCriteria } from './mission/criteria';
-import { getBrief, submitBrief } from './mission/discovery';
-import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './mission/hitl';
-import { flagKnowledge, proposeKnowledge, searchKnowledgeOp } from './mission/knowledge';
-import { resumeMission, status, updateMission } from './mission/missionOps';
-import { recordDecision, report, sessionView } from './mission/reporting';
-import { submitReviewTool } from './mission/reviews';
-import { startMission } from './mission/startMission';
-import { addTicket, nextTicket, releaseTicket } from './mission/ticketOps';
-import type { AgentOptions, WaitControl } from './mission/types';
-import { ticketView } from './mission/views';
+import { OperationError, type DecisionRecord, type MapSnapshot, type Ticket } from '@teamtrail/core';
+import { AgentContext } from './trail/agentContext';
+import { claimTicket } from './trail/claimTicket';
+import { closeTicket, type CloseInput } from './trail/closeTicket';
+import { verificationStatus } from './trail/completion';
+import { setCriteria } from './trail/criteria';
+import { getBrief, submitBrief } from './trail/discovery';
+import { answerQuestion, ask, defaultWaitSeconds, inbox, waitForAnswer } from './trail/hitl';
+import { flagKnowledge, proposeKnowledge, searchKnowledgeOp } from './trail/knowledge';
+import { recordDecision, report, sessionView } from './trail/reporting';
+import { submitReviewTool } from './trail/reviews';
+import { startTrail } from './trail/startTrail';
+import { addTicket, nextTicket, releaseTicket } from './trail/ticketOps';
+import { resumeTrail, status, updateTrail } from './trail/trailOps';
+import type { AgentOptions, WaitControl } from './trail/types';
+import { ticketView } from './trail/views';
 
 export { OperationError };
-export { callsignFamily } from './mission/callsign';
-export { OPERATOR, type AgentOptions, type AskResult, type TicketPlanInput, type WaitControl } from './mission/types';
+export { trailNameFamily } from './trail/trailName';
+export { TRAIL_LEAD, type AgentOptions, type AskResult, type TicketPlanInput, type WaitControl } from './trail/types';
 
 type Input<F extends (ctx: AgentContext, ...args: never[]) => unknown> = Parameters<F>[1];
 
 /**
  * One connected agent (one MCP server process). Every tool maps onto the core
- * operations used by the command center, and every step is reported through an
- * in-process ActivityStream whose sessions are mirrored to the command center.
+ * operations used by the Lookout, and every step is reported through an
+ * in-process ActivityStream whose sessions are mirrored to the Lookout.
  */
-export class MissionAgent {
+export class TrailAgent {
   readonly adapter: AgentContext['adapter'];
   readonly activity: AgentContext['activity'];
   private ctx: AgentContext;
@@ -41,31 +41,31 @@ export class MissionAgent {
     return this.ctx.root;
   }
 
-  /** This agent's callsign, picked on first use so the client name is known. */
+  /** This agent's trail name, picked on first use so the client name is known. */
   agentId() {
     return this.ctx.agentId();
   }
 
-  commandCenter() {
-    return this.ctx.commandCenter();
+  lookout() {
+    return this.ctx.lookout();
   }
 
-  /** By id, key (`#3` or `3`) or title; default the current mission, else the most recently active one. */
-  resolveMission(ref?: string) {
-    return this.ctx.resolveMission(ref);
+  /** By id, key (`#3` or `3`) or title; default the current trail, else the most recently active one. */
+  resolveTrail(ref?: string) {
+    return this.ctx.resolveTrail(ref);
   }
 
   ticketView(snap: MapSnapshot, t: Ticket, records: DecisionRecord[] = []) {
     return ticketView(snap, t, records);
   }
 
-  /** Runs a mission operation with this agent's context; newer tools call through here instead of a method each. */
+  /** Runs a trail operation with this agent's context; newer tools call through here instead of a method each. */
   with<A, R>(fn: (ctx: AgentContext, input: A) => R, input: A): R {
     return fn(this.ctx, input);
   }
 
-  status(missionRef?: string) {
-    return status(this.ctx, missionRef);
+  status(trailRef?: string) {
+    return status(this.ctx, trailRef);
   }
 
   /** `_meta` of an incoming tool call: tells the usage meter which agent log this process belongs to. */
@@ -73,16 +73,16 @@ export class MissionAgent {
     this.ctx.sessions.noteCall(meta);
   }
 
-  startMission(input: Input<typeof startMission>) {
-    return startMission(this.ctx, input);
+  startTrail(input: Input<typeof startTrail>) {
+    return startTrail(this.ctx, input);
   }
 
-  resumeMission(missionRef?: string) {
-    return resumeMission(this.ctx, missionRef);
+  resumeTrail(trailRef?: string) {
+    return resumeTrail(this.ctx, trailRef);
   }
 
-  updateMission(input: Input<typeof updateMission>) {
-    return updateMission(this.ctx, input);
+  updateTrail(input: Input<typeof updateTrail>) {
+    return updateTrail(this.ctx, input);
   }
 
   nextTicket(input: Input<typeof nextTicket> = {}) {
@@ -154,7 +154,7 @@ export class MissionAgent {
     return recordDecision(this.ctx, input);
   }
 
-  /** `framing`: the question frames a mission that does not exist yet (`/milo new`), so it belongs to a chart session. */
+  /** `framing`: the question frames a trail that does not exist yet (`/scout new`), so it belongs to a chart session. */
   ask(input: Input<typeof ask>, ctl: WaitControl = {}) {
     return ask(this.ctx, input, ctl);
   }
@@ -173,7 +173,7 @@ export class MissionAgent {
     return inbox(this.ctx, input);
   }
 
-  /** Answer a question from the agent chat, as the operator. Works for any connected agent's question. */
+  /** Answer a question from the agent chat, as the trail lead. Works for any connected agent's question. */
   answerQuestion(input: Input<typeof answerQuestion>) {
     return answerQuestion(this.ctx, input);
   }
@@ -188,7 +188,7 @@ export class MissionAgent {
     return this.ctx.leases.takeLost();
   }
 
-  /** Write pending session state now, so a tool result never runs ahead of the command center. */
+  /** Write pending session state now, so a tool result never runs ahead of the Lookout. */
   flush() {
     this.ctx.flush();
   }

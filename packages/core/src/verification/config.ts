@@ -14,7 +14,7 @@ export const DEFAULT_CONFIG: VerificationConfig = {
   failFast: true,
   maxAttempts: 3,
   totalTimeoutSec: 1800,
-  noChanges: { allow: ['research', 'grilling', 'prototype'], else: 'flag' },
+  noChanges: { allow: ['research', 'junction', 'prototype'], else: 'flag' },
   stale: 'reverify',
   github: { enabled: 'auto', requiredChecks: [], pollSec: 60 },
 };

@@ -14,7 +14,7 @@ export function watchIntegration(root: string, opts: { pollMs?: number } = {}): 
         .catch(() => {})
         .finally(() => (busy = false));
     },
-    opts.pollMs ?? (Number(process.env.MILOOPS_INTEGRATION_POLL_MS) || 10_000),
+    opts.pollMs ?? (Number(process.env.TEAMTRAIL_INTEGRATION_POLL_MS) || 10_000),
   );
   tick.unref?.();
   return () => clearInterval(tick);

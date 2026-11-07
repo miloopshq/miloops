@@ -1,7 +1,7 @@
 {
   "source": "fake",
   "recordedAt": "2026-10-31T17:18:19.954Z",
-  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). /milo help, status (all and one mission), inbox, unknown subcommand, refusal.",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). /scout help, status (all and one trail), inbox, unknown subcommand, refusal.",
   "exchanges": [
     {
       "req": {
@@ -16,7 +16,7 @@
         },
         "body": {
           "ok": true,
-          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0Scout0001"
         }
       }
     },
@@ -26,7 +26,7 @@
         "url": "/actions/T0EFIKA01/3/fakeresponse3",
         "body": {
           "response_type": "ephemeral",
-          "text": "2 missions",
+          "text": "2 trails",
           "blocks": [
             {
               "type": "section",
@@ -40,7 +40,7 @@
               "elements": [
                 {
                   "type": "mrkdwn",
-                  "text": "`/milo status <mission>` for one mission"
+                  "text": "`/scout status <trail>` for one trail"
                 }
               ]
             }
@@ -77,10 +77,10 @@
               "elements": [
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -106,7 +106,7 @@
         "url": "/actions/T0EFIKA01/5/fakeresponse5",
         "body": {
           "response_type": "ephemeral",
-          "text": "No mission matches “nope”."
+          "text": "No trail matches “nope”."
         }
       },
       "res": {
@@ -150,10 +150,10 @@
                 },
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS",
+                    "text": "Open in Teamtrail",
                     "emoji": true
                   },
                   "url": "http://localhost:7420/"
@@ -176,7 +176,7 @@
   ],
   "envelopes": [
     {
-      "label": "/milo help",
+      "label": "/scout help",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -186,20 +186,20 @@
         "channel_name": "infra",
         "user_id": "U0ANA0001",
         "user_name": "ana",
-        "command": "/milo",
+        "command": "/scout",
         "text": "help",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/1/fakeresponse1",
         "trigger_id": "1793448000.1.fake1"
       },
       "ack": {
         "response_type": "ephemeral",
-        "text": "*/milo decide [text]*  record a decision (or use *Save as decision* on a message)\n*/milo status [mission]*  mission briefing\n*/milo inbox*  questions waiting on you\n*/milo help*  this list"
+        "text": "*/scout decide [text]*  record a decision (or use *Save as decision* on a message)\n*/scout status [trail]*  trip report\n*/scout inbox*  questions waiting on you\n*/scout help*  this list"
       }
     },
     {
-      "label": "eve runs /milo status",
+      "label": "eve runs /scout status",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -209,20 +209,20 @@
         "channel_name": "infra",
         "user_id": "U0EVE0001",
         "user_name": "eve",
-        "command": "/milo",
+        "command": "/scout",
         "text": "status",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/2/fakeresponse2",
         "trigger_id": "1793448000.2.fake2"
       },
       "ack": {
         "response_type": "ephemeral",
-        "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+        "text": "Only the Teamtrail owner and allowed users can do that. Ask the owner to add you in Teamtrail Settings → Slack."
       }
     },
     {
-      "label": "/milo status",
+      "label": "/scout status",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -232,16 +232,16 @@
         "channel_name": "infra",
         "user_id": "U0ANA0001",
         "user_name": "ana",
-        "command": "/milo",
+        "command": "/scout",
         "text": "status",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/3/fakeresponse3",
         "trigger_id": "1793448000.3.fake3"
       }
     },
     {
-      "label": "/milo status event",
+      "label": "/scout status event",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -251,16 +251,16 @@
         "channel_name": "infra",
         "user_id": "U0ANA0001",
         "user_name": "ana",
-        "command": "/milo",
+        "command": "/scout",
         "text": "status event",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4",
         "trigger_id": "1793448000.4.fake4"
       }
     },
     {
-      "label": "/milo status nope",
+      "label": "/scout status nope",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -270,16 +270,16 @@
         "channel_name": "infra",
         "user_id": "U0ANA0001",
         "user_name": "ana",
-        "command": "/milo",
+        "command": "/scout",
         "text": "status nope",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/5/fakeresponse5",
         "trigger_id": "1793448000.5.fake5"
       }
     },
     {
-      "label": "/milo inbox",
+      "label": "/scout inbox",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -289,16 +289,16 @@
         "channel_name": "infra",
         "user_id": "U0ANA0001",
         "user_name": "ana",
-        "command": "/milo",
+        "command": "/scout",
         "text": "inbox",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/6/fakeresponse6",
         "trigger_id": "1793448000.6.fake6"
       }
     },
     {
-      "label": "/milo dance",
+      "label": "/scout dance",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
@@ -308,16 +308,16 @@
         "channel_name": "infra",
         "user_id": "U0ANA0001",
         "user_name": "ana",
-        "command": "/milo",
+        "command": "/scout",
         "text": "dance",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/7/fakeresponse7",
         "trigger_id": "1793448000.7.fake7"
       },
       "ack": {
         "response_type": "ephemeral",
-        "text": "Unknown command `dance`.\n*/milo decide [text]*  record a decision (or use *Save as decision* on a message)\n*/milo status [mission]*  mission briefing\n*/milo inbox*  questions waiting on you\n*/milo help*  this list"
+        "text": "Unknown command `dance`.\n*/scout decide [text]*  record a decision (or use *Save as decision* on a message)\n*/scout status [trail]*  trip report\n*/scout inbox*  questions waiting on you\n*/scout help*  this list"
       }
     }
   ]

@@ -1,13 +1,13 @@
-import type { AgentSessionDoc, MapSnapshot } from '@miloops-hq/core';
-import { readAgentDocs } from '@miloops-hq/core/bridge';
+import type { AgentSessionDoc, MapSnapshot } from '@teamtrail/core';
+import { readAgentDocs } from '@teamtrail/core/bridge';
 import type { SlackConfig } from '../store';
 import { syncApprovals } from './approvals';
 import { syncAsks } from './asks';
 import { day } from './constants';
 import { digestWindowMs } from './digestWindow';
-import { missionChanges, notesOf } from './missionChanges';
 import { queueLine } from './queueLine';
 import type { SlackContext } from './slackContext';
+import { trailChanges, notesOf } from './trailChanges';
 
 export function tick(ctx: SlackContext): Promise<void> {
   ctx.ticking ??= runTick(ctx).finally(() => (ctx.ticking = undefined));
@@ -20,14 +20,14 @@ export async function runTick(ctx: SlackContext) {
   try {
     const docs = await readAgentDocs(ctx.o.root);
     await syncAsks(ctx, docs, c);
-    if (ctx.ticks++ % (ctx.o.missionEvery ?? 5) === 0) await syncMissions(ctx, docs, c);
+    if (ctx.ticks++ % (ctx.o.trailEvery ?? 5) === 0) await syncTrails(ctx, docs, c);
     await flushBatches(ctx);
   } catch {
     /* Slack or the tracker is unreachable: try again on the next tick */
   }
 }
 
-export async function syncMissions(ctx: SlackContext, docs: AgentSessionDoc[], c: SlackConfig) {
+export async function syncTrails(ctx: SlackContext, docs: AgentSessionDoc[], c: SlackConfig) {
   const adapter = await ctx.o.active();
   const ev = new Set(c.notify.events);
   const snaps: MapSnapshot[] = [];
@@ -35,17 +35,17 @@ export async function syncMissions(ctx: SlackContext, docs: AgentSessionDoc[], c
     const snap = await adapter.loadMap(m.id);
     snaps.push(snap);
     const now = notesOf(snap);
-    const prev = ctx.missions.get(m.id);
-    ctx.missions.set(m.id, now);
+    const prev = ctx.trails.get(m.id);
+    ctx.trails.set(m.id, now);
     if (!prev) continue;
-    for (const line of missionChanges({ snap, docs, prev, now, events: ev })) queueLine(ctx, m.id, line);
+    for (const line of trailChanges({ snap, docs, prev, now, events: ev })) queueLine(ctx, m.id, line);
   }
   await syncApprovals(ctx, snaps, c);
 }
 
 /**
- * One digest message per mission per window (the team's digest cadence); later ones thread under that day's first
- * message for the mission. With the digest off, queued lines are dropped: Waiting on you still has everything.
+ * One digest message per trail per window (the team's digest cadence); later ones thread under that day's first
+ * message for the trail. With the digest off, queued lines are dropped: Waiting on you still has everything.
  */
 export async function flushBatches(ctx: SlackContext) {
   const now = ctx.o.now?.() ?? Date.now();

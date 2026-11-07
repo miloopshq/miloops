@@ -1,4 +1,4 @@
-import { BRAND } from '@miloops-hq/core';
+import { BRAND } from '@teamtrail/core';
 import { ACTIONS, md, openButton, plain } from './kit';
 
 export function homeView(o: { claimed: boolean; owner?: string; you: boolean; url?: string; command: string }) {
@@ -46,7 +46,7 @@ export function homeView(o: { claimed: boolean; owner?: string; you: boolean; ur
 export const helpText = (command: string) =>
   [
     `*${command} decide [text]*  record a decision (or use *Save as decision* on a message)`,
-    `*${command} status [mission]*  mission briefing`,
+    `*${command} status [trail]*  trip report`,
     `*${command} inbox*  questions waiting on you`,
     `*${command} help*  this list`,
   ].join('\n');

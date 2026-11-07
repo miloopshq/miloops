@@ -12,11 +12,11 @@ export interface LinearTeam {
   canceled: string;
   /** Where a reopened issue goes: the first "unstarted" state, else the first "backlog" one ('' when neither). */
   open: string;
-  /** MILOOPS label name → id. */
+  /** Teamtrail label name → id. */
   labels: Map<string, string>;
 }
 
-/** Team states and MILOOPS labels, creating the labels that are missing. */
+/** Team states and Teamtrail labels, creating the labels that are missing. */
 export async function fetchLinearTeam(gql: LinearGql, teamId: string): Promise<LinearTeam> {
   const d = await gql<{
     team: { key: string; name: string; states: { nodes: { id: string; type: string; position: number }[] } } | null;

@@ -27,7 +27,7 @@ export function isFocused(prefs: AttentionPrefs, now: number): boolean {
 /**
  * Whether an item should notify actively (browser notification, Slack message) right now: it scores at
  * or above the team's threshold and the person isn't focusing. Everything else waits in the queue and
- * the digest. `prefs.channel` only says where a notification goes. MILOOPS never answers on anyone's
+ * the digest. `prefs.channel` only says where a notification goes. Teamtrail never answers on anyone's
  * behalf; this only decides when to tap a shoulder.
  */
 export function isInterrupting(item: AttentionItem, policy: AttentionPolicy, prefs: AttentionPrefs, now: number) {

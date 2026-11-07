@@ -78,7 +78,7 @@ function parseRule(v: unknown, at: string, errors: string[]): RiskPathRule[] {
   return [{ glob: (v.glob as string).trim(), level: v.level as RiskPathRule['level'], ...category }];
 }
 
-/** The file as written by the command center: stable key order, two-space indent, trailing newline. */
+/** The file as written by the Lookout: stable key order, two-space indent, trailing newline. */
 export function serializePolicy(p: RiskPolicy): string {
   const paths = p.paths.map((r) => ({ glob: r.glob, level: r.level, ...(r.category ? { category: r.category } : {}) }));
   return `${JSON.stringify({ v: 1, categories: p.categories, paths }, null, 2)}\n`;

@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { splitForImport } from '@miloops-hq/core';
-import { nextKnowledgeId, writeKnowledge } from '@miloops-hq/core/agents';
+import { splitForImport } from '@teamtrail/core';
+import { nextKnowledgeId, writeKnowledge } from '@teamtrail/core/agents';
 
-/** `miloops knowledge import <file.md>`: one suggested entry per `##` heading, for the operator to review. */
+/** `teamtrail knowledge import <file.md>`: one suggested entry per `##` heading, for the trail lead to review. */
 export function importKnowledge(root: string, file: string) {
   const parts = splitForImport(readFileSync(file, 'utf8'), path.basename(file));
   const now = Date.now();
@@ -20,7 +20,7 @@ export function importKnowledge(root: string, file: string) {
       tags: [],
       sources: p.sources,
       anchors: [],
-      createdBy: 'operator',
+      createdBy: 'trail lead',
       createdAt: now,
       updatedAt: now,
     });

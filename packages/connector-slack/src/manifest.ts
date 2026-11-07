@@ -1,4 +1,4 @@
-import { BRAND } from '@miloops-hq/core';
+import { BRAND } from '@teamtrail/core';
 
 /** Bot scopes, and why: see the Slack integration plan. Nothing else is requested (no user tokens, no admin, no search). */
 export const BOT_SCOPES = [
@@ -12,13 +12,13 @@ export const BOT_SCOPES = [
   'users:read',
 ] as const;
 
-/** Requested, but setup works without them: `users:read.email` lets MILO recognise the owner by their git email. */
+/** Requested, but setup works without them: `users:read.email` lets Scout recognise the owner by their git email. */
 export const OPTIONAL_SCOPES = ['users:read.email'] as const;
 
 export const SAVE_DECISION_CALLBACK = 'save_decision';
 export const DEFAULT_COMMAND = `/${BRAND.assistant.name.toLowerCase()}`;
 
-/** The app manifest the user creates their own Slack app from: Socket Mode, `/milo`, "Save as decision", App Home. */
+/** The app manifest the user creates their own Slack app from: Socket Mode, `/scout`, "Save as decision", App Home. */
 export function slackManifest(o: { command?: string } = {}) {
   const name = BRAND.assistant.name;
   return {
@@ -33,8 +33,8 @@ export function slackManifest(o: { command?: string } = {}) {
       slash_commands: [
         {
           command: o.command ?? DEFAULT_COMMAND,
-          description: 'Record a decision, check a mission, answer agents',
-          usage_hint: 'decide [text] | status [mission] | inbox | help',
+          description: 'Record a decision, check a trail, answer agents',
+          usage_hint: 'decide [text] | status [trail] | inbox | help',
           should_escape: false,
         },
       ],

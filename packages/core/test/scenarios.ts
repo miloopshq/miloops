@@ -25,7 +25,7 @@ const SECTIONS = {
 };
 
 /** Chart → claim → comment → resolve (decision) → supersede → plan-only, then read it all back with a fresh adapter. */
-export async function missionFlow(make: () => SyncedAdapter) {
+export async function trailFlow(make: () => SyncedAdapter) {
   const a = make();
   const before = await a.listMaps();
   const { map, tickets } = await chartMap(a, {
@@ -36,7 +36,7 @@ export async function missionFlow(make: () => SyncedAdapter) {
       {
         ref: 'g',
         title: 'Pick a conflict policy',
-        type: 'grilling',
+        type: 'junction',
         body: 'Last-writer-wins or merge?',
         blockedBy: ['r'],
       },
@@ -52,8 +52,8 @@ export async function missionFlow(make: () => SyncedAdapter) {
   const [d1] = await a.listDecisions(map.id);
   const d2 = await supersedeDecision(a, map.id, d1.id, {
     answer: 'Use Automerge. Its history model fits the audit trail.',
-    decidedBy: 'operator',
-    source: { kind: 'command-center' },
+    decidedBy: 'trail lead',
+    source: { kind: 'lookout' },
   });
   await setMapMode(a, map.id, 'plan-only');
   const cached = await a.loadMap(map.id);
@@ -85,8 +85,8 @@ export async function syncFlow(make: () => SyncedAdapter, human: { act(ticketRef
   return { map, ticket: tickets[0], quiet, seen, idle: events.length - quiet - seen.length, after };
 }
 
-/** Another process (an MCP agent) charts a mission after this adapter listed missions but before its first poll. */
-export async function lateMissionFlow(make: () => SyncedAdapter) {
+/** Another process (an MCP agent) charts a trail after this adapter listed trails but before its first poll. */
+export async function lateTrailFlow(make: () => SyncedAdapter) {
   const a = make();
   const before = await a.listMaps();
   const events: TrackerEvent[] = [];
@@ -103,7 +103,7 @@ export async function lateMissionFlow(make: () => SyncedAdapter) {
   return { before, map, after, second: second.map, later: await a.listMaps(), events };
 }
 
-/** Network drops mid-mission: writes queue, reads serve the cache, creates fail fast, the queue drains on reconnect. */
+/** Network drops mid-trail: writes queue, reads serve the cache, creates fail fast, the queue drains on reconnect. */
 export async function offlineFlow(make: () => SyncedAdapter, net: { offline(on: boolean): void }) {
   const a = make();
   const { map, tickets } = await chartMap(a, {

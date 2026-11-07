@@ -5,7 +5,7 @@ import { derivePhases } from '../planning/lifecycle/phase';
 import { readAttempts, readVerdicts } from './evidenceStore';
 import { levelFor } from './verifyCompletion';
 
-/** A ticket waiting on the operator: to approve a reviewed pass, or to decide a held one. */
+/** A ticket waiting on the trail lead: to approve a reviewed pass, or to decide a held one. */
 export interface ApprovalItem {
   kind: 'approve' | 'held';
   mapId: string;
@@ -20,7 +20,7 @@ export interface ApprovalItem {
 
 const clip = (s: string) => (s.length > 200 ? `${s.slice(0, 199)}…` : s);
 
-/** Tickets of a mission that wait on the operator, oldest first. */
+/** Tickets of a trail that wait on the trail lead, oldest first. */
 export function approvalItems(root: string, snap: MapSnapshot): ApprovalItem[] {
   const phases = derivePhases(snap.tickets, snap.map.mode);
   const items: ApprovalItem[] = [];
@@ -72,7 +72,7 @@ function heldReason(last?: VerificationAttempt, verdict?: VerificationVerdict): 
 /** A pass with manual criteria, once the checks (or the review, when there is one) passed. */
 function signOffItem({ base, last, verdict }: Waiting): ApprovalItem | undefined {
   if (last?.result !== 'pass' || !last.criteria?.manual.length) return undefined;
-  if (verdict?.byKind === 'operator') return undefined;
+  if (verdict?.byKind === 'trail lead') return undefined;
   const ready = last.level === 'checks' || verdict?.verdict === 'PASS';
   if (!ready) return undefined;
   const lines = last.criteria.lines.filter((l) => l.includes('sign-off')).join('; ');
@@ -84,7 +84,7 @@ function signOffItem({ base, last, verdict }: Waiting): ApprovalItem | undefined
   };
 }
 
-/** A pass an agent reviewed, on a mission whose level asks the human to approve too. */
+/** A pass an agent reviewed, on a trail whose level asks the human to approve too. */
 function reviewItem({ base, last, verdict }: Waiting, level: () => VerificationLevel): ApprovalItem | undefined {
   if (last?.result !== 'pass' || verdict?.byKind !== 'agent' || verdict.verdict !== 'PASS') return undefined;
   if (level() !== 'checks+review+human') return undefined;

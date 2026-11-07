@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { agentPaths, type HostSessionLink } from '@miloops-hq/core';
+import { agentPaths, type HostSessionLink } from '@teamtrail/core';
 import { ls, recent } from './quietFs';
 
 const DAY = 86_400_000;

@@ -1,4 +1,4 @@
-import { BRAND } from '@miloops-hq/core';
+import { BRAND } from '@teamtrail/core';
 import { SlackApiError } from '../api';
 import { BOT_SCOPES, appIdFromToken, tokenKind } from '../manifest';
 import { probeSocket } from '../socket';
@@ -8,7 +8,7 @@ import { statusOf } from './setupStatus';
 import type { SlackContext } from './slackContext';
 
 /**
- * Tokens from $MILOOPS_SLACK_APP_TOKEN / $MILOOPS_SLACK_BOT_TOKEN are verified like pasted ones
+ * Tokens from $TEAMTRAIL_SLACK_APP_TOKEN / $TEAMTRAIL_SLACK_BOT_TOKEN are verified like pasted ones
  * on first start, but stay in the environment: nothing is written to the credential store.
  */
 export async function adoptEnvTokens(ctx: SlackContext) {
@@ -24,7 +24,7 @@ export async function adoptEnvTokens(ctx: SlackContext) {
   }
 }
 
-/** Why a token was refused: the message for the operator and a code for the UI. */
+/** Why a token was refused: the message for the trail lead and a code for the UI. */
 type Refusal = { error: string; code: string };
 
 const WRONG_KIND: Record<string, Refusal> = {

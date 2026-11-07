@@ -1,19 +1,19 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { decided, parseBrief, serializeBrief } from '@miloops-hq/core';
-import { briefPath, readBrief, writeBrief } from '@miloops-hq/core/agents';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { decided, parseBrief, serializeBrief } from '@teamtrail/core';
+import { briefPath, readBrief, writeBrief } from '@teamtrail/core/agents';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let root: string;
 const open: { close(): void | Promise<void> }[] = [];
 
 async function connect(agentName = 'claude-01') {
-  const agent = new MissionAgent({ root, agent: agentName, pollMs: 20 });
+  const agent = new TrailAgent({ root, agent: agentName, pollMs: 20 });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -27,7 +27,7 @@ async function connect(agentName = 'claude-01') {
 }
 
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-discovery-'));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-discovery-'));
 });
 afterEach(async () => {
   for (const o of open.splice(0)) await o.close();
@@ -35,7 +35,7 @@ afterEach(async () => {
 });
 
 type Started = {
-  mission: { id: string };
+  trail: { id: string };
   tickets: { key: string; title: string; type: string }[];
   discovery: { status: string };
 };
@@ -43,7 +43,7 @@ type Started = {
 describe('discovery brief over MCP', () => {
   it('gates implementation until the human accepts the brief', async () => {
     const call = await connect();
-    const started = await call<Started>('start_mission', {
+    const started = await call<Started>('start_trail', {
       title: 'Reminders',
       destination: 'Clients get reminders they asked for',
       tickets: [
@@ -51,7 +51,7 @@ describe('discovery brief over MCP', () => {
         { ref: 'look', title: 'How do notifications work today?', type: 'research' },
       ],
     });
-    const mapId = started.mission.id;
+    const mapId = started.trail.id;
     expect(started.discovery.status).toBe('draft');
     const discovery = started.tickets.find((t) => t.title.startsWith('Discovery brief'));
     const build = started.tickets.find((t) => t.type === 'execute')!;
@@ -74,7 +74,7 @@ describe('discovery brief over MCP', () => {
     expect(sent.brief.status).toBe('submitted');
     await expect(call('claim_ticket', { ticket: build.key })).rejects.toThrow(/waiting for the human/);
 
-    // The operator asks for changes; the agent sees the note.
+    // The trail lead asks for changes; the agent sees the note.
     writeBrief(root, decided(readBrief(root, mapId)!, { kind: 'request-changes', note: 'Cover quiet hours' }));
     const read = await call<{ status: string; changesRequested: string; sections: { assumptions: { id: string }[] } }>(
       'get_brief',
@@ -95,9 +95,9 @@ describe('discovery brief over MCP', () => {
     await expect(call('submit_brief', { summary: 'again', existing: 'x' })).rejects.toThrow(/already accepted/);
   });
 
-  it('skips discovery when asked, and leaves missions without a brief alone', async () => {
+  it('skips discovery when asked, and leaves trails without a brief alone', async () => {
     const call = await connect();
-    const started = await call<Started>('start_mission', {
+    const started = await call<Started>('start_trail', {
       discovery: false,
       title: 'Typo fix sweep',
       destination: 'No typos in the docs',
@@ -105,7 +105,7 @@ describe('discovery brief over MCP', () => {
     });
     expect(started.discovery).toBeNull();
     expect(started.tickets.some((t) => t.title.startsWith('Discovery brief'))).toBe(false);
-    expect(fs.existsSync(briefPath(root, started.mission.id))).toBe(false);
+    expect(fs.existsSync(briefPath(root, started.trail.id))).toBe(false);
     const claimed = await call<{ claimed: { title: string } }>('claim_ticket');
     expect(claimed.claimed.title).toBe('Fix typos');
   });

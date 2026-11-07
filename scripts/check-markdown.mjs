@@ -20,7 +20,7 @@ fs.writeFileSync(ticketFile, fs.readFileSync(ticketFile, 'utf8').replace(/^assig
 await page.waitForTimeout(2500);
 console.log('external claim visible:', (await page.locator('.node', { hasText: 'codex-cli' }).count()) > 0);
 
-// UI write: claim a frontier ticket as operator, verify the file changed.
+// UI write: claim a frontier ticket as trail lead, verify the file changed.
 await page.locator('.node.st-frontier').first().click();
 await page.getByRole('button', { name: 'Claim', exact: true }).click();
 await page.waitForTimeout(1500);

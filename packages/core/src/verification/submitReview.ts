@@ -25,7 +25,7 @@ export interface ReviewSubmission extends Reviewer {
 
 export interface ReviewResult {
   verdict: VerificationVerdict;
-  /** Where the reviewed ticket went; `verifying` waits for the operator, or for checks run again on changed code. */
+  /** Where the reviewed ticket went; `verifying` waits for the trail lead, or for checks run again on changed code. */
   phase: TicketPhase;
   /** Set when a PASS on code that changed since its checks ran started a new attempt. */
   attemptId?: string;
@@ -37,8 +37,8 @@ const findingLine = (f: VerificationVerdict['findings'][number]) =>
 /**
  * An agent's verdict on the work behind a review ticket. The verdict is kept
  * next to the attempt, the review ticket closes, and the reviewed ticket moves:
- * FAIL to rework, NEEDS_HUMAN to the operator, PASS to done (or to the
- * operator's approval at `checks+review+human`). A PASS on code that changed
+ * FAIL to rework, NEEDS_HUMAN to the trail lead, PASS to done (or to the
+ * trail lead's approval at `checks+review+human`). A PASS on code that changed
  * since its checks passed runs them again instead, when `stale` is `reverify`.
  */
 export async function submitReview(env: VerifyEnv, r: ReviewSubmission): Promise<ReviewResult> {
@@ -104,7 +104,7 @@ async function recordVerdict({ env, r, t, last, summary }: Reviewed & { r: Revie
   return verdict;
 }
 
-/** Moves the reviewed ticket on: FAIL to rework, NEEDS_HUMAN to the operator, PASS to done or to what it still waits on. */
+/** Moves the reviewed ticket on: FAIL to rework, NEEDS_HUMAN to the trail lead, PASS to done or to what it still waits on. */
 async function moveReviewed(
   m: Reviewed & { snap: MapSnapshot; verdict: VerificationVerdict },
 ): Promise<Omit<ReviewResult, 'verdict'>> {

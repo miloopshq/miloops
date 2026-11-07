@@ -1,16 +1,13 @@
 import { z } from 'zod';
-import type { MissionAgent } from '../agent';
-import { type DefineTool, mission, riskCategory, riskPaths, ticket, waitControl } from '../toolKit';
+import type { TrailAgent } from '../agent';
+import { type DefineTool, trail, riskCategory, riskPaths, ticket, waitControl } from '../toolKit';
 
 const CHECKS_WAIT = 'Waiting for the verification checks';
 const completion = {
-  mission,
+  trail,
   ticket: ticket.optional(),
   resolution: z.string().min(1).describe('The decision or what was done, in full.'),
-  summary: z
-    .string()
-    .optional()
-    .describe('One line for the Decisions list. Default: first sentence of the resolution.'),
+  summary: z.string().optional().describe('One line for the Logbook. Default: first sentence of the resolution.'),
   rationale: z.string().optional(),
   alternatives: z.array(z.string()).optional(),
   postTranscript: z.boolean().optional().describe('Also post the question/answer transcript as a ticket comment.'),
@@ -19,7 +16,7 @@ const completion = {
   assumes: z
     .array(z.string())
     .optional()
-    .describe('Ids (S-<n>) of the mission assumptions this decision relies on, so it is revisited if one fails.'),
+    .describe('Ids (S-<n>) of the trail assumptions this decision relies on, so it is revisited if one fails.'),
   criteria: z
     .array(
       z.object({
@@ -44,13 +41,13 @@ const completion = {
 };
 
 /** Tools used while working a ticket: progress, closing it, decisions. */
-export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
+export function registerWorkTools(tool: DefineTool, agent: TrailAgent) {
   tool(
     'report_progress',
     {
       title: 'Report progress',
       description:
-        'Show progress live in the command center: a step of the session procedure (work: Load mission, Claim, Resolve, Record, Update plan; research: Claim, Investigate, Record), a log line, a chat message to the human. Token and cost usage is read from Claude Code and Codex session logs; pass inputTokens/outputTokens/costUsd only when your client has no such log and you actually know them (since your last report).',
+        'Show progress live in the Lookout: a step of the session procedure (work: Load trail, Claim, Resolve, Record, Update plan; research: Claim, Investigate, Record), a log line, a chat message to the human. Token and cost usage is read from Claude Code and Codex session logs; pass inputTokens/outputTokens/costUsd only when your client has no such log and you actually know them (since your last report).',
     },
     {
       message: z.string().optional().describe('Log line, or detail for the step.'),
@@ -105,7 +102,7 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
       readOnly: true,
     },
     {
-      mission,
+      trail,
       ticket: ticket.optional(),
       wait: z.boolean().optional(),
       waitSeconds: z.number().int().min(0).max(3600).optional(),
@@ -121,7 +118,7 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
         'Answer a review ticket (type review; default: the one you claimed) after reading the work it names. PASS finishes the reviewed ticket (or hands it to the human at checks+review+human), FAIL sends it back for rework with your findings, NEEDS_HUMAN asks the human. You cannot review a ticket you worked on.',
     },
     {
-      mission,
+      trail,
       ticket: ticket.optional().describe('The review ticket.'),
       verdict: z.enum(['PASS', 'FAIL', 'NEEDS_HUMAN']),
       summary: z.string().min(1).describe('What you checked and what you found, in a few sentences.'),
@@ -146,10 +143,10 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
     {
       title: 'Record a decision',
       description:
-        'Keep a DecisionRecord (question, answer, rationale, alternatives, who decided) and add it to the mission Decisions, without closing a ticket.',
+        'Keep a DecisionRecord (question, answer, rationale, alternatives, who decided) and add it to the Logbook, without closing a ticket.',
     },
     {
-      mission,
+      trail,
       ticket: ticket.optional(),
       question: z.string().min(1),
       answer: z.string().min(1),
@@ -157,13 +154,10 @@ export function registerWorkTools(tool: DefineTool, agent: MissionAgent) {
       rationale: z.string().optional(),
       alternatives: z.array(z.string()).optional(),
       decidedBy: z.string().optional().describe('Actor id; default you. Use "operator" when the human made the call.'),
-      appendToMission: z.boolean().optional(),
+      appendToTrail: z.boolean().optional(),
       category: riskCategory.optional(),
       paths: riskPaths.optional(),
-      assumes: z
-        .array(z.string())
-        .optional()
-        .describe('Ids (S-<n>) of the mission assumptions this decision relies on.'),
+      assumes: z.array(z.string()).optional().describe('Ids (S-<n>) of the trail assumptions this decision relies on.'),
     },
     (a) => agent.recordDecision(a),
   );

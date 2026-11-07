@@ -1,13 +1,13 @@
 import type { AnsweredQuestion, ChatMessage, FeedEntry, PendingQuestion, SessionInfo } from '../model/types';
 
 /**
- * How agent sessions running in other processes (the `miloops mcp` server an
- * agent connects to) reach the command center. Each process writes one JSON
- * document per session; the command center mirrors them and writes answers back:
+ * How agent sessions running in other processes (the `teamtrail mcp` server an
+ * agent connects to) reach the Lookout. Each process writes one JSON
+ * document per session; the Lookout mirrors them and writes answers back:
  *
  *   <tracker>/.agents/sessions/<sessionId>.json             AgentSessionDoc, written only by the owning process
  *   <tracker>/.agents/answers/<sessionId>/<questionId>.json AgentAnswer, written by whoever answers
- *   <tracker>/.agents/server.json                           CommandCenterLock, while `miloops` is serving
+ *   <tracker>/.agents/server.json                           LookoutLock, while `teamtrail` is serving
  *   <tracker>/.agents/hosts/<agent>-<hostSessionId>.json    HostSessionLink, written by the agent's session hook
  *
  * Plain files keep it local, survive restarts on either side and need no ports.
@@ -57,12 +57,12 @@ export interface AgentAnswer {
   sessionId: string;
   questionId: string;
   text: string;
-  /** Actor id of who answered, e.g. `operator`. */
+  /** Actor id of who answered, e.g. `trail lead`. */
   author: string;
   at: number;
 }
 
-export interface CommandCenterLock {
+export interface LookoutLock {
   url: string;
   pid: number;
   startedAt: number;

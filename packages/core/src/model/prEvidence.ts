@@ -1,7 +1,7 @@
 /**
  * Pull request and CI evidence for a ticket, read from a code host (GitHub
  * today) by the reconciler. Everything here is a derived cache: it raises
- * flags for the operator and never changes ticket state.
+ * flags for the trail lead and never changes ticket state.
  *
  * Text copied from a pull request (title, branch and check names) is
  * untrusted: anyone who can open a PR writes it. It is sanitized and capped,
@@ -16,7 +16,7 @@ export type PrReview = 'approved' | 'changes_requested' | 'commented' | 'none';
 /** GitHub computes mergeability lazily; `unknown` until it has. */
 export type PrMergeable = 'clean' | 'conflicting' | 'unknown';
 
-/** A CI check on the PR head. `UNKNOWN` (missing, or a result MILOOPS cannot read) is never a pass. */
+/** A CI check on the PR head. `UNKNOWN` (missing, or a result Teamtrail cannot read) is never a pass. */
 export type CheckState = 'PENDING' | 'RUNNING' | 'PASSED' | 'FAILED' | 'CANCELLED' | 'UNKNOWN';
 
 export interface CiCheck {
@@ -50,15 +50,15 @@ export interface PullRequestSnapshot {
 /** A recently updated PR with the tickets its body or branch names. The body itself is discarded. */
 export interface PrCandidate {
   pr: PullRequestSnapshot;
-  /** `<mapId>#<ticketId>` for each `miloops:<mapId>#<ticketId>` marker in the body. */
+  /** `<mapId>#<ticketId>` for each `teamtrail:<mapId>#<ticketId>` marker in the body. */
   markers: string[];
 }
 
 /**
- * How a ticket found its PR, strongest first: an operator link, the PR an
+ * How a ticket found its PR, strongest first: a trail lead link, the PR an
  * agent named in report_completion (kept on its attempt), the branch its
  * latest attempt ran on (git evidence), then a body marker or a
- * `miloops-<mapId>-<ticketId>` branch name.
+ * `teamtrail-<mapId>-<ticketId>` branch name.
  */
 export type PrLinkSource = 'explicit' | 'attempt' | 'branch' | 'marker';
 

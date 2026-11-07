@@ -20,16 +20,16 @@ import type { EventInit } from './types';
  * Shared engine of the GitHub and Linear adapters. It implements the whole
  * TrackerAdapter contract on top of a handful of remote primitives:
  *
- * - write-through cache: every write updates the cached mission, so the UI's
+ * - write-through cache: every write updates the cached trail, so the UI's
  *   frequent `loadMap` calls cost no requests;
- * - writes are serialized per mission, in call order;
+ * - writes are serialized per trail, in call order;
  * - writes that need no answer from the tracker (comments, claims, closes,
- *   blocking, mission edits, decisions) are queued while offline or rate
+ *   blocking, trail edits, decisions) are queued while offline or rate
  *   limited and sent in order when it answers again; creates fail fast;
  * - with an `outbox` store the queue survives an exit or crash and is replayed
  *   by the next run; writes that may already have landed are checked first;
  * - polling (while subscribed) picks up changes made in the tracker and emits
- *   `external.changed` only when the mission really differs from the cache.
+ *   `external.changed` only when the trail really differs from the cache.
  */
 export abstract class SyncedAdapter extends SyncedEdits implements TrackerAdapter {
   abstract readonly kind: 'github' | 'linear';
@@ -63,13 +63,13 @@ export abstract class SyncedAdapter extends SyncedEdits implements TrackerAdapte
   }
 
   async setMapMeta(mapId: string, patch: MapMetaPatch) {
-    await this.change(mapId, 'mission verification', { kind: 'mapMeta', patch }, { kind: 'map.updated', mapId });
+    await this.change(mapId, 'trail verification', { kind: 'mapMeta', patch }, { kind: 'map.updated', mapId });
   }
 
   async updateMapSections(mapId: string, patch: Partial<MapSections>) {
     await this.change(
       mapId,
-      'mission sections',
+      'trail sections',
       (e) => ({ kind: 'sections', sections: roundtrip({ ...e.snap.map.sections, ...patch }) }),
       {
         kind: 'map.updated',
@@ -152,7 +152,7 @@ export abstract class SyncedAdapter extends SyncedEdits implements TrackerAdapte
     );
   }
 
-  /** `D-<n>` unique across every mission in the tracker, as with local markdown. */
+  /** `D-<n>` unique across every trail in the tracker, as with local markdown. */
   private async nextDecisionId() {
     const ids = await this.listMaps()
       .then((l) => l.map((m) => m.id))

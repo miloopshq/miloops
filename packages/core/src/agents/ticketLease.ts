@@ -10,11 +10,11 @@ import { AGENTS_DIR } from './agentLink';
  */
 export const DEFAULT_LEASE_MINUTES = 15;
 export const DEFAULT_LEASE_MS = DEFAULT_LEASE_MINUTES * 60_000;
-/** Environment variable that sets the lease length in minutes (`miloops mcp --lease-minutes` wins). */
-export const LEASE_MINUTES_ENV = 'MILOOPS_LEASE_MINUTES';
+/** Environment variable that sets the lease length in minutes (`teamtrail mcp --lease-minutes` wins). */
+export const LEASE_MINUTES_ENV = 'TEAMTRAIL_LEASE_MINUTES';
 /** A lease with less than this share of its length left shows as stalled. */
 export const STALL_FRACTION = 1 / 3;
-/** Returned leases stay as tombstones this long, so every command center can log the return. */
+/** Returned leases stay as tombstones this long, so every Lookout can log the return. */
 export const TOMBSTONE_MS = 3_600_000;
 
 const safe = (s: string) => s.replace(/[^\w.-]/g, '_');
@@ -28,14 +28,14 @@ export const leasePaths = {
   lease: (mapId: string, ticketId: string) => `${AGENTS_DIR}/leases/${safe(mapId)}--${safe(ticketId)}.json`,
 };
 
-export type LeaseReturnReason = 'expired' | 'operator';
+export type LeaseReturnReason = 'expired' | 'trail lead';
 
 export interface TicketLease {
   v: 1;
   mapId: string;
   ticketId: string;
   ticketKey: string;
-  /** Callsign of the agent holding the claim (the ticket's assignee). */
+  /** Trail name of the agent holding the claim (the ticket's assignee). */
   agent: string;
   sessionId?: string;
   pid: number;
@@ -89,7 +89,7 @@ export const isHandoff = (body: string) => body.startsWith(HANDOFF_PREFIX);
 
 /** Activity log line for a returned lease. */
 export function returnedLine(l: TicketLease) {
-  return l.returned?.reason === 'operator'
+  return l.returned?.reason === 'trail lead'
     ? `${l.ticketKey} returned to queue · claim of ${l.agent} released by ${l.returned.by}`
     : `${l.ticketKey} returned to queue after ${l.agent} went silent`;
 }

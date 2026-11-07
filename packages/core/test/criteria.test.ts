@@ -28,7 +28,7 @@ describe('acceptance criteria', () => {
     { text: 'The owner approves the copy', kind: 'manual' },
   ]);
 
-  it('number and round-trip through the mission file', () => {
+  it('number and round-trip through the trail file', () => {
     expect(crit.map((c) => c.id)).toEqual(['AC-1', 'AC-2', 'AC-3']);
     const tickets = [
       { ticketId: '12', ticketKey: '#12', criteria: crit, confirmed: true },
@@ -60,7 +60,7 @@ describe('acceptance criteria', () => {
     expect(stated).toMatchObject({ missing: [], failed: [], manual: [] });
   });
 
-  it('are required for implementation tickets on missions with a brief and verification on', () => {
+  it('are required for implementation tickets on trails with a brief and verification on', () => {
     expect(criteriaRequired(true, 'execute', 'checks')).toBe(true);
     expect(criteriaRequired(true, 'research', 'checks')).toBe(false);
     expect(criteriaRequired(false, 'execute', 'checks')).toBe(false);

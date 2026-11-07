@@ -3,7 +3,7 @@ import type { Participant, DecisionRecord, TranscriptEntry, DecisionSource } fro
 import { isSourceKind, firstSentence } from './decisionRecord';
 import { riskFront, riskOf } from './decisionRiskFront';
 
-/* ---------- local-markdown file: <mission>/decisions/<id>.md ---------- */
+/* ---------- local-markdown file: <trail>/decisions/<id>.md ---------- */
 
 const SECTIONS = ['Question', 'Decision', 'Summary', 'Alternatives', 'Rationale', 'Transcript'] as const;
 
@@ -17,7 +17,7 @@ const participantIn = (s: string): Participant => {
 export function serializeDecision(d: DecisionRecord): string {
   const front: Front = {
     id: d.id,
-    mission: d.mapId,
+    trail: d.mapId,
     ...(d.ticketId ? { ticket: d.ticketId, ticket_key: d.ticketKey ?? '' } : {}),
     decided_by: d.decidedBy,
     decided_at: iso(d.decidedAt),
@@ -85,7 +85,7 @@ export function parseDecision(md: string): DecisionRecord {
   const answer = sec.Decision ?? '';
   return {
     id: str(front.id),
-    mapId: str(front.mission),
+    mapId: str(front.trail),
     ticketId: str(front.ticket) || undefined,
     ticketKey: str(front.ticket_key) || undefined,
     question: sec.Question ?? '',

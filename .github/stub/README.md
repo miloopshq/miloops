@@ -1,6 +1,6 @@
 # Teamtrail
 
-**A local command center for big work done by your AI coding agents.** You pick the destination, your agents map the work as decisions, and you get only the calls that need you.
+**A local trail map for big work done by your AI coding agents.** You pick the destination, your agents map the work as decisions, and you get only the calls that need you.
 
 ## Status
 

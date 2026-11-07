@@ -36,7 +36,7 @@ export function parseKnowledge(id: string, md: string): KnowledgeEntry {
       const i = a.lastIndexOf('@');
       return i > 0 ? { path: a.slice(0, i), hash: a.slice(i + 1) } : { path: a };
     }),
-    createdBy: str(front.createdBy) || 'operator',
+    createdBy: str(front.createdBy) || 'trail lead',
     createdAt: time(front.created),
     updatedAt: time(front.updated),
     ...(front.flaggedBy

@@ -1,6 +1,6 @@
 import type { RiskPolicy } from '../model/risk';
 
-/** Used when the project has no `.miloops/policy.json`, and for categories a policy file leaves out. */
+/** Used when the project has no `.teamtrail/policy.json`, and for categories a policy file leaves out. */
 export const DEFAULT_POLICY: RiskPolicy = {
   v: 1,
   categories: {

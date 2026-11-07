@@ -14,8 +14,8 @@ let root: string;
 let configDir: string;
 
 before(async () => {
-  const tmp = mkdtempSync(path.join(os.tmpdir(), 'miloops-attention-'));
-  root = path.join(tmp, '.miloops');
+  const tmp = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-attention-'));
+  root = path.join(tmp, '.teamtrail');
   configDir = path.join(tmp, 'config');
   mkdirSync(path.join(root, '.agents', 'sessions'), { recursive: true });
   const now = Date.now();

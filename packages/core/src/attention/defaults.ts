@@ -7,7 +7,7 @@ import type { AttentionKind, AttentionPolicy, AttentionPrefs, AttentionState } f
 export const DEFAULT_WEIGHTS: Record<AttentionKind, number> = {
   question: 60,
   blocked: 60,
-  replan: 60,
+  reroute: 60,
   brief: 55,
   approval: 50,
   policy: 50,
@@ -16,7 +16,7 @@ export const DEFAULT_WEIGHTS: Record<AttentionKind, number> = {
   overlap: 40,
   'hitl-ready': 35,
   flag: 35,
-  'replan-suggested': 30,
+  'reroute-suggested': 30,
   knowledge: 15,
 };
 

@@ -13,7 +13,7 @@ export type { SlackServiceOptions } from './service/types';
 
 /**
  * Slack for one tracker over Socket Mode: setup and settings, decisions saved from threads and
- * `/milo decide`, agent questions delivered as DMs, and batched mission notifications.
+ * `/scout decide`, agent questions delivered as DMs, and batched trail notifications.
  */
 export class SlackService {
   private ctx: SlackContext;
@@ -83,7 +83,7 @@ export class SlackService {
     return onEnvelope(this.ctx, e);
   }
 
-  /** Deliver new agent questions, close answered ones, and notify mission changes. */
+  /** Deliver new agent questions, close answered ones, and notify trail changes. */
   tick(): Promise<void> {
     return tick(this.ctx);
   }

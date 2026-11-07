@@ -11,7 +11,7 @@ export type SeedTicket = {
   resolution?: string;
 };
 
-/** The sample mission's tickets by issue number; decided ones carry the resolution recorded for them. */
+/** The sample trail's tickets by issue number; decided ones carry the resolution recorded for them. */
 export const SEED_TICKETS: SeedTicket[] = [
   {
     n: 143,
@@ -23,7 +23,7 @@ export const SEED_TICKETS: SeedTicket[] = [
   },
   {
     n: 144,
-    type: 'grilling',
+    type: 'junction',
     title: 'Who is the primary offline user?',
     status: 'decided',
     resolution: 'Field researchers with multi-day dead zones, not commuters. Sync must survive a week offline.',
@@ -44,11 +44,11 @@ export const SEED_TICKETS: SeedTicket[] = [
     status: 'claimed',
     assignee: 'arekom',
   },
-  { n: 147, type: 'grilling', title: 'Is silent auto-merge acceptable for shared notebooks?', blockedBy: [144] },
+  { n: 147, type: 'junction', title: 'Is silent auto-merge acceptable for shared notebooks?', blockedBy: [144] },
   { n: 148, type: 'research', title: 'Survey background-sync limits on iOS and Android', blockedBy: [144] },
   { n: 149, type: 'task', title: 'Instrument current sync failure rate in production' },
   { n: 150, type: 'prototype', title: 'Conflict review UI: inline vs queue', blockedBy: [147] },
-  { n: 151, type: 'grilling', title: 'What is the storage budget per device?', blockedBy: [146] },
+  { n: 151, type: 'junction', title: 'What is the storage budget per device?', blockedBy: [146] },
   { n: 152, type: 'task', title: 'Sign off sync protocol ADR', hitl: true, blockedBy: [146, 150] },
   { n: 153, type: 'research', title: 'Schema migration strategy for offline clients', blockedBy: [151, 148] },
   { n: 154, type: 'task', title: 'Approve rollout plan behind a feature flag', hitl: true, blockedBy: [156, 153] },

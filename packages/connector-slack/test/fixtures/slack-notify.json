@@ -1,7 +1,7 @@
 {
   "source": "fake",
   "recordedAt": "2026-10-31T17:18:19.957Z",
-  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Blocked and mission-done notifications in the owner DM, threaded per mission per day.",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Blocked and trail-done notifications in the owner DM, threaded per trail per day.",
   "exchanges": [
     {
       "req": {
@@ -16,7 +16,7 @@
         },
         "body": {
           "ok": true,
-          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0Scout0001"
         }
       }
     },
@@ -63,7 +63,7 @@
           "ts": "1793448000.000001",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "⛔ *BLOCKED* · Event store · #2 Bench write paths is blocked by #4 Retention policy",
             "ts": "1793448000.000001"
           }
@@ -76,7 +76,7 @@
         "url": "/api/chat.postMessage",
         "body": {
           "channel": "D00ANA0001",
-          "text": "✓ *RESOLVED* · Event store · #2 Bench write paths\n✓ *RESOLVED* · Event store · #3 Pick DB\n✓ *RESOLVED* · Event store · #4 Retention policy\n✓ *RESOLVED* · Event store · #5 Migrate schema\n◉ *MISSION DONE* · Event store · 4 tickets · $0.00 · 0 tokens",
+          "text": "✓ *RESOLVED* · Event store · #2 Bench write paths\n✓ *RESOLVED* · Event store · #3 Pick DB\n✓ *RESOLVED* · Event store · #4 Retention policy\n✓ *RESOLVED* · Event store · #5 Migrate schema\n◉ *TRAIL DONE* · Event store · 4 tickets · $0.00 · 0 tokens",
           "thread_ts": "1793448000.000001"
         }
       },
@@ -92,8 +92,8 @@
           "ts": "1793448001.000002",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
-            "text": "✓ *RESOLVED* · Event store · #2 Bench write paths\n✓ *RESOLVED* · Event store · #3 Pick DB\n✓ *RESOLVED* · Event store · #4 Retention policy\n✓ *RESOLVED* · Event store · #5 Migrate schema\n◉ *MISSION DONE* · Event store · 4 tickets · $0.00 · 0 tokens",
+            "bot_id": "B0Scout0001",
+            "text": "✓ *RESOLVED* · Event store · #2 Bench write paths\n✓ *RESOLVED* · Event store · #3 Pick DB\n✓ *RESOLVED* · Event store · #4 Retention policy\n✓ *RESOLVED* · Event store · #5 Migrate schema\n◉ *TRAIL DONE* · Event store · 4 tickets · $0.00 · 0 tokens",
             "ts": "1793448001.000002"
           }
         }

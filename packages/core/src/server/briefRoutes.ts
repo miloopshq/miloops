@@ -10,9 +10,9 @@ const text = (v: unknown, max = 300) => typeof v === 'string' && v.length > 0 &&
 
 /**
  * `/briefs` routes over the discovery briefs under `root`; false when none matches.
- * GET `?mapId=` reads a mission's brief; POST `/briefs/accept`, `/briefs/request-changes` (`note`) are the operator's
- * calls on a submitted brief; POST `/briefs/create` (`ticketId`) starts discovery for a mission created in the UI.
- * Accepting a brief adds its assumptions to the mission's Assumptions section (once).
+ * GET `?mapId=` reads a trail's brief; POST `/briefs/accept`, `/briefs/request-changes` (`note`) are the trail lead's
+ * calls on a submitted brief; POST `/briefs/create` (`ticketId`) starts discovery for a trail created in the UI.
+ * Accepting a brief adds its assumptions to the trail's Assumptions section (once).
  */
 const DECISION_ROUTES: Record<string, 'accept' | 'request-changes' | undefined> = {
   '/briefs/accept': 'accept',
@@ -51,7 +51,7 @@ export async function handleBriefs(
   }
   const kind = DECISION_ROUTES[url.pathname];
   if (!kind) return false;
-  if (!brief) return (sendJson(res, 404, { error: 'this mission has no discovery brief' }), true);
+  if (!brief) return (sendJson(res, 404, { error: 'this trail has no discovery brief' }), true);
   let next: DiscoveryBrief;
   try {
     next = decided(
@@ -68,14 +68,14 @@ export async function handleBriefs(
 }
 
 /**
- * The accepted brief's assumptions become the mission's. The brief is already accepted by then, so a failure here
+ * The accepted brief's assumptions become the trail's. The brief is already accepted by then, so a failure here
  * (the tracker unreachable, say) is logged and the accept still succeeds; accepting again seeds what's missing.
  */
 async function seedAssumptions(adapter: TrackerAdapter, brief: DiscoveryBrief) {
   try {
     return await seedFromBrief(adapter, brief);
   } catch (e) {
-    console.error(`could not add the brief's assumptions to the mission: ${(e as Error).message}`);
+    console.error(`could not add the brief's assumptions to the trail: ${(e as Error).message}`);
     return [];
   }
 }

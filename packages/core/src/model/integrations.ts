@@ -18,19 +18,19 @@ export interface AgentIntegration {
   id: 'claude-code' | 'codex' | 'cursor';
   name: string;
   status: 'primary' | 'planned';
-  /** Prefix for session callsigns in the HUD, e.g. claude-07. */
-  callsign: string;
+  /** Prefix for session trail names in the Lookout, e.g. claude-07. */
+  trailName: string;
 }
 
 export const AGENT_INTEGRATIONS: AgentIntegration[] = [
-  { id: 'claude-code', name: 'Claude Code', status: 'primary', callsign: 'claude' },
-  { id: 'codex', name: 'Codex', status: 'primary', callsign: 'codex' },
-  { id: 'cursor', name: 'Cursor', status: 'planned', callsign: 'cursor' },
+  { id: 'claude-code', name: 'Claude Code', status: 'primary', trailName: 'claude' },
+  { id: 'codex', name: 'Codex', status: 'primary', trailName: 'codex' },
+  { id: 'cursor', name: 'Cursor', status: 'planned', trailName: 'cursor' },
 ];
 
 export const PRIMARY_AGENT = AGENT_INTEGRATIONS[0];
 
-export const callsign = (n: number, agent = PRIMARY_AGENT) => `${agent.callsign}-${String(n).padStart(2, '0')}`;
+export const trailName = (n: number, agent = PRIMARY_AGENT) => `${agent.trailName}-${String(n).padStart(2, '0')}`;
 
 /** How a HITL conversation is written back to its ticket. */
 export type HitlTranscriptMode = 'full' | 'summary';

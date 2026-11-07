@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { AgentSessionDoc, ChatMessage, PendingQuestion, TrackerAdapter } from '@miloops-hq/core';
-import { writeJsonAtomic } from '@miloops-hq/core/bridge';
+import type { AgentSessionDoc, ChatMessage, PendingQuestion, TrackerAdapter } from '@teamtrail/core';
+import { writeJsonAtomic } from '@teamtrail/core/bridge';
 import { FIXTURES, recorder, replay, type Fixture } from '../../core/test/fixtures';
 import { BOT_SCOPES, OPTIONAL_SCOPES } from '../src/manifest';
 import { SlackService, type SlackServiceOptions } from '../src/service';
@@ -14,8 +14,8 @@ export { FROZEN, freezeTime } from '../../core/test/scenarios';
 
 /** The fake's tokens: test values only, never real credentials. */
 export const TOKENS = {
-  app: 'xapp-1-A0MILO0001-1001-6d696c6f6170706c6576656c',
-  bot: 'xoxb-1001-2002-fakebottokenmilo',
+  app: 'xapp-1-A0Scout0001-1001-6d696c6f6170706c6576656c',
+  bot: 'xoxb-1001-2002-fakebottokenscout',
   user: 'xoxp-1001-2002-fakeusertoken',
 };
 export const ANA = 'U0ANA0001';
@@ -30,7 +30,7 @@ export interface SlackFixture extends Fixture {
 
 /** One flow's world: a temp tracker + config dir, Slack (fake when recording, fixture when replaying) and a socket hub. */
 export function world(mode: 'record' | 'replay', name: string) {
-  const dir = mkdtempSync(path.join(os.tmpdir(), 'miloops-slack-'));
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-slack-'));
   const root = path.join(dir, 'tracker');
   const configDir = path.join(dir, 'config');
   mkdirSync(root, { recursive: true });
@@ -60,7 +60,7 @@ export function world(mode: 'record' | 'replay', name: string) {
         apiUrl: 'https://slack.test/api',
         pollMs: 0,
         batchMs: 0,
-        missionEvery: 1,
+        trailEvery: 1,
         backoffMs: () => 0,
         sleep: async () => {},
         lockOwner: `${name}:${services.length}`,
@@ -121,9 +121,9 @@ export function connected(w: World, o: { owners?: string[]; allow?: string[]; no
   writeJsonAtomic(path.join(w.configDir, 'slack.json'), {
     enabled: true,
     created: true,
-    appId: 'A0MILO0001',
+    appId: 'A0Scout0001',
     workspace: { id: 'T0EFIKA01', name: 'efika', url: 'https://efika.slack.com/' },
-    bot: { userId: 'U0MILOBOT', name: 'milo' },
+    bot: { userId: 'U0ScoutBOT', name: 'scout' },
     owners: (o.owners ?? [ANA]).map((id) => ({ id, name: id === ANA ? 'ana' : id })),
     allow: (o.allow ?? []).map((id) => ({ id })),
     ...(o.notify ? { notify: o.notify } : {}),
@@ -138,7 +138,7 @@ export async function until(cond: () => boolean, what = 'condition') {
   throw new Error(`timed out waiting for ${what}`);
 }
 
-/** What an agent's `miloops mcp` process writes while it waits on a human. */
+/** What an agent's `teamtrail mcp` process writes while it waits on a human. */
 export function agentDoc(
   root: string,
   o: {

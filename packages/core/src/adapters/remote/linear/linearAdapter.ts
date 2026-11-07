@@ -14,17 +14,17 @@ import { authoredBody, decisionComment, joinBody, mapLabels, mapBody, ticketLabe
 import { HttpClient, TrackerError, linear, type HttpOptions } from '../http';
 import { SyncedAdapter } from '../sync/syncedAdapter';
 import type { RemoteComment, SyncOptions } from '../sync/types';
-import { changedMissions } from './changedMissions';
+import { changedTrails } from './changedTrails';
 import { linearGql, type LinearGql } from './linearGql';
 import { fetchLinearTeam } from './linearTeam';
-import { linearTicket, readMission, type DecisionFound } from './readMission';
+import { linearTicket, readTrail, type DecisionFound } from './readTrail';
 import { removeBlocksRelation } from './removeBlocksRelation';
-import { CHANGES_QUERY, ISSUE_FIELDS, MISSION_QUERY, type LChanges, type LIssue } from './schema';
+import { CHANGES_QUERY, ISSUE_FIELDS, TRAIL_QUERY, type LChanges, type LIssue } from './schema';
 
 /*
  * Linear mapping:
- *   mission    issue labelled MAP_LABEL in the team (and project, when set); description = canonical map body
- *   ticket     sub-issue (parentId = mission), labelled miloops:<type>
+ *   trail    issue labelled MAP_LABEL in the team (and project, when set); description = canonical map body
+ *   ticket     sub-issue (parentId = trail), labelled teamtrail:<type>
  *   blockedBy  native "blocks" relation
  *   close      the team's first "completed" state, or its first "canceled" state for not planned
  *   decision   comment on the ticket (format.ts)
@@ -37,7 +37,7 @@ export interface LinearOptions extends SyncOptions, HttpOptions {
   teamId: string;
   projectId?: string;
   apiUrl?: string;
-  /** HUD location, e.g. `ENG · Mobile`; defaults to the team key once known. */
+  /** Header location, e.g. `ENG · Mobile`; defaults to the team key once known. */
   display?: string;
 }
 
@@ -62,7 +62,7 @@ export class LinearAdapter extends SyncedAdapter {
     return this.http.rate;
   }
 
-  /** Team states and MILOOPS labels, creating missing labels once. */
+  /** Team states and Teamtrail labels, creating missing labels once. */
   private meta = cachedUntilFailure(async () => {
     const team = await fetchLinearTeam(this.gql, this.o.teamId);
     if (!this.o.display) this.location = team.key;
@@ -74,7 +74,7 @@ export class LinearAdapter extends SyncedAdapter {
     return names.map((n) => labels.get(n)).filter((x): x is string => !!x);
   }
 
-  private missionFilter() {
+  private trailFilter() {
     return {
       team: { id: { eq: this.o.teamId } },
       labels: { some: { name: { eq: MAP_LABEL } } },
@@ -84,18 +84,18 @@ export class LinearAdapter extends SyncedAdapter {
 
   protected async fetchMaps(): Promise<MapSummary[]> {
     const d = await this.gql<{ issues: { nodes: { id: string; identifier: string; title: string }[] } }>(
-      `query Missions($filter: IssueFilter) { issues(first: 100, filter: $filter) { nodes { id identifier title } } }`,
-      { filter: this.missionFilter() },
+      `query Trails($filter: IssueFilter) { issues(first: 100, filter: $filter) { nodes { id identifier title } } }`,
+      { filter: this.trailFilter() },
     );
     return d.issues.nodes.map((i) => ({ id: i.id, key: i.identifier, title: i.title }));
   }
 
   protected async fetchMap(mapId: string): Promise<{ snap: MapSnapshot; decisions: DecisionRecord[] }> {
-    const d = await this.gql<{ issue: LIssue | null }>(MISSION_QUERY, { id: mapId });
+    const d = await this.gql<{ issue: LIssue | null }>(TRAIL_QUERY, { id: mapId });
     const root = d.issue;
     if (!root || !root.labels.nodes.some((l) => l.name === MAP_LABEL))
-      throw new TrackerError('not_found', `Linear: ${mapId} is not a mission`);
-    return readMission(mapId, root, this.found);
+      throw new TrackerError('not_found', `Linear: ${mapId} is not a trail`);
+    return readTrail(mapId, root, this.found);
   }
 
   protected async changedSince(known: (ref: string) => string | undefined): Promise<string[] | 'all'> {
@@ -110,7 +110,7 @@ export class LinearAdapter extends SyncedAdapter {
     });
     const stamps = [...d.issues.nodes.map((i) => i.updatedAt), ...d.comments.nodes.map((c) => c.updatedAt)];
     this.cursor = stamps.reduce((m, s) => (s > m ? s : m), since);
-    return changedMissions(d, known);
+    return changedTrails(d, known);
   }
 
   private async create(input: Record<string, unknown>) {

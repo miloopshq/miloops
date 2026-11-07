@@ -11,18 +11,18 @@ export function durationLabel(ms?: number) {
 
 const usd = (n?: number) => (n === undefined ? '—' : `$${n.toFixed(n < 1 ? 4 : 2)}`);
 
-/** The mission report as markdown, for sharing or keeping with the repo. */
+/** The trail report as markdown, for sharing or keeping with the repo. */
 export function deliveryToMarkdown(r: DeliveryReport, title: string, at = Date.now()) {
   const i = r.interventions;
   const lines = [
-    `# Mission report: ${title}`,
+    `# Trail report: ${title}`,
     '',
-    `_Generated ${new Date(at).toISOString()} by MILOOPS._`,
+    `_Generated ${new Date(at).toISOString()} by Teamtrail._`,
     '',
     '| Measure | Value |',
     '| --- | --- |',
     `| Tickets done / cancelled / open | ${r.done} / ${r.cancelled} / ${r.open} |`,
-    `| Mission lead time (created → last done) | ${durationLabel(r.missionLeadMs)} |`,
+    `| Trail lead time (created → last done) | ${durationLabel(r.trailLeadMs)} |`,
     `| Median ticket lead time (claim → done) | ${durationLabel(r.medianLeadMs)} |`,
     `| Human interventions | ${i.total} (${i.answers} answers, ${i.operatorActions} operator actions, ${i.reworkRequested} sent back) |`,
     `| Rework | ${r.rework.cycles} cycles on ${r.rework.tickets} tickets |`,

@@ -26,7 +26,7 @@ const TOKEN = 'ghp_FAKEtoken0123456789abcdefghijkl';
 const SECTIONS = { destination: 'D', notes: '', decisions: [], unspecified: [], outOfScope: [] };
 const SHA_A = 'a'.repeat(40);
 const SHA_B = 'b'.repeat(40);
-const tmp = () => mkdtempSync(path.join(os.tmpdir(), 'miloops-ghev-'));
+const tmp = () => mkdtempSync(path.join(os.tmpdir(), 'teamtrail-ghev-'));
 const gitOf = (branch: string | null, head: string): GitEvidence => ({
   v: 1,
   tree: { toplevel: '/repo', head, branch, fingerprint: 'sha256:0' },
@@ -126,18 +126,18 @@ test('PR text is untrusted: control characters and markup stripped, length cappe
   assert.equal(untrusted('x'.repeat(500)).length, 120);
   assert.equal(untrusted(`leak ${TOKEN}`), 'leak [redacted]');
   assert.equal(untrusted({ not: 'text' }), '');
-  assert.deepEqual(bodyMarkers('Closes miloops:7#12. Also miloops:7#13 and miloops:7#12'), ['7#12', '7#13']);
+  assert.deepEqual(bodyMarkers('Closes teamtrail:7#12. Also teamtrail:7#13 and teamtrail:7#12'), ['7#12', '7#13']);
   assert.deepEqual(bodyMarkers(null), []);
-  assert.equal(branchRef('cursor/miloops-7-12'), '7#12');
-  assert.equal(branchRef('miloops-7-12'), '7#12');
-  assert.equal(branchRef('feature/miloops-7-12-extra/x'), undefined);
+  assert.equal(branchRef('cursor/teamtrail-7-12'), '7#12');
+  assert.equal(branchRef('teamtrail-7-12'), '7#12');
+  assert.equal(branchRef('feature/teamtrail-7-12-extra/x'), undefined);
 });
 
 test('association by branch name, body marker, attempt branch and explicit link; forks need an explicit link', async () => {
   const { root, mapId, t, gh, tick } = await setup();
-  gh.open(1, { sha: SHA_A, ref: `cursor/miloops-${mapId}-${t[0].id}` });
-  gh.open(2, { sha: SHA_A, ref: 'some-branch', body: `Implements miloops:${mapId}#${t[1].id}` });
-  gh.open(3, { sha: SHA_A, ref: 'evil', headRepo: 'mallory/launchpad', body: `miloops:${mapId}#${t[2].id}` });
+  gh.open(1, { sha: SHA_A, ref: `cursor/teamtrail-${mapId}-${t[0].id}` });
+  gh.open(2, { sha: SHA_A, ref: 'some-branch', body: `Implements teamtrail:${mapId}#${t[1].id}` });
+  gh.open(3, { sha: SHA_A, ref: 'evil', headRepo: 'mallory/launchpad', body: `teamtrail:${mapId}#${t[2].id}` });
   await tick();
   assert.equal(readTicketSync(root, mapId, t[0].id)?.link.source, 'marker');
   assert.equal(readTicketSync(root, mapId, t[0].id)?.pr?.number, 1);
@@ -170,7 +170,7 @@ test('association by branch name, body marker, attempt branch and explicit link;
   const prev = readTicketSync(root, mapId, t[0].id)!;
   writeTicketSync(root, { ...prev, link: { number: 3, source: 'explicit', at: 0 } });
   await tick();
-  assert.equal(readTicketSync(root, mapId, t[0].id)?.pr?.number, 3, 'an operator link wins and sticks');
+  assert.equal(readTicketSync(root, mapId, t[0].id)?.pr?.number, 3, 'a trail lead link wins and sticks');
   assert.equal(readTicketSync(root, mapId, t[0].id)?.pr?.sameRepo, false);
 });
 
@@ -209,7 +209,7 @@ test('a PR named in report_completion links the ticket ahead of its branch; a ne
 
 test('mismatch flags are raised and cleared with events, and the ticket is never changed', async () => {
   const { root, a, mapId, t, gh, tick } = await setup();
-  const ref = (i: number) => `miloops-${mapId}-${t[i].id}`;
+  const ref = (i: number) => `teamtrail-${mapId}-${t[i].id}`;
   gh.open(1, { sha: SHA_A, ref: ref(0) });
   gh.check(SHA_A, 'test', 'completed', 'failure');
   await tick(['test']);
@@ -249,7 +249,7 @@ test('mismatch flags are raised and cleared with events, and the ticket is never
 
 test('a PR head that differs from the verified commit is flagged', async () => {
   const { root, mapId, t, gh, tick } = await setup();
-  gh.open(1, { sha: SHA_B, ref: `miloops-${mapId}-${t[0].id}` });
+  gh.open(1, { sha: SHA_B, ref: `teamtrail-${mapId}-${t[0].id}` });
   gh.check(SHA_B, 'test', 'completed', 'success');
   const base = { v: 1 as const, mapId, ticketId: t[0].id, ticketKey: t[0].key, agent: 'a', level: 'checks' as const };
   const rest = { configHash: 'none', submittedAt: 0, finishedAt: 0, resolution: 'r', checks: [] };
@@ -263,7 +263,7 @@ test('a PR head that differs from the verified commit is flagged', async () => {
 
 test('a failed read keeps the last snapshot and flags and marks the error; a rate limit aborts the tick', async () => {
   const { root, mapId, t, gh, tick } = await setup();
-  gh.open(1, { sha: SHA_A, ref: `miloops-${mapId}-${t[0].id}` });
+  gh.open(1, { sha: SHA_A, ref: `teamtrail-${mapId}-${t[0].id}` });
   gh.check(SHA_A, 'test', 'completed', 'failure');
   await tick();
   gh.fail(/\/pulls\/1$/);
@@ -299,7 +299,7 @@ test('watchVerification: off without config, ok after a clean tick, failed (neve
     assert.equal((await next()).status.state, 'off');
     assert.equal(existsSync(path.join(root, '.evidence')), false, 'nothing is written while sync is off');
     writeFileSync(path.join(root, 'verification.json'), JSON.stringify({ v: 1, github: { requiredChecks: ['test'] } }));
-    gh.open(1, { sha: SHA_A, ref: `miloops-${mapId}-${t[0].id}` });
+    gh.open(1, { sha: SHA_A, ref: `teamtrail-${mapId}-${t[0].id}` });
     const ok = await next();
     assert.equal(ok.status.state, 'ok');
     assert.equal(ok.status.repo, gh.repo);

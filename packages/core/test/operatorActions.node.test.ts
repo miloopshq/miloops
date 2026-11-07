@@ -24,8 +24,8 @@ const CHECK = `process.exit(require('fs').existsSync('ok') ? 0 : 1)`;
 
 /** A repo whose tracker folder has one execute ticket that failed its checks and went to rework or blocked. */
 async function setup(level: VerificationLevel = 'checks', maxAttempts = 3) {
-  const repo = mkdtempSync(path.join(os.tmpdir(), 'miloops-op-'));
-  const root = path.join(repo, '.miloops');
+  const repo = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-op-'));
+  const root = path.join(repo, '.teamtrail');
   mkdirSync(root);
   writeFileSync(
     path.join(root, 'verification.json'),
@@ -40,7 +40,7 @@ async function setup(level: VerificationLevel = 'checks', maxAttempts = 3) {
   });
   const env = { adapter, root, journal: journalFile(root) };
   const id = tickets[0].id;
-  const agent = { actor: 'MILO-1', actorKind: 'agent' as const };
+  const agent = { actor: 'Scout-1', actorKind: 'agent' as const };
   await transition(adapter, map.id, id, { ...agent, event: 'claim' });
   await transition(adapter, map.id, id, { ...agent, event: 'submit' });
   const run = async () => {
@@ -51,7 +51,7 @@ async function setup(level: VerificationLevel = 'checks', maxAttempts = 3) {
         mapId: map.id,
         ticket: t,
         info: levelFor(root, snap, t).info,
-        sub: { agent: 'MILO-1', resolution: 'did A' },
+        sub: { agent: 'Scout-1', resolution: 'did A' },
       })
     ).done;
   };
@@ -69,7 +69,7 @@ test('rerun: a blocked ticket is verified again on its last submission and passe
   const s = await setup('checks', 1);
   assert.equal(await s.phase(), 'blocked');
   writeFileSync(path.join(s.repo, 'ok'), '');
-  const r = await operatorAction(s.env, { action: 'rerun', mapId: s.mapId, ticketId: s.id, by: 'operator' });
+  const r = await operatorAction(s.env, { action: 'rerun', mapId: s.mapId, ticketId: s.id, by: 'trail lead' });
   assert.equal(r.attemptId, 'A-2');
   for (let i = 0; i < 100 && (await s.phase()) !== 'done'; i++) await new Promise((x) => setTimeout(x, 50));
   assert.equal(await s.phase(), 'done');
@@ -84,13 +84,13 @@ test('rerun: a blocked ticket is verified again on its last submission and passe
   const events = journalFile(s.root)
     .read(s.mapId)
     .map((e) => `${e.event}:${e.actorKind}`);
-  assert.deepEqual(events.slice(-2), ['unblock:operator', 'checks.pass:engine']);
+  assert.deepEqual(events.slice(-2), ['unblock:trail lead', 'checks.pass:engine']);
 });
 
-test('approve and rework are the operator calls on a verifying ticket, kept as verdicts', async () => {
+test('approve and rework are the trail lead calls on a verifying ticket, kept as verdicts', async () => {
   const s = await setup('checks+review');
   writeFileSync(path.join(s.repo, 'ok'), '');
-  const base = { mapId: s.mapId, ticketId: s.id, by: 'operator' };
+  const base = { mapId: s.mapId, ticketId: s.id, by: 'trail lead' };
   await s.resubmit();
   assert.equal(await s.phase(), 'verifying');
   await assert.rejects(operatorAction(s.env, { ...base, action: 'rework' }), /needs a reason/);
@@ -104,8 +104,8 @@ test('approve and rework are the operator calls on a verifying ticket, kept as v
   assert.deepEqual(
     readVerdicts(s.root, s.mapId, s.id).map((v) => [v.verdict, v.byKind, v.attemptId]),
     [
-      ['FAIL', 'operator', 'A-2'],
-      ['PASS', 'operator', 'A-3'],
+      ['FAIL', 'trail lead', 'A-2'],
+      ['PASS', 'trail lead', 'A-3'],
     ],
   );
 });
@@ -121,26 +121,26 @@ test('approve is refused once the code no longer matches the verified attempt', 
   await s.resubmit();
   assert.equal(await s.phase(), 'verifying');
   writeFileSync(path.join(s.repo, 'later.txt'), 'edited after the checks');
-  const base = { mapId: s.mapId, ticketId: s.id, by: 'operator' };
+  const base = { mapId: s.mapId, ticketId: s.id, by: 'trail lead' };
   await assert.rejects(operatorAction(s.env, { ...base, action: 'approve' }), /no longer matches the code.*re-run/);
   await operatorAction(s.env, { ...base, action: 'accept', reason: 'reviewed the later edit' });
   assert.equal(await s.phase(), 'done');
 });
 
-test('unblock needs a target and a reason; levels are set by the operator only', async () => {
+test('unblock needs a target and a reason; levels are set by the trail lead only', async () => {
   const s = await setup('checks', 1);
-  const base = { mapId: s.mapId, ticketId: s.id, by: 'operator', reason: 'flaky runner' };
+  const base = { mapId: s.mapId, ticketId: s.id, by: 'trail lead', reason: 'flaky runner' };
   await assert.rejects(operatorAction(s.env, { ...base, action: 'unblock' }), /ready or rework/);
   await operatorAction(s.env, { ...base, action: 'unblock', to: 'ready' });
   assert.equal(await s.phase(), 'ready');
   await operatorAction(s.env, { ...base, action: 'level', level: 'off' });
-  await operatorAction(s.env, { mapId: s.mapId, by: 'operator', action: 'level', level: 'checks+review' });
+  await operatorAction(s.env, { mapId: s.mapId, by: 'trail lead', action: 'level', level: 'checks+review' });
   const snap = await s.adapter.loadMap(s.mapId);
   assert.equal(snap.tickets[0].verification, 'off');
   assert.equal(snap.map.verification, 'checks+review');
-  await operatorAction(s.env, { mapId: s.mapId, by: 'operator', action: 'level', level: null });
+  await operatorAction(s.env, { mapId: s.mapId, by: 'trail lead', action: 'level', level: null });
   assert.equal((await s.adapter.loadMap(s.mapId)).map.verification, undefined);
-  await assert.rejects(setVerification(s.adapter, { mapId: s.mapId }, 'off', 'agent'), /only the operator/);
+  await assert.rejects(setVerification(s.adapter, { mapId: s.mapId }, 'off', 'agent'), /only the trail lead/);
 });
 
 test('verification routes: ticket record, logs confined to .evidence, actions refused cross-site', async () => {
@@ -158,7 +158,7 @@ test('verification routes: ticket record, logs confined to .evidence, actions re
       level: { level: string; source: string };
       attempts: { id: string; checks: { log: string }[] }[];
     };
-    assert.deepEqual([rec.level.level, rec.level.source, rec.attempts[0].id], ['checks', 'mission', 'A-1']);
+    assert.deepEqual([rec.level.level, rec.level.source, rec.attempts[0].id], ['checks', 'trail', 'A-1']);
     const log = await fetch(`${base}/log?path=${encodeURIComponent(rec.attempts[0].checks[0].log)}`);
     assert.equal(log.status, 200);
     assert.equal((await fetch(`${base}/log?path=${encodeURIComponent('../verification.json')}`)).status, 404);

@@ -25,17 +25,17 @@ import { SyncedAdapter } from '../sync/syncedAdapter';
 import type { RemoteComment, SyncOptions } from '../sync/types';
 import { ensureGitHubLabels } from './ensureGitHubLabels';
 import { GitHubClient } from './githubClient';
-import { readMission } from './readMission';
-import { labelNames, MISSION_QUERY, type GqlIssue, type RestIssue } from './schema';
+import { readTrail } from './readTrail';
+import { labelNames, TRAIL_QUERY, type GqlIssue, type RestIssue } from './schema';
 
 /*
  * GitHub Issues mapping:
- *   mission    issue labelled MAP_LABEL; body = canonical map body (mapBody.ts)
- *   ticket     sub-issue of the mission issue, labelled miloops:<type>
+ *   trail    issue labelled MAP_LABEL; body = canonical map body (mapBody.ts)
+ *   ticket     sub-issue of the trail issue, labelled teamtrail:<type>
  *   blockedBy  native issue dependency ("blocked by")
  *   close      closed as completed / not planned
  *   decision   comment on the ticket (format.ts)
- * Reads: one GraphQL query per mission. Polling: an ETag-conditional issue
+ * Reads: one GraphQL query per trail. Polling: an ETag-conditional issue
  * list, so an idle repo costs nothing against the rate limit (304s are free).
  */
 
@@ -54,7 +54,7 @@ export class GitHubAdapter extends SyncedAdapter {
   private gh: GitHubClient;
   /** Issue number → REST id (sub-issue and dependency endpoints take ids, not numbers). */
   private issueIds = new Map<string, number>();
-  /** `<mission>/<D-n>` → comment id holding the record. */
+  /** `<trail>/<D-n>` → comment id holding the record. */
   private decisionComments = new Map<string, number>();
   private etag?: string;
   private cursor?: string;
@@ -82,15 +82,15 @@ export class GitHubAdapter extends SyncedAdapter {
   }
 
   protected async fetchMap(mapId: string): Promise<{ snap: MapSnapshot; decisions: DecisionRecord[] }> {
-    const data = await this.gh.gql<{ repository: { issue: GqlIssue | null } | null }>(MISSION_QUERY, {
+    const data = await this.gh.gql<{ repository: { issue: GqlIssue | null } | null }>(TRAIL_QUERY, {
       owner: this.gh.owner,
       name: this.gh.name,
       number: Number(mapId),
     });
     const root = data.repository?.issue;
     if (!root || !root.labels.nodes.some((l) => l.name === MAP_LABEL))
-      throw new TrackerError('not_found', `GitHub: #${mapId} is not a mission in ${this.location}`);
-    const m = readMission(mapId, root);
+      throw new TrackerError('not_found', `GitHub: #${mapId} is not a trail in ${this.location}`);
+    const m = readTrail(mapId, root);
     for (const [n, id] of m.issueIds) this.issueIds.set(n, id);
     for (const [key, id] of m.decisionComments) this.decisionComments.set(key, id);
     return { snap: m.snap, decisions: m.decisions };
@@ -113,8 +113,8 @@ export class GitHubAdapter extends SyncedAdapter {
     if (since === undefined) return 'all';
     const out: string[] = [];
     for (const i of items.filter((x) => x.updated_at > since && !x.pull_request)) {
-      const mission = known(String(i.number));
-      if (mission) out.push(mission);
+      const trail = known(String(i.number));
+      if (trail) out.push(trail);
       else if (labelNames(i.labels).some((l) => l.startsWith(`${BRAND.labelPrefix}:`))) return 'all';
     }
     return out;

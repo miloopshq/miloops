@@ -14,7 +14,7 @@ import { handleJournal } from './journalRoutes';
 import { handleKnowledge } from './knowledgeRoutes';
 import { handleLeases } from './leaseRoutes';
 import { handlePolicy } from './policyRoutes';
-import { handleReplans } from './replanRoutes';
+import { handleReroutes } from './rerouteRoutes';
 import { sendTrackerError } from './trackerErrors';
 import { createTrackerRoutes } from './trackerRoutes';
 import { handleVerification } from './verificationRoutes';
@@ -28,7 +28,7 @@ import { handleWorkspaces } from './workspaceRoutes';
 
 /**
  * HTTP API for the local-markdown tracker. Shared by the Vite dev plugin and
- * the `miloops` CLI so both serve the same contract.
+ * the `teamtrail` CLI so both serve the same contract.
  */
 export function createTrackerBridge(root: string, options: BridgeOptions = {}): TrackerBridge {
   const {
@@ -73,7 +73,7 @@ export function createTrackerBridge(root: string, options: BridgeOptions = {}): 
     (req, res, url) => handleVerificationSync({ ...ctx, watch: reconciler }, req, res, url),
     (req, res, url) => handleAgents(abs, req, res, url),
     (req, res, url) => handleBriefs(ctx, req, res, url),
-    (req, res, url) => handleReplans(ctx, req, res, url),
+    (req, res, url) => handleReroutes(ctx, req, res, url),
     (req, res, url) => handleKnowledge(abs, req, res, url),
     (req, res, url) => handleCriteria(abs, req, res, url),
     (req, res, url) => handlePolicy(ctx, req, res, url),

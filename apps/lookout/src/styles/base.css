@@ -1,0 +1,84 @@
+/* Fonts and base elements. Colours live in theme.css, sizes and shared components in design-system.css. */
+:root {
+  /* Three fonts (src/fonts.ts). Bricolage Grotesque: --display for the wordmark and titles. Figtree: --sans for
+   * everything read, --label for small caps labels, --strong for bold text and buttons, --data for numbers that
+   * change (tabular digits). JetBrains Mono: --mono for keys, ids, timers and code. */
+  --display: 'Bricolage Grotesque Variable', 'Figtree Variable', sans-serif;
+  --sans: 'Figtree Variable', system-ui, sans-serif;
+  --label: var(--sans);
+  --strong: var(--sans);
+  --data: var(--sans);
+  --mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  /* Type voices: people and agents read in Figtree (bubbles and colors tell them apart); tool data is mono. */
+  --voice-human: var(--sans);
+  --voice-agent: var(--sans);
+  --voice-data: var(--mono);
+  /* Scout's own lines (briefing, onboarding) use the title face. */
+  --voice-scout: var(--display);
+
+  /* Map graph text is in SVG units and scales with zoom; these sizes are tuned to NODE_W/NODE_H. */
+  --fs-node-title: 11.5px;
+  --fs-node-meta: 9.5px;
+  --fs-node-tag: 7.5px;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  width: 100%;
+  overflow: hidden;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+strong,
+b {
+  font-family: var(--strong);
+  font-weight: 600;
+}
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line2);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dim {
+  color: var(--dim);
+}
+.key {
+  font-family: var(--mono);
+  color: var(--dim);
+  font-size: var(--fs-sm);
+}
+code {
+  font-family: var(--data);
+  font-size: var(--fs-sm);
+  color: var(--text-hi);
+  background: var(--panel2);
+  padding: 1px 5px;
+}

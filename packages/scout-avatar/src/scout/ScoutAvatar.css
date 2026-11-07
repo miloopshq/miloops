@@ -1,0 +1,180 @@
+/* Scout pixel avatar. Sprite colors live in art.ts / frames.ts palettes; panel colors fall back to the lookout tokens; override any --scout-* var on a parent. */
+.scout {
+  --scout-ink: #9fbcc2;
+  --scout-dim: #5f8792;
+  --scout-hi: #e3eff1;
+  --scout-accent: #c98b5e;
+  --scout-warn: var(--urgent, #ff4d42);
+  --scout-line: var(--line, rgba(110, 215, 228, 0.16));
+  --scout-line2: var(--line2, rgba(110, 215, 228, 0.3));
+  --scout-panel: var(--panel, rgba(7, 15, 18, 0.9));
+  --scout-corner: rgba(143, 196, 206, 0.7);
+  --scout-mono: var(--mono, 'Share Tech Mono'), ui-monospace, monospace;
+  --scout-display: var(--display, 'Chakra Petch'), 'Barlow', sans-serif;
+  --scout-sans: var(--sans, 'Barlow'), system-ui, sans-serif;
+  color: var(--scout-ink);
+}
+
+.scout-sprite {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+.scout-sprite svg {
+  display: block;
+  image-rendering: pixelated;
+}
+.scout-wave {
+  display: block;
+}
+
+.scout-bare {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0;
+}
+.scout-bare.scout-alert .scout-sprite {
+  outline: 1px solid var(--scout-warn);
+  outline-offset: 1px;
+}
+
+/* ---------- Panel ---------- */
+.scout-panel {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0 calc(var(--scout-u) * 3) calc(var(--scout-u) * 3);
+  background: var(--scout-panel);
+  border: 1px solid var(--scout-line);
+  min-width: 0;
+}
+.scout-panel::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  --c: var(--scout-corner);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 1px 12px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 1px 12px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 1px 12px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 1px 12px no-repeat;
+}
+.scout-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  margin: 0 calc(var(--scout-u) * -3) calc(var(--scout-u) * 3);
+  padding: 0 10px;
+  border-bottom: 1px solid var(--scout-line);
+  font-family: var(--scout-mono);
+  font-size: var(--fs-label, 11px);
+  letter-spacing: var(--ls-label, 0.12em);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.scout-name {
+  font-family: var(--scout-display);
+  font-weight: 600;
+  font-size: var(--fs-sm, 12px);
+  letter-spacing: 0.16em;
+  color: var(--scout-hi);
+}
+.scout-sep {
+  color: var(--scout-dim);
+}
+.scout-status {
+  color: var(--scout-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.scout-head::after {
+  content: '';
+  margin-left: auto;
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  background: var(--scout-dim);
+}
+.scout-speaking .scout-head::after {
+  background: var(--scout-accent);
+}
+.scout-thinking .scout-head::after {
+  background: var(--scout-ink);
+}
+
+.scout-feed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--scout-u) * 2);
+  padding: calc(var(--scout-u) * 2) calc(var(--scout-u) * 4) calc(var(--scout-u) * 2);
+  background: rgba(2, 8, 10, 0.55);
+  border: 1px solid var(--scout-line);
+}
+.scout-wave {
+  visibility: hidden;
+}
+.scout-wave.on {
+  visibility: visible;
+}
+.scout-caption {
+  margin: 10px 0 0;
+  min-height: 2.9em;
+  max-width: 100%;
+  font-family: var(--scout-sans);
+  font-size: var(--fs-body, 13px);
+  line-height: var(--lh-body, 1.45);
+  color: var(--scout-hi);
+  text-align: left;
+}
+.scout-caret {
+  color: var(--scout-accent);
+}
+.scout-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Alert: saturated color is reserved for this state ---------- */
+.scout-alert {
+  border-color: color-mix(in srgb, var(--scout-warn) 45%, transparent);
+}
+.scout-alert::before {
+  --c: var(--scout-warn);
+}
+.scout-alert .scout-status {
+  color: var(--scout-warn);
+}
+.scout-alert .scout-head::after {
+  background: var(--scout-warn);
+}
+.scout-panel.scout-alert {
+  animation: scout-attn 0.45s ease-out 2;
+}
+@keyframes scout-attn {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--scout-warn) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scout-panel.scout-alert {
+    animation: none;
+  }
+}

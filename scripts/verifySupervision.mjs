@@ -1,5 +1,5 @@
-// M4 steps of the end-to-end check (verify-mcp.mjs), run on the discovery mission after its brief is accepted, so
-// the brief's assumption is already the mission's S-1. Asserts on what the user sees in the command center.
+// M4 steps of the end-to-end check (verify-mcp.mjs), run on the discovery trail after its brief is accepted, so
+// the brief's assumption is already the trail's S-1. Asserts on what the user sees in the Lookout.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -39,10 +39,10 @@ async function riskyDecision({ call }) {
 }
 
 /**
- * Challenge S-1, propose a replan that cancels one ticket and adds two, find the cancelled ticket frozen, approve in
- * the command center, see the new tickets on the map and the replan steps in the journal, and claim a new ticket.
+ * Challenge S-1, propose a reroute that cancels one ticket and adds two, find the cancelled ticket frozen, approve in
+ * the Lookout, see the new tickets on the map and the reroute steps in the journal, and claim a new ticket.
  */
-async function replanFlow({ call, page, shot, repo, mapId, discoveryKey }) {
+async function rerouteFlow({ call, page, shot, repo, mapId, discoveryKey }) {
   // The brief is accepted, so the discovery ticket is done, as an agent would close it.
   await call('claim_ticket', { ticket: discoveryKey });
   await call('close_ticket', { resolution: 'Brief accepted.', noCodeReason: 'Discovery only; no code change.' });
@@ -51,7 +51,7 @@ async function replanFlow({ call, page, shot, repo, mapId, discoveryKey }) {
     assumption: 'S-1',
     evidence: 'The release notes already hold 1,400 releases (`fixed.txt` history); an in-memory index is too big.',
   });
-  const proposed = await call('propose_replan', {
+  const proposed = await call('propose_reroute', {
     reason: 'There are far more releases than the brief assumed, so search needs a prebuilt index.',
     evidence: 'S-1 is wrong: 1,400 releases today.',
     invalidates: ['S-1'],
@@ -68,19 +68,19 @@ async function replanFlow({ call, page, shot, repo, mapId, discoveryKey }) {
     ],
   });
   const frozen = await refused(call('claim_ticket', { ticket: index.ticket.key }));
-  await page.locator('.replan-banner button', { hasText: 'Review' }).click({ timeout: 20_000 });
-  await page.locator('.replan-dialog').waitFor();
-  await shot('12-replan-review');
-  await page.locator('.replan-approve').click();
+  await page.locator('.reroute-banner button', { hasText: 'Review' }).click({ timeout: 20_000 });
+  await page.locator('.reroute-dialog').waitFor();
+  await shot('12-reroute-review');
+  await page.locator('.reroute-approve').click();
   await page.locator('.node', { hasText: /Build a search/ }).waitFor({ timeout: 20_000 });
-  await page.locator('.replan-banner').waitFor({ state: 'detached', timeout: 15_000 });
-  await shot('13-replan-applied');
+  await page.locator('.reroute-banner').waitFor({ state: 'detached', timeout: 15_000 });
+  await shot('13-reroute-applied');
   const journal = fs
-    .readFileSync(path.join(repo, '.miloops', '.events', `${mapId}.jsonl`), 'utf8')
+    .readFileSync(path.join(repo, '.teamtrail', '.events', `${mapId}.jsonl`), 'utf8')
     .split('\n')
     .filter(Boolean)
     .map((l) => JSON.parse(l))
-    .filter((e) => e.kind === 'replan')
+    .filter((e) => e.kind === 'reroute')
     .map((e) => e.action);
   const next = await call('claim_ticket');
   const ok =
@@ -97,9 +97,9 @@ export async function verifySupervision(ctx) {
   ctx.log(`attention ${ranked ? 'ok' : 'WRONG'}: the blocking question ranks above the fyi one in the queue`);
   const risk = await riskyDecision(ctx);
   ctx.log(`risk policy ${risk.ok ? 'ok' : 'WRONG'}: ${risk.msg.split('\n')[0].slice(0, 140)}`);
-  const replan = await replanFlow(ctx);
+  const reroute = await rerouteFlow(ctx);
   ctx.log(
-    `replan ${replan.ok ? 'ok' : 'WRONG'}: frozen claim refused (${replan.frozen.slice(0, 80)}), approved in the command center, journal ${replan.journal.join(' → ')}, next claim "${replan.next}"`,
+    `reroute ${reroute.ok ? 'ok' : 'WRONG'}: frozen claim refused (${reroute.frozen.slice(0, 80)}), approved in the Lookout, journal ${reroute.journal.join(' → ')}, next claim "${reroute.next}"`,
   );
-  return ranked && risk.ok && replan.ok;
+  return ranked && risk.ok && reroute.ok;
 }

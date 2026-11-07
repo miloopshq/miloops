@@ -5,8 +5,8 @@ import { replay } from './fixtures';
 import {
   FROZEN,
   freezeTime,
-  missionFlow,
-  lateMissionFlow,
+  trailFlow,
+  lateTrailFlow,
   noSleep,
   offlineFlow,
   rateLimitFlow,
@@ -22,9 +22,9 @@ const adapter =
   () =>
     new GitHubAdapter({ repo, token: 'test-token', fetch, manual: true, ...noSleep });
 
-test('mission flow: issues, sub-issues, blocking, claims, comments and decisions round-trip through GitHub', async () => {
+test('trail flow: issues, sub-issues, blocking, claims, comments and decisions round-trip through GitHub', async () => {
   const rp = replay('github-flow.json');
-  const r = await missionFlow(adapter(rp.fetch));
+  const r = await trailFlow(adapter(rp.fetch));
   rp.done();
 
   assert.deepEqual(r.before, []);
@@ -36,12 +36,12 @@ test('mission flow: issues, sub-issues, blocking, claims, comments and decisions
   );
   assert.equal(r.snap.map.mode, 'plan-only');
 
-  const [research, grilling] = r.snap.tickets;
+  const [research, junction] = r.snap.tickets;
   assert.equal(research.key, r.r.key);
   assert.equal(research.state, 'closed');
   assert.equal(research.closeReason, 'completed');
   assert.equal(research.assignee, 'claude-07', 'claim survives as a body marker');
-  assert.ok(!research.body.includes('miloops:meta'), 'marker is hidden from the ticket body');
+  assert.ok(!research.body.includes('teamtrail:meta'), 'marker is hidden from the ticket body');
   assert.deepEqual(
     research.comments.map((c) => [c.author, c.body.split('\n')[0]]),
     [
@@ -49,15 +49,15 @@ test('mission flow: issues, sub-issues, blocking, claims, comments and decisions
       ['claude-07', '**Resolution**'],
     ],
   );
-  assert.equal(grilling.type, 'grilling');
-  assert.deepEqual(grilling.blockedBy, [research.id], 'native blocked-by dependency');
+  assert.equal(junction.type, 'junction');
+  assert.deepEqual(junction.blockedBy, [research.id], 'native blocked-by dependency');
 
   const byId = Object.fromEntries(r.decisions.map((d) => [d.id, d]));
   assert.deepEqual(Object.keys(byId).sort(), ['D-1', 'D-2']);
   assert.equal(byId['D-1'].supersededBy, 'D-2');
   assert.equal(byId['D-2'].supersedes, 'D-1');
   assert.equal(byId['D-2'].ticketId, research.id, 'decision is linked back to its ticket');
-  assert.equal(byId['D-2'].source.kind, 'command-center');
+  assert.equal(byId['D-2'].source.kind, 'lookout');
   assert.equal(byId['D-1'].decidedAt, FROZEN);
   assert.deepEqual(r.snap.map.sections.decisions, [
     { ticketKey: research.key, text: 'Use Automerge. Its history model fits the audit trail.' },
@@ -72,12 +72,12 @@ test('decision records are posted as readable comments on the ticket', () => {
   const record = posts.find((b) => b.startsWith('**Decision D-1**'));
   assert.ok(record, 'D-1 comment');
   assert.match(record!, /> Use Yjs\./);
-  assert.match(record!, /<!-- miloops:decision \{/);
+  assert.match(record!, /<!-- teamtrail:decision \{/);
 });
 
-test('missions charted by another process show up on the next poll, including before the first one', async () => {
-  const rp = replay('github-late-mission.json');
-  const r = await lateMissionFlow(adapter(rp.fetch));
+test('trails charted by another process show up on the next poll, including before the first one', async () => {
+  const rp = replay('github-late-trail.json');
+  const r = await lateTrailFlow(adapter(rp.fetch));
   rp.done();
   assert.deepEqual(r.before, []);
   assert.deepEqual(
@@ -139,16 +139,16 @@ test('rate limits: short secondary limits retry in place; a primary limit queues
   );
 });
 
-test('live recording (api.github.com): test connection, empty mission list, ETag polling', async () => {
+test('live recording (api.github.com): test connection, empty trail list, ETag polling', async () => {
   const rp = replay('github-live-read.json');
   assert.equal(rp.fixture.source, 'live');
-  const result = await testGitHub({ repo: 'miloopshq/miloops', token: 'test-token', fetch: rp.fetch, retries: 0 });
+  const result = await testGitHub({ repo: 'teamtrailhq/teamtrail', token: 'test-token', fetch: rp.fetch, retries: 0 });
   assert.equal(result.ok, true);
-  assert.equal(result.target, 'miloopshq/miloops');
+  assert.equal(result.target, 'teamtrailhq/teamtrail');
   assert.equal(result.account, undefined, 'app installation tokens have no user; the test still passes');
   assert.equal(result.canWrite, false);
   assert.ok(result.rate?.limit);
-  const a = adapter(rp.fetch, 'miloopshq/miloops')();
+  const a = adapter(rp.fetch, 'teamtrailhq/teamtrail')();
   assert.deepEqual(await a.listMaps(), []);
   a.subscribe(() => {});
   await a.tick();

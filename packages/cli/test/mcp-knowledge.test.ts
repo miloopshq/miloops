@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { applyCall, withCurrentHashes } from '@miloops-hq/core';
-import { blobHash, readKnowledge, writeKnowledge } from '@miloops-hq/core/agents';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { applyCall, withCurrentHashes } from '@teamtrail/core';
+import { blobHash, readKnowledge, writeKnowledge } from '@teamtrail/core/agents';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { importKnowledge } from '../src/knowledgeImport';
-import { MissionAgent } from '../src/mcp/agent';
+import { TrailAgent } from '../src/mcp/agent';
 import { createMcpServer } from '../src/mcp/server';
 
 let repo: string;
@@ -15,7 +15,7 @@ let root: string;
 const open: { close(): void | Promise<void> }[] = [];
 
 async function connect() {
-  const agent = new MissionAgent({ root, agent: 'claude-01', pollMs: 20 });
+  const agent = new TrailAgent({ root, agent: 'claude-01', pollMs: 20 });
   const server = createMcpServer(agent, '0.0.0-test');
   const [a, b] = InMemoryTransport.createLinkedPair();
   const client = new Client({ name: 'claude-code', version: '1.0.0' });
@@ -28,7 +28,7 @@ async function connect() {
   };
 }
 
-/** The operator's confirm, as the command center does it (records the anchored files' hashes). */
+/** The trail lead's confirm, as the Lookout does it (records the anchored files' hashes). */
 const confirm = (id: string) =>
   writeKnowledge(
     root,
@@ -36,11 +36,11 @@ const confirm = (id: string) =>
   );
 
 beforeEach(() => {
-  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-knowledge-'));
+  repo = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-knowledge-'));
   fs.mkdirSync(path.join(repo, '.git'));
   fs.mkdirSync(path.join(repo, 'src/notify'), { recursive: true });
   fs.writeFileSync(path.join(repo, 'src/notify/service.ts'), 'export const send = () => {};\n');
-  root = path.join(repo, '.miloops');
+  root = path.join(repo, '.teamtrail');
 });
 afterEach(async () => {
   for (const o of open.splice(0)) await o.close();
@@ -52,7 +52,7 @@ type Claimed = { knowledge?: { id: string; why: string[]; status: string; mayBeO
 describe('project knowledge over MCP', () => {
   it('suggestions wait for review; confirmed entries arrive with the claim, with why, and go stale on change', async () => {
     const call = await connect();
-    await call('start_mission', {
+    await call('start_trail', {
       discovery: false,
       title: 'Reminders',
       destination: 'D',
@@ -76,15 +76,15 @@ describe('project knowledge over MCP', () => {
     confirm(p.proposed.id);
     const claimed = await call<Claimed>('claim_ticket');
     expect(claimed.knowledge).toEqual([expect.objectContaining({ id: p.proposed.id, status: 'confirmed' })]);
-    expect(claimed.knowledge?.[0].why).toEqual(['path match src/notify/** (src/notify/service.ts)', 'same mission']);
+    expect(claimed.knowledge?.[0].why).toEqual(['path match src/notify/** (src/notify/service.ts)', 'same trail']);
     expect(claimed.knowledge?.[0].mayBeOutdated).toBeUndefined();
 
     // The anchored file changes: the entry is still delivered, marked for re-confirmation.
     fs.writeFileSync(path.join(repo, 'src/notify/service.ts'), 'export const send = (to: string) => to;\n');
-    const after = await call<Claimed>('resume_mission');
+    const after = await call<Claimed>('resume_trail');
     expect(after.knowledge?.[0].mayBeOutdated).toEqual(['src/notify/service.ts']);
 
-    // Agents flag what contradicts the code; only the operator resolves it.
+    // Agents flag what contradicts the code; only the trail lead resolves it.
     await call('flag_knowledge', { id: p.proposed.id, reason: 'service.ts now takes a recipient' });
     expect(readKnowledge(root, p.proposed.id)?.flag?.reason).toBe('service.ts now takes a recipient');
     await expect(call('propose_knowledge', { kind: 'nope', title: 't', body: 'b' })).rejects.toThrow();

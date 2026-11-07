@@ -6,7 +6,7 @@ import type { RouteContext } from './routeContext';
 
 /**
  * `/policy`: the project's risk policy (`policy.json` under `root`); false when the path doesn't match.
- * GET returns `{ policy, errors, defaults }`. PUT takes a whole policy from the operator, validates it like the file,
+ * GET returns `{ policy, errors, defaults }`. PUT takes a whole policy from the trail lead, validates it like the file,
  * and answers 400 with every error, or 200 with the saved policy.
  */
 export async function handlePolicy(

@@ -32,7 +32,7 @@ import { outcomeOf } from '../src/verification/outcome';
 import { verificationFor } from '../src/verification/policy';
 import { acquireRunLock, readRunLock, recoverInterrupted, releaseRunLock, RUNS_DIR } from '../src/verification/runLock';
 
-const tmp = () => mkdtempSync(path.join(os.tmpdir(), 'miloops-verif-'));
+const tmp = () => mkdtempSync(path.join(os.tmpdir(), 'teamtrail-verif-'));
 const SECTIONS = { destination: 'D', notes: '', decisions: [], unspecified: [], outOfScope: [] };
 
 const ticket = (over: Partial<Ticket> = {}): Ticket => ({
@@ -52,7 +52,7 @@ const ticket = (over: Partial<Ticket> = {}): Ticket => ({
 const mapDoc = (over: Partial<MapDoc> = {}): MapDoc => ({
   id: 'm',
   key: 'm',
-  title: 'Mission',
+  title: 'Trail',
   mode: 'plan+execute',
   sections: SECTIONS,
   createdAt: 0,
@@ -108,17 +108,17 @@ test('readVerificationConfig: missing file is not an error, the hash follows the
   assert.notEqual(a.hash, b.hash);
 });
 
-test('level: ticket override, then the mission for the types it applies to, else off', () => {
+test('level: ticket override, then the trail for the types it applies to, else off', () => {
   const config = { ...DEFAULT_CONFIG, run: ['test'] };
   assert.deepEqual(verificationFor(config, mapDoc(), ticket()), { level: 'off', source: 'none', checks: ['test'] });
   assert.equal(verificationFor(undefined, mapDoc(), ticket()).level, 'off');
-  const mission = mapDoc({ verification: 'checks+review' });
-  assert.equal(verificationFor(config, mission, ticket()).level, 'checks+review');
-  assert.equal(verificationFor(config, mission, ticket()).source, 'mission');
-  assert.equal(verificationFor(config, mission, ticket({ type: 'research' })).level, 'off');
-  const own = verificationFor(config, mission, ticket({ type: 'research', verification: 'checks', checks: ['lint'] }));
+  const trail = mapDoc({ verification: 'checks+review' });
+  assert.equal(verificationFor(config, trail, ticket()).level, 'checks+review');
+  assert.equal(verificationFor(config, trail, ticket()).source, 'trail');
+  assert.equal(verificationFor(config, trail, ticket({ type: 'research' })).level, 'off');
+  const own = verificationFor(config, trail, ticket({ type: 'research', verification: 'checks', checks: ['lint'] }));
   assert.deepEqual(own, { level: 'checks', source: 'ticket', checks: ['lint'] });
-  assert.equal(verificationFor(config, mission, ticket({ verification: 'off' })).level, 'off');
+  assert.equal(verificationFor(config, trail, ticket({ verification: 'off' })).level, 'off');
 });
 
 test('stored fields round-trip in markdown and the remote meta marker; old files read back unchanged', () => {
@@ -141,7 +141,7 @@ test('stored fields round-trip in markdown and the remote meta marker; old files
     id: '3',
     key: '#3',
     title: 'Ship it',
-    labels: ['miloops:execute'],
+    labels: ['teamtrail:execute'],
     body: joinBody('Do the thing', ticketMeta(t)),
     closed: false,
     blockedBy: [],
@@ -154,13 +154,13 @@ test('stored fields round-trip in markdown and the remote meta marker; old files
   assert.deepEqual(remote.checks, ['lint', 'test']);
   assert.equal(remote.status, 'rework');
   assert.equal(remote.body, 'Do the thing');
-  const mission = mapFromIssue({
+  const trail = mapFromIssue({
     ...issue,
-    labels: ['miloops:map'],
+    labels: ['teamtrail:map'],
     body: joinBody('## Destination\n\nD', { verification: 'checks' }),
   });
-  assert.equal(mission.verification, 'checks');
-  assert.equal(mission.sections.destination, 'D');
+  assert.equal(trail.verification, 'checks');
+  assert.equal(trail.sections.destination, 'D');
 });
 
 test('setMeta sets and clears the verification fields without touching status', async () => {
@@ -216,7 +216,7 @@ test('attempts and verdicts are numbered, written once, and kept out of git', ()
 
   const base = { v: 1 as const, mapId: 'm', ticketId: '3', attemptId: 'A-1', at: 3, findings: [] };
   const v1 = writeVerdict(root, { ...base, by: 'codex-02', byKind: 'agent', verdict: 'FAIL', summary: 'no tests' });
-  const v2 = writeVerdict(root, { ...base, by: 'operator', byKind: 'operator', verdict: 'PASS', summary: 'ok' });
+  const v2 = writeVerdict(root, { ...base, by: 'trail lead', byKind: 'trail lead', verdict: 'PASS', summary: 'ok' });
   assert.deepEqual([v1.id, v2.id], ['V-1', 'V-2']);
   assert.deepEqual(
     readVerdicts(root, 'm', '3').map((v) => v.verdict),
@@ -307,7 +307,7 @@ test('outcome: pass is done at checks and waits for review above; fails rework u
   });
 });
 
-test('missions keep their level from creation; issue bodies without one are unchanged', async () => {
+test('trails keep their level from creation; issue bodies without one are unchanged', async () => {
   const root = tmp();
   const a = new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
   const { map } = await chartMap(a, { title: 'V', sections: SECTIONS, verification: 'checks', tickets: [] });
@@ -343,18 +343,18 @@ test('chooseNext: rework before ready, oldest first', async () => {
   assert.equal(chooseNext(await a.loadMap(map.id))?.id, tickets[1].id);
 });
 
-test('a queued mission level change applies to the cache and reaches the issue body marker', () => {
+test('a queued trail level change applies to the cache and reaches the issue body marker', () => {
   const e = { snap: { map: mapDoc(), tickets: [] }, decisions: [], at: 0 };
   const w = (patch: { verification: 'checks' | null }) => ({
     id: 'w',
     mapId: 'm',
-    label: 'mission verification',
+    label: 'trail verification',
     at: 0,
     change: { kind: 'mapMeta' as const, patch },
   });
   applyWrite(e, w({ verification: 'checks' }), () => 1);
   assert.equal(e.snap.map.verification, 'checks');
-  assert.match(mapBody(e.snap.map), /miloops:meta \{"verification":"checks"\}/);
+  assert.match(mapBody(e.snap.map), /teamtrail:meta \{"verification":"checks"\}/);
   applyWrite(e, w({ verification: null }), () => 2);
   assert.equal(e.snap.map.verification, undefined);
   assert.equal(mapBody(e.snap.map), serializeMapBody(SECTIONS));

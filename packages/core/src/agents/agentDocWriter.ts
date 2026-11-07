@@ -6,7 +6,7 @@ import { agentPaths, type AgentAnswer, type AgentSessionDoc } from './agentLink'
 
 /**
  * Persists every session of an in-process ActivityStream as a session doc and
- * feeds answers written by the command center back into `activity.answer`.
+ * feeds answers written by the Lookout back into `activity.answer`.
  */
 export class AgentDocWriter {
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -63,7 +63,7 @@ export class AgentDocWriter {
       const ans = readJsonFile<AgentAnswer>(file);
       if (!ans) continue;
       rmSync(file, { force: true });
-      this.activity.answer(q.id, ans.text, ans.author || 'operator');
+      this.activity.answer(q.id, ans.text, ans.author || 'trail lead');
     }
   }
 

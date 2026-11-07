@@ -1,0 +1,99 @@
+/* ---------- Trails ---------- */
+.trail-switcher {
+  position: relative;
+  min-width: 0;
+}
+.trail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-8);
+  max-width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-hi);
+}
+.trail-title {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: var(--fs-heading);
+  letter-spacing: var(--ls-data);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.trail-btn .caret {
+  color: var(--accent);
+  font-size: var(--fs-label);
+}
+.trail-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 25;
+  width: min(460px, calc(100vw - 24px));
+  padding: var(--sp-6);
+  background: var(--panel-solid);
+  border: 1px solid var(--line2);
+  box-shadow: 0 16px 40px var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+}
+.menu-h {
+  color: var(--accent);
+  padding: var(--sp-6) var(--sp-10);
+}
+.trail-item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto 24px;
+  gap: var(--sp-8);
+  align-items: center;
+  padding: var(--sp-8) var(--sp-10);
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: var(--fs-body);
+}
+.trail-item:hover {
+  background: var(--accent-bg);
+}
+.trail-item.on .mi-title {
+  color: var(--accent);
+}
+.mi-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-hi);
+}
+.mi-progress {
+  color: var(--dim);
+  font-size: var(--fs-sm);
+  font-family: var(--data);
+}
+.trail-item.new {
+  display: block;
+  color: var(--st-claimed);
+  margin-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+.trail-meta {
+  display: inline-flex;
+  gap: 16px;
+  white-space: nowrap;
+}
+.trail-tag {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.trail-tag.cur {
+  color: var(--accent);
+}

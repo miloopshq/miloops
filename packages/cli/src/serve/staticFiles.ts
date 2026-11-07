@@ -15,7 +15,7 @@ const TYPES: Record<string, string> = {
   '.woff2': 'font/woff2',
 };
 
-/** Serves a file of the command-center bundle; unknown paths get `index.html` (client-side routes). */
+/** Serves a file of the lookout bundle; unknown paths get `index.html` (client-side routes). */
 export async function serveStatic(appDir: string, pathname: string, res: http.ServerResponse) {
   let rel = decodeURIComponent(pathname);
   let file = path.join(appDir, path.normalize(rel));

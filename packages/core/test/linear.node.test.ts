@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { LinearAdapter, testLinear } from '../src/adapters/remote/linear';
 import { replay } from './fixtures';
-import { freezeTime, lateMissionFlow, missionFlow, noSleep, syncFlow } from './scenarios';
+import { freezeTime, lateTrailFlow, trailFlow, noSleep, syncFlow } from './scenarios';
 
 let thaw: () => void;
 before(() => (thaw = freezeTime()));
@@ -11,15 +11,15 @@ after(() => thaw());
 const adapter = (fetch: typeof globalThis.fetch) => () =>
   new LinearAdapter({ apiKey: 'lin_api_test', teamId: 'team-eng', fetch, manual: true, ...noSleep });
 
-test('mission flow: parent issue, sub-issues, "blocks" relations, states and decision comments round-trip through Linear', async () => {
+test('trail flow: parent issue, sub-issues, "blocks" relations, states and decision comments round-trip through Linear', async () => {
   const rp = replay('linear-flow.json');
-  const r = await missionFlow(adapter(rp.fetch));
+  const r = await trailFlow(adapter(rp.fetch));
   rp.done();
   assert.deepEqual(r.before, []);
   assert.equal(r.maps.length, 1);
   assert.match(r.map.key, /^ENG-\d+$/);
   assert.equal(r.snap.map.mode, 'plan-only');
-  const [research, grilling] = r.snap.tickets;
+  const [research, junction] = r.snap.tickets;
   assert.equal(research.state, 'closed');
   assert.equal(research.closeReason, 'completed');
   assert.equal(research.assignee, 'claude-07');
@@ -27,7 +27,7 @@ test('mission flow: parent issue, sub-issues, "blocks" relations, states and dec
     research.comments.map((c) => c.author),
     ['claude-07', 'claude-07'],
   );
-  assert.deepEqual(grilling.blockedBy, [research.id]);
+  assert.deepEqual(junction.blockedBy, [research.id]);
   const d = Object.fromEntries(r.decisions.map((x) => [x.id, x]));
   assert.equal(d['D-1'].supersededBy, 'D-2');
   assert.equal(d['D-2'].ticketKey, research.key);
@@ -49,9 +49,9 @@ test('mission flow: parent issue, sub-issues, "blocks" relations, states and dec
   );
 });
 
-test('missions charted by another process show up on the next poll, including before the first one', async () => {
-  const rp = replay('linear-late-mission.json');
-  const r = await lateMissionFlow(adapter(rp.fetch));
+test('trails charted by another process show up on the next poll, including before the first one', async () => {
+  const rp = replay('linear-late-trail.json');
+  const r = await lateTrailFlow(adapter(rp.fetch));
   rp.done();
   assert.deepEqual(r.before, []);
   assert.deepEqual(

@@ -131,7 +131,7 @@ describe('policyViolations', () => {
       attempt('5', ['db/migrations/3.sql']),
     ];
     const decisions = [
-      decision('D-1', { ticketId: '3', decidedBy: 'operator' }),
+      decision('D-1', { ticketId: '3', decidedBy: 'trail lead' }),
       decision('D-2', { ticketId: '4' }),
       decision('D-3', { ticketId: '2' }),
     ];

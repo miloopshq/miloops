@@ -18,7 +18,7 @@ export interface SessionHandle {
   bindMap(mapId: string): void;
   /** Add model usage reported by the agent. */
   usage(delta: SessionUsage): void;
-  /** Replace the session's cumulative usage (measured from the agent's logs); the mission total moves by the difference. */
+  /** Replace the session's cumulative usage (measured from the agent's logs); the trail total moves by the difference. */
   setUsage(total: SessionUsage): void;
 }
 
@@ -32,7 +32,7 @@ export interface SessionHost {
   /** Drops the session's open questions. */
   dropPending(sessionId: string): void;
   awaitAnswer(questionId: string): Promise<string>;
-  /** Adds to the mission's usage total without notifying subscribers; the session patch that follows does. */
+  /** Adds to the trail's usage total without notifying subscribers; the session patch that follows does. */
   addMapUsage(mapId: string, delta: SessionUsage): void;
   ledger(): UsageLedger | undefined;
 }

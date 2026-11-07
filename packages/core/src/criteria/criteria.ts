@@ -5,7 +5,7 @@ import type { CheckResult } from '../model/verification';
 /**
  * Acceptance criteria: what "done" means for a ticket, agreed before the work starts. Each criterion needs evidence
  * when the work is completed: a passing check from verification.json, a named test or command, the pull request,
- * or the operator's sign-off (`manual`). Stored per mission in `<tracker dir>/criteria/<mapId>.md`.
+ * or the trail lead's sign-off (`manual`). Stored per trail in `<tracker dir>/criteria/<mapId>.md`.
  */
 export type CriterionKind = 'unit' | 'integration' | 'e2e' | 'regression' | 'business-rule' | 'security' | 'manual';
 export const CRITERION_KINDS: CriterionKind[] = [
@@ -31,7 +31,7 @@ export interface TicketCriteria {
   ticketId: string;
   ticketKey: string;
   criteria: Criterion[];
-  /** The operator confirmed these criteria; cleared whenever they change. */
+  /** The trail lead confirmed these criteria; cleared whenever they change. */
   confirmed?: boolean;
 }
 
@@ -49,7 +49,7 @@ export interface CriteriaResult {
   missing: string[];
   /** Criteria whose evidence is a check that failed or didn't run. */
   failed: string[];
-  /** Criteria the operator must sign off. */
+  /** Criteria the trail lead must sign off. */
   manual: string[];
   evidence: CriterionEvidence[];
 }
@@ -57,7 +57,7 @@ export interface CriteriaResult {
 export const CRITERIA_DIR = 'criteria';
 export const isCriterionKind = (v: unknown): v is CriterionKind => CRITERION_KINDS.includes(v as CriterionKind);
 
-/** Implementation tickets on missions with a discovery brief need criteria before they can be completed. */
+/** Implementation tickets on trails with a discovery brief need criteria before they can be completed. */
 export const IMPLEMENTATION_TYPES: TicketType[] = ['task', 'execute', 'prototype'];
 export function criteriaRequired(hasBrief: boolean, type: TicketType, level: VerificationLevel) {
   return hasBrief && level !== 'off' && IMPLEMENTATION_TYPES.includes(type);
@@ -77,7 +77,7 @@ const passed = (c: CheckResult) => c.exitCode === 0 && !c.timedOut && !c.error;
 
 /**
  * Matches the agent's evidence to the criteria. Deterministic: a criterion with no evidence is missing; a `check:`
- * that didn't run or didn't pass fails it; `manual` waits for the operator; named tests, commands and the PR count as
+ * that didn't run or didn't pass fails it; `manual` waits for the trail lead; named tests, commands and the PR count as
  * the agent states them (the checks still have to pass overall).
  */
 export function checkCriteria(

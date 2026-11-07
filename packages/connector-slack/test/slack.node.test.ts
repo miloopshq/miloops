@@ -3,8 +3,8 @@ import { existsSync, readFileSync } from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { after, before, test } from 'node:test';
-import { MemoryAdapter } from '@miloops-hq/core';
-import { createTrackerBridge } from '@miloops-hq/core/bridge';
+import { MemoryAdapter } from '@teamtrail/core';
+import { createTrackerBridge } from '@teamtrail/core/bridge';
 import { FIXTURES } from '../../core/test/fixtures';
 import { BOT_SCOPES, appIdFromToken, slackLinks, slackManifest, tokenKind } from '../src/manifest';
 import { slackPlugin, slackRoutes } from '../src/node';
@@ -49,13 +49,16 @@ test('setup: tokens are routed by prefix, checked live, stored only in the local
   assert.equal(r.s0.step, 1);
   assert.equal(r.s1.step, 2);
   assert.deepEqual([r.userToken.ok, r.userToken.code], [false, 'user_token']);
-  assert.deepEqual([r.app.ok, r.app.kind, r.app.status.step, r.app.status.setup.appId], [true, 'app', 4, 'A0MILO0001']);
-  assert.equal(r.app.status.links.install, 'https://api.slack.com/apps/A0MILO0001/install-on-team');
+  assert.deepEqual(
+    [r.app.ok, r.app.kind, r.app.status.step, r.app.status.setup.appId],
+    [true, 'app', 4, 'A0Scout0001'],
+  );
+  assert.equal(r.app.status.links.install, 'https://api.slack.com/apps/A0Scout0001/install-on-team');
   assert.deepEqual([r.missingScope.ok, r.missingScope.code], [false, 'missing_scope']);
   assert.match(r.missingScope.error!, /users:read/);
   assert.deepEqual([r.bot.ok, r.bot.kind, r.bot.status.enabled], [true, 'bot', true]);
   assert.deepEqual([r.beforeClaim.state, r.beforeClaim.step], ['online', 5]);
-  assert.equal(r.beforeClaim.links.home, 'slack://app?team=T0EFIKA01&id=A0MILO0001&tab=home');
+  assert.equal(r.beforeClaim.links.home, 'slack://app?team=T0EFIKA01&id=A0Scout0001&tab=home');
   assert.deepEqual(
     [r.after.step, r.after.owners],
     ['done', [{ id: ANA, name: 'ana', via: 'home' }]],
@@ -101,13 +104,13 @@ test('asks: DM to the owner, buttons answer the waiting agent, late and unauthor
   );
   assert.deepEqual(
     ask.blocks[1].elements.map((e: { text: { text: string } }) => e.text.text),
-    ['Postgres', 'SQLite', 'Reply…', 'Open in MILOOPS'],
+    ['Postgres', 'SQLite', 'Reply…', 'Open in Teamtrail'],
   );
   assert.equal(ask.blocks[1].elements[3].url, URL_);
   const updates = posts(fx, 'chat.update').map((u) => u.text);
   assert.deepEqual(updates, [
     `✓ Answered by <@${ANA}> via Slack: “Postgres”. claude-07 resumed.`,
-    '✓ Answered in MILOOPS by operator: “90 days”.',
+    '✓ Answered in Teamtrail by trail lead: “90 days”.',
     `✓ Answered by <@${ANA}> via Slack: “event_log”. claude-09 resumed.`,
     'No longer waiting: claude-07 session ended.',
   ]);
@@ -115,8 +118,8 @@ test('asks: DM to the owner, buttons answer the waiting agent, late and unauthor
   assert.deepEqual(
     responses(fx).map((b) => b.text),
     [
-      'Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack.',
-      'Already answered in MILOOPS.',
+      'Only the Teamtrail owner and allowed users can do that. Ask the owner to add you in Teamtrail Settings → Slack.',
+      'Already answered in Teamtrail.',
       'Nothing is waiting on you.',
     ],
   );
@@ -166,12 +169,12 @@ test('Save as decision: modal defaults to resolving the related ticket; the reco
     text: 'Use Postgres; SQLite for tests. ([Slack](https://efika.slack.com/archives/C0INFRA01/p1793448003000004), 2026-10-31)',
   });
 
-  const mission = r.all.find((d) => d.decidedBy === `slack:${RAJ}`)!;
-  assert.equal(mission.ticketId, undefined);
+  const trail = r.all.find((d) => d.decidedBy === `slack:${RAJ}`)!;
+  assert.equal(trail.ticketId, undefined);
   assert.equal(
-    mission.source.url,
-    'https://efika.slack.com/archives/G0MILOTST',
-    '/milo decide outside a thread links the channel',
+    trail.source.url,
+    'https://efika.slack.com/archives/G0ScoutTST',
+    '/scout decide outside a thread links the channel',
   );
   assert.equal(r.after.map.sections.decisions.length, 2);
 
@@ -190,11 +193,11 @@ test('Save as decision: modal defaults to resolving the related ticket; the reco
   assert.equal(
     switched.blocks.find((b: { block_id?: string }) => b.block_id === 'mode').element.initial_option.value,
     'new',
-    'a mission with no related ticket defaults to a new decision ticket',
+    'a trail with no related ticket defaults to a new decision ticket',
   );
   assert.match(
     posts(fx, 'views.update').find((u) => u.view.blocks[0].text?.text?.includes('Invite'))!.view.blocks[0].text.text,
-    /Invite @MILO to #random/,
+    /Invite @Scout to #random/,
   );
   const confirm = posts(fx, 'chat.postMessage')[0];
   assert.deepEqual(
@@ -204,37 +207,37 @@ test('Save as decision: modal defaults to resolving the related ticket; the reco
   assert.deepEqual(
     responses(fx).map((b) => b.text),
     [
-      'Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack.',
+      'Only the Teamtrail owner and allowed users can do that. Ask the owner to add you in Teamtrail Settings → Slack.',
       'Saved to *Event store*',
     ],
   );
 });
 
-test('/milo status, inbox and help', async () => {
+test('/scout status, inbox and help', async () => {
   const r = await replayed('slack-status.json', statusFlow);
-  assert.match((r.help as { text: string }).text, /\/milo decide \[text\]/);
-  assert.match((r.refused as { text: string }).text, /^Only the MILOOPS owner/);
+  assert.match((r.help as { text: string }).text, /\/scout decide \[text\]/);
+  assert.match((r.refused as { text: string }).text, /^Only the Teamtrail owner/);
   assert.match((r.unknown as { text: string }).text, /^Unknown command `dance`/);
   const out = responses(fixture('slack-status.json'));
   assert.match(out[0].blocks[0].text.text, /\*#1\* Event store · 0\/4 · 1 awaiting · 1 blocked/);
   assert.match(out[1].blocks[0].text.text, /Awaiting you {2}1 {2}\(#3, 12m\)\nBlocked {7}1 {2}\(#5 by #3\)/);
   assert.match(out[1].blocks[0].text.text, /Sessions {6}claude-07 waiting · \$4\.12 · 1\.8M tok/);
-  assert.equal(out[2].text, 'No mission matches “nope”.');
+  assert.equal(out[2].text, 'No trail matches “nope”.');
   assert.match(out[3].blocks[0].text.text, /AWAITING YOU\* · Event store · #3 Pick DB/);
   assert.equal(out[3].blocks[1].elements[0].action_id, 'ask_reply', 'a question without suggestions offers Reply…');
 });
 
-test('notifications: blocked and mission done reach the DM, batched per mission and threaded under the first of the day', async () => {
+test('notifications: blocked and trail done reach the DM, batched per trail and threaded under the first of the day', async () => {
   await replayed('slack-notify.json', notifyFlow);
   const msgs = posts(fixture('slack-notify.json'), 'chat.postMessage');
-  assert.equal(msgs.length, 2, 'nothing for the baseline; one message per mission per flush');
+  assert.equal(msgs.length, 2, 'nothing for the baseline; one message per trail per flush');
   assert.equal(msgs[0].text, '⛔ *BLOCKED* · Event store · #2 Bench write paths is blocked by #4 Retention policy');
   assert.equal(msgs[1].thread_ts, '1793448000.000001');
-  assert.match(msgs[1].text, /◉ \*MISSION DONE\* · Event store · 4 tickets/);
+  assert.match(msgs[1].text, /◉ \*TRAIL DONE\* · Event store · 4 tickets/);
   assert.doesNotMatch(msgs[1].text, /Bench write paths → /, 'a closed ticket is not counted as unblocked');
 });
 
-test('approvals: a reviewed pass and a held ticket reach the owner; Approve and Rework… decide them as the operator', async () => {
+test('approvals: a reviewed pass and a held ticket reach the owner; Approve and Rework… decide them as the trail lead', async () => {
   const r = await replayed('slack-approvals.json', approvalFlow);
   assert.deepEqual([r.api.state, r.api.closeReason], ['closed', 'completed']);
   assert.deepEqual([r.mig.state, r.mig.status], ['open', 'rework']);
@@ -242,8 +245,8 @@ test('approvals: a reviewed pass and a held ticket reach the owner; Approve and 
     r.verdicts.map((v) => [v.by, v.byKind, v.verdict]),
     [
       ['claude-02', 'agent', 'PASS'],
-      [`slack:${ANA}`, 'operator', 'PASS'],
-      [`slack:${ANA}`, 'operator', 'FAIL'],
+      [`slack:${ANA}`, 'trail lead', 'PASS'],
+      [`slack:${ANA}`, 'trail lead', 'FAIL'],
     ],
   );
   const fx = fixture('slack-approvals.json');
@@ -254,19 +257,19 @@ test('approvals: a reviewed pass and a held ticket reach the owner; Approve and 
   );
   assert.deepEqual(
     approve.blocks[1].elements.map((e: { text: { text: string } }) => e.text.text),
-    ['Approve', 'Rework…', 'Open in MILOOPS'],
+    ['Approve', 'Rework…', 'Open in Teamtrail'],
   );
   assert.match(held.blocks[0].text.text, /^⛔ \*HELD\* · Event store · #3 Migrate schema/);
   assert.deepEqual(
     held.blocks[1].elements.map((e: { text: { text: string } }) => e.text.text),
-    ['Rework…', 'Open in MILOOPS'],
+    ['Rework…', 'Open in Teamtrail'],
   );
   assert.deepEqual(
     posts(fx, 'chat.update').map((u) => u.text),
     [`✓ Approved by <@${ANA}> via Slack.`, `↺ Sent back to rework by <@${ANA}> via Slack.`],
   );
   assert.ok(posts(fx, 'chat.update').every((u) => !u.blocks.some((b: { type: string }) => b.type === 'actions')));
-  assert.equal(responses(fx)[0].text.startsWith('Only the MILOOPS owner'), true);
+  assert.equal(responses(fx)[0].text.startsWith('Only the Teamtrail owner'), true);
 });
 
 test('approvals survive a restart: stored messages are updated in place, and out-of-date buttons are refused', async () => {
@@ -300,8 +303,8 @@ test('approvals survive a restart: stored messages are updated in place, and out
     r.verdicts.map((v) => [v.by, v.verdict]),
     [
       ['claude-02', 'PASS'],
-      ['operator', 'PASS'],
-      ['operator', 'FAIL'],
+      ['trail lead', 'PASS'],
+      ['trail lead', 'FAIL'],
     ],
     'the stale clicks added no verdict',
   );
@@ -349,12 +352,12 @@ test('socket: reconnects on refresh_requested and on a dropped socket; link_disa
   }
 });
 
-test('one Socket Mode connection per machine: a second miloops reports where Slack is connected', async () => {
+test('one Socket Mode connection per machine: a second teamtrail reports where Slack is connected', async () => {
   const { w, make } = live();
   try {
     const a = make();
     await until(() => a.status().state === 'online');
-    const b = make({ root: '/other/repo/.miloops', lockOwner: 'other' });
+    const b = make({ root: '/other/repo/.teamtrail', lockOwner: 'other' });
     assert.equal(b.status().state, 'elsewhere');
     assert.equal(b.status().heldBy, w.root);
     a.close();
@@ -392,15 +395,15 @@ test('env tokens work like GITHUB_TOKEN: reported by source, never stored', asyn
     const svc = w.service(new MemoryAdapter({ latency: [0, 0] }), {
       fetch: fake.fetch,
       WebSocket: hub.WebSocket,
-      env: { MILOOPS_SLACK_APP_TOKEN: TOKENS.app, MILOOPS_SLACK_BOT_TOKEN: TOKENS.bot },
+      env: { TEAMTRAIL_SLACK_APP_TOKEN: TOKENS.app, TEAMTRAIL_SLACK_BOT_TOKEN: TOKENS.bot },
     });
     const s = svc.status();
-    assert.deepEqual([s.setup.appToken, s.setup.botToken], ['MILOOPS_SLACK_APP_TOKEN', 'MILOOPS_SLACK_BOT_TOKEN']);
+    assert.deepEqual([s.setup.appToken, s.setup.botToken], ['TEAMTRAIL_SLACK_APP_TOKEN', 'TEAMTRAIL_SLACK_BOT_TOKEN']);
     await until(() => svc.status().state === 'online');
     const on = svc.status();
     assert.deepEqual(
       [on.enabled, on.step, on.setup.appId, on.workspace?.name],
-      [true, 5, 'A0MILO0001', 'efika'],
+      [true, 5, 'A0Scout0001', 'efika'],
       'verified on first start, then setup continues at the claim',
     );
     const creds = path.join(w.configDir, 'credentials.json');
@@ -528,17 +531,17 @@ test('routes: status and token endpoints; cross-site requests are refused; the b
 
 /* ---------- pure parts ---------- */
 
-test('manifest: Socket Mode, /milo, Save as decision, App Home, the planned scopes and nothing more', () => {
+test('manifest: Socket Mode, /scout, Save as decision, App Home, the planned scopes and nothing more', () => {
   const m = slackManifest();
   assert.equal(m.settings.socket_mode_enabled, true);
   assert.equal(m.settings.interactivity.is_enabled, true);
   assert.deepEqual(m.settings.event_subscriptions.bot_events, ['app_home_opened']);
-  assert.equal(m.features.slash_commands[0].command, '/milo');
+  assert.equal(m.features.slash_commands[0].command, '/scout');
   assert.deepEqual(m.features.shortcuts[0], {
     name: 'Save as decision',
     type: 'message',
     callback_id: 'save_decision',
-    description: 'Record this thread as a MILOOPS decision',
+    description: 'Record this thread as a Teamtrail decision',
   });
   assert.equal(m.features.app_home.home_tab_enabled, true);
   assert.deepEqual(m.oauth_config.scopes.bot, [...BOT_SCOPES, 'users:read.email']);

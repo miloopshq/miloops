@@ -38,7 +38,7 @@ export class ActivityStream {
   private resolvers = new Map<string, (answer: string) => void>();
   /** Sessions mirrored from another process (`syncRemote`), with the last usage total each reported. */
   private remote = new Map<string, SessionUsage | undefined>();
-  /** Delivers operator answers to questions asked by remote sessions. */
+  /** Delivers trail lead answers to questions asked by remote sessions. */
   public remoteAnswer?: (q: PendingQuestion, text: string, author: string) => void;
   constructor(
     private readonly maxFeed = 400,
@@ -111,7 +111,7 @@ export class ActivityStream {
     });
     this.patchSession(q.sessionId, { waitingOn: undefined });
     this.push({
-      source: 'operator',
+      source: 'trail lead',
       agent: author,
       level: 'ok',
       ticketId: q.ticketId,
@@ -138,7 +138,7 @@ export class ActivityStream {
     const sid = session.id;
     if (!this.remote.has(sid) && this.state.sessions.some((s) => s.id === sid)) return;
     const prevUsage = this.remote.get(sid);
-    // Usage of a chart session counts once it is bound to its mission, so keep the baseline until then.
+    // Usage of a chart session counts once it is bound to its trail, so keep the baseline until then.
     this.remote.set(sid, session.mapId ? session.usage : prevUsage);
     let usageByMap = this.state.usageByMap;
     if (session.usage && session.mapId) {

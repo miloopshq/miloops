@@ -43,8 +43,8 @@ export function stateCounts(snap: MapSnapshot): StateCounts {
   return c;
 }
 
-/** `metrics.progress`: decided out of in-scope tickets (header readout, mission switcher). */
-export function missionProgress(snap: MapSnapshot) {
+/** `metrics.progress`: decided out of in-scope tickets (header readout, trail switcher). */
+export function trailProgress(snap: MapSnapshot) {
   const c = stateCounts(snap);
   return { decided: c.decided, total: c.total - c['out-of-scope'] };
 }
@@ -83,14 +83,14 @@ const closedAt = (t: Ticket) => t.closedAt ?? t.updatedAt;
 export interface Throughput {
   /** Tickets decided in the last hour (rolling). */
   lastHour: number;
-  /** Decided per bucket across the mission's lifetime. */
+  /** Decided per bucket across the trail's lifetime. */
   decided: number[];
   /** Open tickets at the end of each bucket (burndown). */
   open: number[];
   bucketMs: number;
 }
 
-/** `metrics.throughput`: decisions per hour and the open-ticket burndown since the mission was created. */
+/** `metrics.throughput`: decisions per hour and the open-ticket burndown since the trail was created. */
 export function throughput(snap: MapSnapshot, now = Date.now(), buckets = 16): Throughput {
   const start = Math.min(snap.map.createdAt, ...snap.tickets.map((t) => t.createdAt));
   const bucketMs = Math.max(now - start, 60_000) / buckets;
@@ -135,7 +135,7 @@ export interface HitlStats {
   avgWaitMs?: number;
 }
 
-/** `metrics.hitl`: queue depth, oldest inbox item and average response time (all missions unless filtered). */
+/** `metrics.hitl`: queue depth, oldest inbox item and average response time (all trails unless filtered). */
 export function hitlStats(activity: ActivityState, mapId?: string): HitlStats {
   const pending = activity.pending.filter((q) => !mapId || q.mapId === mapId);
   const answered = activity.answered.filter((q) => !mapId || q.mapId === mapId);
@@ -149,8 +149,8 @@ export function hitlStats(activity: ActivityState, mapId?: string): HitlStats {
   };
 }
 
-/** `metrics.usage`: model tokens and cost for one mission, cumulative across its sessions. */
-export function missionUsage(activity: ActivityState, mapId: string | undefined): SessionUsage {
+/** `metrics.usage`: model tokens and cost for one trail, cumulative across its sessions. */
+export function trailUsage(activity: ActivityState, mapId: string | undefined): SessionUsage {
   return (mapId && activity.usageByMap[mapId]) || { inputTokens: 0, outputTokens: 0, costUsd: 0 };
 }
 
@@ -164,8 +164,8 @@ export const USAGE_SOURCE: Record<UsageSource, { tag: string; text: string }> = 
   reported: { tag: 'SELF', text: 'Self-reported by the agent (report_progress)' },
 };
 
-/** Sources behind a mission's usage, from the sessions still in view. */
-export function missionUsageSources(activity: ActivityState, mapId: string | undefined): UsageSource[] {
+/** Sources behind a trail's usage, from the sessions still in view. */
+export function trailUsageSources(activity: ActivityState, mapId: string | undefined): UsageSource[] {
   const seen = new Set<UsageSource>();
   for (const s of activity.sessions) if (mapId && s.mapId === mapId && s.usage?.source) seen.add(s.usage.source);
   return [...seen].sort();

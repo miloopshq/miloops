@@ -5,7 +5,7 @@ import { DECISION_PATH } from './paths';
 /**
  * Turns watcher hits from other writers into tracker events. An external decision
  * write also touches map.md, and watchers fire more than once per write, so changes
- * are batched per mission; a batch with decision files reports as decision events.
+ * are batched per trail; a batch with decision files reports as decision events.
  */
 export class ExternalChanges {
   /** Last seen text and supersededBy per decision file, to tell new records from supersessions and drop duplicate watcher hits. */

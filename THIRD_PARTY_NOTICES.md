@@ -2,7 +2,7 @@
 
 ## mattpocock/skills
 
-Derived from mattpocock/skills (MIT) — https://github.com/mattpocock/skills. The mission model (destination, frontier, "Not yet specified" list, decisions, out of scope), the grilling / prototype / research ticket types and the HITL / AFK split adapt the concepts of its `docs/engineering/wayfinder.md` workflow.
+Derived from mattpocock/skills (MIT) — https://github.com/mattpocock/skills. The trail model (destination, frontier, "Not yet specified" list, decisions, out of scope), the junction / prototype / research ticket types and the HITL / AFK split adapt the concepts of its `docs/engineering/wayfinder.md` workflow.
 
 ```
 MIT License

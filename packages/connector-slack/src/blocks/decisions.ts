@@ -1,9 +1,9 @@
 import { ACTIONS, VIEWS, clip, escape, md, plain, type Block } from './kit';
 
-export type SaveMode = 'resolve' | 'mission' | 'new';
+export type SaveMode = 'resolve' | 'trail' | 'new';
 
 export interface DecisionForm {
-  missions: { id: string; label: string }[];
+  trails: { id: string; label: string }[];
   mapId?: string;
   tickets: { id: string; label: string }[];
   ticketId?: string;
@@ -42,21 +42,21 @@ export function noticeModal(meta: string, text: string) {
 export function decisionModal(f: DecisionForm, meta: string) {
   const blocks: Block[] = [];
   if (f.notice) blocks.push({ type: 'context', elements: [md(f.notice)] });
-  const mission = f.missions.find((m) => m.id === f.mapId);
+  const trail = f.trails.find((m) => m.id === f.mapId);
   blocks.push({
     type: 'section',
-    block_id: 'mission',
-    text: md('*Mission*'),
+    block_id: 'trail',
+    text: md('*Trail*'),
     accessory: {
       type: 'static_select',
-      action_id: ACTIONS.missionPick,
-      options: f.missions.slice(0, 100).map(option),
-      ...(mission ? { initial_option: option(mission) } : {}),
+      action_id: ACTIONS.trailPick,
+      options: f.trails.slice(0, 100).map(option),
+      ...(trail ? { initial_option: option(trail) } : {}),
     },
   });
   const modes: { v: SaveMode; label: string }[] = [
     ...(f.tickets.length ? [{ v: 'resolve' as const, label: 'Resolve ticket' }] : []),
-    { v: 'mission', label: 'Mission only' },
+    { v: 'trail', label: 'Trail only' },
     { v: 'new', label: 'New decision ticket' },
   ];
   const mode = modes.find((m) => m.v === f.mode) ?? modes[0];

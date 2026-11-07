@@ -22,7 +22,7 @@ export interface ChartPlanTicket {
 export interface ChartPlan {
   title: string;
   mode?: MapMode;
-  /** Level for the new mission; unset means off. */
+  /** Level for the new trail; unset means off. */
   verification?: VerificationLevel;
   sections: MapSections;
   tickets: ChartPlanTicket[];
@@ -50,7 +50,7 @@ export async function chartMap(adapter: TrackerAdapter, input: ChartPlan, hooks:
       title: pt.title,
       type: pt.type,
       hitl: pt.hitl,
-      body: `${pt.body}\n\nPart of mission ${map.key}.`,
+      body: `${pt.body}\n\nPart of trail ${map.key}.`,
     });
     byRef.set(pt.ref, t);
     await hooks.onTicketCreated?.(t, pt.ref);

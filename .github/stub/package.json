@@ -1,7 +1,7 @@
 {
   "name": "teamtrail",
   "version": "0.0.1",
-  "description": "Teamtrail: a local command center for your AI coding agents. Coming soon.",
+  "description": "Teamtrail: a local trail map for your AI coding agents. Coming soon.",
   "type": "module",
   "bin": {
     "teamtrail": "index.js"

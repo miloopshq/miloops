@@ -1,7 +1,7 @@
-import { BRAND, deriveStates, frontier, type AgentSessionDoc, type MapSnapshot } from '@miloops-hq/core';
+import { BRAND, deriveStates, frontier, type AgentSessionDoc, type MapSnapshot } from '@teamtrail/core';
 import { escape, md, plain } from './blocks';
 
-export interface MissionBrief {
+export interface TrailBrief {
   id: string;
   key: string;
   title: string;
@@ -16,7 +16,7 @@ export interface MissionBrief {
   tokens: number;
 }
 
-export function briefMission(snap: MapSnapshot, docs: AgentSessionDoc[]): MissionBrief {
+export function briefTrail(snap: MapSnapshot, docs: AgentSessionDoc[]): TrailBrief {
   const states = deriveStates(snap.tickets, snap.map.mode);
   const byId = new Map(snap.tickets.map((t) => [t.id, t]));
   const mine = docs.filter((d) => d.session.mapId === snap.map.id);
@@ -67,7 +67,7 @@ const since = (at: number, now: number) => {
 };
 const list = (xs: string[], n = 3) => (xs.length > n ? [...xs.slice(0, n), '…'] : xs).join(', ');
 
-export function statusBlocks(b: MissionBrief, o: { now: number; url?: string }) {
+export function statusBlocks(b: TrailBrief, o: { now: number; url?: string }) {
   const rows = [
     `*${escape(b.title.toUpperCase())}* · ${b.mode} · ${b.resolved}/${b.total} resolved`,
     '```',
@@ -86,7 +86,7 @@ export function statusBlocks(b: MissionBrief, o: { now: number; url?: string }) 
             {
               type: 'actions',
               elements: [
-                { type: 'button', action_id: 'open_miloops', text: plain(`Open in ${BRAND.name}`), url: o.url },
+                { type: 'button', action_id: 'open_teamtrail', text: plain(`Open in ${BRAND.name}`), url: o.url },
               ],
             },
           ]
@@ -95,21 +95,21 @@ export function statusBlocks(b: MissionBrief, o: { now: number; url?: string }) 
   };
 }
 
-export function missionListBlocks(briefs: MissionBrief[], command: string) {
+export function trailListBlocks(briefs: TrailBrief[], command: string) {
   if (!briefs.length)
     return {
-      text: 'No missions yet.',
-      blocks: [{ type: 'section', text: md(`No missions yet. Start one in ${BRAND.name}.`) }],
+      text: 'No trails yet.',
+      blocks: [{ type: 'section', text: md(`No trails yet. Start one in ${BRAND.name}.`) }],
     };
   const lines = briefs.map(
     (b) =>
       `*${escape(b.key)}* ${escape(b.title)} · ${b.resolved}/${b.total} · ${b.awaiting.length} awaiting · ${b.blocked.length} blocked`,
   );
   return {
-    text: `${briefs.length} missions`,
+    text: `${briefs.length} trails`,
     blocks: [
       { type: 'section', text: md(lines.join('\n')) },
-      { type: 'context', elements: [md(`\`${command} status <mission>\` for one mission`)] },
+      { type: 'context', elements: [md(`\`${command} status <trail>\` for one trail`)] },
     ],
   };
 }

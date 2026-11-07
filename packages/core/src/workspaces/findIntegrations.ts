@@ -8,7 +8,7 @@ const sideOf = (w: WorkspaceRecord): WorkspaceSide => ({
 });
 
 /**
- * Pairs of claims in the same mission whose branches changed the same files. Pure and deterministic: workspaces
+ * Pairs of claims in the same trail whose branches changed the same files. Pure and deterministic: workspaces
  * in ticket-id order, files sorted, so the same branches always give the same overlaps.
  */
 export function findIntegrations(changes: { ws: WorkspaceRecord; files: string[] }[]): IntegrationOverlap[] {

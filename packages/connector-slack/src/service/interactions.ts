@@ -16,7 +16,7 @@ import { decideApproval, waitingApproval } from './approvals';
 import { answer, closeAsk, pendingAsk, writeAnswer } from './asks';
 import { inboxMessage, statusMessage } from './commands';
 import { REFUSED, ALREADY } from './constants';
-import { changeMission, openDecision } from './decisionModal';
+import { changeTrail, openDecision } from './decisionModal';
 import { claim, publishHome } from './owner';
 import { saveDecision } from './saveDecision';
 import type { SlackContext } from './slackContext';
@@ -86,7 +86,7 @@ export function onAction(ctx: SlackContext, p: Payload): EnvelopeResult | void {
   const id = String(a?.action_id ?? '');
   const user = p.user.id as string;
   if (id === ACTIONS.claim) return { after: () => claim(ctx, user) };
-  if (id === ACTIONS.missionPick && p.view) return { after: () => changeMission(ctx, p.view, a.selected_option.value) };
+  if (id === ACTIONS.trailPick && p.view) return { after: () => changeTrail(ctx, p.view, a.selected_option.value) };
   if (id === ACTIONS.approve || id === ACTIONS.rework) return onApproval(ctx, p, id, String(a.value));
   if (id !== ACTIONS.reply && !id.startsWith(`${ACTIONS.option}:`)) return;
   const ephemeral = (text: string) =>
@@ -182,11 +182,11 @@ function submitDecision(ctx: SlackContext, { view, values, user }: Submitted): E
   if (!ctx.allowed(user)) return fieldError('decision', REFUSED);
   const picked = (block: string, action = 'value') =>
     values[block]?.[action]?.selected_option?.value as string | undefined;
-  const mode = (picked('mode') ?? 'mission') as SaveMode;
+  const mode = (picked('mode') ?? 'trail') as SaveMode;
   const ticketId = picked('ticket');
   if (mode === 'resolve' && !ticketId) return fieldError('ticket', 'Pick the ticket to resolve');
-  const mapId = meta.mid ?? picked('mission', ACTIONS.missionPick);
-  if (!mapId) return fieldError('decision', 'Pick a mission');
+  const mapId = meta.mid ?? picked('trail', ACTIONS.trailPick);
+  if (!mapId) return fieldError('decision', 'Pick a trail');
   const summary = textOf(values, 'summary');
   return { after: () => saveDecision(ctx, { meta, user, mapId, mode, ticketId, decision, summary }) };
 }

@@ -15,10 +15,10 @@ const sh = (cwd: string, ...args: string[]) => execFileSync('git', args, { cwd, 
 
 /** A repo with one commit and a tracker folder inside it, plus a prepared worktree for ticket #1. */
 async function project() {
-  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-remove-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-remove-'));
   dirs.push(base);
   const top = path.join(base, 'app');
-  const root = path.join(top, '.miloops');
+  const root = path.join(top, '.teamtrail');
   fs.mkdirSync(root, { recursive: true });
   sh(top, 'init', '-q', '-b', 'main');
   sh(top, 'config', 'user.email', 't@t');
@@ -63,7 +63,7 @@ describe('removing a finished workspace', () => {
     expect(held).toMatchObject({ kind: 'refused', reason: expect.stringMatching(/still claimed/) });
     expect(fs.existsSync(ws.path)).toBe(true);
 
-    writeLease(root, lease({ returned: { at: now, reason: 'operator', by: 'operator' } }));
+    writeLease(root, lease({ returned: { at: now, reason: 'trail lead', by: 'trail lead' } }));
     const done = await removeWorkspace({ root, mapId: 'm1', ticketId: '1' });
     expect(done.kind).toBe('removed');
     expect(fs.existsSync(ws.path)).toBe(false);

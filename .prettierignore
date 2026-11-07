@@ -3,7 +3,7 @@ node_modules
 package-lock.json
 *.md
 brand
-**/milo/art.ts
+**/scout/art.ts
 packages/core/test/fixtures
 .vercel
 .claude

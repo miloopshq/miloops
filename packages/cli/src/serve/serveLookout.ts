@@ -1,0 +1,67 @@
+import { existsSync } from 'node:fs';
+import http from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { slackPlugin } from '@teamtrail/connector-slack/node';
+import { BRAND } from '@teamtrail/core';
+import { writeLookoutLock } from '@teamtrail/core/agents';
+import { createTrackerBridge, type TrackerBridge } from '@teamtrail/core/bridge';
+import { fail } from '../args/help';
+import type { ServeOptions } from '../args/parseArgs';
+import { listen } from './listen';
+import { openBrowser } from './openBrowser';
+import { serveStatic } from './staticFiles';
+
+/** The default command: one process serving the lookout bundle and the tracker API, until Ctrl+C. */
+export async function serveLookout(opts: ServeOptions, slackSetup: boolean) {
+  const appDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'app');
+  if (!existsSync(path.join(appDir, 'index.html'))) fail(`Lookout bundle missing at ${appDir}; reinstall the package`);
+
+  let bridge: TrackerBridge | undefined;
+  const server = http.createServer((req, res) => {
+    const url = new URL(req.url ?? '/', 'http://x');
+    if (bridge && (url.pathname === BRAND.apiPrefix || url.pathname.startsWith(`${BRAND.apiPrefix}/`))) {
+      req.url = req.url!.slice(BRAND.apiPrefix.length) || '/';
+      void bridge.handle(req, res);
+      return;
+    }
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      res.statusCode = 405;
+      res.end();
+      return;
+    }
+    serveStatic(appDir, url.pathname, res).catch((err) => {
+      res.statusCode = 500;
+      res.end(String(err));
+    });
+  });
+
+  let port: number;
+  try {
+    port = await listen(server, opts.port, opts.host, opts.portExplicit ? 0 : 20);
+  } catch (err) {
+    const e = err as NodeJS.ErrnoException;
+    fail(e.code === 'EADDRINUSE' ? `port ${opts.port} is already in use; pick another with --port <n>` : e.message);
+  }
+  const shownHost = opts.host === '127.0.0.1' || opts.host === '0.0.0.0' ? 'localhost' : opts.host;
+  const url = `http://${shownHost}:${port}/`;
+  bridge = createTrackerBridge(path.resolve(process.cwd(), opts.dir), { plugins: [slackPlugin()], url: () => url });
+  process.stdout.write(
+    `\n  ${BRAND.name} ${__VERSION__} · ${BRAND.assistant.name} online\n\n` +
+      `  Lookout  ${url}\n` +
+      `  Tracker         ${path.relative(process.cwd(), bridge.root) || '.'}${path.sep}  (${bridge.root})\n\n` +
+      `  Press Ctrl+C to stop.\n\n`,
+  );
+  if (slackSetup) process.stdout.write(`  Slack setup     ${url}?settings=slack\n\n`);
+  if (opts.open) openBrowser(slackSetup ? `${url}?settings=slack` : url);
+  const unlock = writeLookoutLock(bridge.root, url);
+
+  const stop = () => {
+    unlock();
+    bridge?.close();
+    server.close(() => process.exit(0));
+    server.closeAllConnections();
+  };
+  process.on('SIGINT', stop);
+  process.on('SIGTERM', stop);
+}

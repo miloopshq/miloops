@@ -1,25 +1,25 @@
-import { BRAND, DEFAULT_LEASE_MINUTES, LEASE_MINUTES_ENV } from '@miloops-hq/core';
+import { BRAND, DEFAULT_LEASE_MINUTES, LEASE_MINUTES_ENV } from '@teamtrail/core';
 
 export const HELP = `${BRAND.name}: ${BRAND.category}
 
 Usage: ${BRAND.slug} [options]
-       ${BRAND.slug} mcp [--dir <path>] [--agent <callsign>] [--lease-minutes <n>]
+       ${BRAND.slug} mcp [--dir <path>] [--agent <trailName>] [--lease-minutes <n>]
        ${BRAND.slug} connect claude|codex [--dir <path>]
        ${BRAND.slug} connect slack [options]
        ${BRAND.slug} knowledge import <file.md> [--dir <path>]
 
-Starts the command center for the current folder and opens it in your browser.
+Starts the Lookout for the current folder and opens it in your browser.
 
 Commands:
   mcp            Serve the MCP server for coding agents over stdio
                  (claude mcp add ${BRAND.slug} -- npx -y ${BRAND.npm} mcp)
                  A claimed ticket returns to the queue after --lease-minutes without a
                  tool call from its agent (default: ${DEFAULT_LEASE_MINUTES}, or $${LEASE_MINUTES_ENV})
-  connect <agent>  Register the MCP server with Claude Code or Codex and add the /milo command
+  connect <agent>  Register the MCP server with Claude Code or Codex and add the /scout command
                  (for Claude Code also a SessionStart hook, so usage comes from the transcript)
   knowledge import <file.md>  Seed project knowledge from a markdown document: one suggestion per
-                 ## heading, for you to review in the command center
-  connect slack  Start the command center on the Slack setup (Socket Mode from this machine;
+                 ## heading, for you to review in the Lookout
+  connect slack  Start the Lookout on the Slack setup (Socket Mode from this machine;
                  tokens stay in your local credential store)
   hook claude    The SessionStart hook itself (reads the hook payload on stdin)
 

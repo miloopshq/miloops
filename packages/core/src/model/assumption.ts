@@ -1,6 +1,6 @@
 /**
- * Assumptions a mission relies on ("the v2 API supports batch writes"), kept in the map body's Assumptions section so
- * they round-trip through every tracker. Agents challenge them with evidence; a replan the operator approves can
+ * Assumptions a trail relies on ("the v2 API supports batch writes"), kept in the map body's Assumptions section so
+ * they round-trip through every tracker. Agents challenge them with evidence; a reroute the trail lead approves can
  * invalidate them. Ids are `S-<n>` (`A-` is taken by verification attempts, `D-` by decisions).
  */
 export type AssumptionStatus = 'holding' | 'challenged' | 'invalidated' | 'confirmed';
@@ -26,7 +26,7 @@ export interface Assumption {
   /** Where it came from, e.g. `brief:A-2` when seeded from the accepted discovery brief. */
   source?: string;
   challenge?: AssumptionChallenge;
-  /** The replan that invalidated it (`R-<n>`), or who confirmed it (`operator`). */
+  /** The reroute that invalidated it (`R-<n>`), or who confirmed it (`trail lead`). */
   decidedBy?: string;
 }
 

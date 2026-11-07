@@ -10,7 +10,7 @@ export const CHECKED = new Set<QueuedChange['kind']>(['comment', 'decision', 'bl
 
 export function ticketOf(e: CacheEntry, id: string) {
   const t = e.snap.tickets.find((x) => x.id === id);
-  if (!t) throw new OperationError(`ticket ${id} not found in mission ${e.snap.map.key}`);
+  if (!t) throw new OperationError(`ticket ${id} not found in trail ${e.snap.map.key}`);
   return t;
 }
 
@@ -19,7 +19,7 @@ function touch(t: Ticket, patch: Partial<Ticket>, now: () => number): Ticket {
   return t;
 }
 
-/** Applies a queueable write to a cached (or freshly fetched) mission. Safe to repeat. */
+/** Applies a queueable write to a cached (or freshly fetched) trail. Safe to repeat. */
 export function applyWrite(e: CacheEntry, w: QueuedWrite, now: () => number) {
   const c = w.change;
   switch (c.kind) {

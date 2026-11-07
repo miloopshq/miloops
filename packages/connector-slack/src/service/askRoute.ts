@@ -1,6 +1,6 @@
-import type { AttentionView, PendingQuestion } from '@miloops-hq/core';
+import type { AttentionView, PendingQuestion } from '@teamtrail/core';
 
-/** `ask`: its own message with answer buttons. `digest`: a line in the mission's next digest. */
+/** `ask`: its own message with answer buttons. `digest`: a line in the trail's next digest. */
 export type AskRoute = 'ask' | 'digest';
 
 /**

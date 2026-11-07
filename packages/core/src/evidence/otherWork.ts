@@ -7,7 +7,7 @@ import type { OtherWork } from './flags';
 import { findWorktree, readTreeState } from './treeState';
 
 /**
- * What the mission's other working and verifying tickets changed: a verifying
+ * What the trail's other working and verifying tickets changed: a verifying
  * ticket's last attempt, or a working ticket's changes since its baseline,
  * read in its own worktree.
  */

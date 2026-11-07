@@ -1,6 +1,6 @@
 import type { Journal } from '../model/lifecycle';
 
-/** The command center's journal: transitions made in the browser are appended by the local `miloops` server. */
+/** The Lookout's journal: transitions made in the browser are appended by the local `teamtrail` server. */
 export function httpJournal(apiPrefix: string): Journal {
   return {
     async append(entry) {

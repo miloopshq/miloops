@@ -33,13 +33,13 @@ export abstract class SyncedWriter extends SyncedStore {
   protected abstract remoteClose(map: MapDoc, t: Ticket, reason: 'completed' | 'not_planned'): Promise<void>;
   protected abstract remoteUpdateMap(map: MapDoc): Promise<void>;
   protected abstract remoteSetMode(map: MapDoc, mode: MapMode): Promise<void>;
-  /** Post a decision record on its ticket, or on the mission when it has none. */
+  /** Post a decision record on its ticket, or on the trail when it has none. */
   protected abstract remotePostDecision(map: MapDoc, d: DecisionRecord, ticket?: Ticket): Promise<void>;
   protected abstract remoteUpdateDecision(map: MapDoc, d: DecisionRecord): Promise<void>;
 
   private writes = 0;
 
-  /** Sends a queueable write, reading tickets and decisions from `e` (the mission before the write is applied). */
+  /** Sends a queueable write, reading tickets and decisions from `e` (the trail before the write is applied). */
   private send(e: CacheEntry, w: QueuedWrite): Promise<unknown> {
     const c = w.change;
     const map = e.snap.map;

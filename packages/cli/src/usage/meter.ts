@@ -1,6 +1,6 @@
 import os from 'node:os';
 import path from 'node:path';
-import type { SessionUsage, UsageSource } from '@miloops-hq/core';
+import type { SessionUsage, UsageSource } from '@teamtrail/core';
 import { claudeCandidates, findCodexRollout } from './logLocations';
 import { LogFile, claudeTranscriptParser, codexRolloutParser, type UsageEvent } from './logs';
 import { ls, size, tail } from './quietFs';
@@ -8,7 +8,7 @@ import { ls, size, tail } from './quietFs';
 export { claudeProjectDirName } from './logLocations';
 
 export interface MeterOptions {
-  /** Tracker folder, for Claude Code session links written by `miloops hook claude`. */
+  /** Tracker folder, for Claude Code session links written by `teamtrail hook claude`. */
   root: string;
   env?: NodeJS.ProcessEnv;
   cwd?: string;
@@ -24,12 +24,12 @@ type Meta = Record<string, unknown> | undefined;
  * - Claude Code: the session transcript. Each MCP call carries
  *   `_meta["claudecode/toolUseId"]`; the transcript holding that `tool_use` id
  *   is this agent's. Candidates come from the SessionStart hook installed by
- *   `miloops connect claude`, then `$CLAUDE_CODE_SESSION_ID`, then the newest
+ *   `teamtrail connect claude`, then `$CLAUDE_CODE_SESSION_ID`, then the newest
  *   transcripts of the project.
  * - Codex: the rollout file of the thread named by `_meta.threadId`.
  *
  * `measure(from, to)` sums the calls logged in a time window, so usage lands on
- * the miloops session (and its ticket) that was open while it was spent.
+ * the teamtrail session (and its ticket) that was open while it was spent.
  */
 export class UsageMeter {
   private files = new Map<string, LogFile>();

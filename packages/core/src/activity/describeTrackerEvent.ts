@@ -10,15 +10,15 @@ export function describeTrackerEvent(
   const k = (id: string) => lookup(id)?.key ?? id;
   switch (e.kind) {
     case 'map.created':
-      return { source: 'tracker', level: 'ok', text: `Mission created · label ${MAP_LABEL}` };
+      return { source: 'tracker', level: 'ok', text: `Trail created · label ${MAP_LABEL}` };
     case 'map.updated':
       return {
         source: 'tracker',
         level: 'info',
-        text: `Mission updated${e.section ? ` · ${SECTION_LABEL[e.section].toLowerCase()}` : ''}`,
+        text: `Trail updated${e.section ? ` · ${SECTION_LABEL[e.section].toLowerCase()}` : ''}`,
       };
     case 'map.mode':
-      return { source: 'tracker', level: 'warn', text: `Mission mode · ${e.mode}` };
+      return { source: 'tracker', level: 'warn', text: `Trail mode · ${e.mode}` };
     case 'ticket.created':
       return { source: 'tracker', level: 'info', ticketId: e.ticketId, text: `Opened ${k(e.ticketId)}` };
     case 'ticket.claimed':

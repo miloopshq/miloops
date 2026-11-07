@@ -3,7 +3,7 @@ import { BRAND } from './brand';
 
 /*
  * One assumption as a line of the map body's Assumptions section:
- *   - [holding] The v2 API supports batch writes <!-- miloops:asm {"id":"S-1","tickets":["4","7"]} -->
+ *   - [holding] The v2 API supports batch writes <!-- teamtrail:asm {"id":"S-1","tickets":["4","7"]} -->
  * People read the status and text; the marker keeps the id, links and challenge. A hand-written line without a
  * marker (or without a status) still parses: it holds, and gets the next free id.
  */

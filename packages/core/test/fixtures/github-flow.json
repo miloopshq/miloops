@@ -6,7 +6,7 @@
     {
       "req": {
         "method": "GET",
-        "url": "/repos/octo-org/launchpad/issues?labels=miloops%3Amap&state=all&per_page=100"
+        "url": "/repos/octo-org/launchpad/issues?labels=teamtrail%3Amap&state=all&per_page=100"
       },
       "res": {
         "status": 200,
@@ -48,7 +48,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:map",
+          "name": "teamtrail:map",
           "color": "5b6b7a"
         }
       },
@@ -61,7 +61,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:map"
+          "name": "teamtrail:map"
         }
       }
     },
@@ -70,7 +70,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:plan-only",
+          "name": "teamtrail:plan-only",
           "color": "7a6f5b"
         }
       },
@@ -83,7 +83,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:plan-only"
+          "name": "teamtrail:plan-only"
         }
       }
     },
@@ -92,7 +92,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:hitl",
+          "name": "teamtrail:hitl",
           "color": "d97706"
         }
       },
@@ -105,7 +105,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:hitl"
+          "name": "teamtrail:hitl"
         }
       }
     },
@@ -114,7 +114,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:research",
+          "name": "teamtrail:research",
           "color": "4b5563"
         }
       },
@@ -127,7 +127,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:research"
+          "name": "teamtrail:research"
         }
       }
     },
@@ -136,7 +136,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:prototype",
+          "name": "teamtrail:prototype",
           "color": "4b5563"
         }
       },
@@ -149,7 +149,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:prototype"
+          "name": "teamtrail:prototype"
         }
       }
     },
@@ -158,7 +158,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:grilling",
+          "name": "teamtrail:junction",
           "color": "4b5563"
         }
       },
@@ -171,7 +171,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:grilling"
+          "name": "teamtrail:junction"
         }
       }
     },
@@ -180,7 +180,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:task",
+          "name": "teamtrail:task",
           "color": "4b5563"
         }
       },
@@ -193,7 +193,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:task"
+          "name": "teamtrail:task"
         }
       }
     },
@@ -202,7 +202,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:execute",
+          "name": "teamtrail:execute",
           "color": "4b5563"
         }
       },
@@ -215,7 +215,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:execute"
+          "name": "teamtrail:execute"
         }
       }
     },
@@ -224,7 +224,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/labels",
         "body": {
-          "name": "miloops:review",
+          "name": "teamtrail:review",
           "color": "4b5563"
         }
       },
@@ -237,7 +237,7 @@
           "x-ratelimit-reset": "1793451600"
         },
         "body": {
-          "name": "miloops:review"
+          "name": "teamtrail:review"
         }
       }
     },
@@ -249,7 +249,7 @@
           "title": "Ship offline sync",
           "body": "## Destination\n\nEdits made offline sync without data loss.\n\n## Notes\n\n_None yet._\n\n## Decisions so far\n\n_None yet._\n\n## Not yet specified\n\n- Conflict policy for deletes\n\n## Out of scope\n\n_None yet._\n",
           "labels": [
-            "miloops:map"
+            "teamtrail:map"
           ]
         }
       },
@@ -271,7 +271,7 @@
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:map"
+              "name": "teamtrail:map"
             }
           ],
           "assignees": [],
@@ -288,9 +288,9 @@
         "url": "/repos/octo-org/launchpad/issues",
         "body": {
           "title": "Survey CRDT libraries",
-          "body": "Compare Automerge and Yjs.\n\nPart of mission #1.",
+          "body": "Compare Automerge and Yjs.\n\nPart of trail #1.",
           "labels": [
-            "miloops:research"
+            "teamtrail:research"
           ]
         }
       },
@@ -307,12 +307,12 @@
           "node_id": "I_kwDOfake2",
           "number": 2,
           "title": "Survey CRDT libraries",
-          "body": "Compare Automerge and Yjs.\n\nPart of mission #1.",
+          "body": "Compare Automerge and Yjs.\n\nPart of trail #1.",
           "state": "open",
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:research"
+              "name": "teamtrail:research"
             }
           ],
           "assignees": [],
@@ -349,7 +349,7 @@
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:map"
+              "name": "teamtrail:map"
             }
           ],
           "assignees": [],
@@ -366,9 +366,9 @@
         "url": "/repos/octo-org/launchpad/issues",
         "body": {
           "title": "Pick a conflict policy",
-          "body": "Last-writer-wins or merge?\n\nPart of mission #1.",
+          "body": "Last-writer-wins or merge?\n\nPart of trail #1.",
           "labels": [
-            "miloops:grilling"
+            "teamtrail:junction"
           ]
         }
       },
@@ -385,12 +385,12 @@
           "node_id": "I_kwDOfake3",
           "number": 3,
           "title": "Pick a conflict policy",
-          "body": "Last-writer-wins or merge?\n\nPart of mission #1.",
+          "body": "Last-writer-wins or merge?\n\nPart of trail #1.",
           "state": "open",
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:grilling"
+              "name": "teamtrail:junction"
             }
           ],
           "assignees": [],
@@ -427,7 +427,7 @@
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:map"
+              "name": "teamtrail:map"
             }
           ],
           "assignees": [],
@@ -459,12 +459,12 @@
           "node_id": "I_kwDOfake2",
           "number": 2,
           "title": "Survey CRDT libraries",
-          "body": "Compare Automerge and Yjs.\n\nPart of mission #1.",
+          "body": "Compare Automerge and Yjs.\n\nPart of trail #1.",
           "state": "open",
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:research"
+              "name": "teamtrail:research"
             }
           ],
           "assignees": [],
@@ -480,7 +480,7 @@
         "method": "PATCH",
         "url": "/repos/octo-org/launchpad/issues/2",
         "body": {
-          "body": "Compare Automerge and Yjs.\n\nPart of mission #1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->"
+          "body": "Compare Automerge and Yjs.\n\nPart of trail #1.\n\n<!-- teamtrail:meta {\"assignee\":\"claude-07\"} -->"
         }
       },
       "res": {
@@ -496,12 +496,12 @@
           "node_id": "I_kwDOfake2",
           "number": 2,
           "title": "Survey CRDT libraries",
-          "body": "Compare Automerge and Yjs.\n\nPart of mission #1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->",
+          "body": "Compare Automerge and Yjs.\n\nPart of trail #1.\n\n<!-- teamtrail:meta {\"assignee\":\"claude-07\"} -->",
           "state": "open",
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:research"
+              "name": "teamtrail:research"
             }
           ],
           "assignees": [],
@@ -517,7 +517,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0o2cehr -->\nYjs has the smaller bundle."
+          "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0o2cehr -->\nYjs has the smaller bundle."
         }
       },
       "res": {
@@ -530,7 +530,7 @@
         },
         "body": {
           "id": 9001,
-          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0o2cehr -->\nYjs has the smaller bundle.",
+          "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0o2cehr -->\nYjs has the smaller bundle.",
           "created_at": "2026-10-31T12:00:08Z",
           "user": {
             "login": "octo-dev"
@@ -544,7 +544,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0tdlvyr -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support."
+          "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0tdlvyr -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support."
         }
       },
       "res": {
@@ -557,7 +557,7 @@
         },
         "body": {
           "id": 9002,
-          "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0tdlvyr -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
+          "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0tdlvyr -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
           "created_at": "2026-10-31T12:00:09Z",
           "user": {
             "login": "octo-dev"
@@ -588,12 +588,12 @@
           "node_id": "I_kwDOfake2",
           "number": 2,
           "title": "Survey CRDT libraries",
-          "body": "Compare Automerge and Yjs.\n\nPart of mission #1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->",
+          "body": "Compare Automerge and Yjs.\n\nPart of trail #1.\n\n<!-- teamtrail:meta {\"assignee\":\"claude-07\"} -->",
           "state": "closed",
           "state_reason": "completed",
           "labels": [
             {
-              "name": "miloops:research"
+              "name": "teamtrail:research"
             }
           ],
           "assignees": [],
@@ -609,7 +609,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000} -->"
+          "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000} -->"
         }
       },
       "res": {
@@ -622,7 +622,7 @@
         },
         "body": {
           "id": 9003,
-          "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000} -->",
+          "body": "**Decision D-1** · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000} -->",
           "created_at": "2026-10-31T12:00:12Z",
           "user": {
             "login": "octo-dev"
@@ -657,7 +657,7 @@
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:map"
+              "name": "teamtrail:map"
             }
           ],
           "assignees": [],
@@ -673,7 +673,7 @@
         "method": "POST",
         "url": "/repos/octo-org/launchpad/issues/2/comments",
         "body": {
-          "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->"
+          "body": "**Decision D-2** · trail lead · Lookout\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"trail lead\",\"source\":{\"kind\":\"lookout\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"trail lead\"}],\"transcript\":[]} -->"
         }
       },
       "res": {
@@ -686,7 +686,7 @@
         },
         "body": {
           "id": 9004,
-          "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->",
+          "body": "**Decision D-2** · trail lead · Lookout\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"trail lead\",\"source\":{\"kind\":\"lookout\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"trail lead\"}],\"transcript\":[]} -->",
           "created_at": "2026-10-31T12:00:14Z",
           "user": {
             "login": "octo-dev"
@@ -700,7 +700,7 @@
         "method": "PATCH",
         "url": "/repos/octo-org/launchpad/issues/comments/9003",
         "body": {
-          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
+          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
         }
       },
       "res": {
@@ -713,7 +713,7 @@
         },
         "body": {
           "id": 9003,
-          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
+          "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->"
         }
       }
     },
@@ -743,7 +743,7 @@
           "state_reason": null,
           "labels": [
             {
-              "name": "miloops:map"
+              "name": "teamtrail:map"
             }
           ],
           "assignees": [],
@@ -760,7 +760,7 @@
         "url": "/repos/octo-org/launchpad/issues/1/labels",
         "body": {
           "labels": [
-            "miloops:plan-only"
+            "teamtrail:plan-only"
           ]
         }
       },
@@ -774,10 +774,10 @@
         },
         "body": [
           {
-            "name": "miloops:map"
+            "name": "teamtrail:map"
           },
           {
-            "name": "miloops:plan-only"
+            "name": "teamtrail:plan-only"
           }
         ]
       }
@@ -785,7 +785,7 @@
     {
       "req": {
         "method": "GET",
-        "url": "/repos/octo-org/launchpad/issues?labels=miloops%3Amap&state=all&per_page=100"
+        "url": "/repos/octo-org/launchpad/issues?labels=teamtrail%3Amap&state=all&per_page=100"
       },
       "res": {
         "status": 200,
@@ -807,10 +807,10 @@
             "state_reason": null,
             "labels": [
               {
-                "name": "miloops:map"
+                "name": "teamtrail:map"
               },
               {
-                "name": "miloops:plan-only"
+                "name": "teamtrail:plan-only"
               }
             ],
             "assignees": [],
@@ -826,7 +826,7 @@
       "req": {
         "method": "POST",
         "url": "/graphql",
-        "operation": "Mission",
+        "operation": "Trail",
         "variables": {
           "owner": "octo-org",
           "name": "launchpad",
@@ -858,10 +858,10 @@
                 "labels": {
                   "nodes": [
                     {
-                      "name": "miloops:map"
+                      "name": "teamtrail:map"
                     },
                     {
-                      "name": "miloops:plan-only"
+                      "name": "teamtrail:plan-only"
                     }
                   ]
                 },
@@ -878,7 +878,7 @@
                       "databaseId": 3100000002,
                       "number": 2,
                       "title": "Survey CRDT libraries",
-                      "body": "Compare Automerge and Yjs.\n\nPart of mission #1.\n\n<!-- miloops:meta {\"assignee\":\"claude-07\"} -->",
+                      "body": "Compare Automerge and Yjs.\n\nPart of trail #1.\n\n<!-- teamtrail:meta {\"assignee\":\"claude-07\"} -->",
                       "state": "CLOSED",
                       "stateReason": "COMPLETED",
                       "createdAt": "2026-10-31T12:00:02Z",
@@ -887,7 +887,7 @@
                       "labels": {
                         "nodes": [
                           {
-                            "name": "miloops:research"
+                            "name": "teamtrail:research"
                           }
                         ]
                       },
@@ -898,7 +898,7 @@
                         "nodes": [
                           {
                             "databaseId": 9001,
-                            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0o2cehr -->\nYjs has the smaller bundle.",
+                            "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0o2cehr -->\nYjs has the smaller bundle.",
                             "createdAt": "2026-10-31T12:00:08Z",
                             "author": {
                               "login": "octo-dev"
@@ -906,7 +906,7 @@
                           },
                           {
                             "databaseId": 9002,
-                            "body": "<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwcmtc0tdlvyr -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
+                            "body": "<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwcmtc0tdlvyr -->\n**Resolution**\n\nUse Yjs. It has the smaller bundle and mature offline support.",
                             "createdAt": "2026-10-31T12:00:09Z",
                             "author": {
                               "login": "octo-dev"
@@ -914,7 +914,7 @@
                           },
                           {
                             "databaseId": 9003,
-                            "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->",
+                            "body": "**Decision D-1** · ~~superseded by D-2~~ · claude-07 · Agent\n\n> Use Yjs. It has the smaller bundle and mature offline support.\n\n**Question:** Survey CRDT libraries\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"question\":\"Survey CRDT libraries\",\"answer\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"summary\":\"Use Yjs. It has the smaller bundle and mature offline support.\",\"alternatives\":[],\"rationale\":\"\",\"decidedBy\":\"claude-07\",\"participants\":[{\"id\":\"claude-07\"}],\"source\":{\"kind\":\"agent\",\"label\":\"claude-07\"},\"transcript\":[],\"id\":\"D-1\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"supersededBy\":\"D-2\"} -->",
                             "createdAt": "2026-10-31T12:00:12Z",
                             "author": {
                               "login": "octo-dev"
@@ -922,7 +922,7 @@
                           },
                           {
                             "databaseId": 9004,
-                            "body": "**Decision D-2** · operator · Command center\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- miloops:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"operator\",\"source\":{\"kind\":\"command-center\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"operator\"}],\"transcript\":[]} -->",
+                            "body": "**Decision D-2** · trail lead · Lookout\n\n> Use Automerge. Its history model fits the audit trail.\n\n**Question:** Survey CRDT libraries\n**Supersedes:** D-1\n\n<!-- teamtrail:decision {\"ticketId\":\"2\",\"ticketKey\":\"#2\",\"answer\":\"Use Automerge. Its history model fits the audit trail.\",\"decidedBy\":\"trail lead\",\"source\":{\"kind\":\"lookout\"},\"question\":\"Survey CRDT libraries\",\"supersedes\":\"D-1\",\"id\":\"D-2\",\"mapId\":\"1\",\"decidedAt\":1793448000000,\"summary\":\"Use Automerge. Its history model fits the audit trail.\",\"alternatives\":[],\"rationale\":\"\",\"participants\":[{\"id\":\"trail lead\"}],\"transcript\":[]} -->",
                             "createdAt": "2026-10-31T12:00:14Z",
                             "author": {
                               "login": "octo-dev"
@@ -939,7 +939,7 @@
                       "databaseId": 3100000003,
                       "number": 3,
                       "title": "Pick a conflict policy",
-                      "body": "Last-writer-wins or merge?\n\nPart of mission #1.",
+                      "body": "Last-writer-wins or merge?\n\nPart of trail #1.",
                       "state": "OPEN",
                       "stateReason": null,
                       "createdAt": "2026-10-31T12:00:04Z",
@@ -948,7 +948,7 @@
                       "labels": {
                         "nodes": [
                           {
-                            "name": "miloops:grilling"
+                            "name": "teamtrail:junction"
                           }
                         ]
                       },

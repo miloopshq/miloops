@@ -57,7 +57,7 @@ test('health: live, stalled in the last third, then expired', () => {
 });
 
 test('an expired lease returns the ticket to the queue with a handoff comment, exactly once', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-lease-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-lease-'));
   const a = markdown(root);
   const { mapId, t } = await charted(a);
   writeLease(root, lease(mapId, t.id));
@@ -76,22 +76,22 @@ test('an expired lease returns the ticket to the queue with a handoff comment, e
 });
 
 test('a live lease stays; a lease on a ticket closed or reassigned meanwhile is only dropped', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-lease-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-lease-'));
   const a = markdown(root);
   const { mapId, t } = await charted(a);
   writeLease(root, lease(mapId, t.id, { expiresAt: Date.now() + 60_000 }));
   assert.deepEqual(await reclaimExpired(root, a), []);
   assert.equal((await a.loadMap(mapId)).tickets[0].assignee, 'claude-07');
 
-  await a.assign(mapId, t.id, 'operator');
+  await a.assign(mapId, t.id, 'trail lead');
   writeLease(root, lease(mapId, t.id));
   assert.deepEqual(await reclaimExpired(root, a), []);
   assert.equal(readLease(root, mapId, t.id), undefined);
-  assert.equal((await a.loadMap(mapId)).tickets[0].assignee, 'operator');
+  assert.equal((await a.loadMap(mapId)).tickets[0].assignee, 'trail lead');
 });
 
 test('github offline: the return is queued in the outbox and syncs once back online', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-lease-gh-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-lease-gh-'));
   const fake = fakeGitHub({ repo: 'octo-org/launchpad' });
   const net = faulty(fake.fetch);
   const opts = { repo: 'octo-org/launchpad', token: 't', manual: true, retries: 0, ...noSleep };
@@ -114,8 +114,8 @@ test('github offline: the return is queued in the outbox and syncs once back onl
   a.dispose();
 });
 
-test('bridge: lists leases and releases one for the operator', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-lease-br-'));
+test('bridge: lists leases and releases one for the trail lead', async () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-lease-br-'));
   const bridge = createTrackerBridge(root, { env: {}, configDir: path.join(root, 'cfg'), leases: { reapMs: 60_000 } });
   const server = http.createServer((req, res) => void bridge.handle(req, res));
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
@@ -135,8 +135,8 @@ test('bridge: lists leases and releases one for the operator', async () => {
     assert.equal(rel.status, 200);
     const back = (await markdown(root).loadMap(mapId)).tickets[0];
     assert.equal(back.assignee, undefined);
-    assert.match(back.comments.at(-1)!.body, /released by operator/);
-    assert.equal(readLeases(root)[0].returned?.reason, 'operator');
+    assert.match(back.comments.at(-1)!.body, /released by trail lead/);
+    assert.equal(readLeases(root)[0].returned?.reason, 'trail lead');
     const again = await fetch(`${base}/agents/leases/release`, {
       method: 'POST',
       body: JSON.stringify({ mapId, ticketId: t.id }),
@@ -154,14 +154,14 @@ test('bridge: lists leases and releases one for the operator', async () => {
 });
 
 test('operator release of a lease another process is returning reports busy', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-lease-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-lease-'));
   const a = markdown(root);
   const { mapId, t } = await charted(a);
   const l = lease(mapId, t.id);
   writeLease(root, l);
   const [x, y] = await Promise.all([
-    returnToQueue(root, a, l, { reason: 'operator', by: 'operator' }),
-    returnToQueue(root, a, l, { reason: 'expired', by: 'miloops' }),
+    returnToQueue(root, a, l, { reason: 'trail lead', by: 'trail lead' }),
+    returnToQueue(root, a, l, { reason: 'expired', by: 'teamtrail' }),
   ]);
   assert.equal([x, y].filter((r) => 'returned' in r).length, 1);
   assert.equal([x, y].filter((r) => 'busy' in r).length, 1);

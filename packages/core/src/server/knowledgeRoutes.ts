@@ -17,7 +17,7 @@ const CALLS = new Set(['confirm', 'assumption', 'outdated', 'resolve-flag', 'edi
 /**
  * `/knowledge` routes over the entries under `root`; false when none matches. GET lists them with the anchored
  * files that changed since each was confirmed; POST `/knowledge/propose` adds a suggestion (promote actions);
- * POST `/knowledge/call` is the operator's confirm, assumption, outdated, resolve-flag or edit.
+ * POST `/knowledge/call` is the trail lead's confirm, assumption, outdated, resolve-flag or edit.
  */
 export async function handleKnowledge(root: string, req: IncomingMessage, res: ServerResponse, url: URL) {
   if (!url.pathname.startsWith('/knowledge')) return false;
@@ -45,7 +45,7 @@ export async function handleKnowledge(root: string, req: IncomingMessage, res: S
       tags: strings(b.tags),
       sources: strings(b.sources),
       anchors: strings(b.anchors).map((p) => ({ path: p })),
-      createdBy: 'operator',
+      createdBy: 'trail lead',
       createdAt: now,
       updatedAt: now,
     };

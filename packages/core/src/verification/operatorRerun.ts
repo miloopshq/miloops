@@ -6,7 +6,7 @@ import { submissionOf } from './resubmit';
 import { levelFor, verify, type VerifyEnv } from './verifyCompletion';
 
 /**
- * The operator runs a ticket's checks again on its last submission: a verifying
+ * The trail lead runs a ticket's checks again on its last submission: a verifying
  * ticket is re-verified, a blocked one goes back to verifying first. Returns once
  * the run has started; `done` settles with the outcome.
  */
@@ -25,8 +25,8 @@ export async function rerunChecks(
     throw new OperationError(`${t.key} is ${phase}; only verifying or blocked tickets can be re-run`);
   const actor = {
     actor: by,
-    actorKind: 'operator' as const,
-    reason: reason || 'checks re-run by the operator',
+    actorKind: 'trail lead' as const,
+    reason: reason || 'checks re-run by the trail lead',
     journal: env.journal,
   };
   await transition(

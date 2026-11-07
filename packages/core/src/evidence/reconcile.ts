@@ -15,7 +15,7 @@ import { appendFlagEntry, readTicketSync, writeTicketSync } from './syncStore';
 export interface ReconcileEnv {
   /** Tracker folder: `.evidence/` and `.events/` live here. */
   root: string;
-  /** Read only: the reconciler lists and loads missions, nothing else. */
+  /** Read only: the reconciler lists and loads trails, nothing else. */
   adapter: TrackerAdapter;
   provider: CiProvider;
   requiredChecks: string[];

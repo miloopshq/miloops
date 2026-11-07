@@ -15,7 +15,7 @@ const BUCKET_MS = 5 * 60_000;
 const KEEP_MS = 14 * 86_400_000;
 
 /**
- * Model usage over time per mission, in 5-minute buckets, persisted so "spend
+ * Model usage over time per trail, in 5-minute buckets, persisted so "spend
  * since you were last here" survives a reload. Fed by `ActivityStream` from
  * agent usage reports.
  */

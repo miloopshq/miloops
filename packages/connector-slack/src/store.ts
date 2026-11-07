@@ -1,7 +1,7 @@
 import { readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
-import { BRAND } from '@miloops-hq/core';
-import { credentialStore, writeJsonAtomic } from '@miloops-hq/core/bridge';
+import { BRAND } from '@teamtrail/core';
+import { credentialStore, writeJsonAtomic } from '@teamtrail/core/bridge';
 import type { AskView } from './blocks';
 import { DEFAULT_COMMAND } from './manifest';
 import type { PostedApproval } from './service/types';
@@ -11,7 +11,7 @@ import { DEFAULT_NOTIFY_EVENTS, type SlackNotify, type SlackTokenSource, type Sl
  * Everything stays on this machine, next to the tracker credentials:
  *   <config dir>/credentials.json   `slack.appToken` / `slack.botToken` (mode 0600, shared with GitHub and Linear)
  *   <config dir>/slack.json         non-secret settings and setup progress
- *   <config dir>/slack.lock         which `miloops` process owns the one Socket Mode connection
+ *   <config dir>/slack.lock         which `teamtrail` process owns the one Socket Mode connection
  *   <tracker>/.agents/slack.json    which Slack message carries which agent question (per repo)
  */
 
@@ -26,8 +26,8 @@ export interface SlackConfig {
   allow: SlackUser[];
   notify: SlackNotify;
   command: string;
-  /** Last mission used per channel, the default in the decision modal. */
-  channelMission: Record<string, string>;
+  /** Last trail used per channel, the default in the decision modal. */
+  channelTrail: Record<string, string>;
 }
 
 const DEFAULTS: SlackConfig = {
@@ -37,7 +37,7 @@ const DEFAULTS: SlackConfig = {
   allow: [],
   notify: { target: 'dm', events: DEFAULT_NOTIFY_EVENTS, detail: 'full' },
   command: DEFAULT_COMMAND,
-  channelMission: {},
+  channelTrail: {},
 };
 
 function readJson<T>(file: string): Partial<T> {
@@ -59,7 +59,7 @@ export function slackStore(dir: string, env: Env = process.env) {
   const creds = credentialStore(dir);
   const read = (): SlackConfig => {
     const c = readJson<SlackConfig>(file);
-    return { ...DEFAULTS, ...c, notify: { ...DEFAULTS.notify, ...c.notify }, channelMission: { ...c.channelMission } };
+    return { ...DEFAULTS, ...c, notify: { ...DEFAULTS.notify, ...c.notify }, channelTrail: { ...c.channelTrail } };
   };
   return {
     file,
@@ -72,7 +72,7 @@ export function slackStore(dir: string, env: Env = process.env) {
       writeJsonAtomic(file, next);
       return next;
     },
-    /** Saved tokens first, then $MILOOPS_SLACK_APP_TOKEN / $MILOOPS_SLACK_BOT_TOKEN. */
+    /** Saved tokens first, then $TEAMTRAIL_SLACK_APP_TOKEN / $TEAMTRAIL_SLACK_BOT_TOKEN. */
     tokens(): { app?: { token: string; source: SlackTokenSource }; bot?: { token: string; source: SlackTokenSource } } {
       const s = creds.read().slack ?? {};
       const pick = (stored: string | undefined, name: SlackTokenSource) => {
@@ -155,7 +155,7 @@ export function askStore(root: string) {
 }
 
 /**
- * Approval messages MILO posted, by mission/ticket/attempt/kind, in the tracker
+ * Approval messages Scout posted, by trail/ticket/attempt/kind, in the tracker
  * folder (`.agents/slack-approvals.json`), so a restart updates them instead of
  * posting again. Stays on this machine.
  */

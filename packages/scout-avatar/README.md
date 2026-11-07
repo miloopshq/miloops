@@ -1,0 +1,144 @@
+# Scout avatar
+
+`ScoutAvatar` is a pixel-art "video feed" for Scout (Trail Intelligence & Logistics Trail lead), the voice of Teamtrail.
+Scout is an original character: a calm, head-only CRT monitor robot with dark glass, steady eyes, headphones joined by a headband, and a status light on top of the band.
+
+- **Art:**
+  - The 32×32 master head is used at `sm`, `md` and `lg`.
+  - A hand-simplified 16×16 head is used for `xs` and the favicons.
+  - Both come from the approved v4 CRT concept.
+- **Renderings:**
+  - `crt` (recommended): the calm, desaturated colour palette.
+  - `mono`: a single-ink HUD version of the same head.
+- **States:**
+  - `idle`: steady eyes and a flat mouth, with the status light on. Blinks every ~5.6s.
+  - `speaking`: the mouth line follows the text, and a pixel waveform shows only while Scout talks.
+  - `thinking`: the eyes and mouth shift aside, and the status light pulses between dim and on.
+  - `alert`: a decision is waiting. The eyes go taller, the status light turns red and the panel frame turns warning red.
+- **Dependencies:** React 18 only, with no network calls. There is also a framework-free renderer, `mountScout`, for non-React pages.
+
+`npm run capture` writes `scout-avatar-options.png`, `scout-avatar-states.png`, `scout-avatar-demo.mp4` and the brand kit (`brand/`) to `captures/` (or `$OUT_DIR`). The finalized brand kit is committed at the repo root in `brand/`.
+
+## Files
+
+```
+src/scout/
+  art.ts           GENERATED pixels: palette, 32×32 base head + eye/mouth/light patches, 16×16 mini (do not hand edit)
+  frames.ts        styles (crt/mono), expressions per state, status labels, timing, visemes, composeFrame/composeWave
+  types.ts         shared types
+  scoutFrame.ts     what Scout shows at a moment (state, face, layout, labels), shared by both renderers
+  rects.ts         sprite and waveform rects (horizontal runs merged)
+  ScoutAvatar.tsx   React component; Sprite.tsx, Wave.tsx and hooks/ (reduced motion, clock, blink)
+  mountScout.ts     framework-free renderer with the same markup, classes and timing (for the vanilla landing page); scoutDom.ts builds its elements
+  ScoutAvatar.css   panel frame; all colors are --scout-* vars with lookout fallbacks
+  index.ts         React exports (import mountScout from './mountScout' directly)
+preview/           preview page (?view=options | states | demo | square | favicon | banner); App.tsx routes to views/
+tools/
+  capture.mjs      writes the PNGs, the banner GIF, the MP4 loop and brand/* (Playwright + system Chrome + ffmpeg)
+  outline.mjs      helper: adds a 1px outline around a hand-drawn fill grid
+```
+
+## Lookout
+
+The Lookout imports the component from `@teamtrail/scout-avatar`.
+
+It reads the lookout tokens, so it follows the active fonts and palette:
+
+- `--mono`, `--display`, `--sans`
+- `--urgent`
+- `--line`, `--line2`, `--panel`
+
+`Inbox.tsx` → `Conversation` renders a `sm` panel at the top of the conversation pane, next to the ticket title:
+
+```tsx
+<ScoutAvatar size="sm" state={pending ? 'alert' : 'idle'} />
+```
+
+There is no onboarding placement. The activity log keeps `ScoutMark`.
+
+## Landing page
+
+The landing page imports the framework-free renderer from `@teamtrail/scout-avatar/mount`. It does not use React.
+
+The "Meet Scout" section (`#scout`) mounts an `lg` panel:
+
+- It plays its `data-scout-line` once when the section scrolls into view, then holds the caption with the status back at `ONLINE`.
+- Below 400px wide it uses `md`.
+
+```ts
+const scout = mountScout(host, { size: 'lg', caption: true });
+scout.update({ speaking: "I keep your trail moving. When a call is yours, I'll ask you." });
+scout.destroy();
+```
+
+`--scout-warn`, `--scout-line`, `--scout-line2` and `--scout-panel` are mapped to the landing tokens on `.meet__avatar .scout`.
+
+## API
+
+| Prop | Default | Notes |
+| --- | --- | --- |
+| `state` | `'idle'` | `idle` \| `speaking` \| `thinking` \| `alert` |
+| `size` | `'md'` | `xs` is the 16×16 head at 2× (32px). `sm` is the 32×32 head at 3× (96px), `md` at 5× (160px) and `lg` at 7× (224px). A number sets a custom integer scale. |
+| `speaking` | none | A non-empty string switches `idle`/`speaking` to speaking. `alert` and `thinking` keep priority. Once the line has played, the caption stays and the status returns to `ONLINE`. |
+| `variant` | `'crt'` | `crt` \| `mono` |
+| `framed` | `true` (except `xs`) | HUD panel with the `Scout // ONLINE` label. |
+| `caption` | `true` for md/lg | Shows the spoken line under the waveform. |
+| `label` | `'Scout'` | Panel name and accessible name. |
+| `onSpeakEnd` | none | Fires about 350ms after the line has played. It also fires under reduced motion. |
+| `at` | none | Freezes the clock at N ms. Used for screenshots and tests. |
+
+`mountScout(host, options)` takes the same options except `at`, `className` and `style`. It returns `{ update(partial), destroy() }`.
+
+## Motion rules
+
+- Motion happens only on state changes or ongoing states. There's no ambient or decorative animation. The allowed motion is:
+  - the blink (framed panels, idle and speaking only)
+  - the mouth and waveform while a line plays
+  - the thinking status-light pulse (520ms step)
+  - a two-pulse ring when `alert` begins
+- With `prefers-reduced-motion: reduce`, and always at `xs`, nothing animates:
+  - Speaking shows one static mouth frame, a static waveform and the full caption. It still calls `onSpeakEnd` after the same duration.
+  - Thinking holds the light dim.
+  - The alert pulse is off.
+- Timers run only while something is animating. Re-renders are capped at 25/s while speaking.
+- Screen readers get `role="img"` with "Scout, online / transmitting / processing / decision waiting", plus the full line once via `aria-live="polite"`.
+
+## Palette
+
+The palette is calm and desaturated:
+
+- light-gray shell
+- slate headphones
+- dark glass with pale-blue eyes and mouth
+- desaturated orange for the status light and the leading edge of the waveform
+
+Saturated red appears only in `alert`: the status light and the panel frame (`--scout-warn` → `--urgent`). Override `--scout-*` variables on a parent to retheme the panel.
+
+## Changing the art
+
+Edit `src/scout/art.ts` by hand: each letter in a row is a key in `PALETTE`, a dot is transparent. Expressions are patches over the idle frame, so they stay small and any combination works.
+
+## Preview, captures and brand kit
+
+```
+npm install
+npm run dev                  # playground at http://localhost:5173 (+ ?view=options|states|demo)
+npm run build
+npm run capture              # needs Chrome (CHROME=...) and ffmpeg
+```
+
+`capture` also renders `brand/` at exact pixel sizes, with integer sprite scales on the dark HUD background:
+
+- `github-org-avatar.png` (1000²)
+- `github-social-preview.png` (1280×640)
+- `teamtrail-banner.gif` (1280×640): the README banner, one `BANNER_LOOP` pass (preview/content.ts) rendered frame by frame with a frozen clock
+- `og-image-1200x630.png`
+- `x-header-1500x500.png`
+- `wordmark-lockup.png`: the logo lockup, mini Scout beside the wordmark
+- `x-avatar-400.png`
+- `slack-icon-512.png`
+- `linkedin-discord-avatar-512.png`
+- `favicon-64.png`, `favicon-32.png`
+- `social-kit-overview.png`: a contact sheet with checks at 16 to 48px
+
+The banner copy is agent-agnostic. The brand views are `?view=square&n=`, `?view=favicon&px=` and `?view=banner&w=&h=&layout=card|header`.

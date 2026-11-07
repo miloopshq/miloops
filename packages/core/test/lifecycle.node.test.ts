@@ -34,7 +34,7 @@ import { noSleep } from './scenarios';
 
 const SECTIONS = { destination: 'D', notes: '', decisions: [], unspecified: [], outOfScope: [] };
 
-async function mission(a: TrackerAdapter) {
+async function trail(a: TrackerAdapter) {
   const { map, tickets } = await chartMap(a, {
     title: 'Lifecycle',
     sections: SECTIONS,
@@ -51,7 +51,7 @@ const memory = () => new MemoryAdapter({ latency: [0, 0] });
 /** A fresh ticket put into `phase` with raw adapter writes (the setup a transition starts from). */
 async function inPhase(phase: TicketPhase) {
   const a = memory();
-  const { mapId, first, second } = await mission(a);
+  const { mapId, first, second } = await trail(a);
   const id = phase === 'backlog' ? second.id : first.id;
   if (phase === 'working') await a.assign(mapId, id, 'claude-07');
   if (phase === 'verifying' || phase === 'rework' || phase === 'blocked') await a.setMeta(mapId, id, { status: phase });
@@ -85,7 +85,7 @@ test('the transition table: every event from every phase is allowed exactly as l
 });
 
 test('actor kinds are enforced, and a phase that moved meanwhile is refused (compare-and-set)', async () => {
-  const kinds: ActorKind[] = ['agent', 'operator', 'engine'];
+  const kinds: ActorKind[] = ['agent', 'trail lead', 'engine'];
   for (const rule of TRANSITIONS) {
     for (const kind of kinds.filter((k) => !rule.actors.includes(k))) {
       const { a, mapId, id } = await inPhase(rule.from[0]);
@@ -112,10 +112,10 @@ test('release and expiry go back to rework when the ticket was in rework, else t
 });
 
 test('operations record who, why and when; the journal is append-only JSONL and skips torn lines', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-journal-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-journal-'));
   const journal = journalFile(root);
   const a = memory();
-  const { mapId, first } = await mission(a);
+  const { mapId, first } = await trail(a);
   await claim(a, mapId, first.id, { assignee: 'claude-07', journal, sessionId: 's-1' });
   await resolve(a, mapId, first.id, { answer: 'Done it.', author: 'claude-07', journal });
   appendFileSync(journalPath(root, mapId), '{"v":1,"kind":"transi');
@@ -133,9 +133,9 @@ test('operations record who, why and when; the journal is append-only JSONL and 
 });
 
 test('markdown: status is frontmatter written only when set, so existing ticket files stay byte-identical', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-md-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-md-'));
   const a = new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
-  const { mapId, first } = await mission(a);
+  const { mapId, first } = await trail(a);
   const file = path.join(root, mapId, 'tickets', `${first.id}.md`);
   assert.ok(!readFileSync(file, 'utf8').includes('status:'));
   await a.setMeta(mapId, first.id, { status: 'rework' });
@@ -152,25 +152,25 @@ test('github: claim and status share the meta marker, and neither write drops th
   const fake = fakeGitHub({ repo: 'octo-org/launchpad' });
   const opts = { repo: 'octo-org/launchpad', token: 't', manual: true, ...noSleep };
   const a = new GitHubAdapter({ ...opts, fetch: fake.fetch });
-  const { mapId, first } = await mission(a);
+  const { mapId, first } = await trail(a);
   await a.setMeta(mapId, first.id, { status: 'rework' });
   await a.assign(mapId, first.id, 'claude-07');
   const body = fake.issues.get(Number(first.id))!.body!;
-  assert.match(body, /<!-- miloops:meta \{"assignee":"claude-07","status":"rework"\} -->/);
+  assert.match(body, /<!-- teamtrail:meta \{"assignee":"claude-07","status":"rework"\} -->/);
   const fresh = (await new GitHubAdapter({ ...opts, fetch: fake.fetch }).loadMap(mapId)).tickets[0];
   assert.equal(fresh.status, 'rework');
   assert.equal(fresh.assignee, 'claude-07');
-  assert.ok(!fresh.body.includes('miloops:meta'));
+  assert.ok(!fresh.body.includes('teamtrail:meta'));
   a.dispose();
 });
 
 test('github offline: a status change waits in the outbox, shows at once, and lands once back online', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-meta-gh-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-meta-gh-'));
   const fake = fakeGitHub({ repo: 'octo-org/launchpad' });
   const net = faulty(fake.fetch);
   const opts = { repo: 'octo-org/launchpad', token: 't', manual: true, retries: 0, ...noSleep };
   const a = new GitHubAdapter({ ...opts, fetch: net.fetch, outbox: outboxFile(root, outboxKey('github', opts.repo)) });
-  const { mapId, first } = await mission(a);
+  const { mapId, first } = await trail(a);
   await a.tick();
   net.state.fault = 'offline';
   await a.setMeta(mapId, first.id, { status: 'blocked' });
@@ -184,9 +184,9 @@ test('github offline: a status change waits in the outbox, shows at once, and la
 });
 
 test('the lease reaper returns a ticket through the lifecycle and journals it as the engine', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-reap-'));
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-reap-'));
   const a = new MarkdownAdapter({ ...nodeMarkdownFs(root), watch: undefined }, root);
-  const { mapId, first } = await mission(a);
+  const { mapId, first } = await trail(a);
   await a.assign(mapId, first.id, 'claude-07');
   const now = Date.now();
   writeLease(root, {
@@ -208,13 +208,13 @@ test('the lease reaper returns a ticket through the lifecycle and journals it as
   const [e] = journalFile(root).read(mapId);
   assert.deepEqual(
     [e.event, e.from, e.to, e.actor, e.actorKind, e.sessionId],
-    ['expire', 'working', 'ready', 'miloops', 'engine', 's-9'],
+    ['expire', 'working', 'ready', 'teamtrail', 'engine', 's-9'],
   );
   assert.match(e.reason ?? '', /claude-07 went silent/);
 });
 
-test('bridge: the browser appends to the journal and reads a mission history; malformed entries are refused', async () => {
-  const root = mkdtempSync(path.join(os.tmpdir(), 'miloops-journal-br-'));
+test('bridge: the browser appends to the journal and reads a trail history; malformed entries are refused', async () => {
+  const root = mkdtempSync(path.join(os.tmpdir(), 'teamtrail-journal-br-'));
   const bridge = createTrackerBridge(root, { env: {}, configDir: path.join(root, 'cfg'), leases: { reapMs: 60_000 } });
   const server = http.createServer((req, res) => void bridge.handle(req, res));
   await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
@@ -229,8 +229,8 @@ test('bridge: the browser appends to the journal and reads a mission history; ma
     event: 'claim' as LifecycleEvent,
     from: 'ready',
     to: 'working',
-    actor: 'operator',
-    actorKind: 'operator',
+    actor: 'trail lead',
+    actorKind: 'trail lead',
   };
   const post = (body: unknown) =>
     fetch(`${base}/journal`, {

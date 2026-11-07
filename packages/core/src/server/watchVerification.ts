@@ -13,7 +13,7 @@ export interface VerificationWatch {
   /** The last tick's status; `sync-status.json` keeps it across restarts once sync has been on. */
   status(): PrSyncStatus;
   stop(): void;
-  /** Runs a tick now (after an operator links a PR), or right after the running one. */
+  /** Runs a tick now (after a trail lead links a PR), or right after the running one. */
   kick(): void;
 }
 

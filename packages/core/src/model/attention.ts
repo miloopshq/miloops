@@ -17,8 +17,8 @@ export type AttentionKind =
   | 'knowledge'
   | 'brief'
   | 'policy'
-  | 'replan'
-  | 'replan-suggested'
+  | 'reroute'
+  | 'reroute-suggested'
   | 'overlap'
   | 'integration';
 
@@ -31,7 +31,7 @@ export interface AttentionItem {
   /** Stable across ticks: `<kind>:<mapId>:<ref>`. Snoozes and dismissals key on it. */
   id: string;
   kind: AttentionKind;
-  /** The mission; empty for project-wide items such as knowledge. */
+  /** The trail; empty for project-wide items such as knowledge. */
   mapId: string;
   ticketId?: string;
   /** What the human is asked to do, in one line. */

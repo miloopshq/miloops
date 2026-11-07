@@ -125,7 +125,7 @@ export function fakeGitHub(opts: { repo?: string; login?: string; start?: number
 
     if (p === '/graphql' || p === '/api/graphql') {
       const { query, variables } = body as { query: string; variables: { number: number } };
-      if (!/query Mission\b/.test(query))
+      if (!/query Trail\b/.test(query))
         return { status: 200, body: { errors: [{ type: 'INTERNAL', message: 'fake: unsupported query' }] } };
       const root = issues.get(variables.number);
       const issue = root

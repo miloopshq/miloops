@@ -21,8 +21,8 @@ export async function handleLeases(
       throw new BadRequest('"mapId" and "ticketId" are required');
     const lease = readLease(root, b.mapId, b.ticketId);
     if (!lease || lease.returned) return (sendJson(res, 404, { error: 'no live lease on this ticket' }), true);
-    const by = typeof b.by === 'string' && b.by ? b.by : 'operator';
-    const r = await returnToQueue(root, await active(), lease, { reason: 'operator', by });
+    const by = typeof b.by === 'string' && b.by ? b.by : 'trail lead';
+    const r = await returnToQueue(root, await active(), lease, { reason: 'trail lead', by });
     if ('busy' in r) sendJson(res, 409, { error: 'the lease is being returned already' });
     else sendJson(res, 200, 'returned' in r ? { returned: r.returned } : { dropped: r.dropped });
     return true;

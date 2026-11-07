@@ -22,7 +22,7 @@ export interface SyncOptions {
   /** Poll interval while someone is subscribed. */
   pollMs?: number;
   maxBackoffMs?: number;
-  /** How long a cached mission is trusted when nothing is polling (e.g. an agent-only server). */
+  /** How long a cached trail is trusted when nothing is polling (e.g. an agent-only server). */
   ttlMs?: number;
   now?: () => number;
   /** No timers: the caller drives polling and queue flushes with `tick()` (tests). */
@@ -71,7 +71,7 @@ export interface OutboxStore {
 type Without<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 export type EventInit = Without<TrackerEvent, 'at'>;
 
-/** A mission as cached by a synced adapter. */
+/** A trail as cached by a synced adapter. */
 export interface CacheEntry {
   snap: MapSnapshot;
   decisions: DecisionRecord[];

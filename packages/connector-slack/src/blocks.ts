@@ -1,4 +1,4 @@
-/** Block Kit for every surface MILO renders in Slack. Pure functions; no I/O. */
+/** Block Kit for every surface Scout renders in Slack. Pure functions; no I/O. */
 
 export { ACTIONS, VIEWS, clip, escape, md, plain, quote } from './blocks/kit';
 export { askClosedMessage, askMessage, replyModal, type AskRef, type AskView } from './blocks/asks';

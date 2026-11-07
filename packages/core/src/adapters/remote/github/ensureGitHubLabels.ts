@@ -2,7 +2,7 @@ import { ALL_LABELS } from '../format';
 import { TrackerError } from '../http';
 import type { GitHubClient } from './githubClient';
 
-/** Creates the MILOOPS labels the repository doesn't have yet. */
+/** Creates the Teamtrail labels the repository doesn't have yet. */
 export async function ensureGitHubLabels(gh: GitHubClient) {
   const r = await gh.repo<{ name: string }[]>('GET', '/labels?per_page=100');
   const have = new Set(r.body.map((l) => l.name));

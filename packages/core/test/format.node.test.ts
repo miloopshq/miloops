@@ -13,11 +13,11 @@ import { buildDecision } from '../src/planning/decisions/decisionRecord';
 
 test('claim marker round-trips and disappears when released', () => {
   const body = joinBody('Compare libraries.', { assignee: 'claude-07' });
-  assert.match(body, /<!-- miloops:meta \{"assignee":"claude-07"\} -->$/);
+  assert.match(body, /<!-- teamtrail:meta \{"assignee":"claude-07"\} -->$/);
   assert.deepEqual(splitBody(body), { text: 'Compare libraries.', meta: { assignee: 'claude-07' } });
   assert.equal(joinBody('Compare libraries.', { assignee: undefined }), 'Compare libraries.');
-  assert.deepEqual(splitBody('Edited by hand\r\n\r\n<!-- miloops:meta {broken -->'), {
-    text: 'Edited by hand\n\n<!-- miloops:meta {broken -->',
+  assert.deepEqual(splitBody('Edited by hand\r\n\r\n<!-- teamtrail:meta {broken -->'), {
+    text: 'Edited by hand\n\n<!-- teamtrail:meta {broken -->',
     meta: {},
   });
 });
@@ -35,7 +35,7 @@ test('comment author marker is read back; plain tracker comments keep the tracke
 
 test('the write id of a queued comment is hidden from its body and read back', () => {
   const body = authoredBody('claude-07', 'Found it.', 'mvwc1a2b');
-  assert.match(body, /^<!-- miloops:author claude-07 -->\n<!-- miloops:write mvwc1a2b -->\nFound it\.$/);
+  assert.match(body, /^<!-- teamtrail:author claude-07 -->\n<!-- teamtrail:write mvwc1a2b -->\nFound it\.$/);
   assert.deepEqual(readComment({ id: '3', body, createdAt: 0 }), {
     id: '3',
     author: 'claude-07',
@@ -49,8 +49,8 @@ test('decision comments survive text that would close an HTML comment', () => {
   const d = buildDecision('D-7', 'm', {
     question: 'Q?',
     answer: 'Use --> arrows <!-- and --> dashes.',
-    decidedBy: 'operator',
-    source: { kind: 'command-center' },
+    decidedBy: 'trail lead',
+    source: { kind: 'lookout' },
     ticketId: '12',
     ticketKey: '#12',
   });
@@ -74,6 +74,6 @@ test('oversized transcripts are trimmed to fit a tracker comment', () => {
 });
 
 test('ticket type comes from labels, defaulting to task', () => {
-  assert.equal(typeFromLabels(['bug', 'miloops:grilling']), 'grilling');
+  assert.equal(typeFromLabels(['bug', 'teamtrail:junction']), 'junction');
   assert.equal(typeFromLabels(['bug']), 'task');
 });

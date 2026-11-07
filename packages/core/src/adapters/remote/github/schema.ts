@@ -48,7 +48,7 @@ const ISSUE_FIELDS = `id databaseId number title body state stateReason createdA
   assignees(first: 5) { nodes { login } }
   comments(first: 100) { nodes { databaseId body createdAt author { login } } }`;
 
-export const MISSION_QUERY = `query Mission($owner: String!, $name: String!, $number: Int!) {
+export const TRAIL_QUERY = `query Trail($owner: String!, $name: String!, $number: Int!) {
   repository(owner: $owner, name: $name) {
     issue(number: $number) {
       ${ISSUE_FIELDS}

@@ -3,7 +3,7 @@ import type { Assumption } from '../../model/assumption';
 import { OperationError } from '../operations/operationError';
 
 /**
- * The operator's call that an assumption holds for good: it's `confirmed`, with who confirmed it. Only holding and
+ * The trail lead's call that an assumption holds for good: it's `confirmed`, with who confirmed it. Only holding and
  * challenged assumptions can be confirmed; an invalidated one stays invalidated. Agents can't call this.
  */
 export async function confirmAssumption(adapter: TrackerAdapter, input: { mapId: string; id: string; by: string }) {

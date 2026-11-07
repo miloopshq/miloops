@@ -1,0 +1,75 @@
+/* ---------- Reroutes: banner over the map, review dialog, assumptions in the plan ---------- */
+.reroute-dialog {
+  width: min(760px, 94vw);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+}
+.reroute-dialog header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-10);
+}
+.reroute-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-14);
+  padding-right: var(--sp-6);
+}
+.reroute-body section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.reroute-body p {
+  margin: 0;
+  line-height: var(--lh-body);
+}
+.reroute-evidence {
+  white-space: pre-wrap;
+  color: var(--text);
+}
+.reroute-destination {
+  padding: var(--sp-10);
+  border: 1px solid rgba(var(--amber-rgb), 0.45);
+  background: rgba(var(--amber-rgb), 0.08);
+}
+.reroute-destination-why {
+  font: var(--type-title);
+  color: var(--text-hi);
+}
+.reroute-destination-diff {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-10);
+}
+.reroute-destination-diff .before {
+  color: var(--dim);
+  text-decoration: line-through;
+}
+.reroute-destination-diff .after {
+  color: var(--text-hi);
+}
+/* The detail line of a change can be a sentence: let it wrap inside the dialog. */
+.reroute-change .ds-row-detail {
+  white-space: normal;
+}
+
+/* Assumptions in the trail plan: rows; invalidated ones are struck through. */
+.assumption.st-invalidated .ds-row-title {
+  text-decoration: line-through;
+  color: var(--dim);
+}
+.assumption-tickets .link {
+  margin-left: var(--sp-4);
+}
+
+@media (max-width: 1023px) {
+  .reroute-destination-diff {
+    grid-template-columns: 1fr;
+  }
+}

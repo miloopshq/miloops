@@ -4,12 +4,12 @@ import type { DecisionRisk } from './risk';
 
 /**
  * `execute` tickets carry out decided work (implementation) rather than decide something.
- * `review` tickets are created by MILOOPS when a verified completion needs another agent's review.
+ * `review` tickets are created by Teamtrail when a verified completion needs another agent's review.
  */
-export type TicketType = 'research' | 'prototype' | 'grilling' | 'task' | 'execute' | 'review';
+export type TicketType = 'research' | 'prototype' | 'junction' | 'task' | 'execute' | 'review';
 
-/** The types a mission is planned with; `review` tickets are never planned or added by hand. */
-export const TICKET_TYPES: TicketType[] = ['research', 'prototype', 'grilling', 'task', 'execute'];
+/** The types a trail is planned with; `review` tickets are never planned or added by hand. */
+export const TICKET_TYPES: TicketType[] = ['research', 'prototype', 'junction', 'task', 'execute'];
 
 export const ALL_TICKET_TYPES: TicketType[] = [...TICKET_TYPES, 'review'];
 
@@ -18,7 +18,7 @@ export interface Comment {
   author: string;
   body: string;
   createdAt: number;
-  /** Remote trackers: id of the MILOOPS write that posted it. */
+  /** Remote trackers: id of the Teamtrail write that posted it. */
   writeId?: string;
 }
 
@@ -31,7 +31,7 @@ export interface Ticket {
   type: TicketType;
   /**
    * Only meaningful for `task` and `execute`: true when it needs a human (HITL label).
-   * Grilling and prototype are always HITL; research is always AFK.
+   * Junction and prototype are always HITL; research is always AFK.
    */
   hitl?: boolean;
   body: string;
@@ -41,7 +41,7 @@ export interface Ticket {
   assignee?: string;
   /** Lifecycle status on top of open + assignee (model/lifecycle.ts); only `transition()` sets it. */
   status?: TicketStatus;
-  /** Overrides the mission's verification level for this ticket. */
+  /** Overrides the trail's verification level for this ticket. */
   verification?: VerificationLevel;
   /** Check names (verification.json) this ticket runs instead of the config's `run` list. */
   checks?: string[];
@@ -69,7 +69,7 @@ export interface MapSections {
   decisions: Decision[];
   unspecified: string[];
   outOfScope: string[];
-  /** What the mission relies on. Missing (older maps, GitHub/Linear bodies without the section) means none. */
+  /** What the trail relies on. Missing (older maps, GitHub/Linear bodies without the section) means none. */
   assumptions?: Assumption[];
 }
 
@@ -85,7 +85,7 @@ export interface MapDoc {
   key: string;
   title: string;
   mode: MapMode;
-  /** Unset means off: missions that predate verification complete as they always have. */
+  /** Unset means off: trails that predate verification complete as they always have. */
   verification?: VerificationLevel;
   sections: MapSections;
   createdAt: number;
@@ -108,7 +108,7 @@ export interface MapSummary {
  * `DECISION_SOURCES` (decisions.ts); everything else (storage, API, audit view,
  * filters, export) keys off the string, so a new source needs no other change.
  */
-export type DecisionSourceKind = 'command-center' | 'agent' | 'slack' | 'tracker';
+export type DecisionSourceKind = 'lookout' | 'agent' | 'slack' | 'tracker';
 
 export interface DecisionSource {
   kind: DecisionSourceKind;
@@ -124,7 +124,7 @@ export interface DecisionSource {
 
 /**
  * Actor ids are plain strings namespaced by where the actor lives:
- * `operator` (command center), agent callsigns (`claude-07`), `slack:U123`.
+ * `trail lead` (Lookout), agent trail names (`claude-07`), `slack:U123`.
  */
 export interface Participant {
   id: string;
@@ -139,32 +139,32 @@ export interface TranscriptEntry {
   at: number;
 }
 
-/** One audited decision. Persisted next to the mission (`<mission>/decisions/<id>.md` in local markdown). */
+/** One audited decision. Persisted next to the trail (`<trail>/decisions/<id>.md` in local markdown). */
 export interface DecisionRecord {
   /** `D-<n>`, unique per tracker. */
   id: string;
-  /** Mission (map) the decision belongs to. */
+  /** Trail (map) the decision belongs to. */
   mapId: string;
   ticketId?: string;
   ticketKey?: string;
   question: string;
   /** The decision, in full. */
   answer: string;
-  /** One line for the mission's Decisions section and list rows. */
+  /** One line for the trail's Decisions section and list rows. */
   summary: string;
   alternatives: string[];
   rationale: string;
-  /** Actor id of who made the call: the operator for HITL answers, the agent callsign for AFK resolutions, `slack:U123`. */
+  /** Actor id of who made the call: the trail lead for HITL answers, the agent trail name for AFK resolutions, `slack:U123`. */
   decidedBy: string;
   decidedAt: number;
-  /** Everyone who took part (HITL agent + operator, Slack thread authors). */
+  /** Everyone who took part (HITL agent + trail lead, Slack thread authors). */
   participants: Participant[];
   source: DecisionSource;
   /** Id of the record this one replaces. */
   supersedes?: string;
   /** Id of the record that replaced this one; set means the decision is no longer in force. */
   supersededBy?: string;
-  /** Ids (`S-<n>`) of the mission assumptions this decision relies on. */
+  /** Ids (`S-<n>`) of the trail assumptions this decision relies on. */
   assumes?: string[];
   /** The conversation behind the decision: a HITL session, or a Slack thread excerpt. Empty when only a summary was kept. */
   transcript: TranscriptEntry[];
@@ -259,7 +259,7 @@ export interface AnsweredQuestion {
 export interface FeedEntry {
   id: string;
   at: number;
-  source: 'session' | 'tracker' | 'operator' | 'system';
+  source: 'session' | 'tracker' | 'trail lead' | 'system';
   sessionId?: string;
   agent?: string;
   /** e.g. "WORK 2/5" */
@@ -267,7 +267,7 @@ export interface FeedEntry {
   text: string;
   level: 'info' | 'step' | 'ok' | 'warn' | 'alert';
   ticketId?: string;
-  /** Rare, high-signal moments (a decision request arriving, a mission launch); rendered in the dot-matrix face. */
+  /** Rare, high-signal moments (a decision request arriving, a trail launch); rendered in the dot-matrix face. */
   signal?: boolean;
 }
 

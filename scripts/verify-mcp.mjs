@@ -1,5 +1,5 @@
-// End-to-end check of the MCP server against the built CLI: a stdio MCP client drives a mission while the
-// command center (in Chrome) shows it live, and every HITL question is answered in the command center inbox.
+// End-to-end check of the MCP server against the built CLI: a stdio MCP client drives a trail while the
+// Lookout (in Chrome) shows it live, and every HITL question is answered in the Lookout inbox.
 // Usage: npm run build -w teamtrail && node scripts/verify-mcp.mjs [screenshotDir]
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -18,19 +18,19 @@ const shots = process.argv[2];
 if (!fs.existsSync(cli)) throw new Error('build the CLI first: npm run build -w teamtrail');
 if (shots) fs.mkdirSync(shots, { recursive: true });
 
-const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'miloops-e2e-'));
+const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'teamtrail-e2e-'));
 const log = (...a) => console.log('·', ...a);
 
-// The repo's own check, which passes once fixed.txt exists. With verification.json present, new missions
-// verify execute and task completions with it; research and grilling tickets close as before.
+// The repo's own check, which passes once fixed.txt exists. With verification.json present, new trails
+// verify execute and task completions with it; research and junction tickets close as before.
 const CHECK = "if (!require('fs').existsSync('fixed.txt')) { console.error('fixed.txt is missing'); process.exit(1) }";
 fs.writeFileSync(
   path.join(repo, 'package.json'),
   JSON.stringify({ private: true, scripts: { check: `node -e "${CHECK}"` } }),
 );
-fs.mkdirSync(path.join(repo, '.miloops'));
+fs.mkdirSync(path.join(repo, '.teamtrail'));
 fs.writeFileSync(
-  path.join(repo, '.miloops', 'verification.json'),
+  path.join(repo, '.teamtrail', 'verification.json'),
   JSON.stringify({
     v: 1,
     default: 'checks',
@@ -39,18 +39,18 @@ fs.writeFileSync(
   }),
 );
 
-// 1. The command center, as the user starts it.
+// 1. The Lookout, as the user starts it.
 const server = spawn(process.execPath, [cli, '--no-open', '--port', '0'], { cwd: repo });
 const url = await new Promise((resolve, reject) => {
   let out = '';
   server.stdout.on('data', (c) => {
     out += c;
-    const m = out.match(/Command center\s+(http:\S+)/);
+    const m = out.match(/Lookout\s+(http:\S+)/);
     if (m) resolve(m[1]);
   });
-  server.on('exit', (code) => reject(new Error(`miloops exited ${code}: ${out}`)));
+  server.on('exit', (code) => reject(new Error(`teamtrail exited ${code}: ${out}`)));
 });
-log('command center', url);
+log('Lookout', url);
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME ?? '/usr/local/bin/google-chrome' });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -65,7 +65,7 @@ const shot = async (name) => {
   if (shots) await page.screenshot({ path: path.join(shots, `${name}.png`) });
 };
 
-// 2. The agent, as Claude Code starts it (`claude mcp add miloops -- npx teamtrail mcp`): Claude Code passes
+// 2. The agent, as Claude Code starts it (`claude mcp add teamtrail -- npx teamtrail mcp`): Claude Code passes
 // CLAUDE_PROJECT_DIR and tags each call with its tool_use id; the transcript holds the API usage of every message.
 const claudeConfig = path.join(repo, '.claude-config');
 const transcript = path.join(claudeConfig, 'projects', repo.replace(/[^a-zA-Z0-9]/g, '-'), 'verify-session.jsonl');
@@ -96,7 +96,7 @@ const call = async (name, args = {}) => {
     type: 'message',
     role: 'assistant',
     model: 'claude-sonnet-4-5',
-    content: [{ type: 'tool_use', id, name: `mcp__miloops__${name}`, input: args }],
+    content: [{ type: 'tool_use', id, name: `mcp__teamtrail__${name}`, input: args }],
     usage: PER_MESSAGE,
   };
   fs.appendFileSync(
@@ -120,7 +120,7 @@ async function clickNode(node) {
   await node.click();
 }
 
-/** Answer the open question in the command center inbox, by suggestion chip or by typing. */
+/** Answer the open question in the Lookout inbox, by suggestion chip or by typing. */
 async function answerInUi(text, { chip = false } = {}) {
   await page.locator('.inbox-list li button').first().waitFor({ timeout: 15_000 });
   await page.locator('.inbox-list li button').first().click();
@@ -131,7 +131,7 @@ async function answerInUi(text, { chip = false } = {}) {
   }
 }
 
-// /milo new: framing question, answered in the command center.
+// /scout new: framing question, answered in the Lookout.
 const framing = call('ask_human', {
   question: 'Who is the changelog page for?',
   suggestions: ['Users of the CLI', 'Contributors'],
@@ -143,7 +143,7 @@ await answerInUi('Users of the CLI', { chip: true });
 const f = await framing;
 log(`framing answered in UI: "${f.answer}" by ${f.answeredBy}`);
 
-const started = await call('start_mission', {
+const started = await call('start_trail', {
   discovery: false,
   title: 'Changelog page',
   destination: 'A public changelog page generated from release notes',
@@ -152,22 +152,22 @@ const started = await call('start_mission', {
   outOfScope: ['Email digests'],
   tickets: [
     { ref: 'src', title: 'Where do release notes live today?', type: 'research' },
-    { ref: 'layout', title: 'Timeline or grouped by version?', type: 'grilling', blockedBy: ['src'] },
+    { ref: 'layout', title: 'Timeline or grouped by version?', type: 'junction', blockedBy: ['src'] },
     { ref: 'host', title: 'Where is it hosted?', type: 'research' },
     { ref: 'build', title: 'Build the changelog page', type: 'execute', blockedBy: ['layout', 'host'] },
   ],
 });
-log(`mission ${started.mission.key} "${started.mission.title}" · ${started.tickets.length} tickets`);
+log(`trail ${started.trail.key} "${started.trail.title}" · ${started.tickets.length} tickets`);
 await page.locator('.node').nth(3).waitFor({ timeout: 15_000 });
-await shot('02-mission-charted-by-agent');
+await shot('02-trail-charted-by-agent');
 
-// /milo resume: claim, report, close.
-await call('resume_mission');
+// /scout resume: claim, report, close.
+await call('resume_trail');
 const c1 = await call('claim_ticket');
 log(`claimed ${c1.claimed.key} (${c1.claimed.attention})`);
 await call('report_progress', {
   step: 'Investigate',
-  message: 'reading apps/command-center/src/changelog.ts',
+  message: 'reading apps/lookout/src/changelog.ts',
   inputTokens: 18_400,
   outputTokens: 2_100,
   costUsd: 0.087,
@@ -220,18 +220,18 @@ log(`claimed ${c3.claimed.key}; left running so the sessions zone shows a live s
 
 const status = await call('status');
 log(
-  `status: ${status.mission.progress} · ready ${status.mission.ready.map((t) => t.key).join(', ') || '—'} · spend $${status.mission.spend.costUsd} (${status.mission.spend.inputTokens + status.mission.spend.outputTokens} tokens) from ${status.mission.spend.sources.join(', ')}`,
+  `status: ${status.trail.progress} · ready ${status.trail.ready.map((t) => t.key).join(', ') || '—'} · spend $${status.trail.spend.costUsd} (${status.trail.spend.inputTokens + status.trail.spend.outputTokens} tokens) from ${status.trail.spend.sources.join(', ')}`,
 );
 // Every transcript message counts (the status call's own too) except record_decision's: it ran between tickets,
 // with no session open. The numbers passed to report_progress are ignored.
 const measured = seq - 1;
 const spendOk =
-  status.mission.spend.sources.join() === 'claude-code' &&
-  Math.abs(status.mission.spend.costUsd - Math.round(measured * PER_MESSAGE_USD * 1e4) / 1e4) < 1e-4;
+  status.trail.spend.sources.join() === 'claude-code' &&
+  Math.abs(status.trail.spend.costUsd - Math.round(measured * PER_MESSAGE_USD * 1e4) / 1e4) < 1e-4;
 log(
   `measured spend ${spendOk ? 'matches' : 'DOES NOT match'} ${measured} transcript messages ($${(measured * PER_MESSAGE_USD).toFixed(6)})`,
 );
-// The mission report: two tickets done, the HITL answer counted, lead times measured from the journal.
+// The trail report: two tickets done, the HITL answer counted, lead times measured from the journal.
 const d = status.delivery;
 const deliveryOk = d?.done === 2 && d.interventions.answers >= 1 && d.medianLeadMs >= 0 && /2 done/.test(d.summary);
 log(`delivery ${deliveryOk ? 'ok' : 'WRONG'}: ${d?.summary}`);
@@ -253,10 +253,10 @@ const ui = {
     .evaluate((el) => [el.getAttribute('title'), el.getAttribute('data-tip')].filter(Boolean).join('\n')),
 };
 log(
-  `command center shows: ${ui.sessions} live session(s), mission usage "${ui.usage}" (${ui.usageSource?.split('\n').slice(1).join('; ') || 'no source'})`,
+  `Lookout shows: ${ui.sessions} live session(s), trail usage "${ui.usage}" (${ui.usageSource?.split('\n').slice(1).join('; ') || 'no source'})`,
 );
 
-// Crash recovery: a second agent (18 s lease) claims a ticket, reports progress and is SIGKILLed. The command center
+// Crash recovery: a second agent (18 s lease) claims a ticket, reports progress and is SIGKILLed. The Lookout
 // shows the claim as stalled, returns it to the queue once the lease runs out, and the next claim resumes from the notes.
 // The lease is stalled for its last third (6 s) until the reaper (every 15 s) returns it; the map re-checks lease health
 // every 5 s, so the stalled window must outlast that or a fast reap can skip it on a slow machine.
@@ -285,7 +285,7 @@ const returnedLog = page.locator('.log-row', {
   hasText: `${crashed.claimed.key} returned to queue after claude-09 went silent`,
 });
 await returnedLog.first().waitFor({ timeout: 60_000 });
-log('command center returned the ticket to the queue: "ticket returned to queue after agent went silent" logged');
+log('Lookout returned the ticket to the queue: "ticket returned to queue after agent went silent" logged');
 const resumed = await call('claim_ticket', { ticket: added.ticket.key });
 const handoffOk =
   resumed.claimed.assignee !== 'claude-09' &&
@@ -299,13 +299,13 @@ log(
 await clickNode(page.locator('.node', { hasText: 'Which date format?' }));
 await page.getByRole('button', { name: 'Release to queue' }).click();
 const releasedLog = page.locator('.log-row', {
-  hasText: `${added.ticket.key} returned to queue · claim of ${resumed.claimed.assignee} released by operator`,
+  hasText: `${added.ticket.key} returned to queue · claim of ${resumed.claimed.assignee} released by trail lead`,
 });
 await releasedLog.first().waitFor({ timeout: 15_000 });
 const told = await call('status');
 const releaseOk =
-  told.leaseLost?.tickets?.includes(added.ticket.key) && !told.mission.claimed.some((t) => t.key === added.ticket.key);
-log(`released in the command center; the agent ${releaseOk ? 'was told' : 'WAS NOT told'} its claim is gone`);
+  told.leaseLost?.tickets?.includes(added.ticket.key) && !told.trail.claimed.some((t) => t.key === added.ticket.key);
+log(`released in the Lookout; the agent ${releaseOk ? 'was told' : 'WAS NOT told'} its claim is gone`);
 await shot('06-released-to-queue');
 await crashClient.close().catch(() => {});
 
@@ -335,16 +335,16 @@ await page.locator('.node.st-decided', { hasText: /Add the \/changelog/ }).waitF
 await shot('08-verified');
 const verifiedOk = reworkOk && reworkPill > 0 && passed.status === 'done' && passed.closed === route.ticket.key;
 log(
-  `${route.ticket.key} ${verifiedOk ? 'verified' : 'NOT verified'}: ${passed.attempt} ${passed.status}, rework shown in the command center`,
+  `${route.ticket.key} ${verifiedOk ? 'verified' : 'NOT verified'}: ${passed.attempt} ${passed.status}, rework shown in the Lookout`,
 );
 
 // Independent review: at checks+review+human a passing completion gets a review ticket. The worker is never given its
-// own review; a second agent passes it, and the operator approves from the command center inbox.
-const api = new URL('/__miloops/verification/action', url);
+// own review; a second agent passes it, and the trail lead approves from the Lookout inbox.
+const api = new URL('/__teamtrail/verification/action', url);
 await fetch(api, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ action: 'level', mapId: started.mission.id, level: 'checks+review+human' }),
+  body: JSON.stringify({ action: 'level', mapId: started.trail.id, level: 'checks+review+human' }),
 });
 const footer = await call('add_ticket', { title: 'Link the changelog from the footer', type: 'execute' });
 await call('claim_ticket', { ticket: footer.ticket.key });
@@ -393,12 +393,12 @@ const reviewOk =
   reviewed.phase === 'verifying' &&
   (await page.locator('.inbox-list.approvals li').count()) === 0;
 log(
-  `${footer.ticket.key} ${reviewOk ? 'reviewed and approved' : 'NOT reviewed and approved'}: own review refused (${ownClaim.replace(/^claim_ticket: /, '')}), ${offered.key} ${reviewed.verdict} by claude-02, approved in the command center`,
+  `${footer.ticket.key} ${reviewOk ? 'reviewed and approved' : 'NOT reviewed and approved'}: own review refused (${ownClaim.replace(/^claim_ticket: /, '')}), ${offered.key} ${reviewed.verdict} by claude-02, approved in the Lookout`,
 );
 
-// Discovery: a new mission starts with a discovery ticket; implementation waits until the operator accepts the
-// brief in the command center.
-const disc = await call('start_mission', {
+// Discovery: a new trail starts with a discovery ticket; implementation waits until the trail lead accepts the
+// brief in the Lookout.
+const disc = await call('start_trail', {
   title: 'Search the changelog',
   destination: 'Readers find a release by keyword',
   tickets: [{ ref: 'build', title: 'Build changelog search', type: 'execute' }],
@@ -408,7 +408,7 @@ const gated = await call('claim_ticket', { ticket: buildKey }).then(
   () => '',
   (e) => e.message,
 );
-await page.locator('.mission-btn').click();
+await page.locator('.trail-btn').click();
 await page.getByRole('menuitem').filter({ hasText: 'Search the changelog' }).first().click();
 await page.locator('.discovery-banner').waitFor({ timeout: 15_000 });
 await call('submit_brief', {
@@ -422,7 +422,7 @@ await shot('11-discovery-brief');
 await page.getByRole('button', { name: 'Accept brief' }).click();
 await page.locator('.discovery-banner').waitFor({ state: 'detached', timeout: 15_000 });
 const unlocked = await call('claim_ticket', { ticket: buildKey });
-// Acceptance criteria: required before completing on a discovery mission; each needs evidence.
+// Acceptance criteria: required before completing on a discovery trail; each needs evidence.
 const noCriteria = await call('report_completion', { resolution: 'Search added' }).then(
   () => '',
   (e) => e.message,
@@ -444,12 +444,12 @@ const discoveryOk =
   withEvidence.criteria?.[0]?.startsWith('AC-1 ✓') &&
   unlocked.discovery?.implementationClaimable === true;
 log(
-  `discovery ${discoveryOk ? 'ok' : 'WRONG'}: ${buildKey} held until the brief was accepted in the command center, then claimed; completion refused without criteria, then ${withEvidence.status} with ${withEvidence.criteria?.join('; ')}`,
+  `discovery ${discoveryOk ? 'ok' : 'WRONG'}: ${buildKey} held until the brief was accepted in the Lookout, then claimed; completion refused without criteria, then ${withEvidence.status} with ${withEvidence.criteria?.join('; ')}`,
 );
 
-// Less supervision: the ranked queue, the risk policy and a replan approved in the command center.
+// Less supervision: the ranked queue, the risk policy and a reroute approved in the Lookout.
 const discoveryKey = disc.tickets.find((t) => t.title.startsWith('Discovery brief')).key;
-const supervisionOk = await verifySupervision({ call, page, shot, log, repo, mapId: disc.mission.id, discoveryKey });
+const supervisionOk = await verifySupervision({ call, page, shot, log, repo, mapId: disc.trail.id, discoveryKey });
 
 // Safe parallel work: worktrees, overlapping claims and an integration ticket, on a scratch git repo.
 const parallelOk = await verifyParallel({ browser, cli, log, shots });
@@ -473,7 +473,7 @@ if (
   !/Measured from the Claude Code session transcript/.test(ui.usageSource ?? '') ||
   f.answer !== 'Users of the CLI' ||
   h.answer !== 'Grouped by version, newest first' ||
-  status.mission.progress !== '2/4 decided' ||
+  status.trail.progress !== '2/4 decided' ||
   after !== 0 ||
   !handoffOk ||
   !releaseOk ||

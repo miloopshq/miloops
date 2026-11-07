@@ -1,4 +1,4 @@
-// Smoke test for an installed `miloops` server: onboarding → new mission → files written to the tracker folder.
+// Smoke test for an installed `teamtrail` server: onboarding → new trail → files written to the tracker folder.
 // Usage: node scripts/verify-cli.mjs <url> <trackerDir> [screenshot.png]
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,7 +16,7 @@ page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 await page.goto(url);
 await page.locator('.dialog.onboarding').waitFor();
 await page.getByRole('button', { name: 'Get started' }).click();
-await page.getByRole('button', { name: 'New mission' }).click();
+await page.getByRole('button', { name: 'New trail' }).click();
 await page.locator('.dialog textarea').first().fill('Ship a changelog page for the CLI');
 await page.locator('.dialog footer .btn.primary').click();
 await page.locator('.node').nth(2).waitFor({ timeout: 20000 });

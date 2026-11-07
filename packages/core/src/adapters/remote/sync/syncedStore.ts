@@ -10,14 +10,14 @@ import type { CacheEntry, EventInit, SyncOptions, SyncStatus } from './types';
 import { WriteQueue } from './writeQueue';
 
 /**
- * Read side of a synced adapter: the mission cache and the poll loop that
+ * Read side of a synced adapter: the trail cache and the poll loop that
  * sends queued writes and picks up changes made in the tracker. Writes are
  * added by `SyncedWriter`, which also supplies `flush`.
  */
 export abstract class SyncedStore {
   protected abstract fetchMaps(): Promise<MapSummary[]>;
   protected abstract fetchMap(mapId: string): Promise<{ snap: MapSnapshot; decisions: DecisionRecord[] }>;
-  /** Missions changed in the tracker since the last call; `'all'` when the mission list itself may have changed. */
+  /** Trails changed in the tracker since the last call; `'all'` when the trail list itself may have changed. */
   protected abstract changedSince(known: (issueRef: string) => string | undefined): Promise<string[] | 'all'>;
   protected abstract rate(): RateInfo | undefined;
   /** Sends the queued writes, oldest first. */
@@ -116,7 +116,7 @@ export abstract class SyncedStore {
     return e;
   }
 
-  /** Cached mission; refetched when stale, served stale while the tracker is unreachable. */
+  /** Cached trail; refetched when stale, served stale while the tracker is unreachable. */
   protected async entry(mapId: string): Promise<CacheEntry> {
     const cached = this.entries.get(mapId);
     if (cached && (this.fresh(cached.at) || this.queue.length)) return cached;

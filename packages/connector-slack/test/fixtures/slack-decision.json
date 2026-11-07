@@ -1,7 +1,7 @@
 {
   "source": "fake",
   "recordedAt": "2026-10-31T17:18:19.949Z",
-  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Save as decision on a thread (refused, modal, mission switch, validation, save), bot not in channel, /milo decide as mission only.",
+  "notes": "Recorded against test/fakes/slack.ts; request and response shapes follow api.slack.com (Web API methods, Socket Mode envelopes, Block Kit payloads). Save as decision on a thread (refused, modal, trail switch, validation, save), bot not in channel, /scout decide as trail only.",
   "exchanges": [
     {
       "req": {
@@ -16,7 +16,7 @@
         },
         "body": {
           "ok": true,
-          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0MILO0001"
+          "url": "wss://wss-primary.slack.test/link/?ticket=1&app_id=A0Scout0001"
         }
       }
     },
@@ -26,7 +26,7 @@
         "url": "/actions/T0EFIKA01/1/fakeresponse1",
         "body": {
           "response_type": "ephemeral",
-          "text": "Only the MILOOPS owner and allowed users can do that. Ask the owner to add you in MILOOPS Settings → Slack."
+          "text": "Only the Teamtrail owner and allowed users can do that. Ask the owner to add you in Teamtrail Settings → Slack."
         }
       },
       "res": {
@@ -256,14 +256,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -315,10 +315,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -421,7 +421,7 @@
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                    "text": "Posts to GitHub Issues · trail #1 · #3"
                   }
                 ]
               }
@@ -461,14 +461,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -520,10 +520,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -626,7 +626,7 @@
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                    "text": "Posts to GitHub Issues · trail #1 · #3"
                   }
                 ]
               }
@@ -664,14 +664,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -723,10 +723,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -813,7 +813,7 @@
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #6"
+                    "text": "Posts to GitHub Issues · trail #6"
                   }
                 ]
               }
@@ -853,14 +853,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -912,10 +912,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -1002,7 +1002,7 @@
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #6"
+                    "text": "Posts to GitHub Issues · trail #6"
                   }
                 ]
               }
@@ -1040,14 +1040,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -1099,10 +1099,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -1205,7 +1205,7 @@
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                    "text": "Posts to GitHub Issues · trail #1 · #3"
                   }
                 ]
               }
@@ -1245,14 +1245,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -1304,10 +1304,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -1410,7 +1410,7 @@
                   },
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #1 · #3"
+                    "text": "Posts to GitHub Issues · trail #1 · #3"
                   }
                 ]
               }
@@ -1440,10 +1440,10 @@
               "elements": [
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS"
+                    "text": "Open in Teamtrail"
                   },
                   "url": "http://localhost:7420/"
                 }
@@ -1464,7 +1464,7 @@
           "ts": "1793448005.000006",
           "message": {
             "type": "message",
-            "bot_id": "B0MILO0001",
+            "bot_id": "B0Scout0001",
             "text": "Saved to *Event store*, resolved #3 Pick DB",
             "ts": "1793448005.000006"
           }
@@ -1581,7 +1581,7 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Invite @MILO to #random to save threads here: `/invite @MILO`"
+                  "text": "Invite @Scout to #random to save threads here: `/invite @Scout`"
                 }
               }
             ]
@@ -1617,7 +1617,7 @@
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "Invite @MILO to #random to save threads here: `/invite @MILO`"
+                  "text": "Invite @Scout to #random to save threads here: `/invite @Scout`"
                 }
               }
             ]
@@ -1634,7 +1634,7 @@
           "view": {
             "type": "modal",
             "callback_id": "decision_modal",
-            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\"}",
+            "private_metadata": "{\"c\":\"G0ScoutTST\",\"cn\":\"scout-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\"}",
             "title": {
               "type": "plain_text",
               "text": "Save as decision",
@@ -1670,7 +1670,7 @@
             "hash": "1793448006.h7",
             "type": "modal",
             "callback_id": "decision_modal",
-            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\"}",
+            "private_metadata": "{\"c\":\"G0ScoutTST\",\"cn\":\"scout-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\"}",
             "title": {
               "type": "plain_text",
               "text": "Save as decision",
@@ -1703,7 +1703,7 @@
           "view": {
             "type": "modal",
             "callback_id": "decision_modal",
-            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0MILOTST\",\"mid\":\"map-1\"}",
+            "private_metadata": "{\"c\":\"G0ScoutTST\",\"cn\":\"scout-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0ScoutTST\",\"mid\":\"map-1\"}",
             "title": {
               "type": "plain_text",
               "text": "Save as decision",
@@ -1722,14 +1722,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -1781,10 +1781,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -1866,7 +1866,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #1"
+                    "text": "Posts to GitHub Issues · trail #1"
                   }
                 ]
               }
@@ -1887,7 +1887,7 @@
             "hash": "1793448006.h8",
             "type": "modal",
             "callback_id": "decision_modal",
-            "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0MILOTST\",\"mid\":\"map-1\"}",
+            "private_metadata": "{\"c\":\"G0ScoutTST\",\"cn\":\"scout-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0ScoutTST\",\"mid\":\"map-1\"}",
             "title": {
               "type": "plain_text",
               "text": "Save as decision",
@@ -1906,14 +1906,14 @@
             "blocks": [
               {
                 "type": "section",
-                "block_id": "mission",
+                "block_id": "trail",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*Mission*"
+                  "text": "*Trail*"
                 },
                 "accessory": {
                   "type": "static_select",
-                  "action_id": "mission_pick",
+                  "action_id": "trail_pick",
                   "options": [
                     {
                       "text": {
@@ -1965,10 +1965,10 @@
                     {
                       "text": {
                         "type": "plain_text",
-                        "text": "Mission only",
+                        "text": "Trail only",
                         "emoji": true
                       },
-                      "value": "mission"
+                      "value": "trail"
                     },
                     {
                       "text": {
@@ -2050,7 +2050,7 @@
                 "elements": [
                   {
                     "type": "mrkdwn",
-                    "text": "Posts to GitHub Issues · mission #1"
+                    "text": "Posts to GitHub Issues · trail #1"
                   }
                 ]
               }
@@ -2079,10 +2079,10 @@
               "elements": [
                 {
                   "type": "button",
-                  "action_id": "open_miloops",
+                  "action_id": "open_teamtrail",
                   "text": {
                     "type": "plain_text",
-                    "text": "Open in MILOOPS"
+                    "text": "Open in Teamtrail"
                   },
                   "url": "http://localhost:7420/"
                 }
@@ -2174,7 +2174,7 @@
       }
     },
     {
-      "label": "ana switches the mission",
+      "label": "ana switches the trail",
       "type": "interactive",
       "payload": {
         "type": "block_actions",
@@ -2184,7 +2184,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "view",
@@ -2202,8 +2202,8 @@
           "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
           "state": {
             "values": {
-              "mission": {
-                "mission_pick": {
+              "trail": {
+                "trail_pick": {
                   "type": "static_select",
                   "selected_option": {
                     "text": {
@@ -2259,8 +2259,8 @@
         "actions": [
           {
             "type": "static_select",
-            "action_id": "mission_pick",
-            "block_id": "mission",
+            "action_id": "trail_pick",
+            "block_id": "trail",
             "selected_option": {
               "text": {
                 "type": "plain_text",
@@ -2285,7 +2285,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "container": {
           "type": "view",
@@ -2303,8 +2303,8 @@
           "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-6\"}",
           "state": {
             "values": {
-              "mission": {
-                "mission_pick": {
+              "trail": {
+                "trail_pick": {
                   "type": "static_select",
                   "selected_option": {
                     "text": {
@@ -2353,8 +2353,8 @@
         "actions": [
           {
             "type": "static_select",
-            "action_id": "mission_pick",
-            "block_id": "mission",
+            "action_id": "trail_pick",
+            "block_id": "trail",
             "selected_option": {
               "text": {
                 "type": "plain_text",
@@ -2383,7 +2383,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "trigger_id": "1793448005.5.fake5",
         "view": {
@@ -2394,8 +2394,8 @@
           "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
           "state": {
             "values": {
-              "mission": {
-                "mission_pick": {
+              "trail": {
+                "trail_pick": {
                   "type": "static_select",
                   "selected_option": {
                     "text": {
@@ -2472,7 +2472,7 @@
           "name": "ana",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "trigger_id": "1793448005.6.fake6",
         "view": {
@@ -2483,8 +2483,8 @@
           "private_metadata": "{\"c\":\"C0INFRA01\",\"cn\":\"infra\",\"t\":\"1793448000.000001\",\"m\":\"1793448003.000004\",\"u\":\"U0ANA0001\",\"w\":\"T0EFIKA01\",\"p\":[[\"U0ANA0001\",\"ana\"],[\"U0RAJ0001\",\"raj\"]],\"l\":\"https://efika.slack.com/archives/C0INFRA01/p1793448003000004\",\"mid\":\"map-1\"}",
           "state": {
             "values": {
-              "mission": {
-                "mission_pick": {
+              "trail": {
+                "trail_pick": {
                   "type": "static_select",
                   "selected_option": {
                     "text": {
@@ -2541,7 +2541,7 @@
       }
     },
     {
-      "label": "raj runs Save as decision where MILO is not invited",
+      "label": "raj runs Save as decision where Scout is not invited",
       "type": "interactive",
       "payload": {
         "type": "message_action",
@@ -2575,26 +2575,26 @@
       }
     },
     {
-      "label": "raj runs /milo decide in #milo-test",
+      "label": "raj runs /scout decide in #scout-test",
       "type": "slash_commands",
       "payload": {
         "token": "legacy",
         "team_id": "T0EFIKA01",
         "team_domain": "efika",
-        "channel_id": "G0MILOTST",
-        "channel_name": "milo-test",
+        "channel_id": "G0ScoutTST",
+        "channel_name": "scout-test",
         "user_id": "U0RAJ0001",
         "user_name": "raj",
-        "command": "/milo",
+        "command": "/scout",
         "text": "decide SQLite for tests, Postgres in CI",
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "is_enterprise_install": "false",
         "response_url": "https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4",
         "trigger_id": "1793448006.8.fake8"
       }
     },
     {
-      "label": "raj saves it as mission only",
+      "label": "raj saves it as trail only",
       "type": "interactive",
       "payload": {
         "type": "view_submission",
@@ -2608,7 +2608,7 @@
           "name": "raj",
           "team_id": "T0EFIKA01"
         },
-        "api_app_id": "A0MILO0001",
+        "api_app_id": "A0Scout0001",
         "token": "legacy",
         "trigger_id": "1793448006.9.fake9",
         "view": {
@@ -2616,11 +2616,11 @@
           "hash": "1793448006.h8",
           "type": "modal",
           "callback_id": "decision_modal",
-          "private_metadata": "{\"c\":\"G0MILOTST\",\"cn\":\"milo-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0MILOTST\",\"mid\":\"map-1\"}",
+          "private_metadata": "{\"c\":\"G0ScoutTST\",\"cn\":\"scout-test\",\"u\":\"U0RAJ0001\",\"w\":\"T0EFIKA01\",\"r\":\"https://hooks.slack.test/actions/T0EFIKA01/4/fakeresponse4\",\"l\":\"https://efika.slack.com/archives/G0ScoutTST\",\"mid\":\"map-1\"}",
           "state": {
             "values": {
-              "mission": {
-                "mission_pick": {
+              "trail": {
+                "trail_pick": {
                   "type": "static_select",
                   "selected_option": {
                     "text": {
@@ -2638,10 +2638,10 @@
                   "selected_option": {
                     "text": {
                       "type": "plain_text",
-                      "text": "Mission only",
+                      "text": "Trail only",
                       "emoji": true
                     },
-                    "value": "mission"
+                    "value": "trail"
                   }
                 }
               },
