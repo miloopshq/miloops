@@ -245,7 +245,7 @@
   border-color: var(--c);
 }
 .pill.fill {
-  color: var(--on-accent);
+  color: var(--on-amber);
   background: var(--amber);
   border-color: var(--amber);
 }

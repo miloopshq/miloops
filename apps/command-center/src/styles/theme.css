@@ -30,6 +30,7 @@
   --on-primary: #ffffff;
   --on-accent: #1b120b;
   --on-urgent: #ffffff;
+  --on-amber: #ffffff;
 
   --map-bg: #ede7d2;
   --map-grid: rgba(27, 38, 32, 0.07);
@@ -84,6 +85,7 @@
     --primary-hover: #a4cf99;
     --on-primary: #101815;
     --on-urgent: #1b0f0d;
+    --on-amber: #1b120b;
     --map-bg: #131c18;
     --map-grid: rgba(234, 238, 227, 0.05);
     --map-grass: #16211a;
@@ -135,6 +137,7 @@
   --primary-hover: #a4cf99;
   --on-primary: #101815;
   --on-urgent: #1b0f0d;
+  --on-amber: #1b120b;
   --map-bg: #131c18;
   --map-grid: rgba(234, 238, 227, 0.05);
   --map-grass: #16211a;
