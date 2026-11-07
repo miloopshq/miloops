@@ -19,13 +19,37 @@ interface Work {
 }
 
 const WORK: Work[] = [
-  { title: 'How do other note apps rank search results?', type: 'research', agent: 'claude-01', leadMin: 34 },
+  {
+    title: 'How do other note apps rank search results?',
+    type: 'research',
+    review: { by: 'codex-01', verdict: 'pass' },
+    agent: 'claude-01',
+    leadMin: 34,
+  },
   { title: 'Index size on a 10k note library', type: 'research', agent: 'claude-02', leadMin: 41 },
   { title: 'Which fields should search cover?', type: 'research', agent: 'claude-01', leadMin: 28 },
-  { title: 'SQLite FTS5 on iOS and Android', type: 'research', agent: 'claude-02', leadMin: 46 },
+  {
+    title: 'SQLite FTS5 on iOS and Android',
+    type: 'research',
+    review: { by: 'codex-02', verdict: 'pass' },
+    agent: 'claude-02',
+    leadMin: 46,
+  },
   { title: 'Search latency on older phones', type: 'research', agent: 'claude-01', leadMin: 38 },
-  { title: 'Stemming across the languages we support', type: 'research', agent: 'codex-01', leadMin: 82 },
-  { title: 'What do users search for today?', type: 'research', agent: 'codex-02', leadMin: 96 },
+  {
+    title: 'Stemming across the languages we support',
+    type: 'research',
+    review: { by: 'claude-01', verdict: 'pass' },
+    agent: 'codex-01',
+    leadMin: 82,
+  },
+  {
+    title: 'What do users search for today?',
+    type: 'research',
+    review: { by: 'claude-02', verdict: 'pass' },
+    agent: 'codex-02',
+    leadMin: 96,
+  },
   { title: 'Fuzzy matching: worth the index cost?', type: 'research', agent: 'codex-01', leadMin: 74 },
   { title: 'Attachment text: index it or skip it?', type: 'research', agent: 'codex-02', leadMin: 88 },
   { title: 'Highlighting matches in long notes', type: 'research', agent: 'codex-01', leadMin: 79 },
