@@ -1,5 +1,6 @@
 import { ScoutAvatar, STYLES, Sprite, composeFrame, type ScoutState } from '../../src/scout';
 import { TAGLINE } from '../content';
+import { BannerLand } from './BannerLand';
 import { Wordmark } from './Wordmark';
 
 export interface BannerFrame {
@@ -30,9 +31,11 @@ export function Banner({
       data-capture="banner"
       style={{ width: w, height: h, ['--u' as string]: `${u}px` }}
     >
+      <BannerLand w={w} h={h} />
       {layout === 'card' ? (
         <div className="banner-feed">
           <ScoutAvatar
+            framed={false}
             variant="crt"
             size={Math.floor(11 * u)}
             state={frame.state}

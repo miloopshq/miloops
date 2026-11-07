@@ -1,17 +1,16 @@
 /* Scout pixel avatar. Sprite colors live in art.ts / frames.ts palettes; panel colors fall back to the lookout tokens; override any --scout-* var on a parent. */
 .scout {
-  --scout-ink: #9fbcc2;
-  --scout-dim: #5f8792;
-  --scout-hi: #e3eff1;
-  --scout-accent: #c98b5e;
-  --scout-warn: var(--urgent, #ff4d42);
-  --scout-line: var(--line, rgba(110, 215, 228, 0.16));
-  --scout-line2: var(--line2, rgba(110, 215, 228, 0.3));
-  --scout-panel: var(--panel, rgba(7, 15, 18, 0.9));
-  --scout-corner: rgba(143, 196, 206, 0.7);
-  --scout-mono: var(--mono, 'Share Tech Mono'), ui-monospace, monospace;
-  --scout-display: var(--display, 'Chakra Petch'), 'Barlow', sans-serif;
-  --scout-sans: var(--sans, 'Barlow'), system-ui, sans-serif;
+  --scout-ink: var(--text, #38443c);
+  --scout-dim: var(--dim, #5e6a60);
+  --scout-hi: var(--text-hi, #1b2620);
+  --scout-accent: #c8581e;
+  --scout-warn: var(--urgent, #c4301f);
+  --scout-line: var(--line, rgba(76, 78, 58, 0.2));
+  --scout-line2: var(--line2, rgba(76, 78, 58, 0.42));
+  --scout-panel: var(--panel, #fbfaf4);
+  --scout-mono: var(--mono, 'JetBrains Mono Variable'), ui-monospace, monospace;
+  --scout-display: var(--display, 'Bricolage Grotesque Variable'), 'Figtree Variable', sans-serif;
+  --scout-sans: var(--sans, 'Figtree Variable'), system-ui, sans-serif;
   color: var(--scout-ink);
 }
 
@@ -48,22 +47,6 @@
   background: var(--scout-panel);
   border: 1px solid var(--scout-line);
   min-width: 0;
-}
-.scout-panel::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  pointer-events: none;
-  --c: var(--scout-corner);
-  background:
-    linear-gradient(var(--c), var(--c)) top left / 12px 1px no-repeat,
-    linear-gradient(var(--c), var(--c)) top left / 1px 12px no-repeat,
-    linear-gradient(var(--c), var(--c)) top right / 12px 1px no-repeat,
-    linear-gradient(var(--c), var(--c)) top right / 1px 12px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom left / 12px 1px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom left / 1px 12px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom right / 12px 1px no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom right / 1px 12px no-repeat;
 }
 .scout-head {
   display: flex;

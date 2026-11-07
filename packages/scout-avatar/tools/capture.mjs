@@ -1,6 +1,6 @@
 // Builds nothing; run `npm run build` first. Serves dist/ and writes PNG captures, the animated banner GIF and an MP4 demo loop.
 // Usage: OUT_DIR=captures CHROME=/path/to/chrome [WORDMARK='Scout|OPS'] node tools/capture.mjs
-// WORDMARK overrides the wordmark (text after `|` renders in the brand copper); the default is WORDMARK in preview/content.ts.
+// WORDMARK overrides the wordmark (text after `|` renders in the brand orange); the default is WORDMARK in preview/content.ts.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -8,7 +8,7 @@ import { join, resolve } from 'node:path';
 import { chromium } from 'playwright-core';
 import { preview } from 'vite';
 
-const font = (f) => createRequire(import.meta.url).resolve(`@fontsource/${f}`);
+const font = (f) => createRequire(import.meta.url).resolve(`@fontsource-variable/${f}`);
 const WORDMARK =
   process.env.WORDMARK ||
   readFileSync(new URL('../preview/content.ts', import.meta.url), 'utf8').match(
@@ -83,18 +83,18 @@ for (const [file, , w, h, view, extra] of KIT) {
     .join('');
   const page = await browser.newPage({ viewport: { width: 1840, height: 1200 }, deviceScaleFactor: 1 });
   await page.setContent(`<style>
-    @font-face{font-family:B;src:url(${'data:font/woff2;base64,' + readFileSync(font('barlow/files/barlow-latin-400-normal.woff2')).toString('base64')})}
-    @font-face{font-family:M;src:url(${'data:font/woff2;base64,' + readFileSync(font('share-tech-mono/files/share-tech-mono-latin-400-normal.woff2')).toString('base64')})}
-    @font-face{font-family:C;font-weight:700;src:url(${'data:font/woff2;base64,' + readFileSync(font('chakra-petch/files/chakra-petch-latin-700-normal.woff2')).toString('base64')})}
-    body{margin:0;background:#04080a;color:#bfdfe3;font:13px B}
+    @font-face{font-family:B;src:url(${'data:font/woff2;base64,' + readFileSync(font('figtree/files/figtree-latin-wght-normal.woff2')).toString('base64')})}
+    @font-face{font-family:M;src:url(${'data:font/woff2;base64,' + readFileSync(font('jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')).toString('base64')})}
+    @font-face{font-family:C;font-weight:700;src:url(${'data:font/woff2;base64,' + readFileSync(font('bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')).toString('base64')})}
+    body{margin:0;background:#f3f1e7;color:#38443c;font:13px B}
     #s{display:inline-block;padding:28px 32px}
-    h1{margin:0 0 18px;font:700 20px C;letter-spacing:.12em;color:#e6f6f7} h1 b{color:#c98b5e} h1 span{font:13px M;letter-spacing:.18em;color:#5f7f84}
+    h1{margin:0 0 18px;font:700 20px C;color:#1b2620} h1 b{color:#c8581e} h1 span{font:13px M;letter-spacing:.1em;color:#5e6a60}
     .g{display:flex;flex-wrap:wrap;gap:22px;width:1776px;align-items:flex-end}
-    figure{margin:0;display:flex;flex-direction:column;gap:6px} img{display:block;border:1px solid rgba(110,215,228,.16)}
-    figcaption{font:12px M;letter-spacing:.06em;color:#5f7f84} figcaption b{color:#e6f6f7;font-weight:400}
-    h2{font:13px M;letter-spacing:.14em;color:#e6f6f7;margin:26px 0 12px;text-transform:uppercase}
+    figure{margin:0;display:flex;flex-direction:column;gap:6px} img{display:block;border:1px solid rgba(76,78,58,.2)}
+    figcaption{font:12px M;color:#5e6a60} figcaption b{color:#1b2620;font-weight:400}
+    h2{font:13px M;letter-spacing:.1em;color:#1b2620;margin:26px 0 12px;text-transform:uppercase}
     canvas{display:block} .row{display:flex;gap:30px;align-items:flex-end}
-  </style><div id="s"><h1>${wmLead}<b>${wmOps}</b> <span>// SOCIAL KIT</span></h1><div class="g">${tiles}</div><h2>Small-size checks</h2><div class="row">${checks}</div></div>`);
+  </style><div id="s"><h1>${wmLead}<b>${wmOps}</b> <span>Social kit</span></h1><div class="g">${tiles}</div><h2>Small-size checks</h2><div class="row">${checks}</div></div>`);
   await page.evaluate(async () => {
     for (const c of document.querySelectorAll('canvas')) {
       const px = +c.dataset.px;

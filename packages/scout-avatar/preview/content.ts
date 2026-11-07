@@ -9,7 +9,7 @@ export const SPEAK_AT = 1500;
 export const ORDER: ScoutStyleId[] = ['crt', 'mono'];
 export const TAGLINE = 'You pick the destination. Your agents walk the trail.';
 /** Banner wordmark; override with `?wordmark=` (capture: WORDMARK env). Text after `|` renders in the brand copper (`.wordmark-ops`). */
-export const WORDMARK = 'Scout|OPS';
+export const WORDMARK = 'Team|trail';
 
 export const SCRIPT: { state: ScoutState; speaking?: string; ms: number; log?: string; hot?: boolean }[] = [
   { state: 'idle', ms: 2200 },
