@@ -105,10 +105,6 @@
   cursor: grab;
   user-select: none;
 }
-.bp-wide .graph-box,
-.bp-laptop .graph-box {
-  bottom: var(--status-h);
-}
 .graph-box:active {
   cursor: grabbing;
 }
@@ -150,13 +146,49 @@
   --status-h: 124px;
   container-type: inline-size;
 }
-.status-panel {
+/* Tucked below the map: only its tab shows until it's opened. */
+.status-drawer {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  transform: translateY(var(--status-h));
+  transition: transform 0.2s ease;
+}
+.status-drawer.open {
+  transform: none;
+}
+.status-toggle {
+  pointer-events: auto;
+  margin-left: var(--sp-10);
+  height: var(--h-sm);
+  padding: 0 var(--sp-10);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  background: var(--panel);
+  border: 1px solid var(--line2);
+  border-bottom: 0;
+  font-family: var(--strong);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.status-toggle .caret {
+  color: var(--dim);
+}
+.status-panel {
+  align-self: stretch;
+  pointer-events: auto;
   height: var(--status-h);
-  z-index: 1;
+  visibility: hidden;
+  transition: visibility 0.2s;
   padding: var(--sp-10) var(--gutter);
   border-top: 1px solid var(--line);
   background: var(--panel);
@@ -554,6 +586,13 @@
   .command-bar .hint {
     animation: none;
   }
+  .status-drawer,
+  .status-panel {
+    transition: none;
+  }
+}
+.status-drawer.open .status-panel {
+  visibility: visible;
 }
 .agent-cmd {
   display: inline-flex;

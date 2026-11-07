@@ -9,6 +9,7 @@ import { GraphDefs } from './GraphDefs';
 import { GraphEdge } from './GraphEdge';
 import { GraphNode } from './GraphNode';
 import { edgeKey, type MapPreview } from './mapPreview';
+import { openingView } from './openingView';
 import { OutOfScopeStrip } from './OutOfScopeStrip';
 import { TerrainLayer } from './TerrainLayer';
 import { useFocusSelected } from './useFocusSelected';
@@ -86,7 +87,7 @@ export function MapGraph(props: {
     touched.current = false;
   }, [snap.map.id]);
   useEffect(() => {
-    if (!touched.current && size.w) setView(fitView());
+    if (!touched.current && size.w) setView(openingView({ fit: fitView(), nodes: L.nodes, size, pad: PAD }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size.w, size.h, W, H, snap.map.id]);
 
@@ -206,7 +207,7 @@ export function MapGraph(props: {
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
-          touched.current = false;
+          touched.current = true;
           setView(fitView());
         }}
       >
