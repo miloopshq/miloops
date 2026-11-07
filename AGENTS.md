@@ -59,7 +59,7 @@ GitHub Issues and Linear store the map and tickets in the tracker instead (`pack
 
 - `model/`: types (`types.ts`: `MapDoc`, `Ticket`, `TicketType`), lifecycle phases and journal entries (`lifecycle.ts`), frontmatter and map body formats, the product name and slug (`brand.ts`).
 - `adapters/`: the `TrackerAdapter` interface (`adapter.ts`), the markdown adapter (`markdown/`), GitHub and Linear (`remote/`), and an in-memory adapter for tests.
-- `planning/`: graph derivation (`derive.ts`), charting and other operations (`operations/`), lifecycle transitions (`lifecycle/`), decisions (`decisions/`), metrics and the away briefing (`briefing.ts`).
+- `planning/`: graph derivation (`derive.ts`), charting and other operations (`operations/`), lifecycle transitions (`lifecycle/`), decisions (`decisions/`), metrics, delivery across trails (`performance.ts`, `performanceRecommendations.ts`) and the away briefing (`briefing.ts`).
 - `verification/` and `evidence/`: checks, review, approvals, outcomes, git evidence and PR/CI sync.
 - `agents/`: leases, trail names, agent docs and returning stalled claims to the queue.
 - `discovery/`: the discovery brief model, file format, gate (`claimableTypes`, `gateReason`) and store.

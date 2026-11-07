@@ -38,6 +38,7 @@ export function Header(props: {
   decisions: number;
   decisionsOpen: boolean;
   onDecisions: () => void;
+  onStats: () => void;
   /** Knowledge entries that need the trail lead (suggestions, flags, stale). */
   knowledge: number;
   knowledgeOpen: boolean;
@@ -119,6 +120,7 @@ export function Header(props: {
         <RecordsMenu
           decisions={props.decisions}
           onDecisions={props.onDecisions}
+          onStats={props.onStats}
           knowledge={props.knowledge}
           onKnowledge={props.onKnowledge}
           briefingOpen={props.briefingOpen}

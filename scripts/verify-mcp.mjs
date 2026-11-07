@@ -460,6 +460,14 @@ const after = await page.locator('.sessions-list li:not(.claim)').count();
 log(
   `after the agent disconnected: ${after} live session(s), ${await page.locator('.sessions-list li.claim').count()} claim kept for resume`,
 );
+// Trail stats: the ticket work from this run shows up by vendor.
+await page.getByRole('button', { name: /^Records/ }).click();
+await page.locator('.stats-btn').click();
+await page.locator('.perf-row').first().waitFor({ timeout: 10000 });
+log(
+  `trail stats: ${await page.locator('.perf-row').count()} vendor row(s), first ${await page.locator('.perf-row .ds-row-title').first().textContent()}`,
+);
+await page.keyboard.press('Escape');
 log(`page errors: ${errors.length ? errors.join(' | ') : 'none'}`);
 await browser.close();
 server.kill('SIGTERM');

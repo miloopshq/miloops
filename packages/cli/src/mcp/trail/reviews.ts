@@ -1,4 +1,4 @@
-import { OperationError, type MapSnapshot, type Ticket, type VerificationVerdict } from '@teamtrail/core';
+import { OperationError, type MapSnapshot, type Ticket, type VerificationVerdict, vendorOf } from '@teamtrail/core';
 import { readAgentDocs, readAttempts, reviewConflict, submitReview } from '@teamtrail/core/agents';
 import type { AgentContext } from './agentContext';
 
@@ -15,9 +15,6 @@ export const ownReviews = async (ctx: AgentContext, snap: MapSnapshot, agent: st
     .map((r) => r.id),
   ...(await deferredReviews(ctx, snap, agent)),
 ];
-
-/** `claude` from `claude-07`: the agent vendor behind a trail name. */
-export const vendorOf = (trailName: string) => trailName.split('-')[0];
 
 /** How long a review waits for another vendor's agent before any independent agent may take it. */
 export const CROSS_VENDOR_WAIT_MS = 10 * 60_000;

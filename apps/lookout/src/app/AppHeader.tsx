@@ -15,6 +15,7 @@ export function AppHeader(props: {
   attention?: ReactNode;
   decisionsOpen: boolean;
   onDecisions: () => void;
+  onStats: () => void;
   onNewTrail: () => void;
   onSettings: (focus: 'top' | 'slack') => void;
   onToggleTheme: (night: boolean) => void;
@@ -44,6 +45,7 @@ export function AppHeader(props: {
       decisions={api.decisions.length}
       decisionsOpen={props.decisionsOpen}
       onDecisions={props.onDecisions}
+      onStats={props.onStats}
       knowledge={knowledge.attention}
       knowledgeOpen={knowledge.open}
       onKnowledge={() => knowledge.setOpen(!knowledge.open)}

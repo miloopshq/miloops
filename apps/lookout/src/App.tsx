@@ -17,9 +17,9 @@ import {
   useScopedActivity,
   useTrailUi,
   useAttentionUi,
+  RecordViews,
 } from './app/index';
 import { StepZone, LogZone, ActivityStack } from './features/activity';
-import { DecisionsView } from './features/decisions';
 import { Inspector } from './features/inspector';
 import { KnowledgeContext, KnowledgeView, useKnowledgeStore } from './features/knowledge';
 import { MapSections } from './features/plan';
@@ -98,15 +98,7 @@ export function App() {
       activity={scoped}
     />
   );
-  const decisions = nav.decisionsView && (
-    <DecisionsView
-      api={api}
-      bp={bp}
-      focus={nav.decisionsView.focus}
-      onClose={() => nav.setDecisionsView(null)}
-      onOpenTicket={nav.openTicket}
-    />
-  );
+  const decisions = (nav.statsOpen || nav.decisionsView) && <RecordViews api={api} bp={bp} nav={nav} />;
   const briefing = brief.shown && (
     <AppBriefing
       brief={brief}
@@ -131,6 +123,7 @@ export function App() {
           attention={attn.header}
           decisionsOpen={!!nav.decisionsView}
           onDecisions={() => (nav.decisionsView ? nav.setDecisionsView(null) : nav.openDecisions())}
+          onStats={nav.toggleStats}
           onNewTrail={() => setNewTrail(true)}
           onSettings={setSettingsOpen}
           onToggleTheme={(night) => updatePrefs({ theme: night ? 'night' : 'day' })}
@@ -174,7 +167,7 @@ export function App() {
             />
             <PhoneTabBar
               tab={nav.phoneTab}
-              covered={!!nav.decisionsView}
+              covered={!!decisions}
               pending={pending}
               onPick={(id) => {
                 nav.setPhoneTab(id);

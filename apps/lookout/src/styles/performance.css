@@ -1,0 +1,43 @@
+/* Trail stats: delivery across trails. The panel itself shares .decisions-view. */
+.perf-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--sp-4);
+}
+.perf-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.perf-note {
+  margin: 0;
+}
+.perf-recs,
+.perf-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.perf-recs li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line);
+  color: var(--text-hi);
+}
+.perf-section > h3,
+.perf-section .empty {
+  text-align: left;
+  margin: 0;
+}

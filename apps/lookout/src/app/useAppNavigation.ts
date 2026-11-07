@@ -14,7 +14,15 @@ export function useAppNavigation(api: LookoutApi, bp: Breakpoint) {
   const [convRequest, setConvRequest] = useState(0);
   /** Decisions view: closed, or open with an optional record to focus. */
   const [decisionsView, setDecisionsView] = useState<{ focus?: string } | null>(null);
-  const openDecisions = (focus?: string) => setDecisionsView({ focus });
+  const [statsOpen, setStatsOpen] = useState(false);
+  const openDecisions = (focus?: string) => {
+    setStatsOpen(false);
+    setDecisionsView({ focus });
+  };
+  const toggleStats = () => {
+    setDecisionsView(null);
+    setStatsOpen((o) => !o);
+  };
   useEffect(() => {
     const s = activity.sessions.find((x) => x.id === api.chatSession);
     if (!selection && s?.ticketId && s.mapId === api.mapId) setSelection({ kind: 'ticket', id: s.ticketId });
@@ -55,6 +63,9 @@ export function useAppNavigation(api: LookoutApi, bp: Breakpoint) {
     decisionsView,
     setDecisionsView,
     openDecisions,
+    statsOpen,
+    setStatsOpen,
+    toggleStats,
     select,
     openChat,
     openTicket,
