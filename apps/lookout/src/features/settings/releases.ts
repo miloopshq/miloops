@@ -13,7 +13,7 @@ export const NEXT: { area: string; items: string[] }[] = [
     items: [
       'MILOOPS is now Teamtrail. Missions are trails, the command center is the Lookout, MILO is Scout, and `/milo` is `/scout`',
       'More room for the map: the summary of counts now slides up from a tab when you want it',
-      'A new day and night look, with an Appearance setting to choose one or follow your system',
+      'A new day and night look, starting in night, with an Appearance setting to switch to day or follow your system',
       'The map is now a landscape: tickets are trail signs, the trail shows what is walked and what is ahead, and an X marks the destination',
       'A new greeting when you start `teamtrail` in a terminal',
       'A new logo, a screen with a sapling growing from it, and a new look for Scout: a CRT head in a ranger hat, in a circle with hills, with a lamp on the hat at night. No more pixel art, and new fonts too',

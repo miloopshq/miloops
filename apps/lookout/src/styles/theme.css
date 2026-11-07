@@ -1,4 +1,4 @@
-/* Colours, in two themes: day (default) and night. Every colour in the app comes from here.
+/* Colours, in two themes: day and night (the default setting). Every colour in the app comes from here.
  * `data-theme` on <html> is set from the Appearance setting; "auto" removes it and follows the OS.
  * Red (--urgent) only ever means "needs you now". Terrain and map colours stay faint so tickets and the trail lead. */
 :root {
