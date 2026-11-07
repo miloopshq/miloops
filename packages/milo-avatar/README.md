@@ -34,7 +34,6 @@ src/milo/
   index.ts         React exports (import mountMilo from './mountMilo' directly)
 preview/           preview page (?view=options | states | demo | square | favicon | banner); App.tsx routes to views/
 tools/
-  bake-scout.mjs   node tools/bake-scout.mjs: draws Scout and writes src/milo/art.ts (idle frames plus patches)
   capture.mjs      writes the PNGs, the banner GIF, the MP4 loop and brand/* (Playwright + system Chrome + ffmpeg)
   outline.mjs      helper: adds a 1px outline around a hand-drawn fill grid
 ```
@@ -117,12 +116,7 @@ Saturated red appears only in `alert`: the status light and the panel frame (`--
 
 ## Changing the art
 
-Edit `tools/bake-scout.mjs` (`pack()`, `head()`, `eyes()`, `MINI`), then re-bake:
-
-```
-node tools/bake-scout.mjs
-npx prettier --write src/milo/art.ts
-```
+Edit `src/milo/art.ts` by hand: each letter in a row is a key in `PALETTE`, a dot is transparent. Expressions are patches over the idle frame, so they stay small and any combination works.
 
 ## Preview, captures and brand kit
 

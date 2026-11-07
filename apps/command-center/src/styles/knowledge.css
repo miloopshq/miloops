@@ -109,3 +109,19 @@
     max-height: 30vh;
   }
 }
+
+/* The filters, the kind picker and the search box share one height, so the row lines up. */
+.kn-filters .chip,
+.kn-filters .select,
+.kn-filters .kn-search {
+  height: var(--h-md);
+  margin: 0;
+}
+.kn-filters .chip {
+  display: inline-flex;
+  align-items: center;
+  padding-block: 0;
+}
+.kn-filters .kn-search {
+  padding-block: 0;
+}

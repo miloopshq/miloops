@@ -14,7 +14,7 @@ export const NEXT: { area: string; items: string[] }[] = [
       'More room for the map: the status counts now slide up from a tab when you want them',
       'A new day and night look, with an Appearance setting to choose one or follow your system',
       'The map is now a landscape: tickets are trail signs, the trail shows what is walked and what is ahead, and an X marks the destination',
-      'A new sidekick look, with a cap and headphones (and a headlamp at night), and new fonts',
+      'A new sidekick look, in new colours (with a light on the headband at night), and new fonts',
     ],
   },
   { area: 'Every repo', items: ['All your projects in one view, with one list of what needs you across them'] },
