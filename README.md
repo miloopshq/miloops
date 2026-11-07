@@ -31,9 +31,9 @@ Your agents can already write the code. What's missing is a place to run them li
 Where Teamtrail is heading, in the order we plan to build it:
 
 1. **Multi-repository supervision.** Run trails across all your repos from one Lookout, with a single merged queue.
-2. **Agent roles and specialists.** Give agents roles (reviewer, researcher, builder) and bring in specialists for focused jobs, starting with a built-in reviewer that wraps today's independent review.
+2. **Agent roles and guides.** Give agents roles (reviewer, researcher, builder) and bring in guides for focused jobs, starting with a built-in reviewer that wraps today's independent review.
 
-Already shipped from this roadmap: one ranked queue of what needs you, project knowledge, trails that adapt when an assumption breaks, and safe parallel work (a separate workspace per task, and a warning before two agents change the same files).
+Already shipped from this roadmap: one ranked queue of what needs you, project knowledge, trails that adapt when an assumption breaks, safe parallel work (a separate workspace per task, and a warning before two agents change the same files), and Trail stats (delivery across trails by vendor, agent and ticket type).
 
 Coming alongside: **model-aware claiming**, a per-trail switch that sends hard decisions to stronger models and routine work to cheaper ones. With roles, a role can set its own model tier.
 

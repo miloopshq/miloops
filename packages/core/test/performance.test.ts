@@ -88,6 +88,13 @@ describe('performanceReport', () => {
     expect(r.byAgent[0]).toMatchObject({ key: 'codex-03', done: 1 });
   });
 
+  it('leaves tickets assigned to a person out of agents and vendors', () => {
+    const r = performanceReport([{ snap: snap('a', [ticket('t', { assignee: 'sam' })]), journal: [], answered: [] }]);
+    expect(r.byAgent).toEqual([]);
+    expect(r.byVendor).toEqual([]);
+    expect(r.byType[0].tickets).toBe(1);
+  });
+
   it('counts findings for the reviewer, and an accepted ticket overrules them', () => {
     const work = ticket('w');
     const stood = ticket('r1', { type: 'review', reviewOf: 'w' });
