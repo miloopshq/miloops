@@ -24,7 +24,7 @@ export const DEFAULT_PREFS: Prefs = {
   github: { repo: '' },
   linear: { team: '' },
   briefing: { enabled: true, awayMinutes: 15 },
-  theme: 'auto',
+  theme: 'night',
 };
 
 export function loadPrefs(): Prefs {
