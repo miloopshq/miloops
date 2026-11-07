@@ -1,14 +1,29 @@
-<img src="https://raw.githubusercontent.com/teamtrailhq/teamtrail/main/brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, next to the Teamtrail wordmark." width="100%" />
+<img src="https://raw.githubusercontent.com/teamtrailhq/teamtrail/main/brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, next to the Teamtrail logo and a trail through the mountains." width="100%" />
 
 # Teamtrail
 
-**A local trail map for big work done by your AI coding agents.** You pick the destination, your agents map the work as decisions, and you get only the calls that need you.
+**The trail map for your AI coding agents.** You pick the destination, your agents walk the trail, and you only get the calls that need you.
 
-## Status
+**[teamtrail.app](https://teamtrail.app)** · [Docs](https://teamtrail.app/docs/) · [GitHub](https://github.com/teamtrailhq/teamtrail)
 
-**Not released yet.** This package is a placeholder until launch; running it only prints a short message.
+Teamtrail is a local trail map for big work done by AI coding agents. You describe a trail, your agents chart it as decision tickets, and they claim the work over MCP while you steer from the Lookout, a web app on your machine.
 
-Watch the repository: **[github.com/teamtrailhq/teamtrail](https://github.com/teamtrailhq/teamtrail)**.
+- **Trails and decision tickets:** a live map of what's decided, in progress, blocked and out of scope.
+- **Waiting on you:** every question from every agent in one inbox, ranked by what matters.
+- **Scout:** briefs you when you come back and only calls you for the turns that are yours to make.
+- **Verified outcomes:** acceptance criteria tied to evidence, so "done" means proven.
+- **Local-first:** trails are plain markdown in `./.teamtrail/` in your repo, or in your GitHub Issues or Linear. Nothing needs a Teamtrail server.
+
+Works with any coding agent that connects over MCP. Claude Code and Codex are the primary supported agents.
+
+## Try it
+
+The public release isn't out yet, so this package is a placeholder. The preview is on the `next` tag:
+
+```bash
+cd your-repo
+npx teamtrail@next
+```
 
 ## License
 

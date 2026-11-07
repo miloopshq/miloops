@@ -7,7 +7,7 @@ The Teamtrail logo, wordmark and Scout's badge, rendered at exact sizes. Source 
 | `github-org-avatar.png`           | 1000×1000 | GitHub organization avatar                                                                                                                      |
 | `github-social-preview.png`       | 1280×640  | GitHub repository social preview (Settings → Social preview)                                                                                    |
 | `teamtrail-banner.gif`            | 960×480   | Animated README banner: Scout loops watching → thinking → talking → needs you, beside the wordmark and the trail (still platforms use the PNGs) |
-| `og-image-1200x630.png`           | 1200×630  | Open Graph / Twitter card image for teamtrail.ai and link previews                                                                              |
+| `og-image-1200x630.png`           | 1200×630  | Open Graph / Twitter card image for teamtrail.app and link previews                                                                              |
 | `x-avatar-400.png`                | 400×400   | X (Twitter) profile picture                                                                                                                     |
 | `x-header-1500x500.png`           | 1500×500  | X (Twitter) header banner                                                                                                                       |
 | `wordmark-lockup.png`             | 960×240   | Logo lockup (logo + Teamtrail) on dark, for docs, decks and press                                                                               |

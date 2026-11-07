@@ -26,7 +26,7 @@ jobs:
       # Git evidence and verification tests commit in temp repos.
       - run: |
           git config --global user.name "Teamtrail CI"
-          git config --global user.email "ci@teamtrail.ai"
+          git config --global user.email "ci@teamtrail.app"
       - run: npm ci
       - run: npm run check
         env:
