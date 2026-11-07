@@ -1,11 +1,11 @@
 // Draws Scout and writes src/milo/art.ts: node tools/bake-scout.mjs
-// The art is code so a change to the cap or the pack redoes every expression. A head sits at (OX, OY) on a 32×37
-// grid (50×37 at night, for the flashlight beam); expressions are stored as patches over the idle frame.
+// The art is code so a change to the cap or the pack redoes every expression. A head sits at (OX, OY) on a 36×38
+// grid, the same size by day and by night; expressions are stored as patches over the idle frame.
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const OX = 3;
-const OY = 6;
+const OX = 5;
+const OY = 7;
 
 const PALETTE = {
   K: '#1d2622',
@@ -31,18 +31,13 @@ const PALETTE = {
   p: '#b9562a',
   q: '#d67a45',
   u: '#8a3d1d',
-  t: '#6e4a2e',
-  y: '#e6b34a', // pack, straps, buckles
-  b: '#d8c79c',
-  a: '#b39f70',
-  e: '#2a6f86',
-  m: '#9aa6a0', // bedroll, bottle
+  y: '#e6b34a', // pack, straps, buckles // bedroll, bottle
   f: '#4a544e',
   F: '#7d8a82',
   L: '#fff3c4',
   x: '#ffe08a57',
   z: '#ffe08a33',
-  v: '#ffe08a17', // flashlight, beam
+  v: '#ffe08a17', // lamp, glow
 };
 /** Palette key -> tone, for the single-ink style. K outline, l line, R alert, everything else prints. */
 const TONES = Object.fromEntries(
@@ -52,6 +47,18 @@ const TONES = Object.fromEntries(
     return [k, 'H'.includes(k) ? 'G1' : 'G0'];
   }),
 );
+
+/** The headphone band's left and right edge per row, from the top. */
+const BAND_ARC = [
+  [8, 17],
+  [6, 19],
+  [4, 21],
+  [3, 22],
+  [2, 23],
+  [1, 24],
+  [0, 25],
+  [-1, 26],
+];
 
 function grid(w, h) {
   const cells = Array.from({ length: h }, () => Array(w).fill('.'));
@@ -73,41 +80,29 @@ function grid(w, h) {
   return { px, rect, round, rows: () => cells.map((r) => r.join('')) };
 }
 
-function pack({ px, rect }, x, y) {
-  // Bedroll on top, behind the cap.
-  rect(x + 1, y - 6, x + 24, y - 2, 'K');
-  rect(x + 1, y - 5, x + 24, y - 3, 'b');
-  rect(x + 2, y - 3, x + 23, y - 3, 'a');
-  for (const [cx, cy] of [
-    [1, -6],
-    [24, -6],
-    [1, -2],
-    [24, -2],
-  ])
-    px(x + cx, y + cy, '.');
-  px(x + 1, y - 4, 'a');
-  px(x + 24, y - 4, 'a');
-  rect(x + 3, y - 5, x + 3, y - 3, 't');
-  rect(x + 22, y - 5, x + 22, y - 3, 't');
-  // The square body: one pixel showing each side, with flap buckles.
-  rect(x - 2, y - 1, x + 27, y + 25, 'K');
-  rect(x - 1, y, x + 26, y + 24, 'p');
-  rect(x - 1, y, x + 26, y, 'q');
-  rect(x - 1, y + 1, x - 1, y + 24, 'q');
-  rect(x + 26, y + 1, x + 26, y + 24, 'u');
-  px(x - 1, y + 3, 'y');
-  px(x + 26, y + 3, 'y');
-  // Side pocket on the left, water bottle on the right.
-  rect(x - 3, y + 13, x - 1, y + 24, 'K');
-  rect(x - 2, y + 14, x - 1, y + 23, 'u');
-  rect(x - 2, y + 14, x - 1, y + 14, 'q');
-  px(x - 2, y + 17, 'y');
-  rect(x + 26, y + 6, x + 28, y + 24, 'K');
-  rect(x + 27, y + 7, x + 27, y + 15, 'e');
-  px(x + 27, y + 7, 'm');
-  rect(x + 26, y + 16, x + 28, y + 16, 'K');
-  rect(x + 26, y + 17, x + 27, y + 23, 'u');
-  px(x + 27, y + 19, 'y');
+function headphones({ rect }, x, y) {
+  // The band arcs over the cap: two pixels thick, outlined by the darker tone.
+  BAND_ARC.forEach(([l, r], i) => {
+    rect(x + l, y - 8 + i, x + r, y - 8 + i, 'f');
+    if (i > 0) rect(x + l + 2, y - 8 + i, x + r - 2, y - 8 + i, '.');
+  });
+  rect(x + 8, y - 7, x + 17, y - 7, 'F');
+  rect(x - 1, y, x, y + 9, 'f');
+  rect(x + 25, y, x + 26, y + 9, 'f');
+  // Ear cups on both sides of the shell.
+  for (const [l, r, light, dark] of [
+    [-4, -1, 'q', 'u'],
+    [26, 29, 'q', 'u'],
+  ]) {
+    rect(x + l, y + 9, x + r, y + 23, 'K');
+    rect(x + l + 1, y + 10, x + r - 1, y + 22, 'p');
+    rect(x + l + 1, y + 10, x + r - 1, y + 10, light);
+    rect(x + l + 1, y + 21, x + r - 1, y + 22, dark);
+    rect(x + l, y + 9, x + l, y + 9, '.');
+    rect(x + r, y + 9, x + r, y + 9, '.');
+    rect(x + l, y + 23, x + l, y + 23, '.');
+    rect(x + r, y + 23, x + r, y + 23, '.');
+  }
 }
 
 function head({ px, rect, round }, x, y) {
@@ -125,11 +120,6 @@ function head({ px, rect, round }, x, y) {
   px(x + 6, y + 10, 'E');
   rect(x + 5, y + 24, x + 9, y + 24, 'd');
   for (const c of [17, 19, 21]) px(x + c, y + 24, 'K');
-  // Pack straps over the shell.
-  rect(x + 2, y + 8, x + 2, y + 25, 't');
-  rect(x + 23, y + 8, x + 23, y + 25, 't');
-  rect(x + 1, y + 17, x + 3, y + 17, 'y');
-  rect(x + 22, y + 17, x + 24, y + 17, 'y');
   // Cap: a soft round crown, then a brim narrower than the head.
   const crown = [
     [9, 16],
@@ -205,41 +195,39 @@ function mouth({ px, rect }, x, y, kind) {
   if (kind === 'aside') px(c + 2, r, 'G');
 }
 
-function flashlight(g) {
-  const ly = OY + 16;
-  rectBeam(g, ly);
-  g.rect(OX + 22, ly - 2, OX + 30, ly + 2, 'K');
-  g.rect(OX + 23, ly - 1, OX + 29, ly + 1, 'f');
-  g.rect(OX + 23, ly - 1, OX + 29, ly - 1, 'F');
-  g.px(OX + 25, ly, 'y');
-  g.rect(OX + 30, ly - 1, OX + 30, ly + 1, 'L');
+/** A headlamp on the crown of the cap. Its glow fills the gap under the band, so the sprite stays the same size. */
+function headlamp(g, x, y) {
+  g.rect(x + 10, y - 5, x + 15, y - 2, 'K');
+  g.rect(x + 11, y - 4, x + 14, y - 3, 'y');
+  g.rect(x + 12, y - 4, x + 13, y - 3, 'L');
 }
 
-/** The beam starts at the lens, widens, dips a little and dissolves. */
-function rectBeam({ px }, ly) {
-  for (let i = 0, x = OX + 31; x < 50; i++, x++) {
-    const half = 1 + Math.floor((i * 2) / 3);
-    const c = ly + Math.floor(i / 5);
-    for (let y = c - half; y <= c + half; y++) {
-      const edge = Math.abs(y - c) >= half;
-      let band = i < 6 ? 0 : i < 11 ? 1 : 2;
-      if (edge) band += 1;
-      if (i >= 15) band = 3;
-      if (band === 3 && (x + y) % 2) continue;
-      px(x, y, 'xzvv'[band]);
-    }
-  }
+function glow(rows, x, y) {
+  const cx = x + 12.5;
+  return rows.map((row, r) => {
+    const [left, right] = BAND_ARC[r - (y - 8)] ?? [];
+    if (left === undefined || r === y - 8) return row;
+    return [...row]
+      .map((key, c) => {
+        if (key !== '.' || c <= x + left || c >= x + right) return key;
+        const far = Math.abs(c - cx);
+        if (far < 5) return 'x';
+        return far < 8 ? 'z' : 'v';
+      })
+      .join('');
+  });
 }
 
 function frame({ night = false, e = 'open', m = 'rest', l = 'on' } = {}) {
-  const g = grid(night ? 50 : 32, 37);
-  pack(g, OX, OY);
+  const g = grid(36, 38);
+  headphones(g, OX, OY);
   head(g, OX, OY);
   eyes(g, OX, OY, e);
   mouth(g, OX, OY, m);
   light(g, OX, OY, l);
-  if (night) flashlight(g);
-  return g.rows();
+  if (!night) return g.rows();
+  headlamp(g, OX, OY);
+  return glow(g.rows(), OX, OY);
 }
 
 /** What changed from the idle frame, as [row, col, keys] runs. */
@@ -276,20 +264,20 @@ const patches = {
 };
 
 const MINI = [
-  '...KKKKKKKKKK...',
-  '..bbbKKKKKKbbb..',
-  '..bbKgggggjKbb..',
-  '...KghWWgjjjK...',
-  '.ppKghoogjjjKpe.',
-  '.pKnnnnnnnnnnKe.',
-  '.pKKKKKKKKKKKKe.',
+  '.....ffffff.....',
+  '....fKKKKKKf....',
+  '...fKgggggjKf...',
+  '...fKgWWgjjKf...',
+  '..ffKgoogjjKff..',
+  '.pfKnnnnnnnnKfp.',
+  '.pKKKKKKKKKKKKp.',
   '.pKSSSSSSSSSSKp.',
-  '.yKSCCCCCCCCSKp.',
-  '.pKSCHHCCHHCSKp.',
+  'ppKSCCCCCCCCSKpp',
+  'ppKSCHHCCHHCSKpp',
+  'ppKSCCCCCCCCSKpp',
+  'ppKSCCCGGCCCSKpp',
   '.pKSCCCCCCCCSKp.',
-  '.uKSCCCGGCCCSKu.',
-  '.uKSCCCCCCCCSKu.',
-  '.uKSSSSSSSSSsKu.',
+  '..KSSSSSSSSSsK..',
   '...KKKKKKKKKK...',
   '................',
 ];
@@ -303,16 +291,16 @@ writeFileSync(
 /* eslint-disable */
 import type { Patch } from './types';
 
-/** Palette key -> colour. R and r appear only in the alert patch; x, z and v are the see-through flashlight beam. */
+/** Palette key -> colour. R and r appear only in the alert patch; x, z and v are the see-through lamp glow. */
 export const PALETTE: Record<string, string> = ${json(PALETTE)};
 
 /** Palette key -> tone, for the single-ink style. */
 export const TONES: Record<string, string> = ${json(TONES)};
 
-/** 32×37 Scout, idle: steady eyes, flat mouth, status light on. */
+/** 36×38 Scout, idle: steady eyes, flat mouth, status light on. */
 export const HEAD: string[] = ${rowsTs(HEAD)};
 
-/** 50×37 Scout for night: the same head, so the same patches apply, with a flashlight clipped to the strap. */
+/** Scout for night: the same size and head, so the same patches apply, with a headlamp on the cap. */
 export const NIGHT: string[] = ${rowsTs(frame({ night: true }))};
 
 export const HEAD_PATCHES = ${json(patches)} satisfies Record<string, Record<string, Patch>>;
