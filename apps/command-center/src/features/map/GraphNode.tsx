@@ -3,8 +3,11 @@ import { type Selection, STATE_LABEL } from '../../lib';
 import { ReplanMarks } from './ReplanMarks';
 import { wrap } from './wrap';
 
+/** The sign's arrow, in pixel steps: it starts on the board's right edge. */
+const SIGN_TIP_PATH = `M${NODE_W} 0h4v8h3v8h3v6h3v12h-3v6h-3v8h-3v8h-4z`;
+
 /**
- * One ticket on the graph, in the three levels of the presenting-data rules: a state edge on the left, the title
+ * One ticket on the graph, drawn as a trail sign, in the three levels of the presenting-data rules: a state edge on the left, the title
  * (what it is, two lines at most), and one quiet line (key · type · state). The live session line sits under it.
  */
 export function GraphNode({
@@ -47,14 +50,17 @@ export function GraphNode({
         onSelect({ kind: 'ticket', id: t.id });
       }}
     >
-      {n.state === 'frontier' && <rect className="halo" x={-4} y={-4} width={NODE_W + 8} height={NODE_H + 8} />}
       {waiting && <rect className="alarm" x={-6} y={-6} width={NODE_W + 12} height={NODE_H + 12} />}
+      <rect className="post" x={NODE_W / 2 - 6} y={NODE_H} width={12} height={12} />
+      <rect className="tuft" x={NODE_W / 2 - 11} y={NODE_H + 12} width={22} height={3} />
+      <path className="body tip" d={SIGN_TIP_PATH} />
       <rect className="body" width={NODE_W} height={NODE_H} />
+      <rect width={NODE_W} height={NODE_H} fill="url(#sign-grain)" />
       {(n.state === 'blocked' || n.state === 'parked') && (
         <rect width={NODE_W} height={NODE_H} fill="url(#hatch-dim)" />
       )}
       {n.state === 'out-of-scope' && <rect width={NODE_W} height={NODE_H} fill="url(#hatch-oos)" />}
-      <rect className="edge-bar" width={3} height={NODE_H} />
+      <rect className="edge-bar" width={4} height={NODE_H} />
       {lines.map((l, i) => (
         <text key={i} className="title" x={12} y={19 + i * 14}>
           {l}

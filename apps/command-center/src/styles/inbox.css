@@ -146,7 +146,7 @@
   color: var(--text-hi);
 }
 .msg.open-q .msg-text {
-  border-color: rgba(255, 77, 66, 0.4);
+  border-color: rgba(var(--urgent-rgb), 0.4);
   border-left: var(--edge-w) solid var(--edge-urgent);
   background: var(--urgent-bg);
   color: var(--text-hi);

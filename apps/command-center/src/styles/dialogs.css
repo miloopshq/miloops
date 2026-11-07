@@ -2,7 +2,7 @@
 .scrim {
   position: fixed;
   inset: 0;
-  background: rgba(2, 5, 6, 0.75);
+  background: var(--scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,13 +13,13 @@
   width: min(560px, 100%);
   max-height: 100%;
   overflow: auto;
-  background: #071114;
+  background: var(--panel-solid);
   border-color: var(--line2);
   padding: var(--sp-18) 22px;
   display: flex;
   flex-direction: column;
   gap: var(--sp-12);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 60px var(--shadow-color);
 }
 .dialog header {
   display: flex;

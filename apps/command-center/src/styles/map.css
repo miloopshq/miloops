@@ -100,13 +100,10 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background: var(--map-bg);
   touch-action: none;
   cursor: grab;
   user-select: none;
-}
-.bp-wide .graph-box,
-.bp-laptop .graph-box {
-  bottom: var(--status-h);
 }
 .graph-box:active {
   cursor: grabbing;
@@ -134,10 +131,8 @@
 }
 .nomap h2 {
   font-family: var(--display);
-  font-weight: 300;
+  font-weight: 600;
   font-size: var(--fs-display);
-  letter-spacing: var(--ls-brand);
-  text-transform: uppercase;
   margin: 0;
   color: var(--text-hi);
 }
@@ -151,13 +146,49 @@
   --status-h: 124px;
   container-type: inline-size;
 }
-.status-panel {
+/* Tucked below the map: only its tab shows until it's opened. */
+.status-drawer {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  transform: translateY(var(--status-h));
+  transition: transform 0.2s ease;
+}
+.status-drawer.open {
+  transform: none;
+}
+.status-toggle {
+  pointer-events: auto;
+  margin-left: var(--sp-10);
+  height: var(--h-sm);
+  padding: 0 var(--sp-10);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-6);
+  background: var(--panel);
+  border: 1px solid var(--line2);
+  border-bottom: 0;
+  font-family: var(--strong);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.status-toggle .caret {
+  color: var(--dim);
+}
+.status-panel {
+  align-self: stretch;
+  pointer-events: auto;
   height: var(--status-h);
-  z-index: 1;
+  visibility: hidden;
+  transition: visibility 0.2s;
   padding: var(--sp-10) var(--gutter);
   border-top: 1px solid var(--line);
   background: var(--panel);
@@ -350,19 +381,27 @@
   display: none;
 }
 
-/* Graph nodes. */
+/* Graph nodes: trail signs. */
 .node {
   cursor: pointer;
   transition: transform 0.4s ease;
 }
 .node .body {
-  fill: rgba(7, 17, 20, 0.95);
-  stroke: var(--c);
-  stroke-opacity: 0.6;
-  stroke-width: 1;
+  fill: var(--sign);
+  stroke: var(--sign-line);
+  stroke-width: 1.5;
   transition:
     stroke 0.3s,
     fill 0.3s;
+}
+.node .post {
+  fill: var(--sign-post);
+  stroke: var(--sign-line);
+  stroke-width: 1;
+}
+.node .tuft {
+  fill: rgb(var(--decided-rgb));
+  opacity: 0.7;
 }
 .node .edge-bar {
   fill: var(--c);
@@ -370,95 +409,90 @@
 .node .title {
   font-family: var(--sans);
   font-size: var(--fs-node-title);
-  fill: var(--text-hi);
-  font-weight: 500;
+  fill: var(--sign-text);
+  font-weight: 600;
 }
 .node .meta {
   font-family: var(--sans);
   font-size: var(--fs-node-meta);
-  fill: var(--dim);
+  font-weight: 500;
+  fill: var(--sign-meta);
 }
 .node .meta .key {
   font-family: var(--mono);
 }
-.node .meta .agent {
-  fill: var(--st-claimed);
-}
+.node .meta .agent,
 .node .meta .warn {
-  fill: var(--amber);
+  fill: var(--sign-text);
+  font-weight: 600;
 }
 .node .meta .urgent {
   fill: var(--urgent);
+  font-weight: 600;
 }
 .node .live-tag {
   font-family: var(--sans);
   font-size: var(--fs-node-meta);
-  fill: var(--st-claimed);
-}
-.node .halo {
-  fill: none;
-  stroke: var(--accent);
-  stroke-opacity: 0.35;
-  filter: drop-shadow(0 0 4px rgba(var(--accent-rgb), 0.6));
+  font-weight: 500;
+  fill: var(--text-hi);
 }
 .node:hover .body {
-  stroke-opacity: 1;
+  stroke: var(--sign-text);
 }
 .node.st-claimed .body {
-  fill: rgba(var(--claimed-rgb), 0.08);
-  stroke-opacity: 0.9;
+  stroke-width: 2;
 }
 .node.st-verifying .body {
   stroke-dasharray: 6 3;
-  stroke-opacity: 0.9;
 }
 .node.st-rework .body {
-  fill: rgba(var(--amber-rgb), 0.08);
-  stroke-opacity: 0.9;
+  stroke: var(--amber);
 }
 .node.st-held .body {
-  fill: var(--urgent-bg);
-  stroke-opacity: 1;
+  fill: var(--sign-held);
+  stroke: var(--urgent);
 }
 .node.st-decided .body {
-  stroke-opacity: 0.4;
+  fill: var(--sign-done);
 }
-.node.st-decided .title {
-  fill: var(--dim);
+.node.st-blocked .body,
+.node.st-parked .body,
+.node.st-out-of-scope .body {
+  fill: var(--sign-soft);
 }
 .node.st-blocked .title,
 .node.st-parked .title {
-  fill: var(--text);
-  opacity: 0.55;
+  fill: var(--sign-text-soft);
 }
-.node.st-parked .body {
+.node.st-blocked .body:not(.tip) {
+  stroke-dasharray: 5 3;
+}
+.node.st-parked .body:not(.tip) {
   stroke-dasharray: 4 3;
 }
 .node.st-out-of-scope .title {
-  fill: var(--dim);
+  fill: var(--sign-text-soft);
   text-decoration: line-through;
 }
 .node.sel .body {
   stroke: var(--text-hi);
-  stroke-opacity: 1;
-  stroke-width: 1.5;
+  stroke-width: 2.5;
 }
 .node.waiting {
   --c: var(--urgent);
 }
 .node.waiting .body {
-  fill: rgba(255, 77, 66, 0.12);
-  stroke-opacity: 1;
-  stroke-width: 1.5;
+  fill: var(--sign-held);
+  stroke: var(--urgent);
+  stroke-width: 2;
 }
 /* Claimed by an agent that went quiet: the lease is about to return the ticket to the queue. */
 .node.stalled {
   --c: var(--amber);
 }
-.node.stalled .body {
-  fill: rgba(var(--amber-rgb), 0.08);
+.node.stalled .body:not(.tip) {
+  stroke: var(--amber);
   stroke-dasharray: 5 3;
-  stroke-opacity: 1;
 }
 .node .alarm {
   fill: none;
@@ -467,22 +501,50 @@
   stroke-opacity: 0.8;
 }
 
+/* The trail: a cleared path with dashes on it. Solid colour is walked, ink is still ahead. */
+.edge-path {
+  fill: none;
+  stroke: var(--trail-path);
+  stroke-width: 11;
+  stroke-linecap: round;
+}
 .edge {
   fill: none;
-  stroke-width: 1.1;
+  stroke-width: 3;
+  stroke-dasharray: 9 6;
 }
 .edge-open {
-  stroke: rgba(var(--accent-rgb), 0.4);
+  stroke: var(--trail-ahead);
 }
 .edge-done {
-  stroke: rgba(var(--accent-rgb), 0.18);
-  stroke-dasharray: 3 4;
+  stroke: rgb(var(--decided-rgb));
+}
+.destination .x-stroke {
+  fill: none;
+  stroke: var(--mark);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.destination .x-sketch {
+  fill: none;
+  stroke: var(--text-hi);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+.destination text {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--text-hi);
 }
 .quarantine text {
-  font-family: var(--mono);
-  font-size: var(--fs-xs);
+  font-family: var(--label);
+  font-size: var(--fs-label);
+  font-weight: 500;
   letter-spacing: var(--ls-label);
-  fill: var(--urgent);
+  text-transform: uppercase;
+  fill: var(--dim);
 }
 
 /* ---------- Real missions: agents work from their chat, so the UI hands over agent commands ---------- */
@@ -524,6 +586,13 @@
   .command-bar .hint {
     animation: none;
   }
+  .status-drawer,
+  .status-panel {
+    transition: none;
+  }
+}
+.status-drawer.open .status-panel {
+  visibility: visible;
 }
 .agent-cmd {
   display: inline-flex;
@@ -532,7 +601,7 @@
   max-width: 100%;
   padding: 3px 3px 3px var(--sp-10);
   border: 1px solid var(--line2);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--sunken);
 }
 .agent-cmd code {
   overflow: hidden;
@@ -574,7 +643,7 @@
   height: 8px;
   margin-top: var(--sp-6);
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6), transparent 70%);
+  background: radial-gradient(ellipse at center, var(--shadow-color), transparent 70%);
   animation: fm-shadow 4s ease-in-out infinite;
 }
 @keyframes fm-float {
@@ -597,9 +666,7 @@
 
 /* A pending replan drawn over the map: ghosts for added tickets, a strike for cancelled ones, ❄ for frozen ones. */
 .node.mark-added .body {
-  fill: rgba(var(--amber-rgb), 0.05);
   stroke: var(--amber);
-  stroke-opacity: 0.9;
   stroke-dasharray: 4 3;
 }
 .node.mark-added .meta .key {
@@ -625,20 +692,18 @@
 }
 .node .freeze {
   font-size: 11px;
-  fill: rgb(150, 210, 255);
+  fill: var(--accent);
 }
 .node.frozen .body {
-  stroke: rgb(150, 210, 255);
+  stroke: var(--accent);
   stroke-opacity: 0.8;
 }
 .edge-added {
   stroke: var(--amber);
-  stroke-opacity: 0.85;
-  stroke-dasharray: 5 4;
+  stroke-dasharray: 3 7;
 }
-/* An edge the pending replan removes: still drawn, faded and dashed in red. */
+/* An edge the pending replan removes: still drawn, faded. */
 .edge-removed {
-  stroke: var(--urgent);
-  stroke-opacity: 0.45;
-  stroke-dasharray: 2 4;
+  stroke: var(--faint);
+  stroke-dasharray: 2 6;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { InfoTip, Label } from '../../components/ui';
+import { InfoTip, Label, ZoneIcon } from '../../components/ui';
 import { AgentCommand } from './AgentCommand';
 
 /** Rotating hints: the agent-chat commands people need most, plus how to move around the map. */
@@ -24,6 +24,7 @@ export function CommandBar() {
   const h = HINTS[i];
   return (
     <div className="command-bar real">
+      <ZoneIcon name="map" />
       <Label as="h2" className="zone-title-label">
         Mission map
       </Label>

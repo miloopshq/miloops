@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AppBriefing,
   AppHeader,
@@ -25,7 +25,7 @@ import { KnowledgeContext, KnowledgeView, useKnowledgeStore } from './features/k
 import { MapSections } from './features/plan';
 import { Onboarding } from './features/settings';
 import { useBriefing, useBreakpoint, usePrefs, useCommandCenter } from './hooks';
-import { createRuntime, trackerKind } from './lib';
+import { applyTheme, createRuntime, trackerKind } from './lib';
 
 /**
  * Progressive disclosure. Layers by priority:
@@ -40,6 +40,7 @@ export function App() {
   const api = useCommandCenter(rt);
   const { snap, activity, selection, actions } = api;
   const [prefs, updatePrefs] = usePrefs();
+  useEffect(() => applyTheme(prefs.theme), [prefs.theme]);
   const [settingsOpen, setSettingsOpen] = useState<SettingsOpen>(settingsFromUrl);
   const [newMission, setNewMission] = useState(false);
   const repo = useRepoName(rt.kind);
@@ -132,6 +133,7 @@ export function App() {
           onDecisions={() => (nav.decisionsView ? nav.setDecisionsView(null) : nav.openDecisions())}
           onNewMission={() => setNewMission(true)}
           onSettings={setSettingsOpen}
+          onToggleTheme={(night) => updatePrefs({ theme: night ? 'night' : 'day' })}
         />
         {bp === 'wide' && (
           <>

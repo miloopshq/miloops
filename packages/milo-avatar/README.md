@@ -34,10 +34,8 @@ src/milo/
   index.ts         React exports (import mountMilo from './mountMilo' directly)
 preview/           preview page (?view=options | states | demo | square | favicon | banner); App.tsx routes to views/
 tools/
-  bake-art.mjs     node tools/bake-art.mjs src/milo/art.ts: renders the v4 CRT states, diffs them into patches, verifies, writes art.ts
   capture.mjs      writes the PNGs, the banner GIF, the MP4 loop and brand/* (Playwright + system Chrome + ffmpeg)
   outline.mjs      helper: adds a 1px outline around a hand-drawn fill grid
-  robot-concepts*.mjs  concept explorations v1–v4 (milo-robot-*.png); v4 is the source the bake reads
 ```
 
 ## Command center
@@ -118,13 +116,7 @@ Saturated red appears only in `alert`: the status light and the panel frame (`--
 
 ## Changing the art
 
-Edit the CRT concept in `tools/robot-concepts-v4.mjs` (`CONCEPTS.crt`, `face()`, `MINI.crt`), then re-bake:
-
-```
-node tools/bake-art.mjs src/milo/art.ts
-```
-
-The bake fails if the patches don't reproduce every state exactly. Copy the regenerated `art.ts` to both apps afterwards.
+Edit `src/milo/art.ts` by hand: each letter in a row is a key in `PALETTE`, a dot is transparent. Expressions are patches over the idle frame, so they stay small and any combination works.
 
 ## Preview, captures and brand kit
 

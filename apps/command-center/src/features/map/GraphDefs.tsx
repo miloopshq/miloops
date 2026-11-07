@@ -1,17 +1,19 @@
-/** Hatch patterns and the edge arrowhead shared by every node and edge of the graph. */
+/** Patterns shared by the graph: the map grid, the sign grain and the hatches. */
 export function GraphDefs() {
   return (
     <defs>
-      <pattern id="hatch-oos" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <rect width="8" height="8" fill="rgba(255,77,66,0.05)" />
-        <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(255,77,66,0.45)" strokeWidth="2.2" />
+      <pattern id="map-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M40 0H0V40" fill="none" stroke="var(--map-grid)" strokeWidth="1" />
+      </pattern>
+      <pattern id="sign-grain" width="200" height="9" patternUnits="userSpaceOnUse">
+        <rect y="8" width="200" height="1" fill="var(--sign-grain)" />
+      </pattern>
+      <pattern id="hatch-oos" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="10" stroke="var(--line)" strokeWidth="2" />
       </pattern>
       <pattern id="hatch-dim" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-        <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(120,160,170,0.12)" strokeWidth="1.5" />
+        <line x1="0" y1="0" x2="0" y2="6" stroke="var(--sign-grain)" strokeWidth="1.5" />
       </pattern>
-      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-        <path d="M0 1L9 5L0 9" fill="none" stroke="context-stroke" strokeWidth="1.4" />
-      </marker>
     </defs>
   );
 }

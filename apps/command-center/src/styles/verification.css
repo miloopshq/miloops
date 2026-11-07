@@ -108,7 +108,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   color: var(--text);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--sunken);
   border: 1px solid var(--line);
 }
 .vf-log-line {
@@ -206,7 +206,7 @@
 .vf-snippet pre {
   margin: 0;
   padding: var(--sp-10) var(--sp-12);
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--sunken);
   border: 1px solid var(--line);
   font-family: var(--mono);
   font-size: var(--fs-sm);

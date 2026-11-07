@@ -83,6 +83,7 @@ export function InboxPane(props: {
     <Panel className={`zone inbox split ${hasConv ? 'has-conv' : ''}`} style={{ gridArea: 'inbox' }}>
       <SectionHeader
         className="zone-title"
+        icon="mailbox"
         title="Communication"
         info="Where your agents reach you: everything waiting on you, ranked with the reasons why, the conversation with the agent that asked, and the tickets coming up next."
       />

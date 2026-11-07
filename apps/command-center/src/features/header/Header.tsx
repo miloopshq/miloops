@@ -13,15 +13,10 @@ import { Panel, MiloMark, Label, Readout, Button } from '../../components/ui';
 import { type BriefingStatus, useNow } from '../../hooks';
 import { hms, tokens, usd } from '../../lib';
 import { PrSyncIndicator } from '../pr-sync';
-import { HeaderMilo } from './HeaderMilo';
 import { MissionSwitcher } from './MissionSwitcher';
+import { RecordsMenu } from './RecordsMenu';
+import { ThemeToggle } from './ThemeToggle';
 import { TrackerChip } from './TrackerChip';
-
-const BRIEFING_TITLE: Record<BriefingStatus, string> = {
-  new: 'While you were away: a new briefing from MILO',
-  seen: 'Reopen the last briefing',
-  none: 'No briefing yet. MILO briefs you when you come back after being away.',
-};
 
 export function Header(props: {
   repo: string;
@@ -34,6 +29,7 @@ export function Header(props: {
   onNewMission: () => void;
   onToggleMode: () => void;
   onSettings: () => void;
+  onToggleTheme: (night: boolean) => void;
   /** Set when the Slack connection needs attention (revoked token, app uninstalled). */
   slackAlert?: string;
   onSlack: () => void;
@@ -58,9 +54,6 @@ export function Header(props: {
   const u = map && missionUsage(props.activity, map.id);
   return (
     <Panel as="header" className="header">
-      <div className="h-brand">
-        <HeaderMilo />
-      </div>
       <div className="h-title">
         <div className="h-line1">
           <span className="repo">{props.repo}</span>
@@ -123,40 +116,21 @@ export function Header(props: {
             {map.mode === 'plan-only' ? 'Plan only' : 'Plan + execute'}
           </Button>
         )}
+        <RecordsMenu
+          decisions={props.decisions}
+          onDecisions={props.onDecisions}
+          knowledge={props.knowledge}
+          onKnowledge={props.onKnowledge}
+          briefingOpen={props.briefingOpen}
+          briefingStatus={props.briefingStatus}
+          onBriefing={props.onBriefing}
+        />
+        <ThemeToggle onToggle={props.onToggleTheme} />
         <Button
           variant="ghost"
-          className={`briefing-btn ${props.briefingStatus === 'new' ? 'has-new' : ''}`}
-          on={props.briefingOpen}
-          onClick={props.onBriefing}
-          disabled={props.briefingStatus === 'none' && !props.briefingOpen}
-          aria-pressed={props.briefingOpen}
-          title={BRIEFING_TITLE[props.briefingStatus]}
+          onClick={props.onSettings}
+          data-tip="Tracker, verification, appearance and integrations"
         >
-          <MiloMark size={14} />
-          <span className="bl">Briefing</span>
-          {props.briefingStatus === 'new' && <span className="new-dot" aria-label="new" />}
-        </Button>
-        <Button
-          variant="ghost"
-          className="knowledge-btn"
-          data-tip="What agents know about this codebase and product. Review suggestions, flags and stale entries"
-          on={props.knowledgeOpen}
-          onClick={props.onKnowledge}
-          aria-pressed={props.knowledgeOpen}
-        >
-          Knowledge {props.knowledge > 0 && <span className="n hot">{props.knowledge}</span>}
-        </Button>
-        <Button
-          variant="ghost"
-          className="decisions-btn"
-          data-tip="Every decision across your missions, with its reasoning. Search, filter and export"
-          on={props.decisionsOpen}
-          onClick={props.onDecisions}
-          aria-pressed={props.decisionsOpen}
-        >
-          Decisions <span className="n">{props.decisions}</span>
-        </Button>
-        <Button variant="ghost" onClick={props.onSettings} data-tip="Tracker, verification, briefing and integrations">
           Settings
         </Button>
       </div>

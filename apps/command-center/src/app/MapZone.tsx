@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Panel, Button } from '../components/ui';
 import { MapGraph, type MapPreview } from '../features/map';
 import { AgentCommand, CommandBar, FloatingMilo } from '../features/mission';
-import { StatusPanel } from '../features/status';
+import { StatusDrawer } from '../features/status';
 import type { CommandCenterApi } from '../hooks';
 import type { Selection } from '../lib';
 import { Legend } from './Legend';
@@ -23,7 +23,7 @@ export function MapZone(props: {
       {snap && <CommandBar />}
       {props.mission?.banner}
       <div className="map-area">
-        {snap && !props.compact && <StatusPanel snap={snap} sessions={props.sessions} />}
+        {snap && !props.compact && <StatusDrawer snap={snap} sessions={props.sessions} />}
         {snap ? (
           <MapGraph
             snap={snap}

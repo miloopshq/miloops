@@ -8,6 +8,7 @@ export { heldLeases } from './leases';
 export { OPERATOR } from './operator';
 export { prSync, type PrSyncSnapshot, worstFlag } from './prSync';
 export { loadPrefs, type Prefs, type TrackerChoice } from './prefs';
+export { applyTheme, type ThemeChoice } from './theme';
 export { createRuntime, type Runtime, trackerKind } from './runtime';
 export type { Selection } from './selection';
 export { isRunning, isWaiting } from './sessions';

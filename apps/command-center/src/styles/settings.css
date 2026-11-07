@@ -102,7 +102,7 @@
 .tracker-setup {
   gap: var(--sp-10);
   padding: var(--sp-12);
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--sunken);
 }
 .tracker-setup .ts-row {
   display: grid;
@@ -157,7 +157,7 @@
 .slack-setup {
   gap: var(--sp-12);
   padding: var(--sp-12);
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--sunken);
 }
 .slack-setup p {
   margin: 0;
@@ -374,7 +374,7 @@
   transform: translateX(-50%);
   z-index: 30;
   max-width: calc(100% - 24px);
-  background: #12080a;
+  background: var(--panel-solid);
   border: 1px solid var(--urgent);
   color: var(--urgent);
   padding: var(--sp-8) var(--gutter);
