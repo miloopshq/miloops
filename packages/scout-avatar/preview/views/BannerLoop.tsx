@@ -23,9 +23,19 @@ export function BannerLoop(props: { w: number; h: number; wordmark: string }) {
     };
   }, []);
   const s = BANNER_LOOP[f.step];
+  const total = BANNER_LOOP.reduce((sum, x) => sum + x.ms, 0);
+  const elapsed = BANNER_LOOP.slice(0, f.step).reduce((sum, x) => sum + x.ms, 0) + f.at;
+  // The trail walks for most of the loop and rests at the X; the contours sway and return, so the loop has no seam.
+  const phase = elapsed / total;
   return (
     <div data-frame={`${f.step}:${f.at}`}>
-      <Banner {...props} layout="card" frame={{ state: s.state, speaking: s.speaking, at: f.at }} />
+      <Banner
+        {...props}
+        layout="card"
+        frame={{ state: s.state, speaking: s.speaking, at: f.at }}
+        progress={Math.min(1, phase / 0.85)}
+        wobble={0.5 * Math.sin(phase * Math.PI * 2)}
+      />
     </div>
   );
 }

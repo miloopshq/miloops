@@ -315,7 +315,7 @@
 }
 .onb-title {
   font-family: var(--display);
-  font-weight: 700;
+  font-weight: 900;
   font-size: var(--fs-display);
   line-height: 1;
   letter-spacing: var(--ls-brand);
@@ -352,7 +352,7 @@
 }
 .about-name {
   font-family: var(--display);
-  font-weight: 700;
+  font-weight: 900;
   font-size: var(--fs-heading);
   letter-spacing: var(--ls-brand);
   color: var(--text-hi);

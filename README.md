@@ -1,4 +1,4 @@
-<img src="brand/teamtrail-banner.gif" alt="Scout, the Teamtrail sidekick, cycling through watching, thinking, talking and needing you; decision waiting next to the Teamtrail wordmark." width="100%" />
+<img src="brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, cycling through watching, thinking, talking and needing you; decision waiting next to the Teamtrail wordmark." width="100%" />
 
 # Teamtrail
 

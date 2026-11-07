@@ -8,6 +8,7 @@ import { writeLookoutLock } from '@teamtrail/core/agents';
 import { createTrackerBridge, type TrackerBridge } from '@teamtrail/core/bridge';
 import { fail } from '../args/help';
 import type { ServeOptions } from '../args/parseArgs';
+import { printGreeting } from '../printGreeting';
 import { listen } from './listen';
 import { openBrowser } from './openBrowser';
 import { serveStatic } from './staticFiles';
@@ -46,6 +47,7 @@ export async function serveLookout(opts: ServeOptions, slackSetup: boolean) {
   const shownHost = opts.host === '127.0.0.1' || opts.host === '0.0.0.0' ? 'localhost' : opts.host;
   const url = `http://${shownHost}:${port}/`;
   bridge = createTrackerBridge(path.resolve(process.cwd(), opts.dir), { plugins: [slackPlugin()], url: () => url });
+  printGreeting();
   process.stdout.write(
     `\n  ${BRAND.name} ${__VERSION__} · ${BRAND.assistant.name} online\n\n` +
       `  Lookout  ${url}\n` +

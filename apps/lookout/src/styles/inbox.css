@@ -169,7 +169,7 @@
   max-width: none;
   min-width: 0;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr);
+  grid-template-columns: 46px minmax(0, 1fr);
   column-gap: var(--sp-10);
   overflow: hidden;
 }
@@ -181,7 +181,7 @@
   min-height: 0;
   overflow: auto;
 }
-/* The frame is a real border inside the 36px column so nothing paints outside the scrolling log. */
+/* The frame is a real border inside the 46px column so nothing paints outside the scrolling log. */
 .msg.open-q .q-avatar {
   grid-column: 1;
   grid-row: 2;
@@ -189,6 +189,7 @@
   position: relative;
   padding: 1px;
   border: 1px solid var(--urgent);
+  border-radius: 50%;
 }
 .msg.open-q .q-avatar .scout-sprite {
   outline: none;

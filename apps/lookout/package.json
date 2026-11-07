@@ -15,9 +15,9 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
-    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/figtree": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource/londrina-solid": "^5.3.0",
     "@teamtrail/connector-slack": "*",
     "@teamtrail/core": "*",
     "@teamtrail/scout-avatar": "*",

@@ -1,10 +1,10 @@
 import { useMemo, type CSSProperties } from 'react';
-import { RECOMMENDED_STYLE, STYLES, composeFrame, composeWave } from './frames';
+import { Badge } from './Badge';
+import { RECOMMENDED_STYLE, STYLES, composeWave } from './frames';
 import { useBlink } from './hooks/useBlink';
 import { usePrefersReducedMotion } from './hooks/usePrefersReducedMotion';
 import { useSpeechClock } from './hooks/useSpeechClock';
 import { blinks, scoutFace, scoutLabels, scoutLayout, resolveScout } from './scoutFrame';
-import { Sprite } from './Sprite';
 import type { ScoutSize, ScoutState, ScoutStyleId } from './types';
 import { Wave } from './Wave';
 import './ScoutAvatar.css';
@@ -13,7 +13,7 @@ export type { ScoutSize } from './types';
 
 export interface ScoutAvatarProps {
   state?: ScoutState;
-  /** xs: 32px inline head (16px sprite at 2x); sm/md/lg: framed 32px head at 3/5/7x. A number sets the screen px per sprite pixel. */
+  /** xs: 32px inline badge with the simple drawing; sm/md/lg: framed badge at 80/160/240px. A number sets the size in units of 40px. */
   size?: ScoutSize | number;
   /** Line Scout is saying. Drives mouth, waveform and caption; implies `state="speaking"` unless the state is alert or thinking. */
   speaking?: string;
@@ -47,7 +47,6 @@ export function ScoutAvatar({
   const m = resolveScout({ state, size, speaking, framed }, usePrefersReducedMotion());
   const { text, effective, talking, reduced } = m;
   const style = STYLES[variant];
-  const art = m.mini ? style.mini : style.art;
   const frozen = at !== undefined;
   const animate = !reduced && !frozen;
   const key = `${effective}|${variant}|${text}`;
@@ -64,8 +63,7 @@ export function ScoutAvatar({
 
   const showWave = talking && !speechDone;
   const { eyes, mouth, light, cursor } = scoutFace(m, t, blinking, showWave);
-  const rows = useMemo(() => composeFrame(art, { eyes, mouth, light }), [art, eyes, mouth, light]);
-  const { base, scale, bars, waveCursor } = scoutLayout(rows, m, cursor);
+  const { base, px, bars, waveCursor } = scoutLayout(m, cursor);
   const wave = useMemo(
     () => (showWave ? composeWave(text, waveCursor, bars) : null),
     [showWave, text, waveCursor, bars],
@@ -74,13 +72,12 @@ export function ScoutAvatar({
   const { shownState, status, ariaLabel, showCaption, shown } = scoutLabels(m, { label, speechDone, cursor, caption });
   const cssVars = {
     ...styleProp,
-    ['--scout-scale' as string]: `${scale}px`,
     ['--scout-u' as string]: `${base}px`,
   } as CSSProperties;
 
   const sprite = (
     <span className="scout-sprite">
-      <Sprite rows={rows} palette={style.palette} scale={scale} />
+      <Badge face={{ eyes, mouth, light }} variant={variant} size={px} simple={m.mini} />
     </span>
   );
 

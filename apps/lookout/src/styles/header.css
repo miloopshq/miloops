@@ -8,13 +8,10 @@
 }
 .wordmark {
   font-family: var(--display);
-  font-weight: 700;
+  font-weight: 900;
   font-size: var(--fs-heading);
   line-height: 1;
   color: var(--text-hi);
-}
-.wordmark-ops {
-  color: var(--brand-ops);
 }
 .h-title {
   min-width: 0;

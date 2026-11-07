@@ -25,7 +25,7 @@ export function SectionHeader({
   className?: string;
   /** Hover/focus explanation of the zone, shown from an info icon next to the title. */
   info?: string;
-  /** A small pixel icon before the title. */
+  /** A small icon before the title. */
   icon?: ZoneIconName;
 }) {
   return (

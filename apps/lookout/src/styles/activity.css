@@ -24,7 +24,7 @@
 }
 .st-big {
   font-family: var(--display);
-  font-weight: 300;
+  font-weight: 900;
   font-size: clamp(var(--fs-heading), 1.6vw, var(--fs-display));
   line-height: var(--lh-tight);
   letter-spacing: var(--ls-data);

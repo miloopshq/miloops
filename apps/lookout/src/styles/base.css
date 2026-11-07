@@ -1,9 +1,9 @@
 /* Fonts and base elements. Colours live in theme.css, sizes and shared components in design-system.css. */
 :root {
-  /* Three fonts (src/fonts.ts). Bricolage Grotesque: --display for the wordmark and titles. Figtree: --sans for
+  /* Three fonts (src/fonts.ts). Londrina Solid: --display for the wordmark and titles. Figtree: --sans for
    * everything read, --label for small caps labels, --strong for bold text and buttons, --data for numbers that
    * change (tabular digits). JetBrains Mono: --mono for keys, ids, timers and code. */
-  --display: 'Bricolage Grotesque Variable', 'Figtree Variable', sans-serif;
+  --display: 'Londrina Solid', 'Figtree Variable', sans-serif;
   --sans: 'Figtree Variable', system-ui, sans-serif;
   --label: var(--sans);
   --strong: var(--sans);

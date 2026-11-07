@@ -65,7 +65,7 @@
   border-top: 1px solid var(--line);
 }
 .bf-trail-h {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-weight: 600;
   font-size: var(--fs-body);
   letter-spacing: var(--ls-data);

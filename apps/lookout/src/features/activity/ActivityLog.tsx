@@ -1,5 +1,5 @@
 import type { ActivityState } from '@teamtrail/core';
-import { EmptyState, ScoutMark } from '../../components/ui';
+import { EmptyState, ScoutBadge } from '../../components/ui';
 import { clock } from '../../lib';
 
 /** Dense activity log: time, source, message. */
@@ -22,7 +22,7 @@ export function ActivityLog({ activity, onTicket }: { activity: ActivityState; o
         >
           <span className="t t-meta">{clock(e.at)}</span>
           <span className="src t-meta">
-            {e.source === 'system' && <ScoutMark variant="voice" size={10} />}
+            {e.source === 'system' && <ScoutBadge className="voice-badge" />}
             {e.agent ?? e.source}
           </span>
           <span className="msg">

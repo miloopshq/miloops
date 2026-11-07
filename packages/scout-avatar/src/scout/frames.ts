@@ -1,87 +1,33 @@
 /**
- * Frame data and timing. The pixels live in art.ts: a 32×32 base frame (steady eyes, flat mouth, status light on) plus
- * small patches for eyes, mouth and the headband's status light, and a hand-simplified 16×16 head for xs. Patches touch
- * disjoint regions, so any eye / mouth / light combination composes cleanly.
+ * Style and timing data. The drawing lives in badge.ts: one badge with eyes, mouth and hat lamp that change with the state.
  */
-import { HEAD, HEAD_PATCHES, MINI, MINI_ALERT, NIGHT, PALETTE, TONES } from './art';
-import type { Eye, Light, ScoutState, ScoutStyleId, Mouth, Palette, Patch } from './types';
+import { type BadgeLamp, LAMP_DAY, LAMP_NIGHT } from './badgeArt';
+import type { Eye, Light, ScoutState, ScoutStyleId, Mouth } from './types';
 
-export type { Eye, Light, ScoutState, ScoutStyleId, Mouth, Palette, Patch } from './types';
-
-export interface ScoutArt {
-  base: string[];
-  eyes: Record<Eye, Patch>;
-  mouths: Record<Mouth, Patch>;
-  lights: Record<Light, Patch>;
-}
+export type { Eye, Light, ScoutState, ScoutStyleId, Mouth } from './types';
 
 export interface ScoutStyle {
   id: ScoutStyleId;
   name: string;
   blurb: string;
-  art: ScoutArt;
-  /** 16×16 head used at size "xs". */
-  mini: ScoutArt;
-  palette: Palette;
+  lamp: BadgeLamp;
   wave: { bar: string; lead: string };
 }
-
-const NONE: Patch = [];
-
-const HEAD_ART: ScoutArt = {
-  base: HEAD,
-  eyes: { open: NONE, ...HEAD_PATCHES.eyes },
-  mouths: { rest: NONE, ...HEAD_PATCHES.mouths },
-  lights: { on: NONE, ...HEAD_PATCHES.lights },
-};
-
-const MINI_ART: ScoutArt = {
-  base: MINI,
-  eyes: { open: NONE, closed: NONE, aside: NONE, wide: NONE },
-  mouths: { rest: NONE, open: NONE, mid: NONE, aside: NONE },
-  lights: { on: NONE, dim: NONE, alert: MINI_ALERT },
-};
-
-/** Calm, desaturated ramps; the R* tones (alert only) are the one saturated colour. */
-export const PALETTE_COLOR: Palette = PALETTE;
-
-/** Single-ink HUD version: light values print, dark values drop out; alert red stays red. */
-export const PALETTE_MONO: Palette = Object.fromEntries(
-  Object.entries(TONES).flatMap(([key, tone]) => {
-    if (tone[0] === 'R' || tone === 'lR') return [[key, PALETTE[key]]];
-    const dark = tone === 'K' || tone === 'O0' || tone === 'P1' || tone === 'P0' || 'lDCE'.includes(tone[0]);
-    if (dark) return [];
-    return [[key, tone === 'G1' || tone === 'G2' ? '#e3eff2' : '#a9bfc7']];
-  }),
-);
 
 export const STYLES: Record<ScoutStyleId, ScoutStyle> = {
   crt: {
     id: 'crt',
-    name: 'CRT',
-    blurb: 'Monitor head, dark glass, steady eyes, headphones with a status light on the band.',
-    art: HEAD_ART,
-    mini: MINI_ART,
-    palette: PALETTE_COLOR,
+    name: 'Day',
+    blurb: 'A CRT head in a ranger hat and neckerchief, in a circle with layered hills.',
+    lamp: LAMP_DAY,
     wave: { bar: '#6f8a78', lead: '#c8581e' },
   },
   night: {
     id: 'night',
     name: 'Night',
-    blurb: 'The same Scout, with the status light on the band burning bright, for the night theme.',
-    art: { ...HEAD_ART, base: NIGHT },
-    mini: MINI_ART,
-    palette: PALETTE_COLOR,
+    blurb: 'The same Scout, with the hat lamp burning bright, for the night theme.',
+    lamp: LAMP_NIGHT,
     wave: { bar: '#66828d', lead: '#e8833a' },
-  },
-  mono: {
-    id: 'mono',
-    name: 'Mono',
-    blurb: 'Single-ink rendering of the same head.',
-    art: HEAD_ART,
-    mini: MINI_ART,
-    palette: PALETTE_MONO,
-    wave: { bar: '#66828d', lead: '#a9bfc7' },
   },
 };
 export const RECOMMENDED_STYLE: ScoutStyleId = 'crt';
@@ -122,27 +68,6 @@ export function amplitude(ch: string | undefined, i: number): number {
   if (!ch || !/[a-z0-9]/i.test(ch)) return 0;
   if (/[aeiou]/i.test(ch)) return 2 + ((ch.charCodeAt(0) + i) % 2);
   return 1 + ((ch.charCodeAt(0) * 7 + i) % 2);
-}
-
-export interface FrameSpec {
-  eyes: Eye;
-  mouth: Mouth;
-  light?: Light;
-}
-
-/** Stamp eye, mouth and light patches onto the base sprite. Returns rows of palette keys. */
-export function composeFrame(art: ScoutArt, spec: FrameSpec): string[] {
-  const grid = art.base.map((row) => Array.from(row));
-  const stamp = (patch: Patch) =>
-    patch.forEach(([row, col, keys]) =>
-      Array.from(keys).forEach((k, i) => {
-        if (grid[row]) grid[row][col + i] = k;
-      }),
-    );
-  stamp(art.eyes[spec.eyes]);
-  stamp(art.mouths[spec.mouth]);
-  stamp(art.lights[spec.light ?? 'on']);
-  return grid.map((r) => r.join(''));
 }
 
 /** Waveform heights (0-3), newest sample on the right. `cursor` is the index of the character being spoken. */

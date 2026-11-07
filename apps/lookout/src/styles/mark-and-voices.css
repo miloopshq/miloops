@@ -89,7 +89,7 @@
 }
 .ms-name {
   font-family: var(--display);
-  font-weight: 300;
+  font-weight: 900;
   font-size: 64px;
   letter-spacing: 0.3em;
   color: var(--text-hi);
@@ -106,6 +106,7 @@
   align-items: center;
   gap: var(--sp-10);
   font-family: var(--display);
+  font-weight: 900;
   font-size: var(--fs-title);
   color: var(--text);
 }

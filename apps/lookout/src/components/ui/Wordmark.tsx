@@ -1,12 +1,7 @@
 import { BRAND } from '@teamtrail/core';
 import type { ElementType } from 'react';
 
-/** Two-tone product wordmark; `className` sets the size and tracking. */
+/** The product name in its display font and one colour; `className` sets the size. */
 export function Wordmark({ as: Tag = 'span', className }: { as?: ElementType; className?: string }) {
-  return (
-    <Tag className={className}>
-      {BRAND.wordmark.lead}
-      <span className="wordmark-ops">{BRAND.wordmark.ops}</span>
-    </Tag>
-  );
+  return <Tag className={className}>{BRAND.name}</Tag>;
 }

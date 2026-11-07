@@ -33,7 +33,7 @@ export function TicketFacts({ t, state, tickets }: { t: Ticket; state: NodeState
           {hitl ? 'Needs a person' : 'Agent work'}
         </span>
       </div>
-      <h3 className="t-heading t-pixel">{t.title}</h3>
+      <h3 className="t-heading">{t.title}</h3>
       <dl className="facts">
         {facts
           .filter(([, v]) => v)

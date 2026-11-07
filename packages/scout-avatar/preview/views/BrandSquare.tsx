@@ -1,16 +1,11 @@
-import { STYLES, Sprite, composeFrame } from '../../src/scout';
+import { Badge, Logo } from '../../src/scout';
 
-/** Brand exports. Captured at deviceScaleFactor 1 so every sprite pixel is an integer block of screen pixels. */
-export function BrandSquare({ n }: { n: number }) {
-  const rows = composeFrame(STYLES.crt.art, { eyes: 'open', mouth: 'rest' });
-  const scale = Math.floor(n / 32);
+/** Brand exports: the logo, or Scout's badge for places where Scout is the one talking, like Slack. */
+export function BrandSquare({ n, who }: { n: number; who: 'logo' | 'scout' }) {
+  const size = Math.round(n * 0.86);
   return (
-    <div
-      className="brand-square"
-      data-capture="square"
-      style={{ width: n, height: n, ['--px' as string]: `${scale}px` }}
-    >
-      <Sprite rows={rows} palette={STYLES.crt.palette} scale={scale} />
+    <div className="brand-square" data-capture="square" style={{ width: n, height: n }}>
+      {who === 'scout' ? <Badge size={size} /> : <Logo size={size} />}
     </div>
   );
 }

@@ -17,11 +17,17 @@ export function App() {
   if (view === 'options') return <Options />;
   if (view === 'states') return <States variant={variant} />;
   if (view === 'demo') return <Demo variant={variant} />;
-  if (view === 'square') return <BrandSquare n={Number(q.get('n') || 512)} />;
+  if (view === 'square')
+    return <BrandSquare n={Number(q.get('n') || 512)} who={q.get('who') === 'scout' ? 'scout' : 'logo'} />;
   if (view === 'favicon') return <Favicon px={Number(q.get('px') || 64)} />;
   if (view === 'lockup')
     return (
-      <Lockup w={Number(q.get('w') || 960)} h={Number(q.get('h') || 240)} wordmark={q.get('wordmark') || WORDMARK} />
+      <Lockup
+        w={Number(q.get('w') || 960)}
+        h={Number(q.get('h') || 240)}
+        wordmark={q.get('wordmark') || WORDMARK}
+        light={!!q.get('light')}
+      />
     );
   if (view === 'banner' && q.get('loop'))
     return (

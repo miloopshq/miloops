@@ -1,9 +1,18 @@
 import { Button } from '../../components/ui';
 import { useNight } from '../../hooks';
 
-const SUN =
-  'M6 0h2v2H6zM6 12h2v2H6zM0 6h2v2H0zM12 6h2v2h-2zM2 2h2v2H2zM10 2h2v2h-2zM2 10h2v2H2zM10 10h2v2h-2zM4 4h6v6H4z';
-const MOON = 'M5 0h4v1H7v1H6v2H5v4h1v2h1v1h4v1h-1v1H9v1H5v-1H3v-1H2v-1H1V9H0V5h1V3h1V2h1V1h2z';
+const SUN = (
+  <>
+    <circle cx="9" cy="9" r="3.6" fill="currentColor" />
+    <path
+      d="M9 1v2.400M9 14.600V17M1 9h2.400M14.6 9H17M3.3 3.300L5 5M13 13l1.7 1.700M3.3 14.700L5 13M13 5l1.7-1.7"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+    />
+  </>
+);
+const MOON = <path d="M15.2 11.400A6.9 6.9 0 0 1 6.6 2.800a6.9 6.9 0 1 0 8.6 8.600z" fill="currentColor" />;
 
 /** Switches between the day and night themes. Settings also offers "Match my system". */
 export function ThemeToggle({ onToggle }: { onToggle: (night: boolean) => void }) {
@@ -11,8 +20,8 @@ export function ThemeToggle({ onToggle }: { onToggle: (night: boolean) => void }
   const label = night ? 'Switch to the day theme' : 'Switch to the night theme';
   return (
     <Button variant="ghost" className="icon-only" aria-label={label} data-tip={label} onClick={() => onToggle(!night)}>
-      <svg viewBox="0 0 14 14" width="14" height="14" shapeRendering="crispEdges" aria-hidden="true">
-        <path d={night ? SUN : MOON} fill="currentColor" />
+      <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
+        {night ? SUN : MOON}
       </svg>
     </Button>
   );

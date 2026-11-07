@@ -1,41 +1,41 @@
-# Scout avatar
+# Teamtrail logo and Scout badge
 
-`ScoutAvatar` is a pixel-art "video feed" for Scout (Trail Intelligence & Logistics Trail lead), the voice of Teamtrail.
-Scout is an original character: a calm, head-only CRT monitor robot with dark glass, steady eyes, headphones joined by a headband, and a status light on top of the band.
+Two marks, one drawing style:
 
-- **Art:**
-  - The 32×32 master head is used at `sm`, `md` and `lg`.
-  - A hand-simplified 16×16 head is used for `xs` and the favicons.
-  - Both come from the approved v4 CRT concept.
-- **Renderings:**
-  - `crt` (recommended): the calm, desaturated colour palette.
-  - `mono`: a single-ink HUD version of the same head.
+- **The Teamtrail logo** (`src/logo/`): a CRT screen with a sapling growing from it, in a circle with layered hills. Nav, favicon, npm, GitHub and social images use it.
+- **Scout** (`src/scout/`): the voice of Teamtrail wherever you meet it, in the Lookout, Slack, the site, docs and the product video. A CRT head in a ranger hat and neckerchief, in a circle with layered hills. Guides are symbol badges in the same circle (`guideArt.ts`): magnifier, check, shield, book, compass, and a grey plus for Community.
+
+`ScoutAvatar` and `mountScout` draw the same badge from `badgeArt.ts`.
+
+- **Renderings:** `crt` (day) and `night` (the hat lamp burns bright).
+- **Small sizes:** `xs` and anything under about 28px use the simple drawing, without the hills and fine detail.
 - **States:**
-  - `idle`: steady eyes and a flat mouth, with the status light on. Blinks every ~5.6s.
-  - `speaking`: the mouth line follows the text, and a pixel waveform shows only while Scout talks.
-  - `thinking`: the eyes and mouth shift aside, and the status light pulses between dim and on.
-  - `alert`: a decision is waiting. The eyes go taller, the status light turns red and the panel frame turns warning red.
-- **Dependencies:** React 18 only, with no network calls. There is also a framework-free renderer, `mountScout`, for non-React pages.
-
-`npm run capture` writes `scout-avatar-options.png`, `scout-avatar-states.png`, `scout-avatar-demo.mp4` and the brand kit (`brand/`) to `captures/` (or `$OUT_DIR`). The finalized brand kit is committed at the repo root in `brand/`.
+  - `idle`: smiling eyes and mouth, with the hat lamp on. Blinks every ~5.6s.
+  - `speaking`: the mouth follows the text, and a waveform shows only while Scout talks.
+  - `thinking`: the eyes and mouth shift aside, and the hat lamp pulses.
+  - `alert`: wide eyes and a red hat lamp.
 
 ## Files
 
 ```
+src/logo/
+  logoMark.ts      the logo's SVG markup
+  Logo.tsx         React component
 src/scout/
-  art.ts           GENERATED pixels: palette, 32×32 base head + eye/mouth/light patches, 16×16 mini (do not hand edit)
-  frames.ts        styles (crt/mono), expressions per state, status labels, timing, visemes, composeFrame/composeWave
+  badgeArt.ts      Scout's badge: colours, faces and SVG markup
+  guideArt.ts      guide symbol badges
+  Badge.tsx        React component for a still badge at any size
+  frames.ts        styles (day/night), expressions per state, status labels, timing, visemes, composeWave
   types.ts         shared types
-  scoutFrame.ts     what Scout shows at a moment (state, face, layout, labels), shared by both renderers
-  rects.ts         sprite and waveform rects (horizontal runs merged)
-  ScoutAvatar.tsx   React component; Sprite.tsx, Wave.tsx and hooks/ (reduced motion, clock, blink)
-  mountScout.ts     framework-free renderer with the same markup, classes and timing (for the vanilla landing page); scoutDom.ts builds its elements
-  ScoutAvatar.css   panel frame; all colors are --scout-* vars with lookout fallbacks
+  scoutFrame.ts    what Scout shows at a moment (state, face, layout, labels), shared by both renderers
+  rects.ts         waveform rects
+  ScoutAvatar.tsx  React component; Wave.tsx and hooks/ (reduced motion, clock, blink)
+  mountScout.ts    framework-free renderer with the same markup, classes and timing (for the vanilla landing page)
+  ScoutAvatar.css  panel frame; all colors are --scout-* vars with lookout fallbacks
   index.ts         React exports (import mountScout from './mountScout' directly)
-preview/           preview page (?view=options | states | demo | square | favicon | banner); App.tsx routes to views/
+preview/           preview page (?view=options | states | demo | square | favicon | banner); App.tsx
 tools/
-  capture.mjs      writes the PNGs, the banner GIF, the MP4 loop and brand/* (Playwright + system Chrome + ffmpeg)
-  outline.mjs      helper: adds a 1px outline around a hand-drawn fill grid
+  capture.mjs      writes the PNGs, the banner GIF, the MP4 loop and brand/* (Playwright + system Chrome)
 ```
 
 ## Lookout
@@ -78,9 +78,9 @@ scout.destroy();
 | Prop | Default | Notes |
 | --- | --- | --- |
 | `state` | `'idle'` | `idle` \| `speaking` \| `thinking` \| `alert` |
-| `size` | `'md'` | `xs` is the 16×16 head at 2× (32px). `sm` is the 32×32 head at 3× (96px), `md` at 5× (160px) and `lg` at 7× (224px). A number sets a custom integer scale. |
+| `size` | `'md'` | `xs` is the simple badge at 32px. `sm` is 80px, `md` 160px and `lg` 240px. A number sets the size in units of 40px. |
 | `speaking` | none | A non-empty string switches `idle`/`speaking` to speaking. `alert` and `thinking` keep priority. Once the line has played, the caption stays and the status returns to `ONLINE`. |
-| `variant` | `'crt'` | `crt` \| `mono` |
+| `variant` | `'crt'` | `crt` \| `night` |
 | `framed` | `true` (except `xs`) | HUD panel with the `Scout // ONLINE` label. |
 | `caption` | `true` for md/lg | Shows the spoken line under the waveform. |
 | `label` | `'Scout'` | Panel name and accessible name. |
@@ -103,20 +103,9 @@ scout.destroy();
 - Timers run only while something is animating. Re-renders are capped at 25/s while speaking.
 - Screen readers get `role="img"` with "Scout, online / transmitting / processing / decision waiting", plus the full line once via `aria-live="polite"`.
 
-## Palette
+## Colours and changing the art
 
-The palette is calm and desaturated:
-
-- light-gray shell
-- slate headphones
-- dark glass with pale-blue eyes and mouth
-- desaturated orange for the status light and the leading edge of the waveform
-
-Saturated red appears only in `alert`: the status light and the panel frame (`--scout-warn` → `--urgent`). Override `--scout-*` variables on a parent to retheme the panel.
-
-## Changing the art
-
-Edit `src/scout/art.ts` by hand: each letter in a row is a key in `PALETTE`, a dot is transparent. Expressions are patches over the idle frame, so they stay small and any combination works.
+All colours and shapes are in `badgeArt.ts` and `logoMark.ts`. `--tt-keyline` puts a cream edge around the logo on dark backgrounds. After changing either, re-run the capture and copy the results to `brand/`.
 
 ## Preview, captures and brand kit
 
@@ -127,7 +116,7 @@ npm run build
 npm run capture              # needs Chrome (CHROME=...) and ffmpeg
 ```
 
-`capture` also renders `brand/` at exact pixel sizes, with integer sprite scales on the dark HUD background:
+`capture` also renders `brand/` at exact sizes:
 
 - `github-org-avatar.png` (1000²)
 - `github-social-preview.png` (1280×640)

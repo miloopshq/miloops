@@ -1,6 +1,6 @@
 // Builds nothing; run `npm run build` first. Serves dist/ and writes PNG captures, the animated banner GIF and an MP4 demo loop.
-// Usage: OUT_DIR=captures CHROME=/path/to/chrome [WORDMARK='Scout|OPS'] node tools/capture.mjs
-// WORDMARK overrides the wordmark (text after `|` renders in the brand orange); the default is WORDMARK in preview/content.ts.
+// Usage: OUT_DIR=captures CHROME=/path/to/chrome [WORDMARK='Teamtrail'] node tools/capture.mjs
+// WORDMARK overrides the wordmark; the default is WORDMARK in preview/content.ts.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -15,7 +15,6 @@ const WORDMARK =
     /^export const WORDMARK = '(.+)';$/m,
   )[1];
 const wm = `&wordmark=${encodeURIComponent(WORDMARK)}`;
-const [wmLead, wmOps = ''] = WORDMARK.split('|');
 const OUT = resolve(process.env.OUT_DIR || 'captures');
 const CHROME = process.env.CHROME || '/usr/local/bin/google-chrome';
 mkdirSync(OUT, { recursive: true });
@@ -46,8 +45,10 @@ const KIT = [
   ['og-image-1200x630.png', 'Open Graph · teamtrail.ai', 1200, 630, 'banner', '&w=1200&h=630'],
   ['x-header-1500x500.png', 'X header', 1500, 500, 'banner', '&w=1500&h=500&layout=header'],
   ['wordmark-lockup.png', 'Logo lockup', 960, 240, 'lockup', '&w=960&h=240'],
+  ['wordmark-lockup-light.png', 'Logo lockup, light', 960, 240, 'lockup', '&w=960&h=240&light=1'],
   ['x-avatar-400.png', 'X avatar', 400, 400, 'square', '&n=400'],
-  ['slack-icon-512.png', 'Slack app / workspace icon', 512, 512, 'square', '&n=512'],
+  ['slack-icon-512.png', 'Slack app icon (Scout)', 512, 512, 'square', '&n=512&who=scout'],
+  ['scout-badge-1000.png', 'Scout badge', 1000, 1000, 'square', '&n=1000&who=scout'],
   ['linkedin-discord-avatar-512.png', 'LinkedIn / Discord avatar', 512, 512, 'square', '&n=512'],
   ['favicon-64.png', 'Favicon 64', 64, 64, 'favicon', '&px=64'],
   ['favicon-32.png', 'Favicon 32', 32, 32, 'favicon', '&px=32'],
@@ -57,7 +58,9 @@ for (const [file, , w, h, view, extra] of KIT) {
   await page.goto(`${base}?view=${view}${extra}${view === 'banner' || view === 'lockup' ? wm : ''}`);
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(200);
-  await page.locator(`[data-capture="${view}"]`).screenshot({ path: join(BRAND, file) });
+  await page
+    .locator(`[data-capture="${view}"]`)
+    .screenshot({ path: join(BRAND, file), omitBackground: view === 'favicon' });
   await page.close();
   console.log('wrote', join(BRAND, file));
 }
@@ -85,16 +88,16 @@ for (const [file, , w, h, view, extra] of KIT) {
   await page.setContent(`<style>
     @font-face{font-family:B;src:url(${'data:font/woff2;base64,' + readFileSync(font('figtree/files/figtree-latin-wght-normal.woff2')).toString('base64')})}
     @font-face{font-family:M;src:url(${'data:font/woff2;base64,' + readFileSync(font('jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')).toString('base64')})}
-    @font-face{font-family:C;font-weight:700;src:url(${'data:font/woff2;base64,' + readFileSync(font('bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2')).toString('base64')})}
-    body{margin:0;background:#f3f1e7;color:#38443c;font:13px B}
+    @font-face{font-family:C;font-weight:700;src:url(${'data:font/woff2;base64,' + readFileSync(createRequire(import.meta.url).resolve('@fontsource/londrina-solid/files/londrina-solid-latin-900-normal.woff2')).toString('base64')})}
+    body{margin:0;background:#101815;color:#c3cdc1;font:13px B}
     #s{display:inline-block;padding:28px 32px}
-    h1{margin:0 0 18px;font:700 20px C;color:#1b2620} h1 b{color:#c8581e} h1 span{font:13px M;letter-spacing:.1em;color:#5e6a60}
+    h1{margin:0 0 18px;font:700 20px C;color:#eef0e4} h1 span{font:13px M;letter-spacing:.1em;color:#93a497}
     .g{display:flex;flex-wrap:wrap;gap:22px;width:1776px;align-items:flex-end}
-    figure{margin:0;display:flex;flex-direction:column;gap:6px} img{display:block;border:1px solid rgba(76,78,58,.2)}
-    figcaption{font:12px M;color:#5e6a60} figcaption b{color:#1b2620;font-weight:400}
-    h2{font:13px M;letter-spacing:.1em;color:#1b2620;margin:26px 0 12px;text-transform:uppercase}
+    figure{margin:0;display:flex;flex-direction:column;gap:6px} img{display:block;border:1px solid rgba(150,170,155,.2)}
+    figcaption{font:12px M;color:#93a497} figcaption b{color:#eef0e4;font-weight:400}
+    h2{font:13px M;letter-spacing:.1em;color:#eef0e4;margin:26px 0 12px;text-transform:uppercase}
     canvas{display:block} .row{display:flex;gap:30px;align-items:flex-end}
-  </style><div id="s"><h1>${wmLead}<b>${wmOps}</b> <span>Social kit</span></h1><div class="g">${tiles}</div><h2>Small-size checks</h2><div class="row">${checks}</div></div>`);
+  </style><div id="s"><h1>${WORDMARK} <span>Social kit</span></h1><div class="g">${tiles}</div><h2>Small-size checks</h2><div class="row">${checks}</div></div>`);
   await page.evaluate(async () => {
     for (const c of document.querySelectorAll('canvas')) {
       const px = +c.dataset.px;
@@ -122,7 +125,7 @@ for (const [file, , w, h, view, extra] of KIT) {
 // Animated README banner: BANNER_LOOP rendered frame by frame at the speech step (frozen clock, so timing is exact),
 // identical neighbours merged, then one shared palette with no dithering so the sprite stays hard-edged.
 {
-  const STEP = 40;
+  const STEP = 120;
   const gifTmp = join(OUT, '.gif-tmp');
   rmSync(gifTmp, { recursive: true, force: true });
   mkdirSync(gifTmp, { recursive: true });
@@ -169,12 +172,25 @@ for (const [file, , w, h, view, extra] of KIT) {
     '-i',
     join(gifTmp, 'list.txt'),
     '-filter_complex',
-    'split[a][b];[a]palettegen=max_colors=256:stats_mode=full[p];[b][p]paletteuse=dither=none:diff_mode=rectangle',
+    'scale=960:480:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];[b][p]paletteuse=dither=none:diff_mode=rectangle',
     '-fps_mode',
     'vfr',
     '-loop',
     '0',
     gif,
+  ]);
+  execFileSync('ffmpeg', [
+    '-y',
+    '-loglevel',
+    'error',
+    '-f',
+    'concat',
+    '-safe',
+    '0',
+    '-i',
+    join(gifTmp, 'list.txt'),
+    ...['-vf', 'fps=30,format=yuv420p', '-c:v', 'libx264', '-crf', '20', '-movflags', '+faststart', '-an'],
+    join(BRAND, 'teamtrail-social-loop.mp4'),
   ]);
   rmSync(gifTmp, { recursive: true, force: true });
   console.log('wrote', gif, `(${frames.length} frames, ${steps.reduce((a, b) => a + b, 0) / 1000}s)`);

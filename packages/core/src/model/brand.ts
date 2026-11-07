@@ -13,8 +13,6 @@ export const BRAND = {
   npm: 'teamtrail',
   /** Display name. */
   name: 'Teamtrail',
-  /** Two-tone wordmark: `lead + ops` spells `name`; `ops` renders in the brand's blaze orange. */
-  wordmark: { lead: 'Team', ops: 'trail' },
   category: 'The trail map for AI coding agents',
   tagline: 'You pick the destination. Your agents walk the trail.',
   /** The platform's own voice: coordinator/system lines and onboarding. Worker agents keep their own ids. */

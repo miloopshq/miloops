@@ -1,28 +1,9 @@
-import type { Palette } from './types';
-
 export interface Rect {
   x: number;
   y: number;
   width: number;
   height: number;
   fill: string;
-}
-
-/** Pixel rows -> rects, merging horizontal runs of the same color into one rect. */
-export function spriteRects(rows: string[], palette: Palette): Rect[] {
-  const rects: Rect[] = [];
-  rows.forEach((row, y) => {
-    let x = 0;
-    while (x < row.length) {
-      const key = row[x];
-      let end = x + 1;
-      while (end < row.length && row[end] === key) end++;
-      const fill = palette[key];
-      if (fill) rects.push({ x, y, width: end - x, height: 1, fill });
-      x = end;
-    }
-  });
-  return rects;
 }
 
 export const waveWidth = (bars: number) => bars * 2;

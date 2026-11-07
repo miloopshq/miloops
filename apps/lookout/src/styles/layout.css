@@ -105,7 +105,7 @@
   color: var(--dim);
 }
 
-/* A zone with nothing yet: small dim Scout mark, a pixel title and one hint line. Minimal next to the map's Scout. */
+/* A zone with nothing yet: Scout's small badge, a title and one hint line. Minimal next to the map's Scout. */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -132,11 +132,10 @@
   min-width: 0;
 }
 .empty-state .es-mark {
-  color: var(--faint);
-  opacity: 0.8;
+  display: inline-flex;
 }
 .empty-state .es-title {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: var(--fs-sm);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
@@ -147,4 +146,11 @@
   font-size: var(--fs-sm);
   line-height: var(--lh-body);
   color: var(--faint);
+}
+
+/* Scout's small badge beside a line in Scout's voice. */
+.voice-badge {
+  display: inline-flex;
+  vertical-align: -4px;
+  margin-right: 5px;
 }

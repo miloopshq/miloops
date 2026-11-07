@@ -5,7 +5,7 @@ export function ConversationTicket(props: { ticket?: { key: string; title: strin
   const { ticket } = props;
   return (
     <div className="comms-ticket">
-      <div className="t-title t-pixel" title={ticket && `${ticket.key} ${ticket.title}`}>
+      <div className="t-title" title={ticket && `${ticket.key} ${ticket.title}`}>
         <span className="key">{ticket?.key}</span> {ticket?.title}
       </div>
       <MetaLine parts={[props.trail, props.agent]} />

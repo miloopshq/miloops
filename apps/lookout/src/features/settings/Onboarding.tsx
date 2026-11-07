@@ -1,6 +1,6 @@
 import { BRAND } from '@teamtrail/core';
 import { useState } from 'react';
-import { Panel, ScoutLogo, ScoutMark, Wordmark, Label, Choice, Button } from '../../components/ui';
+import { Panel, ScoutBadge, TeamtrailLogo, Wordmark, Label, Choice, Button } from '../../components/ui';
 import type { Prefs, TrackerChoice } from '../../lib';
 import { GitHubSetup, LinearSetup, useTrackerSettings, trackerApi, switchTracker } from '../trackers';
 import { SettingsSection } from './SettingsSection';
@@ -43,14 +43,14 @@ export function Onboarding(props: { prefs: Prefs; update: (p: Partial<Prefs>) =>
     <div className="scrim">
       <Panel as="div" className="dialog onboarding">
         <div className="onb-brand">
-          <ScoutLogo scale={3} />
+          <TeamtrailLogo size={64} />
           <Wordmark as="div" className="onb-title" />
         </div>
         <div className="onb-cat mono-label">{BRAND.category}</div>
         <p className="onb-tagline">{BRAND.tagline}</p>
         <p className="scout-line">
           <Label>
-            <ScoutMark variant="voice" size={11} /> {BRAND.assistant.name}
+            <ScoutBadge className="voice-badge" /> {BRAND.assistant.name}
           </Label>{' '}
           Where should your trails live?
         </p>

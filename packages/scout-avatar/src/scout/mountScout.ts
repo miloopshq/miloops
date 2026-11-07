@@ -1,8 +1,9 @@
 /**
  * Framework-free Scout renderer for non-React pages. Same frames, timing, markup and CSS classes as <ScoutAvatar>.
  */
-import { RECOMMENDED_STYLE, STYLES, TIMING, composeFrame, composeWave } from './frames';
-import { caret, createScoutDom, drawSprite, drawWave } from './scoutDom';
+import { badgeMarkup } from './badgeArt';
+import { RECOMMENDED_STYLE, STYLES, TIMING, composeWave } from './frames';
+import { caret, createScoutDom, drawBadge, drawWave } from './scoutDom';
 import {
   blinks,
   scoutFace,
@@ -18,6 +19,7 @@ import type { ScoutSize, ScoutState, ScoutStyleId } from './types';
 import './ScoutAvatar.css';
 
 export { TIMING } from './frames';
+export { type GuideRole, guideMarkup } from './guideArt';
 export type { ScoutSize, ScoutState } from './types';
 
 export interface MountScoutOptions {
@@ -53,11 +55,9 @@ export function mountScout(host: HTMLElement, initial: MountScoutOptions = {}): 
   const render = () => {
     const d = derive();
     const style = STYLES[opts.variant ?? RECOMMENDED_STYLE];
-    const art = d.mini ? style.mini : style.art;
     const speaking = d.talking && !speechDone;
     const { eyes, mouth, light, cursor } = scoutFace(d, performance.now() - t0, blinking, speaking);
-    const rows = composeFrame(art, { eyes, mouth, light });
-    const { base, scale, bars, waveCursor } = scoutLayout(rows, d, cursor);
+    const { base, px, bars, waveCursor } = scoutLayout(d, cursor);
     const label = opts.label ?? 'Scout';
     const { shownState, status, ariaLabel, showCaption, shown } = scoutLabels(d, {
       label,
@@ -66,9 +66,8 @@ export function mountScout(host: HTMLElement, initial: MountScoutOptions = {}): 
       caption: opts.caption,
     });
 
-    root.style.setProperty('--scout-scale', `${scale}px`);
     root.style.setProperty('--scout-u', `${base}px`);
-    drawSprite(dom.sprite, rows, style.palette, scale);
+    drawBadge(dom.sprite, badgeMarkup({ eyes, mouth, light }, { lamp: style.lamp, simple: d.mini }), px);
 
     if (!d.framed) {
       root.className = `scout scout-bare scout-${shownState}`;

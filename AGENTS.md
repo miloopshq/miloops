@@ -6,7 +6,7 @@ How to change Teamtrail safely. For coding agents (Codex reads this file; Claude
 
 ## What Teamtrail is
 
-Teamtrail is a local trail map for big work done by AI coding agents. A human describes a trail. Agents chart it as a map of decision tickets (`research`, `prototype`, `junction`, `task`, `execute`, plus `review`) with blocking edges, claim tickets over MCP, ask the human questions, and record decisions with evidence. The human steers in the Lookout, a web app served by the `teamtrail` CLI on their machine. Scout is the sidekick voice: briefings, framing questions and system lines.
+Teamtrail is a local trail map for big work done by AI coding agents. A human describes a trail. Agents chart it as a map of decision tickets (`research`, `prototype`, `junction`, `task`, `execute`, plus `review`) with blocking edges, claim tickets over MCP, ask the human questions, and record decisions with evidence. The human steers in the Lookout, a web app served by the `teamtrail` CLI on their machine. Scout is the voice of Teamtrail wherever the human meets it, in the coding agent, the Lookout, Slack, the site and the docs: briefings, framing questions and system lines.
 
 ## Product rules
 
@@ -26,10 +26,10 @@ npm workspaces monorepo. Node 20+, TypeScript, ESM.
 | Path | What it is |
 | --- | --- |
 | `packages/core` | The engine, UI-free: the trail model, tracker adapters, planning and lifecycle, verification, evidence, agent coordination and the HTTP bridge. Zero runtime dependencies. Entry points in `packages/core/package.json` `exports`: `.` (`src/index.ts`), `./node`, `./bridge`, `./agents`. |
-| `packages/cli` | The `teamtrail` command, published as `teamtrail` (bin `teamtrail`). It serves the Lookout and the bridge (`src/serve/`), runs the MCP server (`src/mcp/`), connects agents (`src/connect.ts`) and meters usage (`src/usage/`). Built into one bundle by `packages/cli/build.mjs`. |
+| `packages/cli` | The `teamtrail` command, published as `teamtrail` (bin `teamtrail`). It serves the Lookout and the bridge (`src/serve/`), runs the MCP server (`src/mcp/`), connects agents (`src/connect.ts`), greets people in the terminal (`src/greeting.ts`) and meters usage (`src/usage/`). Built into one bundle by `packages/cli/build.mjs`. |
 | `apps/lookout` | The React + Vite web UI, bundled into the CLI. |
 | `packages/connector-slack` | The optional Slack connector: questions, approvals and briefings in Slack. |
-| `packages/scout-avatar` | The Scout pixel avatar: a React component and a framework-free renderer (`mountScout`). |
+| `packages/scout-avatar` | The Teamtrail logo (`src/logo/`) and Scout's badge (`src/scout/badgeArt.ts`): a React component and a framework-free renderer (`mountScout`). |
 | `scripts` | Dev tooling: the seed (`scripts/seed-dev.ts`, with M4's policy, assumptions and proposals in `scripts/seedSupervision.ts` and M3's worktree setting and overlapping claims in `scripts/seedParallel.ts`), scripted MCP dev agents (`scripts/dev-agent.mjs`), the end-to-end check (`scripts/verify-mcp.mjs`, M4 steps in `scripts/verifySupervision.mjs`, M3 steps on a scratch git repo in `scripts/verifyParallel.mjs`) and the local npm registry (`scripts/registry-local.mjs`). |
 | `.github/workflows` | CI (`ci.yml`, runs `npm run check`) and the manual Release workflow (`release.yml`). |
 

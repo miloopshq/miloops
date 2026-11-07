@@ -5,6 +5,7 @@ import { parseArgs, parseSubArgs } from './args/parseArgs';
 import { runConnect } from './connect';
 import { importKnowledge } from './knowledgeImport';
 import { runMcpServer } from './mcp/server';
+import { printGreeting } from './printGreeting';
 import { serveLookout } from './serve/serveLookout';
 import { readStdin, recordClaudeSession } from './usage/hook';
 
@@ -45,6 +46,7 @@ async function main() {
     const o = parseSubArgs(argv.slice(1), ['--dir']);
     const target = o.rest[0];
     if (target !== 'claude' && target !== 'codex') fail('connect needs an agent: claude or codex');
+    printGreeting();
     process.stdout.write(`\n  ${BRAND.name} · connect ${target === 'claude' ? 'Claude Code' : 'Codex'}\n\n`);
     runConnect(target, { cwd: process.cwd(), dir: o.dir });
     process.stdout.write('\n');

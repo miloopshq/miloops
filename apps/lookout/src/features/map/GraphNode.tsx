@@ -1,10 +1,11 @@
 import { attention, type DiffMark, type LaidOutNode, NODE_H, NODE_W, type SessionInfo } from '@teamtrail/core';
 import { type Selection, STATE_LABEL } from '../../lib';
+import { SIGN_TIP } from './edgePath';
 import { RerouteMarks } from './RerouteMarks';
 import { wrap } from './wrap';
 
-/** The sign's arrow, in pixel steps: it starts on the board's right edge. */
-const SIGN_TIP_PATH = `M${NODE_W} 0h4v8h3v8h3v6h3v12h-3v6h-3v8h-3v8h-4z`;
+/** The sign's arrow: it starts on the board's right edge. */
+const SIGN_TIP_PATH = `M${NODE_W} 0L${NODE_W + SIGN_TIP} ${NODE_H / 2}L${NODE_W} ${NODE_H}z`;
 
 /**
  * One ticket on the graph, drawn as a trail sign, in the three levels of the presenting-data rules: a state edge on the left, the title

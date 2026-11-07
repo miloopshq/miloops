@@ -18,7 +18,6 @@ export function Wave({
       width={width * unit}
       height={WAVE_HEIGHT * unit}
       viewBox={`0 0 ${width} ${WAVE_HEIGHT}`}
-      shapeRendering="crispEdges"
       aria-hidden="true"
     >
       {waveRects(heights, bars, colors).map((r, i) => (

@@ -1,5 +1,4 @@
-import { spriteRects, WAVE_HEIGHT, waveRects, waveWidth, type Rect } from './rects';
-import type { Palette } from './types';
+import { WAVE_HEIGHT, waveRects, waveWidth, type Rect } from './rects';
 
 const SVG = 'http://www.w3.org/2000/svg';
 
@@ -14,13 +13,11 @@ function drawRects(svg: SVGElement, rects: Rect[]) {
   for (const r of rects) svg.appendChild(svgEl('rect', { ...r }));
 }
 
-export function drawSprite(svg: SVGElement, rows: string[], palette: Palette, scale: number) {
-  const w = rows[0]?.length ?? 0;
-  const h = rows.length;
-  svg.setAttribute('width', String(w * scale));
-  svg.setAttribute('height', String(h * scale));
-  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-  drawRects(svg, spriteRects(rows, palette));
+export function drawBadge(svg: SVGElement, markup: string, size: number) {
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('viewBox', '0 0 200 200');
+  svg.innerHTML = markup;
 }
 
 export function drawWave(
@@ -56,8 +53,8 @@ export function createScoutDom(host: HTMLElement) {
   const status = document.createElement('span');
   const feed = document.createElement('div');
   const spriteWrap = document.createElement('span');
-  const sprite = svgEl('svg', { 'shape-rendering': 'crispEdges', 'aria-hidden': 'true' });
-  const wave = svgEl('svg', { 'shape-rendering': 'crispEdges', 'aria-hidden': 'true' });
+  const sprite = svgEl('svg', { 'aria-hidden': 'true' });
+  const wave = svgEl('svg', { 'aria-hidden': 'true' });
   const caption = document.createElement('p');
   const live = document.createElement('span');
   head.className = 'scout-head';

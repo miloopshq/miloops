@@ -12,7 +12,7 @@ export const TerrainLayer = memo(function TerrainLayer(props: {
   const { seed, width, height, nodes } = props;
   const terrain = useMemo(() => terrainFor({ seed, width, height, nodes }), [seed, width, height, nodes]);
   return (
-    <g className="terrain" aria-hidden="true" shapeRendering="crispEdges">
+    <g className="terrain" aria-hidden="true">
       <defs>
         {SPRITE_NAMES.map((name) => (
           <TerrainSymbol key={name} name={name} />

@@ -131,7 +131,7 @@
 }
 .nomap h2 {
   font-family: var(--display);
-  font-weight: 600;
+  font-weight: 900;
   font-size: var(--fs-display);
   margin: 0;
   color: var(--text-hi);
@@ -533,7 +533,7 @@
   opacity: 0.45;
 }
 .destination text {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 13px;
   font-weight: 600;
   fill: var(--text-hi);

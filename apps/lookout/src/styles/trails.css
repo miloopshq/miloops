@@ -17,7 +17,7 @@
 }
 .trail-title {
   font-family: var(--display);
-  font-weight: 400;
+  font-weight: 900;
   font-size: var(--fs-heading);
   letter-spacing: var(--ls-data);
   text-transform: uppercase;

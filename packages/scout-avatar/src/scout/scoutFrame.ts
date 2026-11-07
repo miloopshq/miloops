@@ -4,8 +4,10 @@
 import { EXPRESSIONS, STATUS_LABEL, TIMING, viseme } from './frames';
 import type { Eye, Light, ScoutSize, ScoutState, Mouth } from './types';
 
-/** Screen px per pixel of the 32px head; the 16px xs head gets double. */
-const SCALE: Record<ScoutSize, number> = { xs: 1, sm: 3, md: 5, lg: 7 };
+/** A size is a unit of the 40-unit badge; xs is a fixed 32px with the simple drawing. */
+const SCALE: Record<ScoutSize, number> = { xs: 0.8, sm: 2, md: 4, lg: 6 };
+const BADGE_UNITS = 40;
+const WAVE_BARS = 20;
 export const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 /** Re-render step while a line is spoken. */
 export const SPEECH_STEP_MS = 40;
@@ -65,14 +67,11 @@ export function scoutFace(m: ResolvedScout, t: number, blinking: boolean, speaki
   return { eyes, mouth, light, cursor };
 }
 
-/** Sprite scale, the screen unit and the number of waveform bars that fit under the sprite. */
-export function scoutLayout(rows: string[], m: ResolvedScout, cursor: number) {
-  const spriteW = rows[0]?.length ?? 32;
+/** The badge's size in px, the screen unit and the waveform's cursor. */
+export function scoutLayout(m: ResolvedScout, cursor: number) {
   const base = typeof m.size === 'number' ? m.size : SCALE[m.size];
-  const scale = base * (m.mini ? 2 : 1);
-  const bars = Math.floor((spriteW * scale) / (2 * base));
-  const waveCursor = m.reduced ? Math.min(m.text.length - 1, bars - 1) : cursor;
-  return { base, scale, bars, waveCursor };
+  const waveCursor = m.reduced ? Math.min(m.text.length - 1, WAVE_BARS - 1) : cursor;
+  return { base, px: BADGE_UNITS * base, bars: WAVE_BARS, waveCursor };
 }
 
 /** Status shown in the panel head, the accessible label and the caption text. */

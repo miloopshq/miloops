@@ -1,4 +1,4 @@
-/* Scout pixel avatar. Sprite colors live in art.ts / frames.ts palettes; panel colors fall back to the lookout tokens; override any --scout-* var on a parent. */
+/* Scout avatar. Colours live in badgeArt.ts / frames.ts; panel chrome is --scout-* vars. */
 .scout {
   --scout-ink: var(--text, #38443c);
   --scout-dim: var(--dim, #5e6a60);
@@ -9,7 +9,7 @@
   --scout-line2: var(--line2, rgba(76, 78, 58, 0.42));
   --scout-panel: var(--panel, #fbfaf4);
   --scout-mono: var(--mono, 'JetBrains Mono Variable'), ui-monospace, monospace;
-  --scout-display: var(--display, 'Bricolage Grotesque Variable'), 'Figtree Variable', sans-serif;
+  --scout-display: var(--display, 'Londrina Solid'), 'Figtree Variable', sans-serif;
   --scout-sans: var(--sans, 'Figtree Variable'), system-ui, sans-serif;
   color: var(--scout-ink);
 }
@@ -21,7 +21,6 @@
 }
 .scout-sprite svg {
   display: block;
-  image-rendering: pixelated;
 }
 .scout-wave {
   display: block;
@@ -35,6 +34,7 @@
 .scout-bare.scout-alert .scout-sprite {
   outline: 1px solid var(--scout-warn);
   outline-offset: 1px;
+  border-radius: 50%;
 }
 
 /* ---------- Panel ---------- */
@@ -65,7 +65,7 @@
 }
 .scout-name {
   font-family: var(--scout-display);
-  font-weight: 600;
+  font-weight: 900;
   font-size: var(--fs-sm, 12px);
   letter-spacing: 0.16em;
   color: var(--scout-hi);

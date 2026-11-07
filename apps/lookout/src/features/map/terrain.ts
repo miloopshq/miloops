@@ -21,11 +21,11 @@ export interface Terrain {
 
 /** How far the landscape runs past the tickets, so panning doesn't hit an edge straight away. */
 const MARGIN = 280;
-/** Everything sits on the sprites' 4-unit pixel grid. */
-const PIXEL = 4;
+/** Items snap to a small grid, so the seeded layout stays stable when a trail changes. */
+const GRID = 4;
 const MAX_ITEMS = 220;
 
-const snap = (v: number) => Math.round(v / PIXEL) * PIXEL;
+const snap = (v: number) => Math.round(v / GRID) * GRID;
 
 /** A small seeded random generator (mulberry32): the same trail always gets the same landscape. */
 function seeded(text: string) {

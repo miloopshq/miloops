@@ -16,9 +16,9 @@
 
   --ls-0: 0;
   --ls-text: 0.01em; /* slight tracking for small running text */
-  --ls-data: 0.06em; /* label-face data: keys, ids, caps headings in Geist Pixel */
+  --ls-data: 0.06em; /* label-face data: keys, ids, caps headings in Londrina Solid */
   --ls-label: 0.1em; /* mono caps labels, buttons, tabs */
-  --ls-brand: 0.12em; /* wordmark only, set in Geist Pixel */
+  --ls-brand: 0.018em; /* wordmark only, set in Londrina Solid */
 
   /* Spacing scale (px). --gutter is the inner padding of every zone. */
   --sp-2: 2px;
@@ -55,7 +55,7 @@
  * title (.t-title, .t-row-title): what a thing is or what you need to do.
  * body (.t-body): running text. meta (.t-meta): the one quiet context line, sentence case.
  * label (.t-label, alias .mono-label): small caps section and field labels only.
- * .t-code: paths, ids and keys inside any role. Geist Pixel (.t-pixel, .t-heading.caps) is for brand and zone heroes. */
+ * .t-code: paths, ids and keys inside any role. Londrina Solid (.t-heading.caps) is for brand and zone heroes. */
 .t-body {
   font: var(--type-body);
   color: var(--text);
@@ -106,16 +106,12 @@
   line-height: var(--lh-tight);
   color: var(--text-hi);
 }
-/* The title face for zone heroes (ticket title, HITL ticket line); trail title and current step set it directly. */
-.t-pixel {
-  font-family: var(--display);
-  font-weight: 600;
-}
-.t-pixel .meta {
+.t-title .meta {
   font-weight: 400;
 }
 .t-heading.caps {
   font-family: var(--display);
+  font-weight: 900;
 }
 
 /* ---------- Panel ---------- */
@@ -699,7 +695,7 @@ button.card.urgent:hover,
   }
 }
 
-/* Zone titles: every desktop zone names itself on one line, with a small pixel icon and a rule under it. */
+/* Zone titles: every desktop zone names itself on one line, with a small icon and a rule under it. */
 .sec-h.zone-title {
   border-bottom: 1px solid var(--line);
 }
@@ -717,13 +713,14 @@ button.card.urgent:hover,
   opacity: 0.85;
 }
 
-/* Info icon next to a zone title: a pixel "i" in a square; explains the zone on hover or focus. */
+/* Info icon next to a zone title: an "i" in a circle; explains the zone on hover or focus. */
 .info-tip {
   display: inline-grid;
   place-items: center;
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+  border-radius: 50%;
   border: 1px solid rgba(var(--accent-rgb), 0.55);
   background: rgba(var(--accent-rgb), 0.08);
   color: var(--accent);
@@ -770,7 +767,7 @@ button.card.urgent:hover,
   line-height: var(--lh-snug);
   color: var(--text-hi);
 }
-/* The tail: a square notch pointing at Scout's mouth, pixel style. */
+/* The tail: a notch pointing at Scout's mouth. */
 .scout-tip-bubble::before {
   content: '';
   position: absolute;

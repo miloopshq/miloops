@@ -3,6 +3,7 @@
  * Red (--urgent) only ever means "needs you now". Terrain and map colours stay faint so tickets and the trail lead. */
 :root {
   color-scheme: light;
+  --tt-keyline: transparent;
   --bg: #f3f1e7;
   --panel: #fbfaf4;
   --panel2: #f2efe2;
@@ -61,6 +62,7 @@
 /* The same values twice: browsers can't share a block between a media query and an attribute selector. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='day']) {
+    --tt-keyline: #f1e8d3;
     color-scheme: dark;
     --bg: #101815;
     --panel: #17211c;
@@ -113,6 +115,7 @@
   }
 }
 :root[data-theme='night'] {
+  --tt-keyline: #f1e8d3;
   color-scheme: dark;
   --bg: #101815;
   --panel: #17211c;
