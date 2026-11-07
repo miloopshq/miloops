@@ -52,7 +52,7 @@ jobs:
         uses: browser-actions/setup-chrome@v1
       - run: |
           git config --global user.name "Teamtrail CI"
-          git config --global user.email "ci@teamtrail.ai"
+          git config --global user.email "ci@teamtrail.app"
       - name: Version
         id: version
         env:

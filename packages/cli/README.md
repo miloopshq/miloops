@@ -1,8 +1,10 @@
-<img src="https://raw.githubusercontent.com/teamtrailhq/teamtrail/main/brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, next to the Teamtrail wordmark." width="100%" />
+<img src="https://raw.githubusercontent.com/teamtrailhq/teamtrail/main/brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, next to the Teamtrail logo and a trail through the mountains." width="100%" />
 
 # teamtrail
 
-Teamtrail: a local trail map for your AI coding agents. One command opens it for the agents working in your repo.
+**The trail map for your AI coding agents.** You pick the destination, your agents walk the trail, and you only get the calls that need you. One command opens it for the agents working in your repo.
+
+**[teamtrail.app](https://teamtrail.app)** · [Docs](https://teamtrail.app/docs/) · [GitHub](https://github.com/teamtrailhq/teamtrail)
 
 ```bash
 npm i -g teamtrail      # or skip the install: npx teamtrail

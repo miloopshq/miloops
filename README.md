@@ -1,8 +1,10 @@
-<img src="brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, cycling through watching, thinking, talking and needing you; decision waiting next to the Teamtrail wordmark." width="100%" />
+<img src="brand/teamtrail-banner.gif" alt="Scout, the voice of Teamtrail, next to the Teamtrail logo and a trail through the mountains." width="100%" />
 
 # Teamtrail
 
 > You pick the destination. Your agents walk the trail.
+
+**[teamtrail.app](https://teamtrail.app)** · [Docs](https://teamtrail.app/docs/) · [Try it: `npx teamtrail@next`](https://www.npmjs.com/package/teamtrail?activeTab=versions)
 
 Teamtrail is a local trail map for planning and executing big work with your AI coding agents. You describe a trail; your agents chart it as decision tickets, work through them, and bring the calls that need you to a single inbox. Scout, the Lookout's trail lead, briefs you on what changed while you were away and keeps spend and token usage in view.
 

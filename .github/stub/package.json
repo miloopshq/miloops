@@ -1,7 +1,7 @@
 {
   "name": "teamtrail",
   "version": "0.0.1",
-  "description": "Teamtrail: a local trail map for your AI coding agents. Coming soon.",
+  "description": "Teamtrail: the trail map for your AI coding agents. You pick the destination, your agents walk the trail, and you only get the calls that need you.",
   "type": "module",
   "bin": {
     "teamtrail": "index.js"
@@ -20,6 +20,7 @@
     "codex"
   ],
   "license": "FSL-1.1-ALv2",
+  "homepage": "https://teamtrail.app",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/teamtrailhq/teamtrail.git"
